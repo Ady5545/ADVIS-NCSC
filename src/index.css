@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyan-100: color-mix(in srgb, var(--primary) 20%, white);
+  --color-cyan-200: color-mix(in srgb, var(--primary) 40%, white);
+  --color-cyan-300: color-mix(in srgb, var(--primary) 60%, white);
+  --color-cyan-400: var(--primary);
+  --color-cyan-500: color-mix(in srgb, var(--primary) 80%, black);
+  --color-cyan-600: color-mix(in srgb, var(--primary) 60%, black);
+  --color-cyan-900: color-mix(in srgb, var(--primary) 30%, black);
+  --color-cyan-950: color-mix(in srgb, var(--primary) 15%, black);
+}
+
+@layer base {
+  :root {
+    --background: 200 100% 2%;
+    --foreground: 0 0% 100%;
+    --primary: #22d3ee;
+    --primary-dark: 190 100% 30%;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    overflow: hidden;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 255, 255, 0.05);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+  .mask-image-bottom {
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  }
+  .mask-image-both {
+    mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

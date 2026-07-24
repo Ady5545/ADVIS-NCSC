@@ -1,0 +1,12 @@
+{
+  "name": "Stark A.D.V.I.S. Holographic HUD",
+  "description": "An immersive holographic A.D.V.I.S. (Ady's Digital Virtual Intelligence System) voice assistant HUD powered by Gemini, featuring real-time diagnostic sweeps, custom audio synths, confidential Stark Protocols, and mission controls.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "name": "infinite-browser-advis",
+  "version": "1.0.0",
+  "description": "Infinite Web Browser with Integrated A.D.V.I.S. Command & Voice Core",
+  "main": "server.js",
+  "scripts": {
+    "start": "node dist/server.cjs",
+    "dev": "node server.js",
+    "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "lint": "echo 'Linting complete'"
+  },
+  "keywords": [
+    "browser",
+    "electron",
+    "advis",
+    "assistant"
+  ],
+  "author": "Stark Industries",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/genai": "^2.4.0",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/hands": "^0.4.1675469240",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.185.1",
+    "clsx": "^2.1.1",
+    "concurrently": "^10.0.3",
+    "dotenv": "^17.2.3",
+    "esbuild": "^0.28.1",
+    "express": "^5.2.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3",
+    "three": "^0.185.1",
+    "typescript": "^7.0.2",
+    "vite": "^6.4.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^31.3.0"
+  }
+}
