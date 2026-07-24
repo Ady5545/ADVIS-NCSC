@@ -28,6 +28,14 @@ class GLTFErrorBoundary extends React.Component<{children: React.ReactNode}, {ha
 
 import { useGLTF } from '@react-three/drei';
 
+useGLTF.preload('/models/arduino_uno.glb');
+useGLTF.preload('/models/sg90_servo.glb');
+useGLTF.preload('/models/ldr.glb');
+useGLTF.preload('/models/resistor_10k.glb');
+useGLTF.preload('/models/solar_panel.glb');
+useGLTF.preload('/models/esp32.glb');
+useGLTF.preload('/models/heliomotion.glb');
+
 function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: string, isHovered: boolean, isSelected: boolean, scale?: number }) {
   const { scene } = useGLTF(url);
   const { camera } = useThree();
@@ -167,7 +175,7 @@ import { useGestureEngine } from './GestureContext';
 export type SpatialMode = 'INSPECTION' | 'SHOWCASE' | 'EXPLODED' | 'DEMO';
 
 interface SpatialObjectEngineProps {
-  currentSpatialObject: string | null;
+  currentSpatialObject: string | string[] | null;
   selectedComponentId: string | null;
   hoveredComponentId: string | null;
   isExploded: boolean;
@@ -182,6 +190,7 @@ interface SpatialObjectEngineProps {
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   soundEnabled?: boolean;
   isExiting?: boolean;
+  showLabels?: boolean;
 }
 
 
@@ -1473,7 +1482,7 @@ function TargetingBeam({
   hoverHitPointRef: React.RefObject<THREE.Vector3 | null>; 
   pointerRayPosRef: React.RefObject<THREE.Vector3 | null>; 
 }) {
-  const lineRef = useRef<any>(null);
+  const geometryRef = useRef<THREE.BufferGeometry>(null);
   const reticleGroupRef = useRef<THREE.Group>(null);
   const containerGroupRef = useRef<THREE.Group>(null);
 
@@ -1485,11 +1494,13 @@ function TargetingBeam({
         if (reticleGroupRef.current) {
           reticleGroupRef.current.position.copy(hoverHitPointRef.current);
         }
-        if (lineRef.current) {
-          lineRef.current.setPoints([
-            [pointerRayPosRef.current.x, pointerRayPosRef.current.y, pointerRayPosRef.current.z],
-            [hoverHitPointRef.current.x, hoverHitPointRef.current.y, hoverHitPointRef.current.z]
-          ]);
+        if (geometryRef.current) {
+          const posAttr = geometryRef.current.attributes.position;
+          if (posAttr) {
+            posAttr.setXYZ(0, pointerRayPosRef.current.x, pointerRayPosRef.current.y, pointerRayPosRef.current.z);
+            posAttr.setXYZ(1, hoverHitPointRef.current.x, hoverHitPointRef.current.y, hoverHitPointRef.current.z);
+            posAttr.needsUpdate = true;
+          }
         }
       }
     }
@@ -1497,17 +1508,15 @@ function TargetingBeam({
 
   return (
     <group ref={containerGroupRef} visible={false}>
-      <Line
-        ref={lineRef}
-        points={[
-          [0, 0, 0],
-          [0, 0, 0]
-        ]}
-        color="#22d3ee"
-        lineWidth={1.5}
-        transparent
-        opacity={0.7}
-      />
+      <line>
+        <bufferGeometry ref={geometryRef}>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[new Float32Array([0, 0, 0, 0, 0, 0]), 3]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#22d3ee" transparent opacity={0.7} linewidth={1.5} />
+      </line>
       <group ref={reticleGroupRef}>
         <mesh>
           <ringGeometry args={[0.08, 0.12, 16]} />
@@ -1537,7 +1546,8 @@ export function SpatialObjectEngine({
   setPresentationStep,
   setMessages,
   soundEnabled = true,
-  isExiting = false
+  isExiting = false,
+  showLabels = false
 }: SpatialObjectEngineProps) {
   const gestureState = useGestureEngine();
   const { raycaster, camera, scene } = useThree();
@@ -1578,27 +1588,25 @@ export function SpatialObjectEngine({
              setMatPhase('FINAL');
              setMatProgress(1);
              
-             // Speech Confirmation after render
-             if (!isPresentationMode && soundEnabled && window.speechSynthesis) {
-                 const obj = SPATIAL_LIBRARY[currentSpatialObject];
-                 if (obj) {
-                     // Check if there is already a speech happening
-                     if (!window.speechSynthesis.speaking) {
-                        const speakText = obj.modelStatus === 'FALLBACK' 
-                          ? `${obj.name} visualizer online.` 
-                          : `Displaying ${obj.name}.`;
-                        const utterance = new SpeechSynthesisUtterance(speakText);
-                        utterance.rate = 1.05;
-                        utterance.pitch = 0.95;
-                        const voices = window.speechSynthesis.getVoices();
-                        let bestVoice = voices.find(v => v.name.includes("Daniel"));
-                        if (!bestVoice) bestVoice = voices.find(v => v.name.includes("UK English Male"));
-                        if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith("en"));
-                        if (bestVoice) utterance.voice = bestVoice;
-                        window.speechSynthesis.speak(utterance);
-                     }
-                 }
-             }
+              // Speech Confirmation after render
+              if (!isPresentationMode && soundEnabled && window.speechSynthesis) {
+                  const objectIds = Array.isArray(currentSpatialObject) ? currentSpatialObject : [currentSpatialObject];
+                  const speakText = objectIds.length > 1 
+                    ? `Displaying showcase with ${objectIds.map(id => SPATIAL_LIBRARY[id]?.name || id).join(', ')}.`
+                    : (SPATIAL_LIBRARY[objectIds[0]] ? `Displaying ${SPATIAL_LIBRARY[objectIds[0]].name}.` : 'Displaying models.');
+                  // Check if there is already a speech happening
+                  if (!window.speechSynthesis.speaking) {
+                     const utterance = new SpeechSynthesisUtterance(speakText);
+                     utterance.rate = 1.05;
+                     utterance.pitch = 0.95;
+                     const voices = window.speechSynthesis.getVoices();
+                     let bestVoice = voices.find(v => v.name.includes("Daniel"));
+                     if (!bestVoice) bestVoice = voices.find(v => v.name.includes("UK English Male"));
+                     if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith("en"));
+                     if (bestVoice) utterance.voice = bestVoice;
+                     window.speechSynthesis.speak(utterance);
+                  }
+              }
              
              return;
           }
@@ -1730,9 +1738,12 @@ export function SpatialObjectEngine({
 
   // Sync default scale on object load
   useEffect(() => {
-    if (currentSpatialObject && SPATIAL_LIBRARY[currentSpatialObject]) {
-      const defScale = SPATIAL_LIBRARY[currentSpatialObject].defaultScale;
-      targetScale.current = defScale;
+    const primaryId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+    if (primaryId && SPATIAL_LIBRARY[primaryId]) {
+      const defScale = SPATIAL_LIBRARY[primaryId].defaultScale;
+      const objectIds = Array.isArray(currentSpatialObject) ? currentSpatialObject : (currentSpatialObject ? [currentSpatialObject] : []);
+      const scaleMultiplier = objectIds.length > 1 ? defScale * 0.8 : defScale;
+      targetScale.current = scaleMultiplier;
       
       // Load at center
       targetPos.current = [0, 0, 0];
@@ -1740,7 +1751,7 @@ export function SpatialObjectEngine({
 
       if (mainGroupRef.current) {
         mainGroupRef.current.position.set(0, 0, 0);
-        mainGroupRef.current.scale.set(defScale, defScale, defScale);
+        mainGroupRef.current.scale.set(scaleMultiplier, scaleMultiplier, scaleMultiplier);
         mainGroupRef.current.rotation.set(0.2, -0.4, 0);
       }
     }
@@ -2222,8 +2233,8 @@ export function SpatialObjectEngine({
 
       if (!isActivelyInteracting && rotationVelocityRef.current === 0) {
         if (currentMode === 'SHOWCASE') {
-          // [SHOWCASE_CONTROLLER]: Extremely slow, smooth museum exhibition (~40s per revolution)
-          idleRotationRef.current += 0.05 * delta;
+          // [SHOWCASE_CONTROLLER]: Smooth cinematic museum exhibition (~2x speed)
+          idleRotationRef.current += 0.10 * delta;
         } else if (currentMode === 'EXPLODED') {
           // [EXPLODE_CONTROLLER]: Engineering CAD analysis. Absolutely NO automatic rotation.
         } else if (currentMode === 'DEMO') {
@@ -2276,40 +2287,46 @@ export function SpatialObjectEngine({
     }
     
     // G. Explode animations and mechanical reciprocating movements
-    const activeObject = currentSpatialObjectRef.current ? SPATIAL_LIBRARY[currentSpatialObjectRef.current] : null;
-    if (activeObject) {
-      activeObject.components.forEach(comp => {
-        const meshObj = componentRefs.current[comp.id];
-        if (meshObj) {
-          const targetOffset = isExplodedRef.current ? comp.explodedOffset : [0, 0, 0];
-          meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
-          meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
-          meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
+    const currentObjIds = currentSpatialObjectRef.current 
+      ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
+      : [];
+    currentObjIds.forEach(objId => {
+      const activeObject = SPATIAL_LIBRARY[objId];
+      if (activeObject) {
+        activeObject.components.forEach(comp => {
+          const meshObj = componentRefs.current[comp.id];
+          if (meshObj) {
+            const targetOffset = isExplodedRef.current ? comp.explodedOffset : [0, 0, 0];
+            meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
+            meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
+            meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
 
-          if (currentSpatialObjectRef.current === 'engine_v12' && !isExplodedRef.current) {
-            const time = state.clock.elapsedTime * 6;
-            if (comp.id === 'piston_left_bank') {
-              meshObj.position.y = comp.position[1] + Math.sin(time) * 0.4;
-            } else if (comp.id === 'piston_right_bank') {
-              meshObj.position.y = comp.position[1] + Math.sin(time + Math.PI) * 0.4;
-            } else if (comp.id === 'crankshaft') {
-              meshObj.rotation.x = time;
+            if (objId === 'engine_v12' && !isExplodedRef.current) {
+              const time = state.clock.elapsedTime * 6;
+              if (comp.id === 'piston_left_bank') {
+                meshObj.position.y = comp.position[1] + Math.sin(time) * 0.4;
+              } else if (comp.id === 'piston_right_bank') {
+                meshObj.position.y = comp.position[1] + Math.sin(time + Math.PI) * 0.4;
+              } else if (comp.id === 'crankshaft') {
+                meshObj.rotation.x = time;
+              }
+            }
+
+            if (objId === 'human_heart') {
+              const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5) * 0.06;
+              meshObj.scale.set(pulse, pulse, pulse);
             }
           }
-
-          if (currentSpatialObjectRef.current === 'human_heart') {
-            const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5) * 0.06;
-            meshObj.scale.set(pulse, pulse, pulse);
-          }
-        }
-      });
-    }
+        });
+      }
+    });
   });
 
-  if (!currentSpatialObject || !SPATIAL_LIBRARY[currentSpatialObject]) return null;
+  const objectIds = Array.isArray(currentSpatialObject) 
+    ? currentSpatialObject 
+    : (currentSpatialObject ? [currentSpatialObject] : []);
 
-  const obj = SPATIAL_LIBRARY[currentSpatialObject];
-  const initialScale = obj.defaultScale || 1.0;
+  if (objectIds.length === 0 || !objectIds.every(id => SPATIAL_LIBRARY[id])) return null;
 
   return (
     <group
@@ -2330,100 +2347,114 @@ export function SpatialObjectEngine({
 
       {/* RENDER THE OBJECT STATUS OR COMPONENTS */}
       <group>
-        {obj.modelStatus === 'AWAITING_ASSET' ? (
-          <Html position={[0, 0, 0]} center transform distanceFactor={12}>
-            <div className="flex flex-col items-center justify-center border border-cyan-500/20 bg-cyan-950/30 px-10 py-8 rounded-2xl backdrop-blur-lg shadow-[0_0_30px_rgba(6,182,212,0.1)]">
-              <div className="text-cyan-400 font-mono font-bold tracking-[0.3em] text-[10px] uppercase mb-4 flex items-center gap-3">
-                <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"></div>
-                MODEL REGISTRY
-              </div>
-              <div className="text-cyan-50 font-sans font-light text-xl tracking-wide text-center mb-1">
-                {obj.name}
-              </div>
-              <div className="text-cyan-300/60 font-mono text-xs tracking-widest uppercase mb-6">
-                ASSET STATUS: UNAVAILABLE
-              </div>
-            </div>
-          </Html>
-        ) : obj.modelStatus === 'UNAVAILABLE' ? (
-          <Html center position={[0, 0, 0]}>
-            <div className="flex flex-col items-center justify-center p-8 bg-black/80 backdrop-blur-md border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] min-w-[300px]">
-              <div className="w-12 h-12 mb-4 rounded-full border border-dashed border-cyan-400/50 flex items-center justify-center animate-[spin_10s_linear_infinite]">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.8)] animate-pulse" />
-              </div>
-              <h2 className="text-xl font-sans font-light text-cyan-50 mb-2 tracking-wide text-center">Model Unavailable</h2>
-              <p className="text-cyan-200/60 font-mono text-xs text-center leading-relaxed">
-                The high-fidelity asset for<br/>
-                <span className="text-cyan-400 font-bold">{obj.name}</span><br/>
-                is currently missing from the local repository.
-              </p>
-            </div>
-          </Html>
-        ) : (
-          <group>
-            {obj.modelStatus === 'FALLBACK' && (
-              <Html position={[0, 2, 0]} center transform distanceFactor={10}>
-                 <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-cyan-500/50 rounded-lg text-cyan-400 font-mono text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                    {obj.name.split(' ')[0]} Visualization
-                 </div>
-              </Html>
-            )}
-            
-            {obj.id === 'electron' ? <ElectronCloud />
-            : obj.id === 'hydrogen_atom' ? <HydrogenAtom />
-            : obj.id === 'atomic_nucleus' ? <AtomicNucleus />
-            : obj.id === 'magnetic_field' ? <MagneticField />
-            : (
-              obj.components.map(comp => {
-                const isHovered = hoveredComponentId === comp.id;
-                const isSelected = selectedComponentId === comp.id;
-                
-                return (
-                  <group 
-                    key={comp.id} 
-                    ref={(el) => {
-                      if (el) componentRefs.current[comp.id] = el;
-                    }}
-                    position={comp.position as [number, number, number]}
-                    rotation={(comp.rotation || [0, 0, 0]) as [number, number, number]}
-                    userData={{ 
-                      selectableId: comp.id,
-                      componentName: comp.name,
-                      description: comp.description,
-                      category: obj.category,
-                      specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
-                      explodedOffset: comp.explodedOffset,
-                      interactionEnabled: comp.interactionEnabled !== false
-                    }}
-                  >
-                    <EngineeringComponentRenderer
-                      comp={comp}
-                      objectId={obj.id}
-                      isHovered={isHovered}
-                      isSelected={isSelected}
-                    />
-                    
-                    {(isHovered || isSelected) && (
-                      <Html distanceFactor={8} position={[comp.size[0]/2 + 0.5, comp.size[1]/2 + 0.5, 0]} center zIndexRange={[100, 0]}>
-                        <div className="flex flex-row items-center pointer-events-none animate-fade-in mix-blend-screen transition-opacity duration-300">
-                          <div className="w-16 h-[1px] bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
-                          <div className="flex flex-col pl-3 pt-1 border-l-[1px] border-cyan-400/40 pb-2">
-                            <span className="font-mono font-bold text-cyan-300 text-[11px] uppercase tracking-[0.2em] drop-shadow-md">
-                              {comp.name}
-                            </span>
-                            <span className="font-sans font-light text-[9px] text-cyan-50/70 leading-snug w-48 mt-1 tracking-wide">
-                              {comp.description}
-                            </span>
-                          </div>
-                        </div>
-                      </Html>
-                    )}
-                  </group>
-                );
-              })
-            )}
-          </group>
-        )}
+        {objectIds.map((objId, idx) => {
+          const obj = SPATIAL_LIBRARY[objId];
+          if (!obj) return null;
+
+          const baseSpacing = 6.0;
+          const spacing = Math.max(baseSpacing, (obj.defaultScale || 1.0) * 4.5 + (objectIds.length > 2 ? 2.0 : 0));
+          const totalWidth = (objectIds.length - 1) * spacing;
+          const offsetX = (idx * spacing) - (totalWidth / 2);
+
+          return (
+            <group key={objId} position={[offsetX, 0, 0]}>
+              {obj.modelStatus === 'AWAITING_ASSET' ? (
+                <Html position={[0, 0, 0]} center transform distanceFactor={12}>
+                  <div className="flex flex-col items-center justify-center border border-cyan-500/20 bg-cyan-950/30 px-10 py-8 rounded-2xl backdrop-blur-lg shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                    <div className="text-cyan-400 font-mono font-bold tracking-[0.3em] text-[10px] uppercase mb-4 flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"></div>
+                      MODEL REGISTRY
+                    </div>
+                    <div className="text-cyan-50 font-sans font-light text-xl tracking-wide text-center mb-1">
+                      {obj.name}
+                    </div>
+                    <div className="text-cyan-300/60 font-mono text-xs tracking-widest uppercase mb-6">
+                      ASSET STATUS: UNAVAILABLE
+                    </div>
+                  </div>
+                </Html>
+              ) : obj.modelStatus === 'UNAVAILABLE' ? (
+                <Html center position={[0, 0, 0]}>
+                  <div className="flex flex-col items-center justify-center p-8 bg-black/80 backdrop-blur-md border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] min-w-[300px]">
+                    <div className="w-12 h-12 mb-4 rounded-full border border-dashed border-cyan-400/50 flex items-center justify-center animate-[spin_10s_linear_infinite]">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.8)] animate-pulse" />
+                    </div>
+                    <h2 className="text-xl font-sans font-light text-cyan-50 mb-2 tracking-wide text-center">Model Unavailable</h2>
+                    <p className="text-cyan-200/60 font-mono text-xs text-center leading-relaxed">
+                      The high-fidelity asset for<br/>
+                      <span className="text-cyan-400 font-bold">{obj.name}</span><br/>
+                      is currently missing from the local repository.
+                    </p>
+                  </div>
+                </Html>
+              ) : (
+                <group>
+                  {obj.modelStatus === 'FALLBACK' && (
+                    <Html position={[0, 2, 0]} center transform distanceFactor={10}>
+                       <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-cyan-500/50 rounded-lg text-cyan-400 font-mono text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                          {obj.name.split(' ')[0]} Visualization
+                       </div>
+                    </Html>
+                  )}
+                  
+                  {obj.id === 'electron' ? <ElectronCloud />
+                  : obj.id === 'hydrogen_atom' ? <HydrogenAtom />
+                  : obj.id === 'atomic_nucleus' ? <AtomicNucleus />
+                  : obj.id === 'magnetic_field' ? <MagneticField />
+                  : (
+                    obj.components.map(comp => {
+                      const isHovered = hoveredComponentId === comp.id;
+                      const isSelected = selectedComponentId === comp.id;
+                      
+                      return (
+                        <group 
+                          key={comp.id} 
+                          ref={(el) => {
+                            if (el) componentRefs.current[comp.id] = el;
+                          }}
+                          position={comp.position as [number, number, number]}
+                          rotation={(comp.rotation || [0, 0, 0]) as [number, number, number]}
+                          userData={{ 
+                            selectableId: comp.id,
+                            componentName: comp.name,
+                            description: comp.description,
+                            category: obj.category,
+                            specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
+                            explodedOffset: comp.explodedOffset,
+                            interactionEnabled: comp.interactionEnabled !== false
+                          }}
+                        >
+                          <EngineeringComponentRenderer
+                            comp={comp}
+                            objectId={obj.id}
+                            isHovered={isHovered}
+                            isSelected={isSelected}
+                          />
+                          
+                          {(isHovered || isSelected || showLabels) && (
+                            <Html distanceFactor={8} position={[comp.size[0]/2 + 0.5, comp.size[1]/2 + 0.5, 0]} center zIndexRange={[100, 0]}>
+                              <div className="flex flex-row items-center pointer-events-none animate-fade-in mix-blend-screen transition-opacity duration-300">
+                                <div className="w-16 h-[1px] bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
+                                <div className="flex flex-col pl-3 pt-1 border-l-[1px] border-cyan-400/40 pb-2">
+                                  <span className="font-mono font-bold text-cyan-300 text-[11px] uppercase tracking-[0.2em] drop-shadow-md">
+                                    {comp.name}
+                                  </span>
+                                  <span className="font-sans font-light text-[9px] text-cyan-50/70 leading-snug w-48 mt-1 tracking-wide">
+                                    {comp.description}
+                                  </span>
+                                </div>
+                              </div>
+                            </Html>
+                          )}
+                        </group>
+                      );
+                    })
+                  )}
+                </group>
+              )}
+            </group>
+          );
+        })}
       </group>
 
       {/* 3D HOLOGRAPHIC TARGETING BEAM AND RETICLE */}

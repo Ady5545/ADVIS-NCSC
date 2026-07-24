@@ -175,17 +175,17 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     defaultScale: 1.5,
     educationalInformation: {
       overview: 'An automated mechanism orienting a solar panel payload towards the Sun to maximize energy capture.',
-      keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller'],
+      keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller', '10k Resistor Protection'],
       workingPrinciple: 'LDR sensors detect light intensity differences. The Arduino calculates the optimal angle and drives the servos to align the panel perpendicularly to the light source.',
       applications: ['Solar Power Plants', 'Spacecraft Solar Arrays', 'Educational Robotics'],
-      specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': '4x LDR', 'Actuators': '2x SG90 Servo' }
+      specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo' }
     },
     components: [
-      { id: 'hm_arduino', name: 'Arduino Controller', description: 'Main controller.', position: [0, -0.5, 0.5], size: [1.0, 0.2, 1.4], explodedOffset: [0, -1.0, 1.0], shape: 'box', assetPath: '/models/arduino_uno.glb', assetScale: 1.0 },
-      { id: 'hm_servo_pan', name: 'Pan Servo', description: 'Controls Azimuth.', position: [0, -0.2, 0], size: [0.4, 0.5, 0.4], explodedOffset: [0, -0.5, 0], shape: 'box', assetPath: '/models/sg90_servo.glb', assetScale: 1.0 },
-      { id: 'hm_servo_tilt', name: 'Tilt Servo', description: 'Controls Elevation.', position: [0, 0.2, 0], size: [0.4, 0.5, 0.4], explodedOffset: [0, 0.5, 0], shape: 'box', assetPath: '/models/sg90_servo.glb', assetScale: 1.0, rotation: [Math.PI/2, 0, 0] },
-      { id: 'hm_solar', name: 'Solar Panel', description: 'Energy Capture.', position: [0, 0.6, 0], size: [1.4, 0.05, 1.4], explodedOffset: [0, 1.5, 0], shape: 'box', assetPath: '/models/solar_panel.glb', assetScale: 1.0 },
-      { id: 'hm_ldr_array', name: 'LDR Array', description: 'Light Sensors.', position: [0, 0.65, 0.5], size: [0.4, 0.1, 0.4], explodedOffset: [0, 1.8, 0.5], shape: 'box', assetPath: '/models/ldr.glb', assetScale: 1.0 }
+      { id: 'hm_arduino', name: 'Arduino UNO', description: 'Main Controller', position: [0, -0.5, 0.4], size: [1.0, 0.2, 1.4], explodedOffset: [0, -1.2, 1.2], shape: 'box', assetPath: '/models/arduino_uno.glb', assetScale: 1.0 },
+      { id: 'hm_servo', name: 'SG90 Servo', description: 'Mechanical Actuator', position: [0, -0.1, 0], size: [0.4, 0.5, 0.4], explodedOffset: [-0.9, -0.3, 0], shape: 'box', assetPath: '/models/sg90_servo.glb', assetScale: 1.0 },
+      { id: 'hm_ldr', name: 'LDR Sensor', description: 'Light Detection', position: [0, 0.75, 0.5], size: [0.3, 0.3, 0.3], explodedOffset: [0, 1.6, 0.6], shape: 'box', assetPath: '/models/ldr.glb', assetScale: 1.0 },
+      { id: 'hm_resistor', name: '10k Resistor', description: 'Signal Protection', position: [0.4, -0.5, 0.4], size: [0.4, 0.1, 0.1], explodedOffset: [-0.6, -0.9, 0.8], shape: 'box', assetPath: '/models/resistor_10k.glb', assetScale: 1.0 },
+      { id: 'hm_solar', name: 'Solar Panel', description: 'Energy Generation', position: [0, 0.6, 0], size: [1.4, 0.05, 1.4], explodedOffset: [0, 1.8, 0], shape: 'box', assetPath: '/models/solar_panel.glb', assetScale: 1.0, rotation: [-0.15, 0, 0] }
     ]
   },
 

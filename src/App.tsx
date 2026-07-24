@@ -80,7 +80,7 @@ export default function App() {
   const handTracking = useHandTracking(cvEnabled);
   
   // Spatial Object Engine State Management
-  const [currentSpatialObject, setCurrentSpatialObject] = useState<string | null>(null);
+  const [currentSpatialObject, setCurrentSpatialObject] = useState<string | string[] | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [hoveredComponentId, setHoveredComponentId] = useState<string | null>(null);
   const [isExploded, setIsExploded] = useState<boolean>(false);
@@ -88,6 +88,7 @@ export default function App() {
   const [presentationStep, setPresentationStep] = useState<number>(0);
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
+  const [showLabels, setShowLabels] = useState<boolean>(false);
 
   const changeSpatialMode = (newMode: SpatialMode) => {
     setSpatialMode(newMode);
@@ -456,23 +457,34 @@ export default function App() {
         const action = data.spatialAction;
         
         if (action.type === 'DISPLAY' || action.type === 'PRESENT') {
-          const modelInfo = SPATIAL_LIBRARY[action.objectId as keyof typeof SPATIAL_LIBRARY];
-          if (modelInfo && modelInfo.modelStatus === 'UNAVAILABLE') {
-            setSystemState('ONLINE');
-            setMessages(prev => [...prev, {
-              role: 'assistant',
-              content: 'Model currently unavailable. The high-fidelity asset is not present in the local repository.',
-              timestamp: Date.now()
-            }]);
-            return;
+          const idsToCheck = action.objectIds || (action.objectId ? [action.objectId] : []);
+          for (const oid of idsToCheck) {
+            const modelInfo = SPATIAL_LIBRARY[oid as keyof typeof SPATIAL_LIBRARY];
+            if (modelInfo && modelInfo.modelStatus === 'UNAVAILABLE') {
+              setSystemState('ONLINE');
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `Model ${modelInfo.name} currently unavailable. The high-fidelity asset is not present in the local repository.`,
+                timestamp: Date.now()
+              }]);
+              return;
+            }
           }
         }
 
         if (action.type === 'DISPLAY') {
-          setCurrentSpatialObject(action.objectId);
+          if (action.objectIds) {
+            setCurrentSpatialObject(action.objectIds);
+          } else if (action.objectId) {
+            setCurrentSpatialObject(action.objectId);
+          }
           setSelectedComponentId(null);
           setHoveredComponentId(null);
-          changeSpatialMode('INSPECTION');
+          if (action.mode) {
+            changeSpatialMode(action.mode);
+          } else {
+            changeSpatialMode('INSPECTION');
+          }
         } else if (action.type === 'SHOWCASE') {
           changeSpatialMode('SHOWCASE');
         } else if (action.type === 'INSPECTION') {
@@ -481,8 +493,14 @@ export default function App() {
           changeSpatialMode('DEMO');
         } else if (action.type === 'EXPLODE') {
           changeSpatialMode(action.value ? 'EXPLODED' : 'INSPECTION');
+        } else if (action.type === 'LABEL') {
+          setShowLabels(action.value);
         } else if (action.type === 'PRESENT') {
-          setCurrentSpatialObject(action.objectId);
+          if (action.objectIds) {
+            setCurrentSpatialObject(action.objectIds);
+          } else if (action.objectId) {
+            setCurrentSpatialObject(action.objectId);
+          }
           setSelectedComponentId(null);
           setHoveredComponentId(null);
           changeSpatialMode('DEMO');
@@ -679,6 +697,7 @@ export default function App() {
             setPresentationStep={setPresentationStep}
             setMessages={setMessages}
             soundEnabled={soundEnabled}
+            showLabels={showLabels}
           />
           
           <EffectComposer>
@@ -761,10 +780,14 @@ export default function App() {
               </div>
             </div>
             <div className="text-white font-bold text-lg mt-1 tracking-wide shadow-cyan-500/50 drop-shadow-md">
-              {SPATIAL_LIBRARY[currentSpatialObject]?.name || currentSpatialObject}
+              {Array.isArray(currentSpatialObject)
+                ? currentSpatialObject.map(id => SPATIAL_LIBRARY[id]?.name || id).join(' + ')
+                : (SPATIAL_LIBRARY[currentSpatialObject || '']?.name || currentSpatialObject)}
             </div>
             <div className="text-[10px] text-cyan-400/70 italic mt-0.5 uppercase tracking-widest">
-              {SPATIAL_LIBRARY[currentSpatialObject]?.category}
+              {Array.isArray(currentSpatialObject)
+                ? 'Engineering Showcase'
+                : (SPATIAL_LIBRARY[currentSpatialObject || '']?.category || 'Engineering')}
             </div>
           </div>
 
@@ -847,26 +870,32 @@ export default function App() {
             </button>
           </div>
 
-          {spatialMode === 'DEMO' && (
-            <div className="mt-1">
-              <div className="text-[9px] text-amber-400/80 uppercase tracking-widest font-bold mb-1 flex justify-between">
-                <span>Demonstration Active</span>
-                <span>Step {presentationStep + 1} / {(SPATIAL_LIBRARY[currentSpatialObject]?.components.length || 0) + 1}</span>
+          {spatialMode === 'DEMO' && (() => {
+            const primaryObjId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+            const obj = primaryObjId ? SPATIAL_LIBRARY[primaryObjId] : null;
+            const compCount = obj?.components.length || 1;
+            return (
+              <div className="mt-1">
+                <div className="text-[9px] text-amber-400/80 uppercase tracking-widest font-bold mb-1 flex justify-between">
+                  <span>Demonstration Active</span>
+                  <span>Step {presentationStep + 1} / {compCount + 1}</span>
+                </div>
+                <div className="w-full bg-slate-900 rounded-full h-1 overflow-hidden border border-amber-500/20">
+                  <div 
+                    className="bg-amber-400 h-full transition-all duration-1000 ease-in-out shadow-[0_0_8px_rgba(245,158,11,0.6)]" 
+                    style={{ width: `${Math.max(5, ((presentationStep + 1) / (compCount + 1)) * 100)}%` }}
+                  ></div>
+                </div>
               </div>
-              <div className="w-full bg-slate-900 rounded-full h-1 overflow-hidden border border-amber-500/20">
-                <div 
-                  className="bg-amber-400 h-full transition-all duration-1000 ease-in-out shadow-[0_0_8px_rgba(245,158,11,0.6)]" 
-                  style={{ width: `${Math.max(5, ((presentationStep + 1) / ((SPATIAL_LIBRARY[currentSpatialObject]?.components.length || 1) + 1)) * 100)}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
       {/* SELECTED COMPONENT DETAIL VIEW HUD CARD */}
       {currentSpatialObject && selectedComponentId && (() => {
-        const obj = SPATIAL_LIBRARY[currentSpatialObject];
+        const primaryObjId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+        const obj = primaryObjId ? SPATIAL_LIBRARY[primaryObjId] : null;
         const comp = obj?.components.find(c => c.id === selectedComponentId);
         if (!comp) return null;
         const specs = comp.specifications || obj?.educationalInformation?.specifications || {

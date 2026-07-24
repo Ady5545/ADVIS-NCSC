@@ -345,24 +345,42 @@ async function startServer() {
       return { type: "DEMO" };
     }
 
-    if (lower.includes("separate the components") || lower.includes("separate components") || lower.includes("exploded view") || lower.includes("explode the model") || lower.includes("separate the parts") || lower.includes("separate parts") || lower.includes("exploded visualization")) {
+    if (lower.includes("explode heliomotion") || lower.includes("separate the components") || lower.includes("separate components") || lower.includes("exploded view") || lower.includes("explode the model") || lower.includes("separate the parts") || lower.includes("separate parts") || lower.includes("exploded visualization")) {
       return { type: "EXPLODE", value: true };
     }
-    if (lower.includes("assemble the components") || lower.includes("assemble components") || lower.includes("re-assemble") || lower.includes("normal view") || lower.includes("assemble the parts") || lower.includes("assemble parts") || lower.includes("collapse view") || lower.includes("collapse parts")) {
+    if (lower.includes("assemble heliomotion") || lower.includes("assemble the components") || lower.includes("assemble components") || lower.includes("re-assemble") || lower.includes("normal view") || lower.includes("assemble the parts") || lower.includes("assemble parts") || lower.includes("collapse view") || lower.includes("collapse parts")) {
       return { type: "EXPLODE", value: false };
+    }
+    if (lower.includes("label heliomotion") || lower.includes("show labels") || lower.includes("enable labels") || lower.startsWith("label")) {
+      return { type: "LABEL", value: true };
+    }
+    if (lower.includes("hide labels") || lower.includes("remove labels")) {
+      return { type: "LABEL", value: false };
     }
     if (lower.includes("explain this") || lower.includes("what is this part") || lower.includes("tell me about this") || lower.includes("explain the selected") || lower.includes("explain component")) {
       return { type: "EXPLAIN" };
     }
 
-    const isDisplay = lower.includes("show") || lower.includes("display") || lower.includes("project") || lower.includes("hologram") || lower.includes("load");
+    const isDisplay = lower.includes("show") || lower.includes("display") || lower.includes("project") || lower.includes("hologram") || lower.includes("load") || lower.includes("and") || lower.includes(",");
     const isPresent = lower.includes("present") || lower.includes("demonstrate");
 
-    if (isDisplay || isPresent || lower.includes("arduino") || lower.includes("heliomotion") || lower.includes("v12") || lower.includes("heart")) {
+    if (isDisplay || isPresent || Object.values(MODEL_SYNONYMS).some(syns => syns.some(s => lower.includes(s)))) {
+      const foundIds = [];
       for (const [id, synonyms] of Object.entries(MODEL_SYNONYMS)) {
         if (synonyms.some(s => lower.includes(s))) {
-           return { type: isPresent ? "PRESENT" : "DISPLAY", objectId: id };
+          if (!foundIds.includes(id)) {
+            foundIds.push(id);
+          }
         }
+      }
+      if (foundIds.length > 0) {
+        const mode = (lower.includes("showcase mode") || lower.includes("showcase")) ? "SHOWCASE" : (isPresent ? "DEMO" : undefined);
+        return {
+          type: isPresent ? "PRESENT" : "DISPLAY",
+          objectIds: foundIds.length > 1 ? foundIds : undefined,
+          objectId: foundIds.length === 1 ? foundIds[0] : undefined,
+          mode: mode
+        };
       }
     }
     return null;
@@ -464,17 +482,28 @@ async function startServer() {
       let spatialInstruction = "";
       if (spatialAction) {
         if (spatialAction.type === "DISPLAY" || spatialAction.type === "PRESENT") {
-          const status = SPATIAL_REGISTRY[spatialAction.objectId] || 'FALLBACK';
+          const idsToCheck = spatialAction.objectIds || (spatialAction.objectId ? [spatialAction.objectId] : []);
+          let allAvailable = idsToCheck.length > 0;
+          for (const id of idsToCheck) {
+            const st = SPATIAL_REGISTRY[id] || 'FALLBACK';
+            if (st !== 'AVAILABLE') {
+              allAvailable = false;
+              break;
+            }
+          }
+          const primaryId = spatialAction.objectId || (spatialAction.objectIds ? spatialAction.objectIds[0] : '');
+          const status = allAvailable ? 'AVAILABLE' : 'FALLBACK';
+
           console.log(`\n=== MODEL REQUEST PIPELINE ===`);
-          console.log(`Requested ID: ${spatialAction.objectId}`);
+          console.log(`Requested ID(s): ${idsToCheck.join(', ')}`);
           console.log(`Registry Result: ${status}`);
           console.log(`Loading Status: ${status === 'FALLBACK' ? 'FAILED (Asset Missing)' : 'LOADING'}`);
           console.log(`==============================\n`);
           if (status === 'FALLBACK') {
             spatialAction = null; // Do not trigger spatial mode
-            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to load a 3D holographic model, but the model registry search returned 'ASSET UNAVAILABLE'. ADVIS MUST reply saying exactly: "I couldn't load that hologram. The asset is missing." and then list some available alternatives (e.g. V12 Engine, Human Heart, or Arduino Uno). Do NOT pretend to load it.`;
+            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to load 3D holographic model(s), but the model registry search returned 'ASSET UNAVAILABLE'. ADVIS MUST reply saying exactly: "I couldn't load that hologram. The asset is missing." and then list some available alternatives. Do NOT pretend to load it.`;
           } else {
-            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to ${spatialAction.type === 'PRESENT' ? 'demonstrate' : 'load'} the 3D model '${spatialAction.objectId}'. The model was FOUND and is loading. ADVIS must NOT confirm the display verbally yet. ADVIS should output exactly "[LOADING_HOLOGRAM]" and nothing else. The system will handle the verbal confirmation ("Displaying...") after the materialization sequence completes.`;
+            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to ${spatialAction.type === 'PRESENT' ? 'demonstrate' : 'load'} the 3D model(s) '${idsToCheck.join(', ')}'. The model(s) were FOUND and are loading. ADVIS must NOT confirm the display verbally yet. ADVIS should output exactly "[LOADING_HOLOGRAM]" and nothing else. The system will handle the verbal confirmation ("Displaying...") after the materialization sequence completes.`;
           }
         } else if (spatialAction.type === "EXPLODE") {
           spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to ${spatialAction.value ? "separate/explode the components" : "re-assemble"} of the active model. ADVIS must reply with a brief confirmation (e.g. "Separating components."). Do NOT over-explain.`;
