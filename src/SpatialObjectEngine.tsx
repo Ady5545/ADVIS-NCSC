@@ -67,48 +67,10 @@ function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: 
       clone.scale.setScalar(scaleMultiplier);
       clone.position.multiplyScalar(scaleMultiplier);
 
-      // Apply Holographic PBR modifications
+      // Preserve original PBR materials and textures (no cyan tint washout)
       clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
-          // Clone material to avoid affecting other instances
           child.material = child.material.clone();
-          
-          // Minimal transparency (90% real)
-          child.material.transparent = true;
-          child.material.opacity = 0.95;
-          child.material.depthWrite = true;
-          
-          // Add cyan edge outline, faint Fresnel glow, and holographic shimmer via onBeforeCompile
-          child.material.onBeforeCompile = (shader: any) => {
-             shader.uniforms.time = { value: 0 };
-             shader.fragmentShader = `
-               uniform float time;
-               ${shader.fragmentShader}
-             `.replace(
-               `#include <dithering_fragment>`,
-               `#include <dithering_fragment>
-                
-                // Fresnel calculation in view space
-                vec3 customViewDir = normalize(vViewPosition);
-                float customDot = dot(customViewDir, normalize(vNormal));
-                float customFresnel = pow(1.0 - max(customDot, 0.0), 3.0);
-                
-                // Thin cyan edge outline (sharp transition at grazing angles)
-                float customOutline = smoothstep(0.75, 1.0, customFresnel);
-                
-                // Faint Fresnel glow (softer)
-                float customGlow = customFresnel * 0.15;
-                
-                // Slight holographic shimmer
-                float customShimmer = sin(gl_FragCoord.y * 0.1 + time * 3.0) * 0.03 + 0.03;
-                
-                // Additive cyan tint
-                vec3 customHologramColor = vec3(0.13, 0.83, 0.93); // cyan
-                gl_FragColor.rgb += customHologramColor * (customOutline * 0.8 + customGlow + customShimmer);
-               `
-             );
-             child.userData.shader = shader;
-          };
         }
       });
 
@@ -118,17 +80,6 @@ function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: 
       return null;
     }
   }, [scene, url, camera]);
-
-  // Update time uniform for shimmer
-  useFrame((state) => {
-     if (clonedScene) {
-        clonedScene.traverse((child: any) => {
-           if (child.isMesh && child.userData.shader) {
-              child.userData.shader.uniforms.time.value = state.clock.elapsedTime;
-           }
-        });
-     }
-  });
 
   if (!clonedScene) {
      return <group><Box args={[1,1,1]}><meshBasicMaterial color="#ef4444" wireframe /></Box></group>;
@@ -548,8 +499,21 @@ function EngineeringComponentRenderer({
   const { id, shape, size, color, assetPath, assetScale } = comp;
   
   if (assetPath) {
+    const isLargeModel = assetPath.includes('heliomotion');
     return (
-       <React.Suspense fallback={<Box args={size}><meshBasicMaterial color="#22d3ee" wireframe opacity={0.3} transparent /></Box>}>
+       <React.Suspense fallback={
+         <group>
+           <Box args={size}>
+             <meshBasicMaterial color="#22d3ee" wireframe opacity={0.3} transparent />
+           </Box>
+           <Html center>
+             <div className="bg-slate-900/95 text-cyan-300 text-xs px-3 py-1.5 rounded-lg font-mono border border-cyan-500/50 shadow-xl flex items-center gap-2 animate-pulse">
+               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+               {isLargeModel ? 'Loading HelioMotion 3D Assembly (94MB)...' : 'Loading 3D Asset...'}
+             </div>
+           </Html>
+         </group>
+       }>
          <GLTFErrorBoundary>
           <RealisticGLTFModel url={assetPath} isHovered={isHovered} isSelected={isSelected} scale={assetScale || 1.0} />
        </GLTFErrorBoundary>

@@ -10,7 +10,12 @@ async function startServer() {
   const PORT = process.env.PORT || 3000;
 
   app.use(express.json({ limit: '50mb' }));
-  app.use('/models', express.static(path.join(process.cwd(), 'public', 'models')));
+  app.use('/models', express.static(path.join(process.cwd(), 'public', 'models'), { 
+    maxAge: '1d', 
+    etag: true, 
+    lastModified: true,
+    fallthrough: false
+  }));
 
 
   const dataDir = process.env.NODE_ENV === "production" ? path.join("/tmp", ".data") : path.join(process.cwd(), ".data");

@@ -166,26 +166,22 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
 
   heliomotion: {
     id: 'heliomotion',
-    name: 'HELIOMOTION Dual-Axis Tracker',
+    name: 'HELIOMOTION Dual-Axis Solar Tracker',
     path: '/models/heliomotion.glb',
     assetPath: '/models/heliomotion.glb',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
-    description: 'A dual-axis solar tracking prototype utilizing photoresistors and servomotors.',
-    defaultScale: 1.5,
+    description: 'Complete dual-axis solar tracking prototype assembly featuring base frame, dual SG90 servo motors, solar panel assembly, and Arduino microcontroller.',
+    defaultScale: 3.0,
     educationalInformation: {
       overview: 'An automated mechanism orienting a solar panel payload towards the Sun to maximize energy capture.',
-      keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller', '10k Resistor Protection'],
+      keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller', 'Complete Assembled Unit'],
       workingPrinciple: 'LDR sensors detect light intensity differences. The Arduino calculates the optimal angle and drives the servos to align the panel perpendicularly to the light source.',
       applications: ['Solar Power Plants', 'Spacecraft Solar Arrays', 'Educational Robotics'],
-      specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo' }
+      specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo', 'Controller': 'Arduino UNO' }
     },
     components: [
-      { id: 'hm_arduino', name: 'Arduino UNO', description: 'Main Controller', position: [0, -0.5, 0.4], size: [1.0, 0.2, 1.4], explodedOffset: [0, -1.2, 1.2], shape: 'box', assetPath: '/models/arduino_uno.glb', assetScale: 1.0 },
-      { id: 'hm_servo', name: 'SG90 Servo', description: 'Mechanical Actuator', position: [0, -0.1, 0], size: [0.4, 0.5, 0.4], explodedOffset: [-0.9, -0.3, 0], shape: 'box', assetPath: '/models/sg90_servo.glb', assetScale: 1.0 },
-      { id: 'hm_ldr', name: 'LDR Sensor', description: 'Light Detection', position: [0, 0.75, 0.5], size: [0.3, 0.3, 0.3], explodedOffset: [0, 1.6, 0.6], shape: 'box', assetPath: '/models/ldr.glb', assetScale: 1.0 },
-      { id: 'hm_resistor', name: '10k Resistor', description: 'Signal Protection', position: [0.4, -0.5, 0.4], size: [0.4, 0.1, 0.1], explodedOffset: [-0.6, -0.9, 0.8], shape: 'box', assetPath: '/models/resistor_10k.glb', assetScale: 1.0 },
-      { id: 'hm_solar', name: 'Solar Panel', description: 'Energy Generation', position: [0, 0.6, 0], size: [1.4, 0.05, 1.4], explodedOffset: [0, 1.8, 0], shape: 'box', assetPath: '/models/solar_panel.glb', assetScale: 1.0, rotation: [-0.15, 0, 0] }
+      { id: 'heliomotion_assembly', name: 'HelioMotion Complete Assembly', description: 'Complete dual-axis solar tracker engineering assembly.', position: [0, 0, 0], size: [2.0, 1.5, 2.0], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/heliomotion.glb', assetScale: 1.0 }
     ]
   },
 
