@@ -10,6 +10,15 @@ export interface ComponentMetadata {
   assetPath?: string;
   assetScale?: number;
   rotation?: [number, number, number];
+  engineeringDetails?: {
+    material?: string;
+    weight?: string;
+    tolerances?: string;
+    stressThreshold?: string;
+    pinout?: Record<string, string>;
+    specifications?: Record<string, string>;
+    [key: string]: any;
+  };
 }
 
 export interface EducationalInfo {
@@ -34,6 +43,14 @@ export interface ObjectMetadata {
   animations?: string[];
   explodedParts?: string[];
   educationalInformation?: EducationalInfo;
+  engineeringMetadata?: {
+    assemblyType?: string;
+    totalWeight?: string;
+    designStandard?: string;
+    operationalLimits?: Record<string, string>;
+    maintenanceNotes?: string[];
+    [key: string]: any;
+  };
 }
 
 export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
@@ -173,6 +190,23 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Engineering',
     description: 'Complete dual-axis solar tracking prototype assembly featuring base frame, dual SG90 servo motors, solar panel assembly, and Arduino microcontroller.',
     defaultScale: 3.0,
+    engineeringMetadata: {
+      assemblyType: 'Dual-Axis Mechatronic System',
+      totalWeight: '480g',
+      designStandard: 'ISO 9001 / IEEE Solar Mechatronics Spec',
+      designPurpose: 'Autonomous solar radiation optimization via active dual-axis tracking',
+      operationalLimits: {
+        'Max Wind Speed': '15 m/s',
+        'Operating Temp': '-10°C to +65°C',
+        'Input Voltage': '4.8V - 6.0V DC',
+        'Max Tilt Angle': '±60 degrees'
+      },
+      maintenanceNotes: [
+        'Inspect nylon gear mesh on SG90 servos every 500 operational hours.',
+        'Clean photovoltaic glass surface monthly with deionized water.',
+        'Check LDR sensor calibration quarterly under standard test conditions.'
+      ]
+    },
     educationalInformation: {
       overview: 'An automated mechanism orienting a solar panel payload towards the Sun to maximize energy capture.',
       keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller', 'Complete Assembled Unit'],
@@ -181,7 +215,35 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo', 'Controller': 'Arduino UNO' }
     },
     components: [
-      { id: 'heliomotion_assembly', name: 'HelioMotion Complete Assembly', description: 'Complete dual-axis solar tracker engineering assembly.', position: [0, 0, 0], size: [2.0, 1.5, 2.0], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/heliomotion.glb', assetScale: 1.0 }
+      { 
+        id: 'heliomotion_assembly', 
+        name: 'HelioMotion Complete Assembly', 
+        description: 'Complete dual-axis solar tracker engineering assembly.', 
+        position: [0, 0, 0], 
+        size: [2.0, 1.5, 2.0], 
+        explodedOffset: [0, 0, 0], 
+        shape: 'box', 
+        assetPath: '/models/heliomotion.glb', 
+        assetScale: 1.0,
+        engineeringDetails: {
+          material: 'ABS Polycarbonate & Anodized Aluminum',
+          weight: '480g',
+          tolerances: '±0.15mm',
+          stressThreshold: '12.4 MPa',
+          pinout: {
+            'VCC': '5V DC Supply',
+            'GND': 'System Ground',
+            'PAN_SERVO': 'Digital Pin 9 (PWM)',
+            'TILT_SERVO': 'Digital Pin 10 (PWM)',
+            'LDR_AZIMUTH': 'Analog A0',
+            'LDR_ELEVATION': 'Analog A1'
+          },
+          specifications: {
+            'Tracking Accuracy': '±1.5 Degrees',
+            'Power Consumption': '1.2W Peak'
+          }
+        }
+      }
     ]
   },
 

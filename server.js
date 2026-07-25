@@ -7,7 +7,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = 3000;
 
   app.use(express.json({ limit: '50mb' }));
   app.use('/models', express.static(path.join(process.cwd(), 'public', 'models'), { 
@@ -364,6 +364,45 @@ async function startServer() {
     }
     if (lower.includes("explain this") || lower.includes("what is this part") || lower.includes("tell me about this") || lower.includes("explain the selected") || lower.includes("explain component")) {
       return { type: "EXPLAIN" };
+    }
+
+    if (lower.includes("move component") || lower.includes("shift component")) {
+      let axis = 'z';
+      if (lower.includes(" x ") || lower.includes("left") || lower.includes("right")) axis = 'x';
+      if (lower.includes(" y ") || lower.includes("up") || lower.includes("down")) axis = 'y';
+      if (lower.includes("z") || lower.includes("forward") || lower.includes("backward")) axis = 'z';
+      
+      let delta = 0.2;
+      const numMatch = message.match(/[-+]?[0-9]*\.?[0-9]+/);
+      if (numMatch) delta = parseFloat(numMatch[0]);
+      if (lower.includes("left") || lower.includes("down") || lower.includes("back")) delta = -Math.abs(delta);
+      else if (lower.includes("right") || lower.includes("up") || lower.includes("forward")) delta = Math.abs(delta);
+
+      return { type: "ENGINEERING_TRANSFORM", actionType: "MOVE", axis, delta };
+    }
+    if (lower.includes("rotate component")) {
+      let axis = 'y';
+      if (lower.includes(" x ")) axis = 'x';
+      if (lower.includes(" y ")) axis = 'y';
+      if (lower.includes(" z ")) axis = 'z';
+
+      let angle = 0.5;
+      const numMatch = message.match(/[-+]?[0-9]*\.?[0-9]+/);
+      if (numMatch) {
+        let val = parseFloat(numMatch[0]);
+        if (lower.includes("deg")) val = val * (Math.PI / 180);
+        angle = val;
+      }
+      return { type: "ENGINEERING_TRANSFORM", actionType: "ROTATE", axis, angle };
+    }
+    if (lower.includes("scale component") || lower.includes("resize component")) {
+      let factor = 1.2;
+      const numMatch = message.match(/[-+]?[0-9]*\.?[0-9]+/);
+      if (numMatch) factor = parseFloat(numMatch[0]);
+      return { type: "ENGINEERING_TRANSFORM", actionType: "SCALE", factor };
+    }
+    if (lower.includes("reset component") || lower.includes("reset transform")) {
+      return { type: "ENGINEERING_TRANSFORM", actionType: "RESET" };
     }
 
     const isDisplay = lower.includes("show") || lower.includes("display") || lower.includes("project") || lower.includes("hologram") || lower.includes("load") || lower.includes("and") || lower.includes(",");

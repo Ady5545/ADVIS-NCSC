@@ -20,6 +20,7 @@ import { useHandTracking, HandTrackingData } from './useHandTracking';
 import { GestureProvider, useGestureEngine } from './GestureContext';
 import { SpatialObjectEngine, SpatialMode } from './SpatialObjectEngine';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
+import { EngineeringHUD } from './EngineeringHUD';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -89,6 +90,15 @@ export default function App() {
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
   const [showLabels, setShowLabels] = useState<boolean>(false);
+  const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
+  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+
+  const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
+    setComponentTransforms(prev => ({
+      ...prev,
+      [id]: transform
+    }));
+  };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
     setSpatialMode(newMode);
@@ -400,6 +410,18 @@ export default function App() {
     if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current);
     if ((!text.trim() && !file) || systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING') return;
     
+    const lowerText = text.toLowerCase().trim();
+    if (lowerText === 'open engineering mode' || lowerText.includes('open engineering mode')) {
+      setIsEngineeringMode(true);
+      setSystemState('ONLINE');
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content: text, timestamp: Date.now() },
+        { role: 'assistant', content: 'Engineering Mode activated. Spatial telemetry and diagnostics HUD online.', timestamp: Date.now() }
+      ]);
+      return;
+    }
+    
     try {
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -509,6 +531,61 @@ export default function App() {
           setSelectedComponentId(null);
           setHoveredComponentId(null);
           changeSpatialMode('INSPECTION');
+        } else if (action.type === 'ENGINEERING_TRANSFORM') {
+          if (!selectedComponentId) {
+            const primaryObjKey = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+            const objMeta = primaryObjKey ? SPATIAL_LIBRARY[primaryObjKey as keyof typeof SPATIAL_LIBRARY] : null;
+            if (objMeta && objMeta.components && objMeta.components.length > 0) {
+              setSelectedComponentId(objMeta.components[0].id);
+            }
+          }
+          
+          const targetCompId = selectedComponentId || (() => {
+            const primaryObjKey = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+            const objMeta = primaryObjKey ? SPATIAL_LIBRARY[primaryObjKey as keyof typeof SPATIAL_LIBRARY] : null;
+            return objMeta?.components?.[0]?.id;
+          })();
+
+          if (targetCompId) {
+            const primaryObjKey = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+            const objMeta = primaryObjKey ? SPATIAL_LIBRARY[primaryObjKey as keyof typeof SPATIAL_LIBRARY] : null;
+            const comp = objMeta?.components?.find(c => c.id === targetCompId);
+            
+            if (comp) {
+              const currentTransform = componentTransforms[targetCompId] || {
+                position: [...comp.position] as [number, number, number],
+                rotation: [...(comp.rotation || [0, 0, 0])] as [number, number, number],
+                scale: [1, 1, 1]
+              };
+
+              let nextTransform = { 
+                position: [...currentTransform.position] as [number, number, number], 
+                rotation: [...currentTransform.rotation] as [number, number, number], 
+                scale: [...currentTransform.scale] as [number, number, number] 
+              };
+
+              if (action.actionType === 'MOVE') {
+                const axisIdx = action.axis === 'x' ? 0 : action.axis === 'y' ? 1 : 2;
+                nextTransform.position[axisIdx] += action.delta;
+              } else if (action.actionType === 'ROTATE') {
+                const axisIdx = action.axis === 'x' ? 0 : action.axis === 'y' ? 1 : 2;
+                nextTransform.rotation[axisIdx] += action.angle;
+              } else if (action.actionType === 'SCALE') {
+                nextTransform.scale = [action.factor, action.factor, action.factor];
+              } else if (action.actionType === 'RESET') {
+                nextTransform = {
+                  position: [...comp.position] as [number, number, number],
+                  rotation: [...(comp.rotation || [0, 0, 0])] as [number, number, number],
+                  scale: [1, 1, 1]
+                };
+              }
+
+              setComponentTransforms(prev => ({
+                ...prev,
+                [targetCompId]: nextTransform
+              }));
+            }
+          }
         }
       }
       
@@ -698,6 +775,7 @@ export default function App() {
             setMessages={setMessages}
             soundEnabled={soundEnabled}
             showLabels={showLabels}
+            componentTransforms={componentTransforms}
           />
           
           <EffectComposer>
@@ -854,20 +932,28 @@ export default function App() {
           </div>
 
           {/* EXIT BUTTON */}
-          <div className="flex justify-between items-center pt-1 border-t border-cyan-500/20 mt-1">
-            <span className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-mono">ADVIS 3D V2</span>
-            <button 
-              onClick={() => {
-                setCurrentSpatialObject(null);
-                setSelectedComponentId(null);
-                setHoveredComponentId(null);
-                changeSpatialMode('INSPECTION');
-              }}
-              className="px-2.5 py-1 rounded border border-red-500/40 bg-red-950/30 hover:bg-red-900/50 hover:border-red-400 text-red-400 text-[9px] transition-all font-bold uppercase cursor-pointer backdrop-blur-sm"
-              title="Close spatial projection"
+          <div className="flex flex-col gap-1.5 pt-1 border-t border-cyan-500/20 mt-1">
+            <button
+              onClick={() => setIsEngineeringMode(true)}
+              className="w-full py-1.5 px-3 rounded border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-200 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
             >
-              Exit Spatial Mode
+              <span>⚡ Open Engineering Mode</span>
             </button>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-mono">ADVIS 3D V2</span>
+              <button 
+                onClick={() => {
+                  setCurrentSpatialObject(null);
+                  setSelectedComponentId(null);
+                  setHoveredComponentId(null);
+                  changeSpatialMode('INSPECTION');
+                }}
+                className="px-2.5 py-1 rounded border border-red-500/40 bg-red-950/30 hover:bg-red-900/50 hover:border-red-400 text-red-400 text-[9px] transition-all font-bold uppercase cursor-pointer backdrop-blur-sm"
+                title="Close spatial projection"
+              >
+                Exit Spatial Mode
+              </button>
+            </div>
           </div>
 
           {spatialMode === 'DEMO' && (() => {
@@ -1058,6 +1144,18 @@ export default function App() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Engineering Mode HUD Overlay (Phase 1A & 1D) */}
+      {isEngineeringMode && (
+        <EngineeringHUD 
+          onClose={() => setIsEngineeringMode(false)} 
+          activeObject={currentSpatialObject} 
+          selectedComponentId={selectedComponentId}
+          onSelectComponent={setSelectedComponentId}
+          componentTransforms={componentTransforms}
+          onUpdateComponentTransform={handleUpdateComponentTransform}
+        />
       )}
 
       {/* Connection Screen / Cinematic Boot Loader */}

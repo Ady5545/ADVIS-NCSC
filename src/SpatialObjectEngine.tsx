@@ -142,6 +142,7 @@ interface SpatialObjectEngineProps {
   soundEnabled?: boolean;
   isExiting?: boolean;
   showLabels?: boolean;
+  componentTransforms?: Record<string, { position: [number, number, number], rotation: [number, number, number], scale: [number, number, number] }>;
 }
 
 
@@ -1511,7 +1512,8 @@ export function SpatialObjectEngine({
   setMessages,
   soundEnabled = true,
   isExiting = false,
-  showLabels = false
+  showLabels = false,
+  componentTransforms
 }: SpatialObjectEngineProps) {
   const gestureState = useGestureEngine();
   const { raycaster, camera, scene } = useThree();
@@ -2370,14 +2372,20 @@ export function SpatialObjectEngine({
                       const isHovered = hoveredComponentId === comp.id;
                       const isSelected = selectedComponentId === comp.id;
                       
+                      const transform = componentTransforms?.[comp.id];
+                      const pos = transform ? transform.position : comp.position;
+                      const rot = transform ? transform.rotation : (comp.rotation || [0, 0, 0]);
+                      const scl = transform ? transform.scale : [1, 1, 1];
+                      
                       return (
                         <group 
                           key={comp.id} 
                           ref={(el) => {
                             if (el) componentRefs.current[comp.id] = el;
                           }}
-                          position={comp.position as [number, number, number]}
-                          rotation={(comp.rotation || [0, 0, 0]) as [number, number, number]}
+                          position={pos as [number, number, number]}
+                          rotation={rot as [number, number, number]}
+                          scale={scl as [number, number, number]}
                           userData={{ 
                             selectableId: comp.id,
                             componentName: comp.name,
