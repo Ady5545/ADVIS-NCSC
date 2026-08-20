@@ -1,3 +1,4 @@
+import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIntelligence';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -10,6 +11,8 @@ export interface ComponentMetadata {
   assetPath?: string;
   assetScale?: number;
   rotation?: [number, number, number];
+  interactionEnabled?: boolean;
+  specifications?: Record<string, string>;
   engineeringDetails?: {
     material?: string;
     weight?: string;
@@ -43,6 +46,7 @@ export interface ObjectMetadata {
   animations?: string[];
   explodedParts?: string[];
   educationalInformation?: EducationalInfo;
+  intelligence?: AssetIntelligenceMetadata;
   engineeringMetadata?: {
     assemblyType?: string;
     totalWeight?: string;
@@ -64,6 +68,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Engineering',
     description: 'ATmega328P based microcontroller board.',
     defaultScale: 3.0,
+    intelligence: {
+      category: AssetCategory.ELECTRONIC,
+      targetDetailLevel: DetailLevel.L3_DIGITAL_TWIN,
+      functionalTraits: ['microcontroller', 'usb_port', 'power_jack', 'pin_headers', 'pcb_traces'],
+      generationRules: {
+        'geometry': 'Must feature recognizable UNO board shape, exact connector locations, and surface-mount components',
+        'materials': 'Silkscreen overlays, glowing copper traces, distinct chip packaging',
+        'hierarchy': 'PCB_Base > (Connectors, ICs, Headers, Power_Components)'
+      }
+    },
     educationalInformation: {
       overview: 'Open-source electronics platform.',
       keyFeatures: ['ATmega328P IC', 'Digital/Analog I/O', 'USB Interface'],
@@ -725,6 +739,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Automotive',
     description: 'A high-performance twelve-cylinder engine arranged in two banks of six cylinders with a 60-degree V angle.',
     defaultScale: 0.8,
+    intelligence: {
+      category: AssetCategory.MECHANICAL,
+      targetDetailLevel: DetailLevel.L3_DIGITAL_TWIN,
+      functionalTraits: ['crankshaft', 'pistons', 'connecting_rods', 'valvetrain', 'exhaust', 'cooling', 'lubrication'],
+      generationRules: {
+        'geometry': 'Must feature distinct cylinder banks, realistic forged shapes, and interconnected moving parts',
+        'manufacturing': 'Include casting marks on engine block, machined surfaces on mating flanges, and fasteners',
+        'hierarchy': 'Engine_Block > Cylinder_Bank > (Pistons, Rods, Valves)'
+      }
+    },
     metadata: { displacement: '6.5 Liters', cylinderBank: '60 deg V12', valvetrain: 'DOHC 48-Valve' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
     explodedParts: ['piston_left_bank', 'piston_right_bank', 'crankshaft', 'cylinder_head', 'intake_plenum', 'exhaust_manifold'],
@@ -746,10 +770,39 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       }
     },
     components: [
-      { id: 'piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction rings.', position: [-0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [-0.9, 0.8, 0], shape: 'cylinder', color: '#94a3b8' },
-      { id: 'piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins.', position: [0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [0.9, 0.8, 0], shape: 'cylinder', color: '#94a3b8' },
-      { id: 'crankshaft', name: '7-Bearing Forged Steel Crankshaft', description: 'Heavy counterweighted alloy steel crankshaft balancing rotational inertia.', position: [0, -0.2, 0], size: [0.4, 0.4, 2.8], explodedOffset: [0, -0.9, 0], shape: 'cylinder', color: '#cbd5e1' },
-      { id: 'intake_plenum', name: 'Dual Plenum Intake Manifold', description: 'Red powder-coated intake plenum equalizing airflow into individual runners.', position: [0, 1.2, 0], size: [0.6, 0.2, 2.8], explodedOffset: [0, 1.0, 0], shape: 'box', color: '#dc2626' }
+      { id: 'engine_block', name: '60° V12 Cast Aluminum Block', description: 'Rigid deep-skirt engine block with high-strength casting geometry and main bearing bulkheads.', position: [0, 0, 0], size: [1.1, 0.9, 3.0], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
+        engineeringDetails: { material: 'A356-T6 Cast Aluminum', weight: '62.4 kg', tolerances: '±0.01 mm', stressThreshold: '240 MPa', specifications: { 'Cylinder Bores': '12', 'V-Angle': '60 degrees' } }
+      },
+      { id: 'piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction PVD coated rings.', position: [-0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [-1.1, 0.8, 0], shape: 'cylinder', color: '#94a3b8',
+        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1' } }
+      },
+      { id: 'piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins with full-floating wrist pins.', position: [0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [1.1, 0.8, 0], shape: 'cylinder', color: '#94a3b8',
+        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1' } }
+      },
+      { id: 'connecting_rods', name: 'H-Beam Titanium Connecting Rods', description: 'Forged Ti-6Al-4V titanium rods engineered for ultra-high RPM reciprocating loads.', position: [0, 0.3, 0], size: [0.5, 0.6, 2.6], explodedOffset: [0, 0.5, 0], shape: 'box', color: '#64748b',
+        engineeringDetails: { material: 'Ti-6Al-4V Titanium', weight: '450g each', tensileStrength: '950 MPa' }
+      },
+      { id: 'crankshaft', name: '7-Bearing Forged Steel Crankshaft', description: 'Nitrided alloy steel crankshaft with micro-polished journals and dynamic counterweights.', position: [0, -0.2, 0], size: [0.4, 0.4, 3.2], explodedOffset: [0, -1.0, 0], shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { material: '4340 Chromoly Steel', weight: '28.5 kg', surfaceTreatment: 'Plasma Nitrided (HRC 58)' }
+      },
+      { id: 'valvetrain', name: 'DOHC 48-Valve Valvetrain & Camshafts', description: 'Dual overhead camshafts with hollow lightweight valves and dual valve springs.', position: [0, 1.0, 0], size: [0.9, 0.3, 2.8], explodedOffset: [0, 1.4, 0], shape: 'box', color: '#334155',
+        engineeringDetails: { material: 'Billet Steel Camshafts & Titanium Valves', weight: '14.2 kg total' }
+      },
+      { id: 'intake_plenum', name: 'Dual Plenum Intake Manifold', description: 'Red powder-coated cast aluminum intake plenum with variable-length runners and twin throttle bodies.', position: [0, 1.4, 0], size: [0.7, 0.3, 2.8], explodedOffset: [0, 1.9, 0], shape: 'box', color: '#dc2626',
+        engineeringDetails: { material: 'Magnesium-Aluminum Alloy', weight: '8.4 kg', airflow: '1,200 CFM @ 25 inH2O' }
+      },
+      { id: 'exhaust_manifold', name: 'Equal-Length Exhaust Headers', description: 'TIG-welded stainless steel 6-into-1 tuned exhaust headers for scavenging optimization.', position: [0, -0.4, 0], size: [1.3, 0.7, 2.6], explodedOffset: [0, -1.6, 0], shape: 'box', color: '#78350f',
+        engineeringDetails: { material: '321 Stainless Steel', weight: '11.2 kg', maxTemp: '950°C' }
+      },
+      { id: 'cooling_system', name: 'Integrated Water Jackets & Coolant Pump', description: 'High-flow centrifugal water pump and crossflow cooling channels.', position: [0, 0.2, 1.5], size: [0.6, 0.5, 0.4], explodedOffset: [0, 0, 1.8], shape: 'box', color: '#0284c7',
+        engineeringDetails: { flowRate: '140 L/min', pressureRating: '1.4 bar' }
+      },
+      { id: 'lubrication_system', name: 'Dry-Sump Oil Pan & Scavenge Pump', description: 'Multi-stage dry sump oil pan maintaining continuous oil pressure under high cornering G-forces.', position: [0, -0.7, 0], size: [0.9, 0.3, 2.8], explodedOffset: [0, -2.1, 0], shape: 'box', color: '#b45309',
+        engineeringDetails: { capacity: '10.5 Liters Mobil 1 Racing 0W-40', pumpStages: '1 Pressure, 4 Scavenge' }
+      },
+      { id: 'electronics_sensors', name: 'Engine Management Harness & Sensors', description: 'Knock sensors, camshaft position sensors, dual ECU connectors, and direct-fire ignition coils.', position: [0, 0.8, -1.4], size: [0.8, 0.4, 0.3], explodedOffset: [0, 0.8, -1.8], shape: 'box', color: '#16a34a',
+        engineeringDetails: { processor: 'Dual Tri-Core Automotive ECU', communication: 'CAN Bus 2.0B / FlexRay' }
+      }
     ]
   },
 
@@ -943,6 +996,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Anatomy',
     description: 'A four-chambered muscular organ that pumps deoxygenated blood to the lungs and oxygenated blood to the body.',
     defaultScale: 2.0,
+    intelligence: {
+      category: AssetCategory.BIOLOGICAL,
+      targetDetailLevel: DetailLevel.L3_DIGITAL_TWIN,
+      functionalTraits: ['atria', 'ventricles', 'valves', 'aorta', 'pulmonary_veins', 'coronary_arteries'],
+      generationRules: {
+        'geometry': 'Must feature realistic surface folds, major vessels, four internal chambers, and organic curvature',
+        'materials': 'Soft subsurface scattering for tissue, distinct colored flow overlays for oxygenated vs deoxygenated',
+        'hierarchy': 'Heart_Tissue > (Atria, Ventricles, Vessels, Valves)'
+      }
+    },
     metadata: { heartRate: '72 BPM', cardiacOutput: '5.0 L/min', chambers: '4 Chambers' },
     animations: ['cardiacPulsation', 'valveCycle', 'explodedView'],
     explodedParts: ['left_ventricle', 'right_ventricle', 'aorta', 'pulmonary_artery', 'vena_cava'],
@@ -1239,6 +1302,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Astronomy',
     description: 'Modular habitable space laboratory orbiting Earth in Low Earth Orbit at 28,000 km/h.',
     defaultScale: 1.0,
+    intelligence: {
+      category: AssetCategory.AEROSPACE,
+      targetDetailLevel: DetailLevel.L3_DIGITAL_TWIN,
+      functionalTraits: ['truss_structure', 'solar_arrays', 'pressurized_modules', 'radiators', 'robotic_arms'],
+      generationRules: {
+        'geometry': 'Must feature extensive truss framework, multiple cylindrical modules with docking ports, and large solar wings',
+        'materials': 'High-reflectivity gold foil, white composite panels, metallic truss structures, and glowing solar cells',
+        'hierarchy': 'ISS_Core > (Truss_Assembly, Modules, Solar_Arrays, Radiators)'
+      }
+    },
     educationalInformation: {
       overview: 'Largest artificial body in space, hosting microgravity scientific research experiments since 2000.',
       keyFeatures: ['Integrated Truss Structure (109 meters)', '8 Tracking Solar Array Wings (240 kW)', 'Pressurized European/US/Japanese/Russian Modules'],

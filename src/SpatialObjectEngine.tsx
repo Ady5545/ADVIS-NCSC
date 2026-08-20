@@ -1,3 +1,4 @@
+import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
@@ -28,17 +29,29 @@ class GLTFErrorBoundary extends React.Component<{children: React.ReactNode}, {ha
 
 import { useGLTF } from '@react-three/drei';
 
-useGLTF.preload('/models/arduino_uno.glb');
-useGLTF.preload('/models/sg90_servo.glb');
-useGLTF.preload('/models/ldr.glb');
-useGLTF.preload('/models/resistor_10k.glb');
-useGLTF.preload('/models/solar_panel.glb');
-useGLTF.preload('/models/esp32.glb');
-useGLTF.preload('/models/heliomotion.glb');
+// Preloads are handled on-demand within RealisticGLTFModel inside Canvas context
 
-function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: string, isHovered: boolean, isSelected: boolean, scale?: number }) {
+
+function RealisticGLTFModel({ 
+  url, 
+  isHovered, 
+  isSelected, 
+  scale = 1.0,
+  xrayEnabled,
+  blueprintEnabled,
+  isHighlighted
+}: { 
+  url: string, 
+  isHovered: boolean, 
+  isSelected: boolean, 
+  scale?: number,
+  xrayEnabled?: boolean,
+  blueprintEnabled?: boolean,
+  isHighlighted?: boolean
+}) {
   const { scene } = useGLTF(url);
   const { camera } = useThree();
+  const originalMaterialsRef = useRef<Map<any, { transparent: boolean, opacity: number, wireframe: boolean, emissive?: any }>>(new Map());
   
   const clonedScene = useMemo(() => {
     try {
@@ -71,6 +84,12 @@ function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: 
       clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
           child.material = child.material.clone();
+          originalMaterialsRef.current.set(child.material, {
+            transparent: child.material.transparent,
+            opacity: child.material.opacity,
+            wireframe: child.material.wireframe || false,
+            emissive: child.material.emissive ? child.material.emissive.clone() : undefined
+          });
         }
       });
 
@@ -80,6 +99,39 @@ function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: 
       return null;
     }
   }, [scene, url, camera]);
+
+  useEffect(() => {
+    if (!clonedScene) return;
+    clonedScene.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        const mat = child.material;
+        const orig = originalMaterialsRef.current.get(mat);
+
+        if (xrayEnabled) {
+          mat.transparent = true;
+          mat.opacity = 0.35;
+          mat.depthWrite = false;
+        } else if (orig) {
+          mat.transparent = orig.transparent;
+          mat.opacity = orig.opacity;
+          mat.depthWrite = true;
+        }
+
+        if (blueprintEnabled) {
+          mat.wireframe = true;
+          if (mat.color) mat.color.set('#22d3ee');
+        } else if (orig) {
+          mat.wireframe = orig.wireframe;
+        }
+
+        if (isHighlighted && mat.emissive) {
+          mat.emissive.set('#22d3ee');
+        } else if (orig && orig.emissive && mat.emissive) {
+          mat.emissive.copy(orig.emissive);
+        }
+      }
+    });
+  }, [clonedScene, xrayEnabled, blueprintEnabled, isHighlighted]);
 
   if (!clonedScene) {
      return <group><Box args={[1,1,1]}><meshBasicMaterial color="#ef4444" wireframe /></Box></group>;
@@ -110,7 +162,7 @@ function RealisticGLTFModel({ url, isHovered, isSelected, scale = 1.0 }: { url: 
        <primitive object={clonedScene} />
        <points ref={particlesRef}>
          <bufferGeometry>
-           <bufferAttribute attach="attributes-position" count={particlesCount} array={positions} itemSize={3} />
+           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
          </bufferGeometry>
          <pointsMaterial color="#22d3ee" size={0.05} transparent opacity={0.6} sizeAttenuation={true} blending={THREE.AdditiveBlending} depthWrite={false} />
        </points>
@@ -143,6 +195,10 @@ interface SpatialObjectEngineProps {
   isExiting?: boolean;
   showLabels?: boolean;
   componentTransforms?: Record<string, { position: [number, number, number], rotation: [number, number, number], scale: [number, number, number] }>;
+  explodedFactor?: number;
+  xrayEnabled?: boolean;
+  blueprintEnabled?: boolean;
+  highlightedComponentId?: string | null;
 }
 
 
@@ -370,7 +426,7 @@ const HolographicMaterial = ({
 
 
 const QuantumCore = () => {
-  const coreRef = useRef();
+  const coreRef = useRef<THREE.Group>(null);
   useFrame((state) => {
     if (coreRef.current) {
       coreRef.current.scale.setScalar(1.0 + Math.sin(state.clock.elapsedTime * 15.0) * 0.2);
@@ -387,7 +443,7 @@ const QuantumCore = () => {
 };
 
 const QuantumCloudPoints = () => {
-  const pointsRef = useRef();
+  const pointsRef = useRef<THREE.Points>(null);
   useFrame((state) => {
     if (pointsRef.current) {
       pointsRef.current.rotation.y = state.clock.elapsedTime * 0.1;
@@ -425,7 +481,7 @@ const QuantumCloudPoints = () => {
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={particles} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial color="#d946ef" size={0.03} transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
     </points>
@@ -490,35 +546,49 @@ function EngineeringComponentRenderer({
   comp,
   objectId,
   isHovered,
-  isSelected
+  isSelected,
+  xrayEnabled,
+  blueprintEnabled,
+  isHighlighted
 }: {
   comp: ComponentMetadata;
   objectId: string;
   isHovered: boolean;
   isSelected: boolean;
+  xrayEnabled?: boolean;
+  blueprintEnabled?: boolean;
+  isHighlighted?: boolean;
 }) {
   const { id, shape, size, color, assetPath, assetScale } = comp;
   
   if (assetPath) {
     const isLargeModel = assetPath.includes('heliomotion');
     return (
-       <React.Suspense fallback={
-         <group>
-           <Box args={size}>
-             <meshBasicMaterial color="#22d3ee" wireframe opacity={0.3} transparent />
-           </Box>
-           <Html center>
-             <div className="bg-slate-900/95 text-cyan-300 text-xs px-3 py-1.5 rounded-lg font-mono border border-cyan-500/50 shadow-xl flex items-center gap-2 animate-pulse">
-               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
-               {isLargeModel ? 'Loading HelioMotion 3D Assembly (94MB)...' : 'Loading 3D Asset...'}
-             </div>
-           </Html>
-         </group>
-       }>
-         <GLTFErrorBoundary>
-          <RealisticGLTFModel url={assetPath} isHovered={isHovered} isSelected={isSelected} scale={assetScale || 1.0} />
-       </GLTFErrorBoundary>
-       </React.Suspense>
+      <GLTFErrorBoundary>
+        <React.Suspense fallback={
+          <group>
+            <Box args={size}>
+              <meshBasicMaterial color="#22d3ee" wireframe opacity={0.3} transparent />
+            </Box>
+            <Html center>
+              <div className="bg-slate-900/95 text-cyan-300 text-xs px-3 py-1.5 rounded-lg font-mono border border-cyan-500/50 shadow-xl flex items-center gap-2 animate-pulse">
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                {isLargeModel ? 'Loading HelioMotion 3D Assembly (94MB)...' : 'Loading 3D Asset...'}
+              </div>
+            </Html>
+          </group>
+        }>
+          <RealisticGLTFModel 
+            url={assetPath} 
+            isHovered={isHovered} 
+            isSelected={isSelected} 
+            scale={assetScale || 1.0} 
+            xrayEnabled={xrayEnabled}
+            blueprintEnabled={blueprintEnabled}
+            isHighlighted={isHighlighted}
+          />
+        </React.Suspense>
+      </GLTFErrorBoundary>
     );
   }
 
@@ -1007,86 +1077,26 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
 
-  // 5. Engine Pistons (V12 / V8 / Inline-4)
-  if (id === 'piston_left_bank' || id === 'piston_right_bank' || id === 'piston_assembly') {
-    return (
-      <group>
-        {[...Array(6)].map((_, i) => {
-          const z = -1.1 + i * 0.44;
-          return (
-            <group key={`piston-${i}`} position={[0, 0, z]}>
-              <mesh position={[0, 0.2, 0]}>
-                <cylinderGeometry args={[0.16, 0.16, 0.22, 24]} />
-                <HolographicMaterial baseColor="#cbd5e1" isHovered={isHovered} isSelected={isSelected} />
-              </mesh>
-              {[-0.04, 0, 0.04].map((yG, gI) => (
-                <mesh key={gI} position={[0, 0.2 + yG, 0]} rotation={[Math.PI/2, 0, 0]}>
-                  <torusGeometry args={[0.161, 0.008, 8, 24]} />
-                  <HolographicMaterial baseColor="#475569" isHovered={isHovered} isSelected={isSelected} />
-                </mesh>
-              ))}
-              <mesh position={[0, 0.14, 0]} rotation={[0, 0, Math.PI/2]}>
-                <cylinderGeometry args={[0.04, 0.04, 0.28, 16]} />
-                <HolographicMaterial baseColor="#e2e8f0" isHovered={isHovered} isSelected={isSelected} />
-              </mesh>
-              <mesh position={[0, -0.08, 0]}>
-                <boxGeometry args={[0.06, 0.32, 0.04]} />
-                <HolographicMaterial baseColor="#64748b" isHovered={isHovered} isSelected={isSelected} />
-              </mesh>
-              <mesh position={[0, -0.24, 0]} rotation={[Math.PI/2, 0, 0]}>
-                <torusGeometry args={[0.07, 0.02, 12, 24]} />
-                <HolographicMaterial baseColor="#94a3b8" isHovered={isHovered} isSelected={isSelected} />
-              </mesh>
-            </group>
-          );
-        })}
-      </group>
-    );
-  }
 
-  // 6. Engine Crankshaft
-  if (id === 'crankshaft') {
-    return (
-      <group>
-        <mesh rotation={[Math.PI/2, 0, 0]}>
-          <cylinderGeometry args={[0.08, 0.08, size[2], 24]} />
-          <HolographicMaterial baseColor="#cbd5e1" isHovered={isHovered} isSelected={isSelected} />
-        </mesh>
-        {[...Array(7)].map((_, i) => {
-          const z = -size[2]/2 + 0.2 + i * (size[2] - 0.4) / 6;
-          return (
-            <group key={`cw-${i}`} position={[0, 0, z]}>
-              <mesh position={[0, i % 2 === 0 ? 0.14 : -0.14, 0]}>
-                <cylinderGeometry args={[0.22, 0.22, 0.06, 16, 1, false, 0, Math.PI * 1.2]} />
-                <HolographicMaterial baseColor="#64748b" isHovered={isHovered} isSelected={isSelected} />
-              </mesh>
-            </group>
-          );
-        })}
-        <mesh position={[0, 0, -size[2]/2 - 0.05]} rotation={[Math.PI/2, 0, 0]}>
-          <cylinderGeometry args={[0.28, 0.28, 0.1, 32]} />
-          <HolographicMaterial baseColor="#475569" isHovered={isHovered} isSelected={isSelected} />
-        </mesh>
-      </group>
-    );
-  }
+  const generatorProps = {
+    isHovered,
+    isSelected,
+    xrayEnabled: xrayEnabled || false,
+    blueprintEnabled: blueprintEnabled || false
+  };
 
-  // 7. Intake Plenums & Manifolds
-  if (id === 'intake_plenum' || id === 'intake_system') {
-    return (
-      <group>
-        <Box args={size}>
-          <HolographicMaterial baseColor="#dc2626" isHovered={isHovered} isSelected={isSelected} />
-        </Box>
-        <mesh position={[0, 0, size[2]/2 + 0.08]} rotation={[Math.PI/2, 0, 0]}>
-          <cylinderGeometry args={[0.16, 0.16, 0.16, 24]} />
-          <HolographicMaterial baseColor="#e2e8f0" isHovered={isHovered} isSelected={isSelected} />
-        </mesh>
-      </group>
-    );
-  }
+  if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
+  if (id === 'piston_left_bank') return <PistonAssemblyBank bank="left" sign={-1} {...generatorProps} />;
+  if (id === 'piston_right_bank') return <PistonAssemblyBank bank="right" sign={1} {...generatorProps} />;
+  if (id === 'connecting_rods') return <ConnectingRodsAssembly {...generatorProps} />;
+  if (id === 'crankshaft') return <CrankshaftAssembly {...generatorProps} />;
+  if (id === 'valvetrain') return <ValvetrainAssembly {...generatorProps} />;
+  if (id === 'intake_plenum') return <IntakePlenum {...generatorProps} />;
+  if (id === 'exhaust_manifold') return <ExhaustManifold {...generatorProps} />;
+  if (id === 'cooling_system') return <CoolingSystem {...generatorProps} />;
+  if (id === 'lubrication_system') return <LubricationSystem {...generatorProps} />;
+  if (id === 'electronics_sensors') return <ElectronicsSensors {...generatorProps} />;
 
-  // 8. Human Heart Chambers & Vessels
   if (id === 'left_ventricle' || id === 'right_ventricle') {
     return (
       <group>
@@ -1513,7 +1523,11 @@ export function SpatialObjectEngine({
   soundEnabled = true,
   isExiting = false,
   showLabels = false,
-  componentTransforms
+  componentTransforms,
+  explodedFactor = 0,
+  xrayEnabled = false,
+  blueprintEnabled = false,
+  highlightedComponentId = null
 }: SpatialObjectEngineProps) {
   const gestureState = useGestureEngine();
   const { raycaster, camera, scene } = useThree();
@@ -1725,8 +1739,8 @@ export function SpatialObjectEngine({
 
   // Handle Presentation Step Narrative Speaks
   useEffect(() => {
-    if (isPresentationMode && currentSpatialObject && SPATIAL_LIBRARY[currentSpatialObject]) {
-      const obj = SPATIAL_LIBRARY[currentSpatialObject];
+    if (isPresentationMode && currentSpatialObject && SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string]) {
+      const obj = SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string];
       
       // Step 0 is introduction, step 1+ are components
       if (presentationStep === 0) {
@@ -1744,8 +1758,8 @@ export function SpatialObjectEngine({
 
   // Advance presentation steps automatically
   useEffect(() => {
-    if (!isPresentationMode || !currentSpatialObject || !SPATIAL_LIBRARY[currentSpatialObject]) return;
-    const obj = SPATIAL_LIBRARY[currentSpatialObject];
+    if (!isPresentationMode || !currentSpatialObject || !SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string]) return;
+    const obj = SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string];
     const totalSteps = obj.components.length + 1;
 
     const interval = setInterval(() => {
@@ -1823,8 +1837,8 @@ export function SpatialObjectEngine({
     const nowOverlay = Date.now();
     if (nowOverlay - lastOverlayUpdateRef.current >= 100) {
       lastOverlayUpdateRef.current = nowOverlay;
-      const isPinchActive = Boolean(gEngine.isPinch || gEngine.interactionState === 'GRABBING OBJECT' || handTrackingRef.current?.gesture === 'PINCH');
-      const isPointingActive = Boolean(gEngine.isPointing || gEngine.interactionState === 'POINTING');
+      const isPinchActive = Boolean(gEngine.isPinch || gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG' || handTrackingRef.current?.gesture === 'PINCH');
+      const isPointingActive = Boolean(gEngine.isPointing || gEngine.interactionState === 'HOVERING');
       const isTargetingComp = hoveredComponentIdRef.current !== null && targetConfidenceRef.current >= 0.2;
       
       let dominantIntent = 'IDLE';
@@ -1839,7 +1853,7 @@ export function SpatialObjectEngine({
       } else if (hoveredComponentIdRef.current !== null) {
         dominantIntent = 'HOVERING_COMPONENT';
       } else if (isPointingActive) {
-        dominantIntent = 'POINTING';
+        dominantIntent = 'HOVERING';
       }
     }
     if (Math.random() < 0.04) {
@@ -1869,8 +1883,8 @@ export function SpatialObjectEngine({
       const isPointerState = 
         gEngine.isPointing || 
         gEngine.isPinch || 
-        gEngine.interactionState === 'POINTING' || 
-        gEngine.interactionState === 'GRABBING OBJECT';
+        gEngine.interactionState === 'HOVERING' || 
+        gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG';
 
       if (isPointerState) {
         const ndcX = (1 - gEngine.cursorPosition.x) * 2 - 1;
@@ -1909,7 +1923,7 @@ export function SpatialObjectEngine({
           }
 
           const isPinchActive = gEngine.isPinch || 
-                               gEngine.interactionState === 'GRABBING OBJECT' || 
+                               gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG' || 
                                handTrackingRef.current?.gesture === 'PINCH';
           const isPinchJustTriggered = isPinchActive && !prevPinchStateRef.current;
           prevPinchStateRef.current = isPinchActive;
@@ -1958,7 +1972,7 @@ export function SpatialObjectEngine({
           const isTargetingComp = hoveredComponentIdRef.current !== null && targetConfidenceRef.current >= 0.2;
           const pinchDestination = isPinchActive ? (isTargetingComp ? 'COMPONENT_SELECTION' : 'INSPECTION_ROTATION') : 'NONE';
 
-          let dominantAction: 'IDLE' | 'POINTING' | 'HOVERING_COMPONENT' | 'SELECTING_COMPONENT' | 'INSPECTION_ROTATION' | 'TWO_HAND_ORBIT' | 'TWO_HAND_ZOOM_IN' | 'TWO_HAND_ZOOM_OUT' = 'IDLE';
+          let dominantAction: 'IDLE' | 'HOVERING' | 'HOVERING_COMPONENT' | 'SELECTING_COMPONENT' | 'INSPECTION_ROTATION' | 'TWO_HAND_ORBIT' | 'TWO_HAND_ZOOM_IN' | 'TWO_HAND_ZOOM_OUT' = 'IDLE';
 
           if (!gEngine.isHandActive || gEngine.handsCount === 0) {
             dominantAction = 'IDLE';
@@ -1979,8 +1993,8 @@ export function SpatialObjectEngine({
           } else {
             if (hoveredComponentIdRef.current !== null) {
               dominantAction = 'HOVERING_COMPONENT';
-            } else if (gEngine.isPointing || gEngine.interactionState === 'POINTING') {
-              dominantAction = 'POINTING';
+            } else if (gEngine.isPointing || gEngine.interactionState === 'HOVERING') {
+              dominantAction = 'HOVERING';
             } else {
               dominantAction = 'IDLE';
             }
@@ -2079,7 +2093,7 @@ export function SpatialObjectEngine({
       // 1. PINCH_ACTIVE check
       const isSingleHandPinch = gEngine.isHandActive &&
         gEngine.handsCount === 1 &&
-        (gEngine.isPinch || gEngine.interactionState === 'GRABBING OBJECT' || currentGesture === 'PINCH') &&
+        (gEngine.isPinch || gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG' || currentGesture === 'PINCH') &&
         gEngine.cursorPosition !== null;
 
       // 2. TWO_HAND_ROTATE check
@@ -2195,7 +2209,7 @@ export function SpatialObjectEngine({
       // - INSPECTION (Default): Pure direct manual control. Zero auto rotation.
       // =========================================================================
       const currentMode = spatialModeRef.current;
-      const activeObjForDemo = currentSpatialObjectRef.current ? SPATIAL_LIBRARY[currentSpatialObjectRef.current] : null;
+      const activeObjForDemo = currentSpatialObjectRef.current ? SPATIAL_LIBRARY[Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current[0] : currentSpatialObjectRef.current as string] : null;
 
       if (!isActivelyInteracting && rotationVelocityRef.current === 0) {
         if (currentMode === 'SHOWCASE') {
@@ -2364,16 +2378,26 @@ export function SpatialObjectEngine({
                   )}
                   
                   {obj.id === 'electron' ? <ElectronCloud />
-                  : obj.id === 'hydrogen_atom' ? <HydrogenAtom />
+                   : obj.id === 'hydrogen_atom' ? <HydrogenAtom />
                   : obj.id === 'atomic_nucleus' ? <AtomicNucleus />
                   : obj.id === 'magnetic_field' ? <MagneticField />
                   : (
                     obj.components.map(comp => {
                       const isHovered = hoveredComponentId === comp.id;
                       const isSelected = selectedComponentId === comp.id;
+                      const isHighlighted = highlightedComponentId === comp.id || isSelected;
                       
                       const transform = componentTransforms?.[comp.id];
-                      const pos = transform ? transform.position : comp.position;
+                      const basePos = transform ? transform.position : comp.position;
+                      const expOffset = comp.explodedOffset || [0, 0, 0];
+                      const currentExplodedFactor = explodedFactor || 0;
+                      
+                      const pos: [number, number, number] = [
+                        basePos[0] + expOffset[0] * currentExplodedFactor,
+                        basePos[1] + expOffset[1] * currentExplodedFactor,
+                        basePos[2] + expOffset[2] * currentExplodedFactor,
+                      ];
+
                       const rot = transform ? transform.rotation : (comp.rotation || [0, 0, 0]);
                       const scl = transform ? transform.scale : [1, 1, 1];
                       
@@ -2383,9 +2407,23 @@ export function SpatialObjectEngine({
                           ref={(el) => {
                             if (el) componentRefs.current[comp.id] = el;
                           }}
-                          position={pos as [number, number, number]}
+                          position={pos}
                           rotation={rot as [number, number, number]}
                           scale={scl as [number, number, number]}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedComponentId(comp.id);
+                          }}
+                          onPointerOver={(e) => {
+                            e.stopPropagation();
+                            setHoveredComponentId(comp.id);
+                          }}
+                          onPointerOut={(e) => {
+                            e.stopPropagation();
+                            if (hoveredComponentId === comp.id) {
+                              setHoveredComponentId(null);
+                            }
+                          }}
                           userData={{ 
                             selectableId: comp.id,
                             componentName: comp.name,
@@ -2401,19 +2439,33 @@ export function SpatialObjectEngine({
                             objectId={obj.id}
                             isHovered={isHovered}
                             isSelected={isSelected}
+                            xrayEnabled={xrayEnabled}
+                            blueprintEnabled={blueprintEnabled}
+                            isHighlighted={isHighlighted}
                           />
                           
-                          {(isHovered || isSelected || showLabels) && (
+                           {(isHovered || isSelected || showLabels) && (
                             <Html distanceFactor={8} position={[comp.size[0]/2 + 0.5, comp.size[1]/2 + 0.5, 0]} center zIndexRange={[100, 0]}>
                               <div className="flex flex-row items-center pointer-events-none animate-fade-in mix-blend-screen transition-opacity duration-300">
                                 <div className="w-16 h-[1px] bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
-                                <div className="flex flex-col pl-3 pt-1 border-l-[1px] border-cyan-400/40 pb-2">
-                                  <span className="font-mono font-bold text-cyan-300 text-[11px] uppercase tracking-[0.2em] drop-shadow-md">
-                                    {comp.name}
-                                  </span>
-                                  <span className="font-sans font-light text-[9px] text-cyan-50/70 leading-snug w-48 mt-1 tracking-wide">
+                                <div className="flex flex-col pl-3 pt-1 border-l-[1px] border-cyan-400/40 pb-2 bg-slate-950/85 p-3 rounded-r-xl border border-cyan-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                                  <div className="flex items-center justify-between gap-4">
+                                    <span className="font-mono font-bold text-cyan-300 text-[11px] uppercase tracking-[0.2em] drop-shadow-md">
+                                      {comp.name}
+                                    </span>
+                                    <span className="text-[8px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40">
+                                      OPERATIONAL
+                                    </span>
+                                  </div>
+                                  <span className="font-sans font-light text-[9px] text-cyan-50/80 leading-snug w-56 mt-1 tracking-wide">
                                     {comp.description}
                                   </span>
+                                  <div className="mt-2 grid grid-cols-2 gap-2 text-[9px] font-mono border-t border-cyan-500/20 pt-1.5">
+                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || 'Alloy Steel'}</span></div>
+                                    <div><span className="text-cyan-400/60">Temp:</span> <span className="text-cyan-200 font-bold">84°C</span></div>
+                                    <div><span className="text-cyan-400/60">Load:</span> <span className="text-emerald-400 font-bold">Normal</span></div>
+                                    <div><span className="text-cyan-400/60">Tolerance:</span> <span className="text-cyan-200 font-bold">±0.01mm</span></div>
+                                  </div>
                                 </div>
                               </div>
                             </Html>

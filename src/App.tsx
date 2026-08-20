@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -8,6 +7,7 @@ import { HologramCore } from './HologramCore';
 import { ChatPanel } from './ChatPanel';
 import { InputArea } from './InputArea';
 import { Sidebar } from './Sidebar';
+import { MemoryManager } from './MemoryManager';
 import { SystemPanels } from './SystemPanels';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
@@ -17,7 +17,8 @@ import { MobileNav } from './MobileNav';
 import { Fingerprint, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useHandTracking, HandTrackingData } from './useHandTracking';
-import { GestureProvider, useGestureEngine } from './GestureContext';
+import { MediaPipeAdapter } from './MediaPipeAdapter';
+import { GestureProvider, GestureFrameUpdater, useGestureEngine } from './GestureContext';
 import { SpatialObjectEngine, SpatialMode } from './SpatialObjectEngine';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { EngineeringHUD } from './EngineeringHUD';
@@ -43,10 +44,43 @@ export interface ChatMessage {
   image?: { content: string, mimeType: string };
 }
 
+import { LearningSession } from './LearnEngine/LearnTypes';
+import { buildChemistryLesson } from './LearnEngine/LessonBuilder';
+import { LearnWorkspace } from './LearnEngine/LearnWorkspace';
+import { ChemistryVisuals } from './LearnEngine/ChemistryVisuals';
+
 import { HolographicCursor } from './HolographicCursor';
 
+class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("AppErrorBoundary caught an error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#110000', color: '#ff4444', padding: '30px', fontFamily: 'monospace', overflow: 'auto' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>⚠️ REACT RENDER ERROR CAUGHT</h1>
+          <pre style={{ background: '#220000', padding: '15px', borderRadius: '8px', border: '1px solid #ff4444' }}>
+            {this.state.error?.toString()}
+            {"\n\n"}
+            {this.state.error?.stack}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
-  const [systemState, setSystemState] = useState<SystemState>('BOOTING');
+  const [systemState, setSystemState] = useState<SystemState>('ONLINE');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [bass, setBass] = useState(0);
@@ -78,6 +112,15 @@ export default function App() {
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
   const [cvEnabled, setCvEnabled] = useState<boolean>(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [activeLearningSession, setActiveLearningSession] = useState<LearningSession | null>(null);
+  const [recentActions, setRecentActions] = useState<Array<{ type: string; target?: string | null; name?: string | null; timestamp: number }>>([]);
+
+  const pushRecentAction = (type: string, target?: string | null, name?: string | null) => {
+    setRecentActions(prev => [...prev.slice(-9), { type, target, name, timestamp: Date.now() }]);
+  };
+
+  const [showMemoryManager, setShowMemoryManager] = useState<boolean>(false);
   const handTracking = useHandTracking(cvEnabled);
   
   // Spatial Object Engine State Management
@@ -92,6 +135,11 @@ export default function App() {
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
   const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [explodedFactor, setExplodedFactor] = useState<number>(0);
+  const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
+  const [blueprintEnabled, setBlueprintEnabled] = useState<boolean>(false);
+  const [highlightedComponentId, setHighlightedComponentId] = useState<string | null>(null);
+  const [measurementMode, setMeasurementMode] = useState<boolean>(false);
 
   const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
     setComponentTransforms(prev => ({
@@ -221,6 +269,19 @@ export default function App() {
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+
+  useEffect(() => {
+    const handleSwipe = (e: Event) => {
+      const swipeEvent = e as CustomEvent;
+      if (swipeEvent.detail && swipeEvent.detail.direction) {
+         console.log('ADVIS SWIPE:', swipeEvent.detail.direction);
+         // For now just log the swipe, but it could be used for pagination or switching workspaces.
+      }
+    };
+    window.addEventListener('advis-swipe', handleSwipe);
+    return () => window.removeEventListener('advis-swipe', handleSwipe);
   }, []);
 
   useEffect(() => {
@@ -376,11 +437,23 @@ export default function App() {
     }
     localStorage.setItem('advis_device_id', id);
     
-    // Cinematic initial boot sequence
-    setTimeout(() => {
+    // Fetch history in background immediately
+    fetchHistory(id);
+
+    // Fast cinematic initial boot sequence (~1000ms)
+    const bootTimer = setTimeout(() => {
       setSystemState('ONLINE');
-      fetchHistory(id);
-    }, 4000);
+    }, 1000);
+
+    // Deterministic safety fallback: guarantee exit from BOOTING state within 1200ms
+    const safetyTimer = setTimeout(() => {
+      setSystemState((prev) => (prev === 'BOOTING' ? 'ONLINE' : prev));
+    }, 1200);
+
+    return () => {
+      clearTimeout(bootTimer);
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   const fetchHistory = async (deviceId: string) => {
@@ -396,11 +469,8 @@ export default function App() {
         setMessages([{ role: 'assistant', content: 'Welcome online, Sir. Holographic interface fully restored and functional.', timestamp: Date.now() }]);
       }
     } catch (e) {
-      console.warn("fetch history warn:", e.message);
-      
+      console.warn("fetch history warn:", (e as Error).message);
       setMessages([{ role: 'assistant', content: 'Welcome online, Sir. (Offline Mode Active)', timestamp: Date.now() }]);
-      setSystemState('ONLINE');
-
     }
   };
 
@@ -451,6 +521,27 @@ export default function App() {
     
     const deviceId = localStorage.getItem('advis_device_id') || 'default';
 
+    const activeWorkspace = activeLearningSession 
+      ? 'CHEMISTRY' 
+      : (currentSpatialObject 
+        ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
+        : 'HUD');
+
+    const butlerContext = {
+      activeProjectId,
+      activeWorkspace,
+      activeSpatialObject: currentSpatialObject,
+      activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || null,
+      selectedComponentId,
+      hoveredComponentId,
+      spatialMode,
+      showLabels,
+      isEngineeringMode,
+      systemState,
+      recentActions,
+      recentConversation: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
+    };
+
     try {
       const startTime = Date.now();
       const res = await fetch('/api/advis', {
@@ -463,7 +554,9 @@ export default function App() {
           deviceId,
           currentSpatialObject,
           selectedComponentId,
-          hoveredComponentId
+          hoveredComponentId,
+          activeProjectId,
+          butlerContext
         })
       });
       const data = await res.json();
@@ -475,11 +568,28 @@ export default function App() {
         await new Promise(resolve => setTimeout(resolve, minThinkingTime - elapsed));
       }
 
+      if (data.activeProjectId) {
+        setActiveProjectId(data.activeProjectId);
+        pushRecentAction('PROJECT_SWITCH', data.activeProjectId, 'Project');
+      }
+
+      if (data.learnAction) {
+        const { subject, intent, learnMode } = data.learnAction;
+        pushRecentAction('START_LEARNING_SESSION', subject || 'CHEMISTRY', subject);
+        setActiveLearningSession(buildChemistryLesson(subject || 'UNKNOWN', intent || 'UNKNOWN', learnMode || 'TEACH_ME'));
+      }
+      
       if (data.spatialAction) {
         const action = data.spatialAction;
         
-        if (action.type === 'DISPLAY' || action.type === 'PRESENT') {
+        if (action.type === 'DISPLAY_SCIENTIFIC') {
+          const targetFormula = action.formula || action.assetId || 'UNKNOWN';
+          pushRecentAction('DISPLAY_SCIENTIFIC', targetFormula, action.name || targetFormula);
+          setCurrentSpatialObject(null);
+          setActiveLearningSession(buildChemistryLesson(targetFormula, 'SHOW_STRUCTURE', 'SHOW_ME'));
+        } else if (action.type === 'DISPLAY' || action.type === 'PRESENT') {
           const idsToCheck = action.objectIds || (action.objectId ? [action.objectId] : []);
+          pushRecentAction('DISPLAY', idsToCheck[0] || 'MODEL', action.name || idsToCheck[0]);
           for (const oid of idsToCheck) {
             const modelInfo = SPATIAL_LIBRARY[oid as keyof typeof SPATIAL_LIBRARY];
             if (modelInfo && modelInfo.modelStatus === 'UNAVAILABLE') {
@@ -527,9 +637,11 @@ export default function App() {
           setHoveredComponentId(null);
           changeSpatialMode('DEMO');
         } else if (action.type === 'CLOSE') {
+          pushRecentAction('CLOSE', null, null);
           setCurrentSpatialObject(null);
           setSelectedComponentId(null);
           setHoveredComponentId(null);
+          setActiveLearningSession(null);
           changeSpatialMode('INSPECTION');
         } else if (action.type === 'ENGINEERING_TRANSFORM') {
           if (!selectedComponentId) {
@@ -738,88 +850,117 @@ export default function App() {
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
   return (
-    <div ref={containerRef} className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans selection:bg-cyan-500/30">
-      <div 
-        className="pointer-events-none absolute inset-0 z-0 opacity-30 transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%)`
-        }}
-      />
-      
-      <Background systemState={systemState} themeColor={themeColor} />
-      
-      {/* 3D Canvas Layer */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[10, 10, 10]} intensity={2} />
-        <pointLight position={[-10, -10, -10]} intensity={1} color="#67e8f9" />
-        <pointLight position={[0, 5, -5]} intensity={1.5} color="#0ea5e9" />
-          <GestureProvider handTracking={handTracking} isSpatial={!!currentSpatialObject}>
-            <CameraRig isSpatial={!!currentSpatialObject} />
-          <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={!!currentSpatialObject} />
-          
-          <SpatialObjectEngine 
-            currentSpatialObject={currentSpatialObject}
-            selectedComponentId={selectedComponentId}
-            hoveredComponentId={hoveredComponentId}
-            isExploded={isExploded}
-            isPresentationMode={isPresentationMode}
-            presentationStep={presentationStep}
-            spatialMode={spatialMode}
-            onInteractionStateChange={setIsUserInteracting}
-            setSelectedComponentId={setSelectedComponentId}
-            setHoveredComponentId={setHoveredComponentId}
-            handTracking={handTracking}
-            setPresentationStep={setPresentationStep}
-            setMessages={setMessages}
-            soundEnabled={soundEnabled}
-            showLabels={showLabels}
-            componentTransforms={componentTransforms}
+    <AppErrorBoundary>
+      <GestureProvider handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession}>
+        {/* TEMPORARY DIAGNOSTIC MARKER REQUIRED BY USER REQUEST */}
+        <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, background: '#00ff00', color: '#000000', padding: '8px 16px', fontWeight: 'bold', fontSize: '16px', fontFamily: 'monospace', borderBottomRightRadius: '8px', boxShadow: '0 0 10px rgba(0,255,0,0.8)' }}>
+          ADVIS R3F DIAGNOSTIC - STATE: {systemState}
+        </div>
+
+        <div ref={containerRef} className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans selection:bg-cyan-500/30">
+        <div 
+          className="pointer-events-none absolute inset-0 z-0 opacity-30 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%)`
+          }}
+        />
+        
+        <Background systemState={systemState} themeColor={themeColor} />
+        
+        
+        {/* Learn Engine Layer */}
+        {activeLearningSession && (
+          <LearnWorkspace 
+             session={activeLearningSession} 
+             onClose={() => setActiveLearningSession(null)} 
+             onUpdateSession={setActiveLearningSession} 
           />
+        )}
+        
+        {/* MediaPipe CV Tracking Adapter */}
+        <MediaPipeAdapter enabled={cvEnabled} />
+
+        {/* 3D Canvas Layer */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
+            <ambientLight intensity={1.5} />
+            <directionalLight position={[10, 10, 10]} intensity={2} />
+            <pointLight position={[-10, -10, -10]} intensity={1} color="#67e8f9" />
+            <pointLight position={[0, 5, -5]} intensity={1.5} color="#0ea5e9" />
+            <GestureFrameUpdater handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
+            <CameraRig isSpatial={!!currentSpatialObject || !!activeLearningSession} />
+            <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
           
-          <EffectComposer>
-            <Bloom 
-              luminanceThreshold={0.5} 
-              mipmapBlur 
-              intensity={0.1 * hologramIntensity} 
-            />
-            <ChromaticAberration 
-              blendFunction={BlendFunction.NORMAL} 
-              offset={new THREE.Vector2(0.0005, 0.0005)} 
-              radialModulation={false}
-              modulationOffset={0}
-            />
-            <Noise opacity={0.012} />
-          </EffectComposer>
-          </GestureProvider>
-        </Canvas>
+            <React.Suspense fallback={null}>
+              {activeLearningSession && activeLearningSession.steps && activeLearningSession.steps[activeLearningSession.currentStepIndex] && (
+                 <ChemistryVisuals visualStateId={activeLearningSession.steps[activeLearningSession.currentStepIndex].visualStateId} />
+              )}
+              
+              <SpatialObjectEngine 
+                currentSpatialObject={currentSpatialObject}
+                selectedComponentId={selectedComponentId}
+                hoveredComponentId={hoveredComponentId}
+                isExploded={isExploded}
+                isPresentationMode={isPresentationMode}
+                presentationStep={presentationStep}
+                spatialMode={spatialMode}
+                onInteractionStateChange={setIsUserInteracting}
+                setSelectedComponentId={setSelectedComponentId}
+                setHoveredComponentId={setHoveredComponentId}
+                handTracking={handTracking}
+                setPresentationStep={setPresentationStep}
+                setMessages={setMessages}
+                soundEnabled={soundEnabled}
+                showLabels={showLabels}
+                componentTransforms={componentTransforms}
+                explodedFactor={explodedFactor}
+                xrayEnabled={xrayEnabled}
+                blueprintEnabled={blueprintEnabled}
+                highlightedComponentId={highlightedComponentId}
+              />
+            </React.Suspense>
+            
+            <EffectComposer>
+              <Bloom 
+                luminanceThreshold={0.5} 
+                mipmapBlur 
+                intensity={0.1 * hologramIntensity} 
+              />
+              <ChromaticAberration 
+                blendFunction={BlendFunction.NORMAL} 
+                offset={new THREE.Vector2(0.0005, 0.0005)} 
+                radialModulation={false}
+                modulationOffset={0}
+              />
+              <Noise opacity={0.012} />
+            </EffectComposer>
+          </Canvas>
       </div>
 
       {/* UI Layer */}
-      <div className={`absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 ${systemState === 'BOOTING' ? 'opacity-0' : 'opacity-100'}`}>
-        <div className={`transition-all duration-1000 ${currentSpatialObject ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
+      <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
+        <div className={`transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
           <MobileNav currentView={currentView} setView={setCurrentView} />
         </div>
         <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
-          <div className={`hidden lg:block transition-all duration-1000 ${currentSpatialObject ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
+          <div className={`hidden lg:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
             <Sidebar currentView={currentView} setView={setCurrentView} />
           </div>
           
           <div className="flex-1 flex justify-center lg:justify-between relative">
-            <div className={`hidden xl:block transition-all duration-1000 ${currentSpatialObject ? 'transform -translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
+            <div className={`hidden xl:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform -translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
               <SystemPanels side="left" handTracking={handTracking} />
             </div>
-            <div className={`w-full max-w-[450px] flex flex-col h-full pt-16 lg:pt-0 pb-[140px] md:pb-[120px] transition-all duration-1000 ${currentSpatialObject ? 'transform translate-y-16 opacity-0 scale-95 pointer-events-none' : 'transform translate-y-0 opacity-100 scale-100 pointer-events-auto'}`}>
+            <div className={`w-full max-w-[450px] flex flex-col h-full pt-16 lg:pt-0 pb-[140px] md:pb-[120px] transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-y-16 opacity-0 scale-95 pointer-events-none' : 'transform translate-y-0 opacity-100 scale-100 pointer-events-auto'}`}>
               <ChatPanel messages={messages} systemState={systemState} audioLevel={audioLevel} />
             </div>
-            <div className={`hidden xl:block transition-all duration-1000 ${currentSpatialObject ? 'transform translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
+            <div className={`hidden xl:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
               <SystemPanels side="right" handTracking={handTracking} />
             </div>
           </div>
         </div>
         
-        <div className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ${currentSpatialObject ? 'transform translate-y-full opacity-0 pointer-events-none' : 'transform translate-y-0 opacity-100 pointer-events-auto'}`}>
+        <div className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-y-full opacity-0 pointer-events-none' : 'transform translate-y-0 opacity-100 pointer-events-auto'}`}>
           <InputArea 
             onSend={handleSendMessage} 
             systemState={systemState}
@@ -1035,7 +1176,7 @@ export default function App() {
         );
       })()}
 
-      <HolographicCursor handTracking={handTracking} isSpatial={!!currentSpatialObject} />
+      <HolographicCursor handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
       <ViewModal 
         currentView={currentView} 
         setView={setCurrentView} 
@@ -1155,11 +1296,21 @@ export default function App() {
           onSelectComponent={setSelectedComponentId}
           componentTransforms={componentTransforms}
           onUpdateComponentTransform={handleUpdateComponentTransform}
+          explodedFactor={explodedFactor}
+          onUpdateExplodedFactor={setExplodedFactor}
+          xrayEnabled={xrayEnabled}
+          onToggleXray={() => setXrayEnabled(!xrayEnabled)}
+          blueprintEnabled={blueprintEnabled}
+          onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
+          highlightedComponentId={highlightedComponentId}
+          onHighlightComponent={setHighlightedComponentId}
+          measurementMode={measurementMode}
+          onToggleMeasurement={() => setMeasurementMode(!measurementMode)}
         />
       )}
 
       {/* Connection Screen / Cinematic Boot Loader */}
-      {(systemState === 'CONNECTING' || systemState === 'BOOTING') && (
+      {(systemState === 'CONNECTING') && (
         <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center font-mono">
           <div className="text-5xl font-bold tracking-[0.3em] text-cyan-400 mb-8 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
             A.D.V.I.S.
@@ -1173,5 +1324,7 @@ export default function App() {
         </div>
       )}
     </div>
+    </GestureProvider>
+    </AppErrorBoundary>
   );
 }

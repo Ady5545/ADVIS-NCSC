@@ -114,7 +114,7 @@ export function SystemPanels({ side, handTracking }: { side: 'left' | 'right', h
               setTemp(data.current_weather.temperature);
             }
           } catch (err) {
-            console.warn("fetch warn:", err.message);
+            console.warn("fetch warn:", (err as Error).message);
           }
         },
         (err) => console.warn("geo warn:", err.message)

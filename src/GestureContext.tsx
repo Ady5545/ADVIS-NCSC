@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { HandTrackingData } from './useHandTracking';
 
 export interface GestureEngineState {
@@ -176,11 +176,9 @@ export function GestureProvider({
   isSpatial 
 }: { 
   children: React.ReactNode, 
-  handTracking: HandTrackingData | null, 
-  isSpatial: boolean 
+  handTracking?: HandTrackingData | null, 
+  isSpatial?: boolean 
 }) {
-  const { size } = useThree();
-
   const state = useRef<GestureEngineState>({
     pos: new THREE.Vector3(0, 0, 0),
     rot: new THREE.Vector3(0, 0, 0),
@@ -224,6 +222,22 @@ export function GestureProvider({
     rotationDelta: new THREE.Vector3(0, 0, 0)
   }).current;
 
+  return (
+    <GestureContext.Provider value={state}>
+      {children}
+    </GestureContext.Provider>
+  );
+}
+
+export function GestureFrameUpdater({ 
+  handTracking, 
+  isSpatial 
+}: { 
+  handTracking: HandTrackingData | null, 
+  isSpatial: boolean 
+}) {
+  const state = useContext(GestureContext);
+
   const physics = useRef({
     posX: { vel: 0 }, posY: { vel: 0 }, posZ: { vel: 0 },
     rotX: { vel: 0 }, rotY: { vel: 0 }, rotZ: { vel: 0 },
@@ -252,6 +266,7 @@ export function GestureProvider({
   });
 
   useFrame((threeState, delta) => {
+    if (!state) return;
     const dt = Math.min(delta, 0.033);
     const spatialCam = state.spatialCam;
 
@@ -262,9 +277,9 @@ export function GestureProvider({
     const interactionState = (isHandActive && handTracking.interactionState) ? handTracking.interactionState : 'NONE';
     const cursorPosition = (isHandActive && handTracking.cursorPosition) ? handTracking.cursorPosition : null;
 
-    const isPinchGrab = interactionState === 'GRABBING OBJECT';
+    const isPinchGrab = (interactionState === 'PINCH_DRAG' || interactionState === 'PINCH_HOLD' || interactionState === 'PINCH_START');
     const isPinch = isHandActive && (isPinchGrab || !!(handTracking.pinchDistance && handTracking.pinchDistance < 0.05));
-    const isPointing = isHandActive && (interactionState === 'POINTING' || isPinchGrab);
+    const isPointing = isHandActive && (interactionState === 'HOVERING' || isPinchGrab);
 
     state.trackingState = trackingState;
     state.isHandActive = isHandActive;
@@ -401,7 +416,7 @@ export function GestureProvider({
             const rawSpeed = Math.hypot(velX, velY);
 
             // --- Priority 2: One-Hand Open Palm = Rotation/Orbit from any hand position ---
-            const isPalmGesture = handTracking.gesture === 'OPEN PALM' || interactionState === 'HAND DETECTED';
+            const isPalmGesture = handTracking.gesture === 'OPEN PALM' || interactionState === 'TRACKING';
             if (isPalmGesture) {
               const DEADZONE_ORBIT = 0.0006;
               if (Math.hypot(dx, dy) > DEADZONE_ORBIT) {
@@ -492,7 +507,7 @@ export function GestureProvider({
           isHandActive: state.isHandActive,
           isPointing: state.isPointing,
           isPinch: state.isPinch,
-          isTwoHand: state.handsCount === 2 || interactionState === 'TWO HAND CONTROL',
+          isTwoHand: state.handsCount === 2 || interactionState === 'TWO_HAND_INTERACTION',
           interactionState: state.interactionState,
           contextMode: physicsMetrics.current.mode,
           confidence: Number(physicsMetrics.current.confidence.toFixed(2)),
@@ -512,8 +527,8 @@ export function GestureProvider({
           state.cameraTarget.y = (hand.y - 0.5) * 30;
           state.cameraTarget.z = 15 - ((pinchDistance || 0) * 20);
         } else {
-          state.cameraTarget.x = (threeState.pointer.x * size.width) / -100;
-          state.cameraTarget.y = (threeState.pointer.y * size.height) / -100;
+          state.cameraTarget.x = (threeState.pointer.x * threeState.size.width) / -100;
+          state.cameraTarget.y = (threeState.pointer.y * threeState.size.height) / -100;
           state.cameraTarget.z = 15;
         }
 
@@ -590,9 +605,5 @@ export function GestureProvider({
     }
   });
 
-  return (
-    <GestureContext.Provider value={state}>
-      {children}
-    </GestureContext.Provider>
-  );
+  return null;
 }

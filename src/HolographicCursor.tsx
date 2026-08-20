@@ -18,7 +18,7 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
   // Position interpolation for absolute fluid feeling and trail management
   useEffect(() => {
     if (htState === 'TRACKING' && cursorX !== undefined && cursorY !== undefined) {
-      const isPointerState = interactionState === 'POINTING';
+      const isPointerState = interactionState === 'HOVERING';
       const isScrollState = interactionState === 'SCROLL';
       
       const targetActive = isPointerState || isScrollState || htState === 'TRACKING';
@@ -150,9 +150,9 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
   if (!isActive) return null;
 
   const isScrolling = handTracking.interactionState === 'SCROLL';
-  const isHoverState = handTracking.interactionState === 'POINTING';
-  const isSelectState = handTracking.interactionState === 'POINTING';
-  const isTrackingState = handTracking.state === 'TRACKING';
+  const isHoverState = handTracking.interactionState === 'HOVERING';
+  const isSelectState = handTracking.interactionState === 'PINCH_HOLD' || handTracking.interactionState === 'PINCH_DRAG' || handTracking.interactionState === 'PINCH_START';
+  const isTrackingState = handTracking.state === 'TRACKING' && !isHoverState && !isSelectState && !isScrolling;
   const progress = handTracking.hoverProgress || 0;
 
   return (
@@ -343,6 +343,34 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
           <div className="absolute inset-0 bg-cyan-400 rounded-full animate-pulse opacity-40 blur-[1px]" />
         )}
       </div>
+
+      {/* 7. TWO-HAND INTERACTION FEEDBACK */}
+      {handTracking.interactionState === 'TWO_HAND_INTERACTION' && handTracking.leftHandPosition && handTracking.rightHandPosition && (
+        <svg className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }}>
+          {handTracking.gesture === 'TWO HAND SCALE' && (
+            <line 
+              x1={(1 - handTracking.leftHandPosition.x) * window.innerWidth} 
+              y1={handTracking.leftHandPosition.y * window.innerHeight} 
+              x2={(1 - handTracking.rightHandPosition.x) * window.innerWidth} 
+              y2={handTracking.rightHandPosition.y * window.innerHeight} 
+              stroke="rgba(6, 182, 212, 0.4)" 
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+          )}
+          {handTracking.gesture === 'TWO HAND ROTATE' && (
+            <circle 
+              cx={((1 - handTracking.leftHandPosition.x) * window.innerWidth + (1 - handTracking.rightHandPosition.x) * window.innerWidth) / 2} 
+              cy={(handTracking.leftHandPosition.y * window.innerHeight + handTracking.rightHandPosition.y * window.innerHeight) / 2} 
+              r={Math.sqrt(Math.pow((1 - handTracking.leftHandPosition.x) * window.innerWidth - (1 - handTracking.rightHandPosition.x) * window.innerWidth, 2) + Math.pow(handTracking.leftHandPosition.y * window.innerHeight - handTracking.rightHandPosition.y * window.innerHeight, 2)) / 2}
+              fill="transparent" 
+              stroke="rgba(6, 182, 212, 0.2)" 
+              strokeWidth="1"
+              strokeDasharray="10 10"
+            />
+          )}
+        </svg>
+      )}
         </>
       )}
     </div>

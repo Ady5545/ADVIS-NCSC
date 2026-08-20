@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Hands, Results } from '@mediapipe/hands';
-import { Camera } from '@mediapipe/camera_utils';
+import { useTrackingState, NormalizedHandState } from './TrackingProvider';
 import { getDistance, isFingerExtended, isThumbExtended, getHandRotation } from './gestureUtils';
 
 export type TrackingState = 'OFF' | 'SEARCHING' | 'TRACKING' | 'LOST';
 
 export type InteractionState = 
-  | 'NO HAND'
-  | 'HAND DETECTED'
-  | 'POINTING'
-  | 'PINCH READY'
-  | 'GRABBING OBJECT'
-  | 'TWO HAND CONTROL'
+  | 'IDLE'
+  | 'TRACKING'
+  | 'HOVERING'
+  | 'PINCH_START'
+  | 'PINCH_HOLD'
+  | 'PINCH_DRAG'
+  | 'PINCH_RELEASE'
+  | 'TWO_HAND_INTERACTION'
   | 'PAUSED'
-  | 'SCROLL'
-  | 'IDLE';
+  | 'SCROLL';
 
 export type GestureType = 
   | 'NONE'
@@ -145,7 +145,7 @@ const getMagneticAdjustment = (x: number, y: number) => {
 export function useHandTracking(enabled: boolean) {
   const [data, setData] = useState<HandTrackingData>({
     state: 'OFF',
-    interactionState: 'NO HAND',
+    interactionState: 'IDLE',
     handsDetected: 0,
     landmarks: [],
     fps: 0,
@@ -163,9 +163,6 @@ export function useHandTracking(enabled: boolean) {
     hoveredRect: null
   });
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const handsRef = useRef<Hands | null>(null);
-  const cameraRef = useRef<Camera | null>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
   const frameCountRef = useRef<number>(0);
   const lossBufferStartTimeRef = useRef<number>(0);
@@ -214,6 +211,24 @@ export function useHandTracking(enabled: boolean) {
   const lastActiveTimeRef = useRef<number>(0);
   const hoverStartTimeRef = useRef<number>(0);
 
+
+  // Swipe State Machine
+  const swipeRef = useRef<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    startTime: number;
+    lastSwipeTime: number;
+  }>({ active: false, startX: 0, startY: 0, startTime: 0, lastSwipeTime: 0 });
+
+  // Pinch State Machine
+  const pinchStateMachineRef = useRef<{
+    state: 'IDLE' | 'PINCH_START' | 'PINCH_HOLD' | 'PINCH_DRAG' | 'PINCH_RELEASE';
+    startTime: number;
+    startPos: {x: number, y: number} | null;
+  }>({ state: 'IDLE', startTime: 0, startPos: null });
+
+
   // Gesture locking and stability
   const gestureLockRef = useRef<{
     candidate: GestureType;
@@ -221,7 +236,9 @@ export function useHandTracking(enabled: boolean) {
     startTime: number;
   }>({ candidate: 'NONE', locked: 'NONE', startTime: 0 });
 
-  const onResults = useCallback((results: Results) => {
+  const { handState } = useTrackingState();
+  useEffect(() => {
+    const processHands = (state: NormalizedHandState) => {
     frameCountRef.current++;
     const now = performance.now();
     if (now - lastFrameTimeRef.current >= 1000) {
@@ -230,7 +247,7 @@ export function useHandTracking(enabled: boolean) {
       lastFrameTimeRef.current = now;
     }
 
-    const hasHands = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
+    const hasHands = state.hands.map(h => h.landmarks) && state.hands.map(h => h.landmarks).length > 0;
     
     setData(prev => {
       if (hasHands) {
@@ -239,7 +256,7 @@ export function useHandTracking(enabled: boolean) {
         let scrollPosition = null;
         let confidence = 0.99;
 
-        const numHands = results.multiHandLandmarks.length;
+        const numHands = state.hands.map(h => h.landmarks).length;
         
         let lHandPos = null;
         let rHandPos = null;
@@ -249,7 +266,7 @@ export function useHandTracking(enabled: boolean) {
         let pinchDist = 1;
 
         if (numHands === 1) {
-          const lm = results.multiHandLandmarks[0];
+          const lm = state.hands.map(h => h.landmarks)[0];
           
           const isThumb = isThumbExtended(lm);
           const isIndex = isFingerExtended(lm, 5);
@@ -284,8 +301,8 @@ export function useHandTracking(enabled: boolean) {
           prevMetricsRef.current.handPos = lm[0];
 
         } else if (numHands === 2) {
-          const lm1 = results.multiHandLandmarks[0];
-          const lm2 = results.multiHandLandmarks[1];
+          const lm1 = state.hands.map(h => h.landmarks)[0];
+          const lm2 = state.hands.map(h => h.landmarks)[1];
           
           const rawLHand = { x: lm1[0].x, y: lm1[0].y, z: lm1[0].z };
           const rawRHand = { x: lm2[0].x, y: lm2[0].y, z: lm2[0].z };
@@ -446,28 +463,105 @@ export function useHandTracking(enabled: boolean) {
         let hoverProgress = 0;
         let hoveredRect: { top: number, left: number, width: number, height: number } | null = null;
 
-        // User requested clear states: NO HAND, HAND DETECTED, POINTING, PINCH READY, GRABBING OBJECT, TWO HAND CONTROL, PAUSED
-        // I will map these carefully to the existing states for internal logic, but also add a display state.
         
         if (numHands === 0) {
-          interactionState = 'NO HAND' as any;
+          interactionState = 'IDLE';
+          pinchStateMachineRef.current.state = 'IDLE';
         } else if (numHands === 2) {
-          interactionState = 'TWO HAND CONTROL' as any;
+          interactionState = 'TWO_HAND_INTERACTION';
+          pinchStateMachineRef.current.state = 'IDLE';
         } else if (numHands === 1) {
-          if (activeGesture === 'PINCH') {
-            interactionState = 'GRABBING OBJECT' as any;
-          } else if (activeGesture === 'INDEX POINTER') {
-            interactionState = 'POINTING' as any;
+
+          // Swipe Detection
+          const swipe = swipeRef.current;
+          if (activeGesture === 'OPEN PALM' || activeGesture === 'INDEX POINTER') {
+            if (!swipe.active && cursorPosition) {
+              swipe.active = true;
+              swipe.startX = cursorPosition.x;
+              swipe.startY = cursorPosition.y;
+              swipe.startTime = now;
+            } else if (swipe.active && cursorPosition) {
+              const dx = cursorPosition.x - swipe.startX;
+              const dy = cursorPosition.y - swipe.startY;
+              const dt = now - swipe.startTime;
+              
+              if (dt < 400 && dt > 50) {
+                const velocityX = dx / dt;
+                const velocityY = dy / dt;
+                
+                if (now - swipe.lastSwipeTime > 1000) { // Cooldown
+                  if (Math.abs(dx) > 0.15 && Math.abs(velocityX) > 0.0005 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                    window.dispatchEvent(new CustomEvent('advis-swipe', { detail: { direction: dx > 0 ? 'RIGHT' : 'LEFT' } }));
+                    swipe.lastSwipeTime = now;
+                    swipe.active = false;
+                  } else if (Math.abs(dy) > 0.15 && Math.abs(velocityY) > 0.0005 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+                    window.dispatchEvent(new CustomEvent('advis-swipe', { detail: { direction: dy > 0 ? 'DOWN' : 'UP' } }));
+                    swipe.lastSwipeTime = now;
+                    swipe.active = false;
+                  }
+                }
+              } else if (dt >= 400) {
+                // Reset swipe if took too long
+                swipe.active = false;
+              }
+            }
           } else {
-            interactionState = 'HAND DETECTED' as any;
+            swipe.active = false;
+          }
+
+          // Process JARVIS-style Pinch State Machine
+          const isPinchDetected = activeGesture === 'PINCH';
+          const psm = pinchStateMachineRef.current;
+          
+          if (isPinchDetected) {
+            if (psm.state === 'IDLE' || psm.state === 'PINCH_RELEASE') {
+              psm.state = 'PINCH_START';
+              psm.startTime = now;
+              psm.startPos = cursorPosition ? { x: cursorPosition.x, y: cursorPosition.y } : null;
+            } else if (psm.state === 'PINCH_START') {
+              if (now - psm.startTime > 100) {
+                psm.state = 'PINCH_HOLD';
+              }
+              // Check movement to transition early to drag
+              if (psm.startPos && cursorPosition) {
+                const dist = Math.sqrt(Math.pow(cursorPosition.x - psm.startPos.x, 2) + Math.pow(cursorPosition.y - psm.startPos.y, 2));
+                if (dist > 0.01) psm.state = 'PINCH_DRAG';
+              }
+            } else if (psm.state === 'PINCH_HOLD') {
+              if (psm.startPos && cursorPosition) {
+                const dist = Math.sqrt(Math.pow(cursorPosition.x - psm.startPos.x, 2) + Math.pow(cursorPosition.y - psm.startPos.y, 2));
+                if (dist > 0.015) psm.state = 'PINCH_DRAG';
+              }
+            }
+          } else {
+            if (psm.state === 'PINCH_START' || psm.state === 'PINCH_HOLD' || psm.state === 'PINCH_DRAG') {
+              psm.state = 'PINCH_RELEASE';
+              psm.startTime = now;
+            } else if (psm.state === 'PINCH_RELEASE') {
+              if (now - psm.startTime > 150) {
+                psm.state = 'IDLE';
+              }
+            }
+          }
+
+          if (psm.state !== 'IDLE') {
+            interactionState = psm.state;
+          } else if (activeGesture === 'INDEX POINTER') {
+            interactionState = 'HOVERING';
+          } else if (activeGesture === 'OPEN PALM') {
+            interactionState = 'TRACKING';
+          } else if (activeGesture === 'FIST') {
+            interactionState = 'IDLE';
+          } else {
+            interactionState = 'TRACKING';
           }
         }
 
         // --- Cursor Magnetism, Hover detection and Selection click flow ---
-        if (interactionState === 'POINTING' && cursorPosition) {
+        if (interactionState === 'HOVERING' && cursorPosition) {
           const mag = getMagneticAdjustment(cursorPosition.x, cursorPosition.y);
           if (mag && mag.element) {
-            interactionState = 'POINTING';
+            interactionState = 'HOVERING';
             
             // Subtle magnetic pull
             cursorPosition = { x: mag.x, y: mag.y, z: cursorPosition ? cursorPosition.z : 0.1 };
@@ -490,7 +584,7 @@ export function useHandTracking(enabled: boolean) {
             lastHoveredElementRef.current = null;
             hoverProgressRef.current = 0;
           }
-        } else if (interactionState === 'GRABBING OBJECT' && lastHoveredElementRef.current) {
+        } else if (interactionState.startsWith('PINCH_') && interactionState !== 'PINCH_RELEASE' && lastHoveredElementRef.current) {
           // Carry hover target and progress over into select
           hoverProgress = 1.0;
           if (lastHoveredElementRef.current) {
@@ -537,7 +631,7 @@ export function useHandTracking(enabled: boolean) {
           state: 'TRACKING',
           interactionState,
           handsDetected: numHands,
-          landmarks: results.multiHandLandmarks,
+          landmarks: state.hands.map(h => h.landmarks),
           fps: frameCountRef.current,
           confidence,
           gesture: activeGesture,
@@ -592,106 +686,27 @@ export function useHandTracking(enabled: boolean) {
         };
       }
     });
-  }, []);
+    };
 
-  useEffect(() => {
-    if (!enabled) {
-      if (cameraRef.current) {
-        try { cameraRef.current.stop(); } catch (e) {}
-        cameraRef.current = null;
-      }
-      if (handsRef.current) {
-        try { handsRef.current.close(); } catch (e) {}
-        handsRef.current = null;
-      }
-      kalmanX.current.reset();
-      kalmanY.current.reset();
-              kalmanZ.current.reset();
-      scrollKalmanX.current.reset();
-      scrollKalmanY.current.reset();
-              scrollKalmanZ.current.reset();
-      smoothedRef.current.wasScrolling = false;
+    if (enabled && handState.timestamp > 0) {
+      processHands(handState);
+    } else if (!enabled) {
+      // Clear data if disabled
       setData(prev => {
         if (prev.state === 'OFF' && prev.handsDetected === 0 && prev.landmarks.length === 0 && prev.gesture === 'NONE' && prev.cursorPosition === null && prev.scrollPosition === null) {
           return prev;
         }
         return { 
-          ...prev, 
-          state: 'OFF', 
-          handsDetected: 0, 
-          landmarks: [],
+           ...prev, 
+           state: 'OFF', 
+           handsDetected: 0, 
+           landmarks: [],
           gesture: 'NONE',
           cursorPosition: null,
           scrollPosition: null
         };
       });
-      return;
     }
-
-    setData(prev => {
-      if (prev.state === 'SEARCHING') return prev;
-      return { ...prev, state: 'SEARCHING' };
-    });
-
-    const videoElement = document.createElement('video');
-    videoElement.style.position = 'absolute';
-    videoElement.style.width = '1px';
-    videoElement.style.height = '1px';
-    videoElement.style.opacity = '0';
-    videoElement.style.pointerEvents = 'none';
-    
-    videoElement.muted = true;
-    videoElement.playsInline = true;
-    videoElement.autoplay = true;
-    videoElement.setAttribute('playsinline', 'true');
-    videoElement.setAttribute('muted', 'true');
-    videoElement.setAttribute('autoplay', 'true');
-    
-    document.body.appendChild(videoElement);
-    videoRef.current = videoElement;
-
-    let hands: any = null;
-    let camera: any = null;
-
-    try {
-      const MP_Hands = (Hands as any)?.Hands || (Hands as any)?.default || Hands;
-      hands = new MP_Hands({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-      });
-
-      hands.setOptions({
-        maxNumHands: 2,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.75,
-        minTrackingConfidence: 0.75
-      });
-
-      hands.onResults(onResults);
-      handsRef.current = hands;
-
-      const MP_Camera = (Camera as any)?.Camera || (Camera as any)?.default || Camera;
-      camera = new MP_Camera(videoElement, {
-        onFrame: async () => {
-          if (handsRef.current && videoElement && videoElement.readyState >= 2) {
-            try { await handsRef.current.send({ image: videoElement }); } catch (err) {}
-          }
-        },
-        width: 640,
-        height: 480
-      });
-
-      camera.start().catch((err: any) => setData(prev => ({ ...prev, state: 'OFF' })));
-      cameraRef.current = camera;
-    } catch (err) {
-      setData(prev => ({ ...prev, state: 'OFF' }));
-    }
-
-    return () => {
-      if (cameraRef.current) { try { cameraRef.current.stop(); } catch (e) {} cameraRef.current = null; }
-      if (handsRef.current) { try { handsRef.current.close(); } catch (e) {} handsRef.current = null; }
-      if (videoElement.parentNode) { try { videoElement.parentNode.removeChild(videoElement); } catch (e) {} }
-    };
-  }, [enabled, onResults]);
-
+  }, [handState, enabled]);
   return data;
 }

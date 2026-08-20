@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const { processButlerTurn } = require("./ButlerEngine");
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -18,7 +20,7 @@ async function startServer() {
   }));
 
 
-  const dataDir = process.env.NODE_ENV === "production" ? path.join("/tmp", ".data") : path.join(process.cwd(), ".data");
+  const dataDir = path.join(process.cwd(), ".data"); // Fixed: Always use workspace root for persistence in AI Studio.
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
@@ -26,6 +28,10 @@ async function startServer() {
   const MEMORIES_FILE = path.join(dataDir, "memories.json");
 
   let chatHistories = {};
+  const ADVIS_MEMORIES_FILE = path.join(dataDir, "advis_memories.json");
+  const ADVIS_PROJECTS_FILE = path.join(dataDir, "advis_projects.json");
+  let advisMemories = [];
+  let advisProjects = [];
   let globalMemories = [];
 
   try {
@@ -35,6 +41,12 @@ async function startServer() {
     if (fs.existsSync(MEMORIES_FILE)) {
       globalMemories = JSON.parse(fs.readFileSync(MEMORIES_FILE, "utf-8"));
     }
+    if (fs.existsSync(ADVIS_MEMORIES_FILE)) {
+      advisMemories = JSON.parse(fs.readFileSync(ADVIS_MEMORIES_FILE, "utf-8"));
+    }
+    if (fs.existsSync(ADVIS_PROJECTS_FILE)) {
+      advisProjects = JSON.parse(fs.readFileSync(ADVIS_PROJECTS_FILE, "utf-8"));
+    }
   } catch (e) {
     console.error("Failed to load data:", e);
   }
@@ -43,12 +55,61 @@ async function startServer() {
     try {
       fs.writeFileSync(HISTORY_FILE, JSON.stringify(chatHistories, null, 2), "utf-8");
       fs.writeFileSync(MEMORIES_FILE, JSON.stringify(globalMemories, null, 2), "utf-8");
+      fs.writeFileSync(ADVIS_MEMORIES_FILE, JSON.stringify(advisMemories, null, 2), "utf-8");
+      fs.writeFileSync(ADVIS_PROJECTS_FILE, JSON.stringify(advisProjects, null, 2), "utf-8");
     } catch (e) {
       console.error("Failed to save data:", e);
     }
   }
 
   let aiInstance = null;
+
+  function getRelevantMemories(userMessage, activeProjectId) {
+      if (advisMemories.length === 0) return '';
+      
+      const words = userMessage.toLowerCase().split(' ').filter(w => w.length > 3);
+      
+      // Score each memory
+      const scored = advisMemories.map(m => {
+          let score = 0;
+          const memStr = (m.content + " " + m.tags.join(" ")).toLowerCase();
+          
+          // Semantic overlap
+          words.forEach(w => {
+              if (memStr.includes(w)) score += 2;
+          });
+          
+          // Project relevance
+          if (activeProjectId && m.projectId === activeProjectId) score += 3;
+          if (!activeProjectId && !m.projectId) score += 1;
+          
+          // Importance
+          score += (m.importance || 5) * 0.2;
+          
+          // Pinned
+          if (m.pinned) score += 5;
+          
+          // Recency (boost recent memories slightly)
+          const ageHours = (Date.now() - m.updatedAt) / (1000 * 60 * 60);
+          if (ageHours < 24) score += 1;
+          
+          return { memory: m, score };
+      });
+      
+      // Filter out low scores unless pinned or project exact match
+      const relevant = scored.filter(s => s.score > 2 || s.memory.pinned || (activeProjectId && s.memory.projectId === activeProjectId));
+      
+      // Sort by score descending
+      relevant.sort((a, b) => b.score - a.score);
+      
+      // Take top 10 to avoid context bloat
+      const topMemories = relevant.slice(0, 10).map(s => s.memory);
+      
+      if (topMemories.length > 0) {
+          return '\n\n[ADVIS MEMORY CONTEXT]:\n' + topMemories.map(m => `- [${m.category}] ${m.content}`).join('\n');
+      }
+      return '';
+  }
   function getGeminiClient() {
     if (aiInstance) return aiInstance;
     const apiKey = process.env.GEMINI_API_KEY;
@@ -66,27 +127,216 @@ async function startServer() {
     }
   }
 
-  async function extractAndSaveMemories(userMessage) {
+  
+  
+  async function evaluateAndStoreMemory(userMessage, activeProjectId) {
     const client = getGeminiClient();
     if (!client) return;
+    
+    // Quick heuristic: Skip very short non-informational messages or greetings
+    const lower = userMessage.toLowerCase();
+    const isGreeting = ["hello", "hi", "hey", "good morning", "good evening"].includes(lower.trim());
+    
+    if (lower.includes("don't remember this") || lower.includes("do not remember this")) {
+        console.log("[MEMORY_EVENT] Explicitly instructed NOT to remember.");
+        return; 
+    }
+    
+    if (userMessage.split(' ').length < 3 && !lower.includes("use") && !lower.includes("prefer") && !lower.includes("project")) {
+        return; // Too short to be a meaningful persistent memory
+    }
+    if (isGreeting) return;
+
     try {
-      const prompt = `You are a memory extraction tool. Extract any new facts, personal preferences, or important information the user stated in the following message. If there is no new fact, output EXACTLY the word "NONE". Do not include conversational filler. Message: "${userMessage}"`;
+      // Gather relevant existing memories to let the LLM detect duplicates/contradictions
+      let existingContext = advisMemories.map(m => `ID: ${m.id} | Project: ${m.projectId || 'GLOBAL'} | Category: ${m.category} | Content: ${m.content}`).join('\n');
+      if (!existingContext) existingContext = "NONE";
+
+      const prompt = `
+You are the ADVIS Intelligence Context Evaluator.
+Analyze the user's message and determine if it contains information worth committing to LONG-TERM persistent memory.
+
+Active Project ID: ${activeProjectId || 'NONE'}
+
+DO SAVE:
+- Stable preferences, workflow preferences, architecture decisions, hardware specs, recurring goals.
+
+DO NOT SAVE (Ignore):
+- Casual chatter, jokes, transient emotions ("I'm tired", "That's cool"), temporary debugging states, general questions.
+
+If you decide to save, review the existing memories below. If the new information conflicts with or updates an existing memory, you must UPDATE the existing one instead of creating a duplicate. If it's identical to an existing memory, IGNORE it.
+
+EXISTING MEMORIES:
+${existingContext}
+
+Output JSON exactly like this:
+{
+  "action": "SAVE" | "UPDATE" | "IGNORE",
+  "updateId": "The ID of the memory to update, if action is UPDATE",
+  "category": "PERSONAL|PROJECT|HARDWARE|ENGINEERING|DEVELOPMENT|GOAL|PREFERENCE|WORKSPACE",
+  "content": "A clear, standalone statement of fact.",
+  "importance": <number 1-10>,
+  "confidence": "HIGH|MEDIUM|LOW",
+  "tags": ["relevant", "keywords"],
+  "targetProjectName": "Name of project if explicitly mentioned, or null"
+}
+
+User Message: "${userMessage}"
+`;
+      
       const response = await client.models.generateContent({
         model: "gemini-3.1-flash-lite",
         contents: prompt,
-        config: { temperature: 0.1 }
+        config: { temperature: 0.1, responseMimeType: "application/json" }
       });
-      let newFact = response.text.trim();
-      if (newFact && newFact !== "NONE" && !newFact.includes("NONE")) {
-        globalMemories.push(newFact);
-        // keep it manageable
-        if (globalMemories.length > 50) globalMemories = globalMemories.slice(globalMemories.length - 50);
-        saveData();
+      
+      let evalData;
+      try {
+        evalData = JSON.parse(response.text.trim());
+      } catch (e) {
+        return;
       }
+
+      if ((evalData.action === "SAVE" || evalData.action === "UPDATE") && (evalData.confidence === "HIGH" || evalData.confidence === "MEDIUM")) {
+         // Determine projectId
+         let pId = activeProjectId || null;
+         if (evalData.targetProjectName) {
+            const proj = advisProjects.find(p => p.name.toLowerCase().includes(evalData.targetProjectName.toLowerCase()));
+            if (proj) pId = proj.id;
+         }
+
+         if (evalData.action === "UPDATE" && evalData.updateId) {
+             const existingIdx = advisMemories.findIndex(m => m.id === evalData.updateId);
+             if (existingIdx !== -1) {
+                 console.log("[MEMORY_EVENT] MEMORY_UPDATED:", evalData.updateId);
+                 advisMemories[existingIdx].content = evalData.content;
+                 advisMemories[existingIdx].updatedAt = Date.now();
+                 advisMemories[existingIdx].importance = Math.max(advisMemories[existingIdx].importance, evalData.importance);
+                 if (evalData.tags && evalData.tags.length > 0) {
+                     advisMemories[existingIdx].tags = Array.from(new Set([...advisMemories[existingIdx].tags, ...evalData.tags]));
+                 }
+                 saveData();
+                 return;
+             }
+         }
+         
+         // Create new memory
+         const newMemory = {
+           id: "mem_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+           category: evalData.category || 'PERSONAL',
+           content: evalData.content,
+           source: 'INFERENCE', // Automatically extracted
+           createdAt: Date.now(),
+           updatedAt: Date.now(),
+           importance: evalData.importance || 5,
+           tags: evalData.tags || [],
+           projectId: pId,
+           pinned: false,
+           metadata: { confidence: evalData.confidence }
+         };
+         advisMemories.push(newMemory);
+         saveData();
+         console.log("[MEMORY_EVENT] MEMORY_CREATED:", newMemory.id);
+      }
+
     } catch (e) {
       console.error("Memory extraction error:", e);
     }
   }
+
+
+
+
+  // --- ADVIS MEMORY SERVICE ---
+  const { v4: uuidv4 } = require('crypto');
+  
+  app.get("/api/memory", (req, res) => {
+    const { projectId } = req.query;
+    if (projectId) {
+      res.json(advisMemories.filter(m => m.projectId === projectId));
+    } else {
+      res.json(advisMemories);
+    }
+  });
+
+  app.post("/api/memory", (req, res) => {
+    const { category, content, source, importance, tags, projectId, pinned, metadata } = req.body;
+    const newMemory = {
+      id: "mem_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+      category: category || 'PERSONAL',
+      content,
+      source: source || 'USER',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      importance: importance || 5,
+      tags: tags || [],
+      projectId: projectId || null,
+      pinned: pinned || false,
+      metadata: metadata || {}
+    };
+    advisMemories.push(newMemory);
+    saveData();
+    res.json(newMemory);
+  });
+
+  app.put("/api/memory/:id", (req, res) => {
+    const memIdx = advisMemories.findIndex(m => m.id === req.params.id);
+    if (memIdx === -1) return res.status(404).json({error: "Not found"});
+    const updated = { ...advisMemories[memIdx], ...req.body, updatedAt: Date.now() };
+    advisMemories[memIdx] = updated;
+    saveData();
+    res.json(updated);
+  });
+
+  app.delete("/api/memory/:id", (req, res) => {
+    advisMemories = advisMemories.filter(m => m.id !== req.params.id);
+    saveData();
+    res.json({ success: true });
+  });
+
+  app.get("/api/memory/search", (req, res) => {
+    const q = (req.query.q || '').toLowerCase();
+    const pid = req.query.projectId;
+    let results = advisMemories.filter(m => m.content.toLowerCase().includes(q) || m.tags.some(t => t.toLowerCase().includes(q)));
+    if (pid) results = results.filter(m => m.projectId === pid);
+    res.json(results);
+  });
+
+  app.get("/api/projects", (req, res) => {
+    res.json(advisProjects);
+  });
+
+  app.post("/api/projects", (req, res) => {
+    const { name, description, status, tags } = req.body;
+    const newProject = {
+      id: "proj_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+      name,
+      description,
+      status: status || 'ACTIVE',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      tags: tags || [],
+      associatedMemories: []
+    };
+    advisProjects.push(newProject);
+    saveData();
+    res.json(newProject);
+  });
+
+  app.put("/api/projects/:id", (req, res) => {
+    const pIdx = advisProjects.findIndex(p => p.id === req.params.id);
+    if (pIdx === -1) return res.status(404).json({error: "Not found"});
+    const updated = { ...advisProjects[pIdx], ...req.body, updatedAt: Date.now() };
+    advisProjects[pIdx] = updated;
+    saveData();
+    res.json(updated);
+  });
+
+  app.delete("/api/projects/:id", (req, res) => {
+    advisProjects = advisProjects.filter(p => p.id !== req.params.id);
+    saveData();
+    res.json({ success: true });
+  });
 
   app.get("/api/history", (req, res) => {
     const deviceId = req.query.deviceId || 'default';
@@ -240,13 +490,115 @@ async function startServer() {
     return "I am processing that locally, Sir.";
   }
 
-  function handleMemoryAgent(message, globalMemories) {
-    if (message.toLowerCase().startsWith("remember ")) {
-      return "I have committed that to memory, Sir."; // The actual extraction happens via background task
+  
+  async function handleMemoryAgent(message, activeProjectId) {
+    const lower = message.toLowerCase();
+    
+    if (lower.includes("what is my active project")) {
+       if (!activeProjectId) return "You currently have no active project set, Sir.";
+       const proj = advisProjects.find(p => p.id === activeProjectId);
+       if (proj) return `Your current active project is ${proj.name} (${proj.description}).`;
+       return "You have an active project ID, but I cannot find its details in the database, Sir.";
     }
-    if (globalMemories.length === 0) return "I have no specific memories stored yet, Sir.";
-    return `Based on my memory databanks, here is what I know:\n${globalMemories.map((m, i) => `${i+1}. ${m}`).join('\n')}`;
+    
+    if (lower.startsWith("switch to the ")) {
+       const targetName = lower.replace("switch to the ", "").replace(" project", "").trim();
+       const proj = advisProjects.find(p => p.name.toLowerCase().includes(targetName));
+       if (proj) {
+         return `PROJECT_SWITCH:${proj.id}`; // Special signal to UI to change state, handled later
+       }
+       return `I could not find a project matching "${targetName}", Sir. Please create it first.`;
+    }
+
+    const client = getGeminiClient();
+    if (!client) return "My memory banks are currently offline due to a missing AI connection.";
+
+    // Let's use Gemini to parse the memory intent
+    const prompt = `
+You are the ADVIS Memory Intent Parser.
+Analyze the following user command: "${message}"
+
+Current Active Project ID: ${activeProjectId || 'NONE'}
+
+Available Categories: PERSONAL, PROJECT, HARDWARE, ENGINEERING, DEVELOPMENT, GOAL, PREFERENCE, WORKSPACE
+
+Decide what action to take:
+1. STORE: If the user wants to remember a new fact.
+2. DELETE: If the user wants to forget a fact.
+3. RETRIEVE: If the user is asking what is remembered.
+
+Output JSON only, in this exact format:
+{
+  "action": "STORE" | "DELETE" | "RETRIEVE",
+  "category": "ONE_OF_THE_CATEGORIES",
+  "content": "The fact to store, delete, or retrieve query",
+  "tags": ["relevant", "tags"],
+  "targetProjectName": "Optional name of project if mentioned (e.g. 'V12 project')"
+}
+`;
+    
+    try {
+      const response = await client.models.generateContent({
+        model: "gemini-3.1-flash-lite",
+        contents: prompt,
+        config: { temperature: 0.1, responseMimeType: "application/json" }
+      });
+      
+      const intent = JSON.parse(response.text.trim());
+      
+      if (intent.action === "STORE") {
+         let pId = activeProjectId;
+         if (intent.targetProjectName) {
+            const proj = advisProjects.find(p => p.name.toLowerCase().includes(intent.targetProjectName.toLowerCase()));
+            if (proj) pId = proj.id;
+         }
+         const newMemory = {
+           id: "mem_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+           category: intent.category,
+           content: intent.content,
+           source: 'USER',
+           createdAt: Date.now(),
+           updatedAt: Date.now(),
+           importance: 5,
+           tags: intent.tags,
+           projectId: pId,
+           pinned: false,
+           metadata: {}
+         };
+         advisMemories.push(newMemory);
+         saveData();
+         return `I have saved that to my memory banks, Sir. (Category: ${intent.category})`;
+      } 
+      else if (intent.action === "DELETE") {
+         // Simple exact or partial match delete
+         const idx = advisMemories.findIndex(m => m.content.toLowerCase().includes(intent.content.toLowerCase()) || intent.content.toLowerCase().includes(m.content.toLowerCase()));
+         if (idx !== -1) {
+            advisMemories.splice(idx, 1);
+            saveData();
+            return "I have purged that information from my memory banks, Sir.";
+         }
+         return "I could not find a matching memory to delete, Sir.";
+      }
+      else if (intent.action === "RETRIEVE") {
+         let results = advisMemories.filter(m => m.content.toLowerCase().includes(intent.content.toLowerCase()) || m.tags.some(t => intent.content.toLowerCase().includes(t.toLowerCase())));
+         if (results.length === 0) {
+            // fallback to returning active project memories or all
+            if (activeProjectId) {
+               results = advisMemories.filter(m => m.projectId === activeProjectId);
+            } else {
+               results = advisMemories.slice(-5);
+            }
+         }
+         if (results.length === 0) return "I have no specific memories regarding that, Sir.";
+         return `Based on my memory databanks:\n${results.map((m, i) => `${i+1}. ${m.content}`).join('\n')}`;
+      }
+    } catch (e) {
+      console.error(e);
+      return "I encountered an error accessing my memory banks, Sir.";
+    }
+    return "Memory operation completed.";
   }
+
 
   const SPATIAL_REGISTRY = {
     arduino_uno: 'AVAILABLE',
@@ -334,9 +686,74 @@ async function startServer() {
     heliomotion: ['heliomotion', 'solar tracker']
   };
 
+  const SCIENTIFIC_ENTITIES = {
+    "glucose": { formula: "C6H12O6", name: "Glucose" },
+    "c6h12o6": { formula: "C6H12O6", name: "Glucose" },
+    "d-glucose": { formula: "C6H12O6", name: "Glucose" },
+    "sugar": { formula: "C6H12O6", name: "Glucose" },
+    
+    "water": { formula: "H2O", name: "Water" },
+    "h2o": { formula: "H2O", name: "Water" },
+    "dihydrogen monoxide": { formula: "H2O", name: "Water" },
+    
+    "boron trifluoride": { formula: "BF3", name: "Boron Trifluoride" },
+    "bf3": { formula: "BF3", name: "Boron Trifluoride" },
+    
+    "benzene": { formula: "C6H6", name: "Benzene" },
+    "c6h6": { formula: "C6H6", name: "Benzene" },
+    "benzol": { formula: "C6H6", name: "Benzene" },
+    
+    "ethanol": { formula: "C2H5OH", name: "Ethanol" },
+    "c2h5oh": { formula: "C2H5OH", name: "Ethanol" },
+    "ethyl alcohol": { formula: "C2H5OH", name: "Ethanol" },
+    "alcohol": { formula: "C2H5OH", name: "Ethanol" },
+    "c2": { formula: "C2H5OH", name: "Ethanol" },
+    "c2)": { formula: "C2H5OH", name: "Ethanol" },
+    
+    "methane": { formula: "CH4", name: "Methane" },
+    "ch4": { formula: "CH4", name: "Methane" },
+    "natural gas": { formula: "CH4", name: "Methane" },
+    
+    "ammonia": { formula: "NH3", name: "Ammonia" },
+    "nh3": { formula: "NH3", name: "Ammonia" },
+    
+    "carbon dioxide": { formula: "CO2", name: "Carbon Dioxide" },
+    "co2": { formula: "CO2", name: "Carbon Dioxide" },
+    
+    "sodium chloride": { formula: "NaCl", name: "Sodium Chloride" },
+    "nacl": { formula: "NaCl", name: "Sodium Chloride" },
+    "table salt": { formula: "NaCl", name: "Sodium Chloride" },
+    "salt": { formula: "NaCl", name: "Sodium Chloride" },
+    
+    "oxygen": { formula: "O2", name: "Oxygen Gas" },
+    "oxygen gas": { formula: "O2", name: "Oxygen Gas" },
+    "o2": { formula: "O2", name: "Oxygen Gas" },
+    
+    "nitrogen": { formula: "N2", name: "Nitrogen Gas" },
+    "nitrogen gas": { formula: "N2", name: "Nitrogen Gas" },
+    "n2": { formula: "N2", name: "Nitrogen Gas" }
+  };
+
+  function resolveScientificEntityServer(msg) {
+    if (!msg) return null;
+    let str = msg.trim().toLowerCase();
+    str = str.replace(/₀/g, '0').replace(/₁/g, '1').replace(/₂/g, '2').replace(/₃/g, '3')
+             .replace(/₄/g, '4').replace(/₅/g, '5').replace(/₆/g, '6').replace(/₇/g, '7')
+             .replace(/₈/g, '8').replace(/₉/g, '9');
+    str = str.replace(/[\)\}\]\s]+$/, '');
+
+    for (const [key, obj] of Object.entries(SCIENTIFIC_ENTITIES)) {
+      const regex = new RegExp(`\\b${key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+      if (regex.test(str) || str === key) {
+        return obj;
+      }
+    }
+    return null;
+  }
+
   function detectSpatialAction(message) {
     const lower = message.toLowerCase().trim();
-    if (lower.includes("close the model") || lower.includes("hide the model") || lower.includes("remove the model") || lower.includes("close model") || lower.includes("hide model") || lower.includes("remove model") || lower.includes("clear spatial") || lower.includes("unload model")) {
+    if (lower === "stop" || lower === "close" || lower === "hide" || lower === "remove" || lower === "clear" || lower === "stop visualization" || lower === "hide molecule" || lower === "close molecule" || lower === "remove molecule" || lower === "clear visualization" || lower === "remove this" || lower.includes("close the model") || lower.includes("hide the model") || lower.includes("remove the model") || lower.includes("close model") || lower.includes("hide model") || lower.includes("remove model") || lower.includes("clear spatial") || lower.includes("unload model") || lower.includes("close visualization") || lower.includes("hide visualization")) {
       return { type: "CLOSE" };
     }
     
@@ -431,180 +848,66 @@ async function startServer() {
   }
 
   app.post(["/api/advis", "/api/jarvis"], async (req, res) => {
-    const { message, mode, deviceId = 'default', image, currentSpatialObject, selectedComponentId, hoveredComponentId } = req.body;
-    if (!message) return res.status(400).json({ error: "Protocol violation: Message payload is empty, Sir." });
+    const { 
+      message, 
+      mode, 
+      deviceId = 'default', 
+      image, 
+      currentSpatialObject, 
+      selectedComponentId, 
+      hoveredComponentId, 
+      activeProjectId,
+      butlerContext: clientButlerContext
+    } = req.body;
+
+    if (!message) return res.status(400).json({ error: "Protocol violation: Message payload is empty." });
 
     if (!chatHistories[deviceId]) {
       chatHistories[deviceId] = [];
     }
 
-    const lowerMessage = message.toLowerCase().trim();
-    let spatialAction = detectSpatialAction(message);
-    
-    // MASTER BRAIN ROUTING
-    const assignedAgent = masterBrainRoute(message, !!image);
-    console.log(`[Master Brain] Routed request to: ${assignedAgent}`);
-
-    // Process Fast Local Agents First (Bypass Gemini)
-    if (assignedAgent === "SYSTEM_CLEAR") {
-      chatHistories[deviceId] = [];
-      saveData();
-      return res.json({ reply: "HUD Console history cleared for this device, Sir.", mode: mode || "normal", status: "online" });
-    }
-
-    let localReply = null;
-    
-    if (assignedAgent === "EXECUTION_AGENT") {
-      localReply = handleExecutionAgent(message);
-    } else if (assignedAgent === "HELIOMOTION_AGENT") {
-      localReply = handleHelioMotionAgent(message);
-    } else if (assignedAgent === "LOCAL_INTEL_AGENT") {
-      localReply = handleLocalIntelAgent(message);
-    } else if (assignedAgent === "DIAGNOSTICS_AGENT") {
-      localReply = "Running system diagnostics... Hardware parameters appear nominal, Sir.";
-    } else if (assignedAgent === "PLANNING_AGENT") {
-      localReply = "I have updated your schedule and set the requested timers, Sir.";
-    } else if (assignedAgent === "MEMORY_AGENT") {
-      localReply = handleMemoryAgent(message, globalMemories);
-    }
-
-    if (localReply) {
-      chatHistories[deviceId].push({ role: "user", content: message });
-      chatHistories[deviceId].push({ role: "assistant", content: localReply });
-      saveData();
-      extractAndSaveMemories(message); // Background extraction
-      return res.json({ reply: localReply, mode: mode || "normal", status: "online" });
-    }
-
-    // Cache check for Conversation/Search agents
-    if (assignedAgent === "CONVERSATION_AGENT" && responseCache[lowerMessage]) {
-      const reply = responseCache[lowerMessage];
-      chatHistories[deviceId].push({ role: "user", content: message });
-      chatHistories[deviceId].push({ role: "assistant", content: reply });
-      saveData();
-      return res.json({ reply, mode: mode || "normal", status: "online" });
-    }
-
-    // Step 5 & 6: Search Agent & Conversation Agent (Gemini)
-    const client = getGeminiClient();
-    if (!client) {
-      chatHistories[deviceId].push({ role: "user", content: message });
-      const fallbackReply = "I am sorry Sir, my cloud connection is currently offline. Please configure the GEMINI_API_KEY environment variable.";
-      chatHistories[deviceId].push({ role: "assistant", content: fallbackReply });
-      saveData();
-      return res.json({ reply: fallbackReply, mode: mode || "normal", status: "offline" });
-    }
+    const butlerContext = clientButlerContext || {
+      activeProjectId,
+      activeWorkspace: currentSpatialObject ? 'SPATIAL' : 'HUD',
+      activeSpatialObject: currentSpatialObject,
+      selectedComponentId,
+      hoveredComponentId,
+      recentActions: []
+    };
 
     try {
-      const contents = chatHistories[deviceId].map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
-      }));
-      const userParts = [];
-      if (image && image.content) {
-        const base64Data = image.content.split(',')[1] || image.content;
-        userParts.push({
-          inlineData: {
-            data: base64Data,
-            mimeType: image.mimeType || "image/jpeg"
-          }
-        });
-      }
-      userParts.push({ text: message });
-      contents.push({ role: 'user', parts: userParts });
-
-      let memoryContext = globalMemories.length > 0 ? `\n\nHere are known facts about the user and the world from previous conversations across all connected devices:\n${globalMemories.map((m, i) => `${m}`).join('\n')}` : '';
-
-      let advisIdentity = "You are A.D.V.I.S. (Ady's Digital Virtual Intelligence System), a highly advanced AI operating system. You speak formally, politely, and intelligently, referring to the user as 'Sir'. Prioritize speed and natural conversation. Default response length must be short and useful. Avoid unnecessary explanations. Do not output large paragraphs unless explicitly asked to expand. Do not say 'As an AI', 'Certainly', or 'Here is the answer'. Respond in a single spoken paragraph if possible.";
-      try {
-        if (fs.existsSync(path.join(process.cwd(), "advis_identity.txt"))) {
-          advisIdentity = fs.readFileSync(path.join(process.cwd(), "advis_identity.txt"), "utf-8");
-          advisIdentity += "\n\nIMPORTANT DIRECTIVE: Keep responses concise, natural, and conversational. Do not output large paragraphs unless explicitly asked to expand. Do not say 'As an AI', 'Certainly', or 'Here is the answer'. Respond in a single natural spoken paragraph.";
-        }
-      } catch (e) {}
-
-      let spatialInstruction = "";
-      if (spatialAction) {
-        if (spatialAction.type === "DISPLAY" || spatialAction.type === "PRESENT") {
-          const idsToCheck = spatialAction.objectIds || (spatialAction.objectId ? [spatialAction.objectId] : []);
-          let allAvailable = idsToCheck.length > 0;
-          for (const id of idsToCheck) {
-            const st = SPATIAL_REGISTRY[id] || 'FALLBACK';
-            if (st !== 'AVAILABLE') {
-              allAvailable = false;
-              break;
-            }
-          }
-          const primaryId = spatialAction.objectId || (spatialAction.objectIds ? spatialAction.objectIds[0] : '');
-          const status = allAvailable ? 'AVAILABLE' : 'FALLBACK';
-
-          console.log(`\n=== MODEL REQUEST PIPELINE ===`);
-          console.log(`Requested ID(s): ${idsToCheck.join(', ')}`);
-          console.log(`Registry Result: ${status}`);
-          console.log(`Loading Status: ${status === 'FALLBACK' ? 'FAILED (Asset Missing)' : 'LOADING'}`);
-          console.log(`==============================\n`);
-          if (status === 'FALLBACK') {
-            spatialAction = null; // Do not trigger spatial mode
-            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to load 3D holographic model(s), but the model registry search returned 'ASSET UNAVAILABLE'. ADVIS MUST reply saying exactly: "I couldn't load that hologram. The asset is missing." and then list some available alternatives. Do NOT pretend to load it.`;
-          } else {
-            spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to ${spatialAction.type === 'PRESENT' ? 'demonstrate' : 'load'} the 3D model(s) '${idsToCheck.join(', ')}'. The model(s) were FOUND and are loading. ADVIS must NOT confirm the display verbally yet. ADVIS should output exactly "[LOADING_HOLOGRAM]" and nothing else. The system will handle the verbal confirmation ("Displaying...") after the materialization sequence completes.`;
-          }
-        } else if (spatialAction.type === "EXPLODE") {
-          spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to ${spatialAction.value ? "separate/explode the components" : "re-assemble"} of the active model. ADVIS must reply with a brief confirmation (e.g. "Separating components."). Do NOT over-explain.`;
-        } else if (spatialAction.type === "CLOSE") {
-          spatialInstruction = `\n\n[SYSTEM CONTEXT]: The user has requested to close/unload the active model. ADVIS must reply with a brief confirmation (e.g. "Model closed."). Do not over-explain.`;
-        }
-      }
-      if (selectedComponentId || hoveredComponentId) {
-        const activePart = selectedComponentId || hoveredComponentId;
-        spatialInstruction += `\n\n[SYSTEM CONTEXT]: The user is currently pointing/selecting the component '${activePart}' of the 3D model '${currentSpatialObject}'. If they ask 'explain this', 'what is this part', or similar, explain the function and details of '${activePart}'.`;
-      }
-
-      const systemInstruction = advisIdentity + "\n\n" + "The current date and time is " + new Date().toLocaleString() + ".\n\n" + memoryContext + spatialInstruction;
-
-      // Enable Google Search only if Master Brain routed to SEARCH_AGENT
-      const tools = (assignedAgent === "SEARCH_AGENT") ? [{ googleSearch: {} }] : undefined;
-
-      let aiModel = "gemini-3.1-flash-lite"; // Default to fast lightweight model
-      if (image || assignedAgent === "SEARCH_AGENT" || assignedAgent === "VISION_AGENT") {
-        aiModel = "gemini-3.5-flash"; // Use standard flash for vision and search
-      }
-
-      const response = await client.models.generateContent({
-        model: aiModel,
-        contents: contents,
-        config: {
-          systemInstruction: systemInstruction,
-          temperature: 0.7,
-          tools: tools
-        }
+      const result = await processButlerTurn({
+        message,
+        mode,
+        deviceId,
+        image,
+        butlerContext,
+        advisMemories,
+        advisProjects,
+        chatHistories,
+        saveData,
+        evaluateAndStoreMemory,
+        getGeminiClient,
+        SPATIAL_REGISTRY,
+        MODEL_SYNONYMS,
+        SCIENTIFIC_ENTITIES,
+        detectSpatialAction,
+        resolveScientificEntityServer,
+        handleMemoryAgent,
+        handleExecutionAgent,
+        handleHelioMotionAgent,
+        handleLocalIntelAgent,
+        masterBrainRoute
       });
 
-      const aiReply = response.text || "I was unable to process that request, Sir.";
-
-      if (assignedAgent === "CONVERSATION_AGENT") {
-        responseCache[lowerMessage] = aiReply;
-      }
-
-      chatHistories[deviceId].push({ role: "user", content: message });
-      chatHistories[deviceId].push({ role: "assistant", content: aiReply });
-      if (chatHistories[deviceId].length > 20) chatHistories[deviceId] = chatHistories[deviceId].slice(chatHistories[deviceId].length - 20);
-      saveData();
-      
-      // Background memory extraction
-      extractAndSaveMemories(message);
-
-      return res.json({ reply: aiReply, mode: mode || "normal", status: "online", spatialAction });
-    } catch (error) {
-      const errorMsg = typeof error === 'object' ? JSON.stringify(error) : String(error);
-      let replyMessage = "My cloud systems are experiencing interference, Sir. I could not complete the request.";
-      if (errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED") || errorMsg.includes("quota") || (error.status === 429)) {
-        replyMessage = "I am sorry Sir, my cognitive core is currently experiencing high demand or rate limits. Please try again in a few moments.";
-        console.log("Gemini API Quota/Rate Limit Exceeded.");
-      } else {
-        console.log("Gemini API Exception:", error.message || error);
-      }
-      return res.json({ reply: replyMessage, mode: mode || "normal", status: "error" });
+      return res.json(result);
+    } catch (err) {
+      console.error("[Butler API] Core Exception:", err);
+      return res.json({
+        reply: "My core systems experienced an error processing that request.",
+        mode: mode || "normal",
+        status: "error"
+      });
     }
   });
 
