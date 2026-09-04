@@ -136,8 +136,8 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="TRANSMIT DIRECTIVE..."
-            className="flex-1 bg-transparent border-none outline-none text-cyan-50 placeholder-cyan-500/30 tracking-widest text-sm font-mono"
+            placeholder="ENTER SCIENTIFIC QUERY OR COMMAND..."
+            className="flex-1 bg-transparent border-none outline-none text-cyan-50 placeholder-cyan-500/30 tracking-wider text-sm font-mono"
             disabled={systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING'}
           />
           
@@ -174,7 +174,6 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
       <AudioSpectrumBar audioLevel={audioLevel} systemState={systemState} />
             <div className="flex justify-between items-center mt-2 px-2">
         <div className="flex gap-4 text-[10px] font-mono tracking-widest items-center">
-          <span className="text-cyan-500/50 hidden sm:inline-block">SYS.VER 3.1.4</span>
           <div className="flex items-center gap-2 border border-cyan-500/30 px-2 py-1 rounded bg-black/40">
              {systemState === 'ONLINE' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50 animate-pulse"></div><span className="text-cyan-500/70">READY</span></>}
              {systemState === 'LISTENING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-pulse"></div><span className="text-cyan-400 font-bold">LISTENING...</span></>}

@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { ModelRegistry } from './AutonomousModelEngine';
 
 class GLTFErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: any) { super(props); this.state = { hasError: false }; }
@@ -199,8 +200,73 @@ interface SpatialObjectEngineProps {
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   highlightedComponentId?: string | null;
+  isolatedComponentId?: string | null;
+  tracedFunctionKey?: string | null;
+  isKinematicPlaying?: boolean;
+  kinematicSpeed?: number;
+  kinematicTimeOffset?: number;
+  v12Rpm?: number;
+  v12Direction?: number;
+  isMagnifierFocused?: boolean;
+  lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
 }
 
+
+// 3D Spatial Orientation Gizmo Cube & Axis Triad
+function SpatialOrientationGizmo({ rotationY }: { rotationY: number }) {
+  const degY = Math.round(((rotationY * 180 / Math.PI) % 360 + 360) % 360);
+
+  return (
+    <Html position={[3.6, 2.4, 0]} center zIndexRange={[200, 0]}>
+      <div className="bg-slate-950/90 border border-cyan-500/40 p-2.5 rounded-xl text-[9px] font-mono text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)] backdrop-blur-md flex flex-col items-center gap-1.5 pointer-events-none select-none min-w-[120px]">
+        <div className="flex items-center gap-1 text-[8px] font-bold text-cyan-400 uppercase tracking-widest border-b border-cyan-500/30 pb-1 w-full justify-between">
+          <span>ORIENTATION GIZMO</span>
+          <span className="text-emerald-400 font-bold">{degY}°</span>
+        </div>
+
+        {/* 3D Orientation Cube container */}
+        <div className="w-16 h-16 my-1 flex items-center justify-center [perspective:400px]">
+          <div 
+            className="relative w-10 h-10 transition-transform duration-75 [transform-style:preserve-3d]"
+            style={{ transform: `rotateX(-25deg) rotateY(${degY}deg)` }}
+          >
+            {/* FRONT face */}
+            <div className="absolute inset-0 bg-cyan-950/80 border border-cyan-400/80 text-cyan-200 text-[7px] font-bold flex items-center justify-center [transform:translateZ(20px)] shadow-[0_0_8px_rgba(34,211,238,0.3)]">
+              FRONT
+            </div>
+            {/* BACK face */}
+            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateY(180deg)_translateZ(20px)]">
+              BACK
+            </div>
+            {/* RIGHT face */}
+            <div className="absolute inset-0 bg-cyan-900/80 border border-cyan-400/80 text-cyan-200 text-[7px] font-bold flex items-center justify-center [transform:rotateY(90deg)_translateZ(20px)]">
+              RIGHT
+            </div>
+            {/* LEFT face */}
+            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateY(-90deg)_translateZ(20px)]">
+              LEFT
+            </div>
+            {/* TOP face */}
+            <div className="absolute inset-0 bg-emerald-950/80 border border-emerald-400/80 text-emerald-200 text-[7px] font-bold flex items-center justify-center [transform:rotateX(90deg)_translateZ(20px)]">
+              TOP
+            </div>
+            {/* BOTTOM face */}
+            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateX(-90deg)_translateZ(20px)]">
+              BTM
+            </div>
+          </div>
+        </div>
+
+        {/* 3D Axes Triad (RGB = XYZ) */}
+        <div className="flex items-center gap-2 text-[8px] text-cyan-400/90 pt-1 border-t border-cyan-500/20 w-full justify-around font-bold">
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> X</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Y</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Z</span>
+        </div>
+      </div>
+    </Html>
+  );
+}
 
 // Procedural Renderers
 function ElectronCloud() {
@@ -489,54 +555,72 @@ const QuantumCloudPoints = () => {
 };
 
 
-  const TechMaterial = ({ color, metalness = 0.5, roughness = 0.5, transparent = false, opacity = 1.0, isHovered = false, isSelected = false }: any) => {
-    const customUniforms = useRef({ time: { value: 0 } });
-    useFrame((state) => {
-      customUniforms.current.time.value = state.clock.elapsedTime;
-    });
-    
-    const onBeforeCompile = (shader: any) => {
-      shader.uniforms.time = customUniforms.current.time;
-      shader.vertexShader = `
-        varying vec3 vWorldPos;
-        ${shader.vertexShader}
-      `.replace(
-        `#include <worldpos_vertex>`,
-        `
-        #include <worldpos_vertex>
-        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
-        `
-      );
-      shader.fragmentShader = `
-        uniform float time;
-        varying vec3 vWorldPos;
-        ${shader.fragmentShader}
-      `.replace(
-        `#include <dithering_fragment>`,
-        `
-        #include <dithering_fragment>
-        float buildY = (min(time, 3.0) * 2.0) - 3.0; 
-        if (time < 3.0 && vWorldPos.y > buildY) {
-           discard; 
-        }
-        if (time < 3.0 && vWorldPos.y > buildY - 0.05) {
-           gl_FragColor = mix(gl_FragColor, vec4(0.13, 0.83, 0.93, 1.0), 0.8);
-        }
-        `
-      );
-    };
+  const TechMaterial = ({ 
+    color, 
+    metalness = 0.6, 
+    roughness = 0.35, 
+    transparent = false, 
+    opacity = 1.0, 
+    isHovered = false, 
+    isSelected = false,
+    materialType
+  }: any) => {
+    let m = metalness;
+    let r = roughness;
+    let op = opacity;
+    let trans = transparent;
+    let cc = 0.0;
+    let cr = 0.0;
+
+    const mType = (materialType || '').toUpperCase();
+    if (mType.includes('METALLIC') || mType.includes('STEEL') || mType.includes('ALUMINUM')) {
+      m = 0.85;
+      r = 0.3;
+    } else if (mType.includes('CHROME')) {
+      m = 0.98;
+      r = 0.08;
+      cc = 0.9;
+    } else if (mType.includes('TITANIUM')) {
+      m = 0.88;
+      r = 0.35;
+    } else if (mType.includes('CARBON')) {
+      m = 0.4;
+      r = 0.45;
+      cc = 0.8;
+      cr = 0.1;
+    } else if (mType.includes('RUBBER')) {
+      m = 0.02;
+      r = 0.92;
+    } else if (mType.includes('LEATHER')) {
+      m = 0.05;
+      r = 0.65;
+    } else if (mType.includes('GLASS') || mType.includes('SAPPHIRE') || mType.includes('OPTICAL')) {
+      m = 0.1;
+      r = 0.05;
+      trans = true;
+      op = Math.min(op, 0.35);
+    } else if (mType.includes('MATTE') || mType.includes('PLASTIC')) {
+      m = 0.1;
+      r = 0.6;
+    } else if (mType.includes('COPPER') || mType.includes('BRASS') || mType.includes('GOLD')) {
+      m = 0.92;
+      r = 0.25;
+    }
 
     return (
-      <meshStandardMaterial
-        color={color}
-        emissive={isSelected ? "#0ea5e9" : (isHovered ? "#38bdf8" : "#000000")}
-        emissiveIntensity={isSelected ? 0.3 : (isHovered ? 0.15 : 0)}
-        metalness={metalness}
-        roughness={roughness}
-        transparent={transparent}
-        opacity={opacity}
-        onBeforeCompile={onBeforeCompile}
-        customProgramCacheKey={() => 'TechMaterial'}
+      <meshPhysicalMaterial
+        color={color || '#334155'}
+        emissive={isSelected ? "#0284c7" : (isHovered ? "#06b6d4" : "#000000")}
+        emissiveIntensity={isSelected ? 0.4 : (isHovered ? 0.2 : 0)}
+        metalness={m}
+        roughness={r}
+        clearcoat={cc}
+        clearcoatRoughness={cr}
+        transparent={trans || op < 1.0}
+        opacity={op}
+        polygonOffset
+        polygonOffsetFactor={1}
+        polygonOffsetUnits={1}
       />
     );
   };
@@ -549,7 +633,9 @@ function EngineeringComponentRenderer({
   isSelected,
   xrayEnabled,
   blueprintEnabled,
-  isHighlighted
+  isHighlighted,
+  v12Rpm,
+  v12Direction
 }: {
   comp: ComponentMetadata;
   objectId: string;
@@ -558,6 +644,8 @@ function EngineeringComponentRenderer({
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   isHighlighted?: boolean;
+  v12Rpm?: number;
+  v12Direction?: number;
 }) {
   const { id, shape, size, color, assetPath, assetScale } = comp;
   
@@ -1082,7 +1170,10 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     isHovered,
     isSelected,
     xrayEnabled: xrayEnabled || false,
-    blueprintEnabled: blueprintEnabled || false
+    blueprintEnabled: blueprintEnabled || false,
+    sysTimeRef: null,
+    v12Rpm: v12Rpm || 600,
+    v12Direction: v12Direction || 1
   };
 
   if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
@@ -1399,7 +1490,30 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
       </group>
     );
   }
-// 10. Default / Standard Parametric Component with Bevels and Metallic Finishes
+  // 10. Check if there is an autonomous procedural geometry cached in ModelRegistry
+  const cachedGeom = ModelRegistry.getGeometry(objectId, id);
+  if (cachedGeom) {
+    const hasVertexColors = Boolean(cachedGeom.attributes.color);
+    const matType = (comp as any).materialType || comp.specifications?.['Material'] || (comp as any).engineeringDetails?.material;
+    return (
+      <group>
+        <mesh geometry={cachedGeom}>
+          {hasVertexColors ? (
+            <meshStandardMaterial vertexColors roughness={0.35} metalness={0.2} wireframe={blueprintEnabled} />
+          ) : (
+            <TechMaterial color={baseColor} roughness={0.4} metalness={0.7} isHovered={isHovered} isSelected={isSelected} materialType={matType} />
+          )}
+        </mesh>
+        {(isHovered || isSelected || blueprintEnabled) && (
+          <mesh geometry={cachedGeom}>
+            <meshBasicMaterial color="#22d3ee" wireframe transparent opacity={0.35} />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+
+  // 11. Default / Standard Parametric Component with Bevels and Metallic Finishes
   return (
     <group>
       {shape === 'box' && (
@@ -1527,7 +1641,16 @@ export function SpatialObjectEngine({
   explodedFactor = 0,
   xrayEnabled = false,
   blueprintEnabled = false,
-  highlightedComponentId = null
+  highlightedComponentId = null,
+  isolatedComponentId = null,
+  tracedFunctionKey = null,
+  isKinematicPlaying = true,
+  kinematicSpeed = 1.0,
+  kinematicTimeOffset = 0,
+  v12Rpm = 600,
+  v12Direction = 1,
+  isMagnifierFocused = false,
+  lodTier = 'HIGH'
 }: SpatialObjectEngineProps) {
   const gestureState = useGestureEngine();
   const { raycaster, camera, scene } = useThree();
@@ -1621,6 +1744,15 @@ export function SpatialObjectEngine({
   const presentationStepRef = useRef(presentationStep);
   const currentSpatialObjectRef = useRef(currentSpatialObject);
   const isExplodedRef = useRef(isExploded);
+  const isKinematicPlayingRef = useRef(isKinematicPlaying);
+  const kinematicSpeedRef = useRef(kinematicSpeed);
+  const kinematicAngleRef = useRef(0);
+  const v12RpmRef = useRef(v12Rpm);
+  v12RpmRef.current = v12Rpm;
+  const v12DirectionRef = useRef(v12Direction);
+  v12DirectionRef.current = v12Direction;
+  const isMagnifierFocusedRef = useRef(isMagnifierFocused);
+  isMagnifierFocusedRef.current = isMagnifierFocused;
 
   // Intent-Based Selection System State Machine
   const selectionStateRef = useRef<'NONE' | 'HOVERING' | 'TARGET CONFIRMED' | 'PINCH SELECT' | 'DETAIL VIEW'>('NONE');
@@ -1645,6 +1777,25 @@ export function SpatialObjectEngine({
   currentSpatialObjectRef.current = currentSpatialObject;
   isExplodedRef.current = isExploded;
   spatialModeRef.current = effectiveMode;
+  isKinematicPlayingRef.current = isKinematicPlaying;
+  kinematicSpeedRef.current = kinematicSpeed;
+
+  useEffect(() => {
+    if (!isKinematicPlaying && kinematicTimeOffset !== undefined) {
+      kinematicAngleRef.current = kinematicTimeOffset * (Math.PI / 180);
+    }
+  }, [kinematicTimeOffset, isKinematicPlaying]);
+
+  useEffect(() => {
+    const gEngine = gestureEngineRef.current;
+    if (gEngine && gEngine.spatialCam) {
+      if (isMagnifierFocused) {
+        gEngine.spatialCam.targetRadius = 5.0;
+      } else {
+        gEngine.spatialCam.targetRadius = 15.0;
+      }
+    }
+  }, [isMagnifierFocused]);
 
   useEffect(() => {
     if (effectiveMode === 'INSPECTION' || effectiveMode === 'EXPLODED') {
@@ -1716,13 +1867,39 @@ export function SpatialObjectEngine({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Sync default scale on object load
+  const previousPrimaryIdRef = useRef<string | null>(null);
+
+  // Sync default scale and auto-frame bounding box on object load
   useEffect(() => {
     const primaryId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
-    if (primaryId && SPATIAL_LIBRARY[primaryId]) {
-      const defScale = SPATIAL_LIBRARY[primaryId].defaultScale;
+    const objMeta = primaryId ? (SPATIAL_LIBRARY[primaryId] || ModelRegistry.getSpatialObject(primaryId)) : null;
+    
+    // Only perform auto-framing if the primary model ID has ACTUALLY changed.
+    // Mutations (where ID remains the same) should NOT reset the camera or rescale the object.
+    if (primaryId && objMeta && primaryId !== previousPrimaryIdRef.current) {
+      previousPrimaryIdRef.current = primaryId;
+      
+      let maxExt = 1.0;
+      if (objMeta.components && objMeta.components.length > 0) {
+        for (const c of objMeta.components) {
+          const sx = c.size ? c.size[0] / 2 : 0.5;
+          const sy = c.size ? c.size[1] / 2 : 0.5;
+          const sz = c.size ? c.size[2] / 2 : 0.5;
+          const px = Math.abs(c.position[0]) + sx;
+          const py = Math.abs(c.position[1]) + sy;
+          const pz = Math.abs(c.position[2]) + sz;
+          const r = Math.sqrt(px * px + py * py + pz * pz);
+          if (r > maxExt) maxExt = r;
+        }
+      }
+
+      // Compute normalized scale so the object sits comfortably in the spatial viewport
+      const baseScale = objMeta.defaultScale || 1.0;
+      const normalizedFactor = maxExt > 3.0 ? (2.2 / maxExt) : (maxExt < 0.6 ? (1.5 / maxExt) : 1.0);
+      const computedScale = baseScale * normalizedFactor;
+
       const objectIds = Array.isArray(currentSpatialObject) ? currentSpatialObject : (currentSpatialObject ? [currentSpatialObject] : []);
-      const scaleMultiplier = objectIds.length > 1 ? defScale * 0.8 : defScale;
+      const scaleMultiplier = objectIds.length > 1 ? computedScale * 0.8 : computedScale;
       targetScale.current = scaleMultiplier;
       
       // Load at center
@@ -2270,6 +2447,13 @@ export function SpatialObjectEngine({
     const currentObjIds = currentSpatialObjectRef.current 
       ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
       : [];
+
+    if (isKinematicPlayingRef.current) {
+      const v12AngularVel = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1) * 0.12;
+      kinematicAngleRef.current += delta * v12AngularVel * kinematicSpeedRef.current;
+    }
+    const kAngle = kinematicAngleRef.current;
+
     currentObjIds.forEach(objId => {
       const activeObject = SPATIAL_LIBRARY[objId];
       if (activeObject) {
@@ -2281,19 +2465,9 @@ export function SpatialObjectEngine({
             meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
             meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
 
-            if (objId === 'engine_v12' && !isExplodedRef.current) {
-              const time = state.clock.elapsedTime * 6;
-              if (comp.id === 'piston_left_bank') {
-                meshObj.position.y = comp.position[1] + Math.sin(time) * 0.4;
-              } else if (comp.id === 'piston_right_bank') {
-                meshObj.position.y = comp.position[1] + Math.sin(time + Math.PI) * 0.4;
-              } else if (comp.id === 'crankshaft') {
-                meshObj.rotation.x = time;
-              }
-            }
-
             if (objId === 'human_heart') {
-              const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5) * 0.06;
+              const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
+              const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5 * (heartPulseSpeed > 0 ? heartPulseSpeed : 1)) * 0.06;
               meshObj.scale.set(pulse, pulse, pulse);
             }
           }
@@ -2385,8 +2559,41 @@ export function SpatialObjectEngine({
                     obj.components.map(comp => {
                       const isHovered = hoveredComponentId === comp.id;
                       const isSelected = selectedComponentId === comp.id;
-                      const isHighlighted = highlightedComponentId === comp.id || isSelected;
                       
+                      // Function tracing match logic
+                      let isFunctionTraced = false;
+                      let traceLabel = tracedFunctionKey || '';
+                      if (tracedFunctionKey && obj.educationalInformation?.functionalPaths) {
+                        for (const [pathName, keywords] of Object.entries(obj.educationalInformation.functionalPaths)) {
+                           if (pathName.toLowerCase() === tracedFunctionKey.toLowerCase() || keywords.some(k => k.toLowerCase().includes(tracedFunctionKey.toLowerCase()))) {
+                             if (keywords.some(k => comp.id.toLowerCase().includes(k.toLowerCase()) || comp.name.toLowerCase().includes(k.toLowerCase()))) {
+                               isFunctionTraced = true;
+                               traceLabel = pathName;
+                               break;
+                             }
+                           }
+                        }
+                      }
+                      
+                      if (!isFunctionTraced && tracedFunctionKey) {
+                        isFunctionTraced = Boolean(
+                          (tracedFunctionKey === 'combustion' && (comp.id.includes('piston') || comp.id.includes('valve') || comp.id.includes('spark') || comp.id.includes('combustion'))) ||
+                          (tracedFunctionKey === 'fuel' && (comp.id.includes('intake') || comp.id.includes('fuel') || comp.id.includes('injector'))) ||
+                          (tracedFunctionKey === 'cooling' && (comp.id.includes('cool') || comp.id.includes('radiator') || comp.id.includes('water'))) ||
+                          (tracedFunctionKey === 'crankshaft' && (comp.id.includes('crank') || comp.id.includes('rod') || comp.id.includes('flywheel'))) ||
+                          (tracedFunctionKey === 'gears' && (comp.id.includes('gear') || comp.id.includes('pinion') || comp.id.includes('shaft'))) ||
+                          (tracedFunctionKey === 'feedback' && (comp.id.includes('potentiometer') || comp.id.includes('encoder') || comp.id.includes('sensor'))) ||
+                          (tracedFunctionKey === 'power' && (comp.id.includes('regulator') || comp.id.includes('power') || comp.id.includes('battery'))) ||
+                          (tracedFunctionKey === 'mcu' && (comp.id.includes('atmega') || comp.id.includes('processor') || comp.id.includes('mcu') || comp.id.includes('esp32')))
+                        );
+                      }
+                      
+                      const isHighlighted = highlightedComponentId === comp.id || isSelected || isFunctionTraced;
+                      
+                      // Isolation mode check
+                      const isIsolated = isolatedComponentId ? (comp.id === isolatedComponentId) : true;
+                      const compXray = !isIsolated || xrayEnabled;
+
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
                       const expOffset = comp.explodedOffset || [0, 0, 0];
@@ -2399,7 +2606,7 @@ export function SpatialObjectEngine({
                       ];
 
                       const rot = transform ? transform.rotation : (comp.rotation || [0, 0, 0]);
-                      const scl = transform ? transform.scale : [1, 1, 1];
+                      const scl = transform ? transform.scale : (isIsolated ? [1, 1, 1] : [0.95, 0.95, 0.95]);
                       
                       return (
                         <group 
@@ -2439,12 +2646,24 @@ export function SpatialObjectEngine({
                             objectId={obj.id}
                             isHovered={isHovered}
                             isSelected={isSelected}
-                            xrayEnabled={xrayEnabled}
+                            xrayEnabled={compXray}
                             blueprintEnabled={blueprintEnabled}
                             isHighlighted={isHighlighted}
+                            v12Rpm={v12RpmRef.current}
+                            v12Direction={v12DirectionRef.current}
                           />
                           
-                           {(isHovered || isSelected || showLabels) && (
+                          {/* Function tracing energetic marker badge */}
+                          {isFunctionTraced && (
+                            <Html distanceFactor={9} position={[0, comp.size[1]/2 + 0.2, 0]} center zIndexRange={[120, 0]}>
+                              <div className="px-2 py-0.5 rounded-full bg-amber-950/90 border border-amber-400 text-[9px] font-mono text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1.5 whitespace-nowrap animate-pulse pointer-events-none">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                TRACING: {traceLabel.toUpperCase()}
+                              </div>
+                            </Html>
+                          )}
+                          
+                           {(isHovered || isSelected || (showLabels && isIsolated)) && (
                             <Html distanceFactor={8} position={[comp.size[0]/2 + 0.5, comp.size[1]/2 + 0.5, 0]} center zIndexRange={[100, 0]}>
                               <div className="flex flex-row items-center pointer-events-none animate-fade-in mix-blend-screen transition-opacity duration-300">
                                 <div className="w-16 h-[1px] bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
@@ -2454,17 +2673,18 @@ export function SpatialObjectEngine({
                                       {comp.name}
                                     </span>
                                     <span className="text-[8px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40">
-                                      OPERATIONAL
+                                      {isolatedComponentId === comp.id ? 'ISOLATED' : 'OPERATIONAL'}
                                     </span>
                                   </div>
                                   <span className="font-sans font-light text-[9px] text-cyan-50/80 leading-snug w-56 mt-1 tracking-wide">
                                     {comp.description}
                                   </span>
                                   <div className="mt-2 grid grid-cols-2 gap-2 text-[9px] font-mono border-t border-cyan-500/20 pt-1.5">
-                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || 'Alloy Steel'}</span></div>
-                                    <div><span className="text-cyan-400/60">Temp:</span> <span className="text-cyan-200 font-bold">84°C</span></div>
-                                    <div><span className="text-cyan-400/60">Load:</span> <span className="text-emerald-400 font-bold">Normal</span></div>
-                                    <div><span className="text-cyan-400/60">Tolerance:</span> <span className="text-cyan-200 font-bold">±0.01mm</span></div>
+                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || comp.specifications?.['Material'] || 'Alloy Steel'}</span></div>
+                                    <div><span className="text-cyan-400/60">Status:</span> <span className="text-emerald-400 font-bold">Verified</span></div>
+                                    {comp.specifications && Object.entries(comp.specifications).slice(0, 2).map(([k, v]) => (
+                                      <div key={k}><span className="text-cyan-400/60">{k}:</span> <span className="text-cyan-200 font-bold">{String(v)}</span></div>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
@@ -2487,6 +2707,9 @@ export function SpatialObjectEngine({
         hoverHitPointRef={hoverHitPointRef} 
         pointerRayPosRef={pointerRayPosRef} 
       />
+
+      {/* 3D SPATIAL ORIENTATION GIZMO COMPASS */}
+      <SpatialOrientationGizmo rotationY={idleRotationRef.current} />
 
       <gridHelper args={[8, 8, '#06b6d4', '#0891b2']} position={[0, -0.5, 0]} material-transparent={true} material-opacity={0.12} />
     </group>

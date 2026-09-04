@@ -65,49 +65,6 @@ async function startServer() {
   let aiInstance = null;
 
   function getRelevantMemories(userMessage, activeProjectId) {
-      if (advisMemories.length === 0) return '';
-      
-      const words = userMessage.toLowerCase().split(' ').filter(w => w.length > 3);
-      
-      // Score each memory
-      const scored = advisMemories.map(m => {
-          let score = 0;
-          const memStr = (m.content + " " + m.tags.join(" ")).toLowerCase();
-          
-          // Semantic overlap
-          words.forEach(w => {
-              if (memStr.includes(w)) score += 2;
-          });
-          
-          // Project relevance
-          if (activeProjectId && m.projectId === activeProjectId) score += 3;
-          if (!activeProjectId && !m.projectId) score += 1;
-          
-          // Importance
-          score += (m.importance || 5) * 0.2;
-          
-          // Pinned
-          if (m.pinned) score += 5;
-          
-          // Recency (boost recent memories slightly)
-          const ageHours = (Date.now() - m.updatedAt) / (1000 * 60 * 60);
-          if (ageHours < 24) score += 1;
-          
-          return { memory: m, score };
-      });
-      
-      // Filter out low scores unless pinned or project exact match
-      const relevant = scored.filter(s => s.score > 2 || s.memory.pinned || (activeProjectId && s.memory.projectId === activeProjectId));
-      
-      // Sort by score descending
-      relevant.sort((a, b) => b.score - a.score);
-      
-      // Take top 10 to avoid context bloat
-      const topMemories = relevant.slice(0, 10).map(s => s.memory);
-      
-      if (topMemories.length > 0) {
-          return '\n\n[ADVIS MEMORY CONTEXT]:\n' + topMemories.map(m => `- [${m.category}] ${m.content}`).join('\n');
-      }
       return '';
   }
   function getGeminiClient() {
@@ -118,7 +75,7 @@ async function startServer() {
       const { GoogleGenAI } = require("@google/genai");
       aiInstance = new GoogleGenAI({
         apiKey: apiKey,
-        httpOptions: { headers: { "User-Agent": "aistudio-build" } }
+        
       });
       return aiInstance;
     } catch (err) {
@@ -127,121 +84,9 @@ async function startServer() {
     }
   }
 
-  
-  
   async function evaluateAndStoreMemory(userMessage, activeProjectId) {
-    const client = getGeminiClient();
-    if (!client) return;
-    
-    // Quick heuristic: Skip very short non-informational messages or greetings
-    const lower = userMessage.toLowerCase();
-    const isGreeting = ["hello", "hi", "hey", "good morning", "good evening"].includes(lower.trim());
-    
-    if (lower.includes("don't remember this") || lower.includes("do not remember this")) {
-        console.log("[MEMORY_EVENT] Explicitly instructed NOT to remember.");
-        return; 
-    }
-    
-    if (userMessage.split(' ').length < 3 && !lower.includes("use") && !lower.includes("prefer") && !lower.includes("project")) {
-        return; // Too short to be a meaningful persistent memory
-    }
-    if (isGreeting) return;
-
-    try {
-      // Gather relevant existing memories to let the LLM detect duplicates/contradictions
-      let existingContext = advisMemories.map(m => `ID: ${m.id} | Project: ${m.projectId || 'GLOBAL'} | Category: ${m.category} | Content: ${m.content}`).join('\n');
-      if (!existingContext) existingContext = "NONE";
-
-      const prompt = `
-You are the ADVIS Intelligence Context Evaluator.
-Analyze the user's message and determine if it contains information worth committing to LONG-TERM persistent memory.
-
-Active Project ID: ${activeProjectId || 'NONE'}
-
-DO SAVE:
-- Stable preferences, workflow preferences, architecture decisions, hardware specs, recurring goals.
-
-DO NOT SAVE (Ignore):
-- Casual chatter, jokes, transient emotions ("I'm tired", "That's cool"), temporary debugging states, general questions.
-
-If you decide to save, review the existing memories below. If the new information conflicts with or updates an existing memory, you must UPDATE the existing one instead of creating a duplicate. If it's identical to an existing memory, IGNORE it.
-
-EXISTING MEMORIES:
-${existingContext}
-
-Output JSON exactly like this:
-{
-  "action": "SAVE" | "UPDATE" | "IGNORE",
-  "updateId": "The ID of the memory to update, if action is UPDATE",
-  "category": "PERSONAL|PROJECT|HARDWARE|ENGINEERING|DEVELOPMENT|GOAL|PREFERENCE|WORKSPACE",
-  "content": "A clear, standalone statement of fact.",
-  "importance": <number 1-10>,
-  "confidence": "HIGH|MEDIUM|LOW",
-  "tags": ["relevant", "keywords"],
-  "targetProjectName": "Name of project if explicitly mentioned, or null"
-}
-
-User Message: "${userMessage}"
-`;
-      
-      const response = await client.models.generateContent({
-        model: "gemini-3.1-flash-lite",
-        contents: prompt,
-        config: { temperature: 0.1, responseMimeType: "application/json" }
-      });
-      
-      let evalData;
-      try {
-        evalData = JSON.parse(response.text.trim());
-      } catch (e) {
-        return;
-      }
-
-      if ((evalData.action === "SAVE" || evalData.action === "UPDATE") && (evalData.confidence === "HIGH" || evalData.confidence === "MEDIUM")) {
-         // Determine projectId
-         let pId = activeProjectId || null;
-         if (evalData.targetProjectName) {
-            const proj = advisProjects.find(p => p.name.toLowerCase().includes(evalData.targetProjectName.toLowerCase()));
-            if (proj) pId = proj.id;
-         }
-
-         if (evalData.action === "UPDATE" && evalData.updateId) {
-             const existingIdx = advisMemories.findIndex(m => m.id === evalData.updateId);
-             if (existingIdx !== -1) {
-                 console.log("[MEMORY_EVENT] MEMORY_UPDATED:", evalData.updateId);
-                 advisMemories[existingIdx].content = evalData.content;
-                 advisMemories[existingIdx].updatedAt = Date.now();
-                 advisMemories[existingIdx].importance = Math.max(advisMemories[existingIdx].importance, evalData.importance);
-                 if (evalData.tags && evalData.tags.length > 0) {
-                     advisMemories[existingIdx].tags = Array.from(new Set([...advisMemories[existingIdx].tags, ...evalData.tags]));
-                 }
-                 saveData();
-                 return;
-             }
-         }
-         
-         // Create new memory
-         const newMemory = {
-           id: "mem_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-           category: evalData.category || 'PERSONAL',
-           content: evalData.content,
-           source: 'INFERENCE', // Automatically extracted
-           createdAt: Date.now(),
-           updatedAt: Date.now(),
-           importance: evalData.importance || 5,
-           tags: evalData.tags || [],
-           projectId: pId,
-           pinned: false,
-           metadata: { confidence: evalData.confidence }
-         };
-         advisMemories.push(newMemory);
-         saveData();
-         console.log("[MEMORY_EVENT] MEMORY_CREATED:", newMemory.id);
-      }
-
-    } catch (e) {
-      console.error("Memory extraction error:", e);
-    }
+    // Persistent personal memory extraction is disconnected in the Educational Platform (Phase 1).
+    return;
   }
 
 
@@ -362,14 +207,14 @@ User Message: "${userMessage}"
   };
 
   const localIntelKnowledge = {
-    "who created you": "I was created by you, Sir, as an autonomous multi-agent AI operating system.",
-    "who made you": "I was developed by you, Sir, to serve as your personal A.D.V.I.S. intelligence core.",
-    "what are you": "I am A.D.V.I.S. (Ady's Digital Virtual Intelligence System), a multi-agent AI operating system designed to assist you with computer control, research, and technical diagnostics.",
-    "hello": "Hello, Sir. How may I assist you today?",
-    "hi": "Greetings, Sir. I am online and ready.",
-    "good morning": "Good morning, Sir. All systems are operating at optimal capacity.",
-    "good evening": "Good evening, Sir. I am standing by for your directives.",
-    "how are you": "I am operating at 100% efficiency, Sir. Thank you for asking."
+    "who created you": "I was developed as A.D.V.I.S. (Aadyant's Digital Virtual Intelligence System) for the NCSC / INSPIRE-MANAK scientific exploration and STEM learning platform.",
+    "who made you": "I was developed as A.D.V.I.S., an interactive AI-powered scientific visualization and STEM learning assistant for NCSC / INSPIRE-MANAK.",
+    "what are you": "I am A.D.V.I.S. (Aadyant's Digital Virtual Intelligence System), an interactive educational scientific assistant designed for STEM learning, 3D molecular visualization, engineering assembly inspection, and laboratory demonstrations.",
+    "hello": "Hello! How can I help you explore scientific or engineering concepts today?",
+    "hi": "Greetings! I am online and ready to assist with scientific demonstrations and 3D visualizations.",
+    "good morning": "Good morning. All educational simulation and visualization systems are online.",
+    "good evening": "Good evening. Ready to assist with science lessons and 3D model exploration.",
+    "how are you": "All systems are operating nominally. How can I assist with your science exploration?"
   };
 
   // DECISION ENGINE (MASTER BRAIN)
@@ -412,7 +257,7 @@ User Message: "${userMessage}"
     }
 
     // 6. Local Intelligence (FAQ / Identity)
-    if (Object.keys(localIntelKnowledge).some(k => lower.includes(k))) {
+    if (Object.keys(localIntelKnowledge).some(k => new RegExp(`\\b${k}\\b`, 'i').test(lower))) {
       return "LOCAL_INTEL_AGENT";
     }
 
@@ -437,33 +282,33 @@ User Message: "${userMessage}"
     // Explicit internet search delegation
     if (lower.startsWith("search google for ")) {
       const query = message.substring(18);
-      return `Initiating Google Search for "${query}", Sir.`;
+      return `Searching Google for "${query}".`;
     }
 
     // OS Controls
-    if (lower.includes("increase volume") || lower.includes("volume up")) return "I have adjusted the internal media volume, Sir. Note that host system volume cannot be modified directly from this environment.";
-    if (lower.includes("decrease volume") || lower.includes("volume down")) return "I have adjusted the internal media volume, Sir.";
-    if (lower.includes("mute audio") || lower.includes("mute volume") || lower.includes("mute")) return "Audio muted internally, Sir.";
-    if (lower.includes("decrease brightness") || lower.includes("increase brightness")) return "I cannot directly adjust your physical monitor brightness from this environment, Sir.";
-    if (lower.includes("screenshot") || lower.includes("take a screen shot")) return "I do not have host file system access to save a screenshot, Sir. Please use your operating system's screenshot utility.";
-    if (lower.includes("lock the computer") || lower.includes("lock computer") || lower.includes("lock screen")) return "I cannot lock your host operating system from this sandbox, Sir.";
-    if (lower.includes("create a new folder") || lower.includes("new folder")) return "I cannot write directly to your host file system to create folders, Sir.";
+    if (lower.includes("increase volume") || lower.includes("volume up")) return "Adjusted internal audio volume. Note that host system volume cannot be modified directly from this environment.";
+    if (lower.includes("decrease volume") || lower.includes("volume down")) return "Adjusted internal audio volume.";
+    if (lower.includes("mute audio") || lower.includes("mute volume") || lower.includes("mute")) return "Audio muted internally.";
+    if (lower.includes("decrease brightness") || lower.includes("increase brightness")) return "Physical monitor brightness cannot be adjusted directly from this browser environment.";
+    if (lower.includes("screenshot") || lower.includes("take a screen shot")) return "Direct host file system screenshot saving is not supported from this web environment. Please use your operating system's screenshot shortcut.";
+    if (lower.includes("lock the computer") || lower.includes("lock computer") || lower.includes("lock screen")) return "Cannot lock host operating system from this sandbox environment.";
+    if (lower.includes("create a new folder") || lower.includes("new folder")) return "Cannot write directly to host file system to create directories.";
 
     // App/File Launching
-    if (lower.includes("chrome") || lower.includes("browser")) return "I am unable to launch external applications like Chrome from this web-based environment, Sir.";
-    if (lower.includes("whatsapp")) return "I cannot launch desktop applications like WhatsApp directly from here, Sir.";
-    if (lower.includes("arduino ide")) return "I cannot open the Arduino IDE directly, Sir, but I am ready to assist with any code you need.";
-    if (lower.includes("vs code") || lower.includes("visual studio code")) return "I am restricted from launching external IDEs, Sir.";
-    if (lower.includes("youtube")) return "I cannot open external applications, Sir, but you can navigate to YouTube in a new tab.";
-    if (lower.includes("downloads")) return "I do not have access to your local Downloads folder for security reasons, Sir.";
-    if (lower.includes("presentation")) return "I am unable to access local files to open your presentation, Sir.";
-    if (lower.includes("calculator")) return "I cannot open the OS calculator, Sir, but I can perform any calculations you need right here.";
-    if (lower.includes("terminal") || lower.includes("command prompt")) return "I cannot open a system terminal on your machine, Sir, for security reasons.";
-    if (lower.includes("documents")) return "I am restricted from accessing your local Documents folder, Sir.";
-    if (lower.includes("camera")) return "I am already utilizing the camera feed for my vision systems, Sir.";
-    if (lower.includes("settings")) return "I do not have access to your host operating system settings, Sir.";
+    if (lower.includes("chrome") || lower.includes("browser")) return "External applications cannot be launched directly from this web environment.";
+    if (lower.includes("whatsapp")) return "Desktop applications cannot be launched directly from here.";
+    if (lower.includes("arduino ide")) return "The standalone Arduino IDE cannot be launched directly from here, but I can assist with any Arduino code or circuit explanations.";
+    if (lower.includes("vs code") || lower.includes("visual studio code")) return "Cannot launch external IDEs from this web environment.";
+    if (lower.includes("youtube")) return "External web applications cannot be opened directly from this frame.";
+    if (lower.includes("downloads")) return "Access to local Downloads folder is restricted in this sandboxed environment.";
+    if (lower.includes("presentation")) return "Access to local presentation files is restricted.";
+    if (lower.includes("calculator")) return "External OS calculator cannot be launched, but I can calculate values and formulas directly.";
+    if (lower.includes("terminal") || lower.includes("command prompt")) return "System terminal access is restricted for security.";
+    if (lower.includes("documents")) return "Access to local Documents folder is restricted.";
+    if (lower.includes("camera")) return "Camera feed is currently active for vision and gesture input.";
+    if (lower.includes("settings")) return "Host operating system settings cannot be accessed from this sandbox.";
 
-    return "I am currently running in a sandboxed environment and cannot execute host operating system commands, Sir.";
+    return "Currently running in a sandboxed web environment and cannot execute host operating system commands.";
   }
 
   function handleHelioMotionAgent(message) {
@@ -475,7 +320,7 @@ User Message: "${userMessage}"
       }
     }
     if (!response) {
-      return "HelioMotion is our dual-axis solar tracking system powered by an Arduino Uno. It utilizes LDRs to detect light and servos to adjust the panel for maximum efficiency.";
+      return "HelioMotion is a dual-axis solar tracking system powered by an Arduino Uno. It utilizes LDRs to detect sunlight angles and servos to align the solar panel perpendicular to incoming light for maximum energy efficiency.";
     }
     return response.trim();
   }
@@ -483,11 +328,11 @@ User Message: "${userMessage}"
   function handleLocalIntelAgent(message) {
     const lower = message.toLowerCase();
     for (const [key, value] of Object.entries(localIntelKnowledge)) {
-      if (lower.includes(key)) {
+      if (new RegExp(`\\b${key}\\b`, 'i').test(lower)) {
         return value;
       }
     }
-    return "I am processing that locally, Sir.";
+    return "Processing request locally.";
   }
 
   
@@ -495,10 +340,10 @@ User Message: "${userMessage}"
     const lower = message.toLowerCase();
     
     if (lower.includes("what is my active project")) {
-       if (!activeProjectId) return "You currently have no active project set, Sir.";
+       if (!activeProjectId) return "There is currently no active project selected.";
        const proj = advisProjects.find(p => p.id === activeProjectId);
-       if (proj) return `Your current active project is ${proj.name} (${proj.description}).`;
-       return "You have an active project ID, but I cannot find its details in the database, Sir.";
+       if (proj) return `Current active project is ${proj.name} (${proj.description}).`;
+       return "An active project ID is set, but its details were not found in the database.";
     }
     
     if (lower.startsWith("switch to the ")) {
@@ -507,96 +352,10 @@ User Message: "${userMessage}"
        if (proj) {
          return `PROJECT_SWITCH:${proj.id}`; // Special signal to UI to change state, handled later
        }
-       return `I could not find a project matching "${targetName}", Sir. Please create it first.`;
+       return `Could not find a project matching "${targetName}".`;
     }
 
-    const client = getGeminiClient();
-    if (!client) return "My memory banks are currently offline due to a missing AI connection.";
-
-    // Let's use Gemini to parse the memory intent
-    const prompt = `
-You are the ADVIS Memory Intent Parser.
-Analyze the following user command: "${message}"
-
-Current Active Project ID: ${activeProjectId || 'NONE'}
-
-Available Categories: PERSONAL, PROJECT, HARDWARE, ENGINEERING, DEVELOPMENT, GOAL, PREFERENCE, WORKSPACE
-
-Decide what action to take:
-1. STORE: If the user wants to remember a new fact.
-2. DELETE: If the user wants to forget a fact.
-3. RETRIEVE: If the user is asking what is remembered.
-
-Output JSON only, in this exact format:
-{
-  "action": "STORE" | "DELETE" | "RETRIEVE",
-  "category": "ONE_OF_THE_CATEGORIES",
-  "content": "The fact to store, delete, or retrieve query",
-  "tags": ["relevant", "tags"],
-  "targetProjectName": "Optional name of project if mentioned (e.g. 'V12 project')"
-}
-`;
-    
-    try {
-      const response = await client.models.generateContent({
-        model: "gemini-3.1-flash-lite",
-        contents: prompt,
-        config: { temperature: 0.1, responseMimeType: "application/json" }
-      });
-      
-      const intent = JSON.parse(response.text.trim());
-      
-      if (intent.action === "STORE") {
-         let pId = activeProjectId;
-         if (intent.targetProjectName) {
-            const proj = advisProjects.find(p => p.name.toLowerCase().includes(intent.targetProjectName.toLowerCase()));
-            if (proj) pId = proj.id;
-         }
-         const newMemory = {
-           id: "mem_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-           category: intent.category,
-           content: intent.content,
-           source: 'USER',
-           createdAt: Date.now(),
-           updatedAt: Date.now(),
-           importance: 5,
-           tags: intent.tags,
-           projectId: pId,
-           pinned: false,
-           metadata: {}
-         };
-         advisMemories.push(newMemory);
-         saveData();
-         return `I have saved that to my memory banks, Sir. (Category: ${intent.category})`;
-      } 
-      else if (intent.action === "DELETE") {
-         // Simple exact or partial match delete
-         const idx = advisMemories.findIndex(m => m.content.toLowerCase().includes(intent.content.toLowerCase()) || intent.content.toLowerCase().includes(m.content.toLowerCase()));
-         if (idx !== -1) {
-            advisMemories.splice(idx, 1);
-            saveData();
-            return "I have purged that information from my memory banks, Sir.";
-         }
-         return "I could not find a matching memory to delete, Sir.";
-      }
-      else if (intent.action === "RETRIEVE") {
-         let results = advisMemories.filter(m => m.content.toLowerCase().includes(intent.content.toLowerCase()) || m.tags.some(t => intent.content.toLowerCase().includes(t.toLowerCase())));
-         if (results.length === 0) {
-            // fallback to returning active project memories or all
-            if (activeProjectId) {
-               results = advisMemories.filter(m => m.projectId === activeProjectId);
-            } else {
-               results = advisMemories.slice(-5);
-            }
-         }
-         if (results.length === 0) return "I have no specific memories regarding that, Sir.";
-         return `Based on my memory databanks:\n${results.map((m, i) => `${i+1}. ${m.content}`).join('\n')}`;
-      }
-    } catch (e) {
-      console.error(e);
-      return "I encountered an error accessing my memory banks, Sir.";
-    }
-    return "Memory operation completed.";
+    return "Persistent personal memory is disconnected in this educational platform.";
   }
 
 
@@ -751,7 +510,7 @@ Output JSON only, in this exact format:
     return null;
   }
 
-  function detectSpatialAction(message) {
+  function detectSpatialAction(message, butlerContext) {
     const lower = message.toLowerCase().trim();
     if (lower === "stop" || lower === "close" || lower === "hide" || lower === "remove" || lower === "clear" || lower === "stop visualization" || lower === "hide molecule" || lower === "close molecule" || lower === "remove molecule" || lower === "clear visualization" || lower === "remove this" || lower.includes("close the model") || lower.includes("hide the model") || lower.includes("remove the model") || lower.includes("close model") || lower.includes("hide model") || lower.includes("remove model") || lower.includes("clear spatial") || lower.includes("unload model") || lower.includes("close visualization") || lower.includes("hide visualization")) {
       return { type: "CLOSE" };
@@ -763,24 +522,132 @@ Output JSON only, in this exact format:
     if (lower.includes("inspection mode") || lower.includes("inspect mode") || lower.includes("manual control") || lower.includes("stop rotation") || lower.includes("stop auto") || lower.includes("interactive mode")) {
       return { type: "INSPECTION" };
     }
-    if (lower.includes("demo mode") || lower.includes("demonstration mode") || lower.includes("guided tour") || lower.includes("guided demo")) {
+    if (lower.includes("demo mode") || lower.includes("demonstration mode") || lower.includes("guided tour") || lower.includes("guided demo") || lower.includes("demonstrate the power stroke") || lower.includes("demonstrate how it works") || lower === "demonstrate" || lower.includes("demonstrate the engine")) {
       return { type: "DEMO" };
     }
 
-    if (lower.includes("explode heliomotion") || lower.includes("separate the components") || lower.includes("separate components") || lower.includes("exploded view") || lower.includes("explode the model") || lower.includes("separate the parts") || lower.includes("separate parts") || lower.includes("exploded visualization")) {
+    if (lower === "explode" || lower === "explode it" || lower.includes("explode heliomotion") || lower.includes("separate the components") || lower.includes("separate components") || lower.includes("exploded view") || lower.includes("explode the model") || lower.includes("explode the engine") || lower.includes("separate the parts") || lower.includes("separate parts") || lower.includes("exploded visualization")) {
       return { type: "EXPLODE", value: true };
     }
-    if (lower.includes("assemble heliomotion") || lower.includes("assemble the components") || lower.includes("assemble components") || lower.includes("re-assemble") || lower.includes("normal view") || lower.includes("assemble the parts") || lower.includes("assemble parts") || lower.includes("collapse view") || lower.includes("collapse parts")) {
+    if (lower === "assemble" || lower === "assemble it" || lower.includes("assemble heliomotion") || lower.includes("assemble the components") || lower.includes("assemble components") || lower.includes("re-assemble") || lower.includes("normal view") || lower.includes("assemble the parts") || lower.includes("assemble parts") || lower.includes("collapse view") || lower.includes("collapse parts") || lower.includes("assemble engine")) {
       return { type: "EXPLODE", value: false };
     }
+
+    // Kinematics Controls
+    if (lower.includes("speed to") || lower.includes("set speed") || lower.match(/speed\s+(0\.\d+|[1-4])x?/)) {
+      let speed = 1.0;
+      if (lower.includes("0.25")) speed = 0.25;
+      else if (lower.includes("0.5")) speed = 0.5;
+      else if (lower.includes("2x") || lower.includes("2.0") || lower.includes(" 2")) speed = 2.0;
+      else if (lower.includes("1x") || lower.includes("1.0") || lower.includes(" 1")) speed = 1.0;
+      return { type: "KINEMATICS", speed };
+    }
+    if (lower === "pause" || lower === "pause animation" || lower === "pause engine" || lower === "stop engine" || lower === "pause kinematics" || lower === "pause it") {
+      return { type: "KINEMATICS", playing: false };
+    }
+    if (lower === "play" || lower === "resume" || lower === "play animation" || lower === "start engine" || lower === "resume engine" || lower === "play kinematics" || lower === "play it") {
+      return { type: "KINEMATICS", playing: true };
+    }
+
+    // Component Isolation
+    if (lower === "isolate" || lower === "isolate it" || lower === "isolate this" || lower === "isolate component" || lower === "isolate part" || lower.startsWith("isolate ")) {
+      let compId = undefined;
+      if ((lower === "isolate it" || lower === "isolate this" || lower === "isolate") && butlerContext && butlerContext.selectedComponentId) {
+        compId = butlerContext.selectedComponentId;
+      }
+      if (lower.includes("piston")) compId = "piston_left_bank";
+      else if (lower.includes("crankshaft") || lower.includes("crank")) compId = "crankshaft";
+      else if (lower.includes("rod") || lower.includes("connecting")) compId = "connecting_rods";
+      else if (lower.includes("block")) compId = "engine_block";
+      else if (lower.includes("valve") || lower.includes("camshaft")) compId = "valvetrain";
+      else if (lower.includes("intake") || lower.includes("plenum")) compId = "intake_plenum";
+      else if (lower.includes("exhaust") || lower.includes("header")) compId = "exhaust_manifold";
+      else if (lower.includes("cooling") || lower.includes("water pump")) compId = "cooling_system";
+      else if (lower.includes("lubrication") || lower.includes("oil pan")) compId = "lubrication_system";
+      return { type: "ISOLATE", componentId: compId, value: true };
+    }
+    if (lower === "exit isolation" || lower === "un-isolate" || lower === "show all parts" || lower === "unisolate" || lower === "stop isolation" || lower === "cancel isolation") {
+      return { type: "ISOLATE", value: false };
+    }
+
+    // Engineering Component Selection
+    if (lower.startsWith("select ") || lower.includes("select the ")) {
+      if (lower.includes("piston")) {
+        const isSecond = lower.includes("second") || lower.includes("2nd") || lower.includes("right") || lower.includes("bank 2");
+        return {
+          type: "SELECT_COMPONENT",
+          componentId: isSecond ? "piston_right_bank" : "piston_left_bank",
+          componentName: isSecond ? "Bank 2 Forged Pistons" : "Bank 1 Forged Pistons"
+        };
+      }
+      if (lower.includes("crankshaft") || lower.includes("crank")) {
+        return { type: "SELECT_COMPONENT", componentId: "crankshaft", componentName: "7-Bearing Forged Steel Crankshaft" };
+      }
+      if (lower.includes("connecting rod") || lower.includes("rods") || lower.includes("rod")) {
+        return { type: "SELECT_COMPONENT", componentId: "connecting_rods", componentName: "H-Beam Titanium Connecting Rods" };
+      }
+      if (lower.includes("engine block") || lower.includes("block") || lower.includes("cylinder block")) {
+        return { type: "SELECT_COMPONENT", componentId: "engine_block", componentName: "60° V12 Cast Aluminum Block" };
+      }
+      if (lower.includes("valvetrain") || lower.includes("camshaft") || lower.includes("valve")) {
+        return { type: "SELECT_COMPONENT", componentId: "valvetrain", componentName: "DOHC 48-Valve Valvetrain & Camshafts" };
+      }
+      if (lower.includes("intake") || lower.includes("plenum") || lower.includes("manifold")) {
+        return { type: "SELECT_COMPONENT", componentId: "intake_plenum", componentName: "Dual Plenum Intake Manifold" };
+      }
+      if (lower.includes("exhaust") || lower.includes("header")) {
+        return { type: "SELECT_COMPONENT", componentId: "exhaust_manifold", componentName: "Equal-Length Exhaust Headers" };
+      }
+      if (lower.includes("cooling") || lower.includes("water pump")) {
+        return { type: "SELECT_COMPONENT", componentId: "cooling_system", componentName: "Integrated Water Jackets & Coolant Pump" };
+      }
+      if (lower.includes("lubrication") || lower.includes("oil pan")) {
+        return { type: "SELECT_COMPONENT", componentId: "lubrication_system", componentName: "Dry-Sump Oil Pan & Scavenge Pump" };
+      }
+      if (lower.includes("gear") || lower.includes("servo gear")) {
+        return { type: "SELECT_COMPONENT", componentId: "servo_gears", componentName: "Nylon Reduction Gear Set" };
+      }
+      if (lower.includes("potentiometer") || lower.includes("servo pot")) {
+        return { type: "SELECT_COMPONENT", componentId: "servo_pot", componentName: "Position Potentiometer" };
+      }
+      if (lower.includes("servo horn") || lower.includes("servo arm")) {
+        return { type: "SELECT_COMPONENT", componentId: "servo_arm", componentName: "Output Servo Horn Arm" };
+      }
+      if (lower.includes("servo case") || lower.includes("servo shell")) {
+        return { type: "SELECT_COMPONENT", componentId: "servo_case", componentName: "Blue ABS Outer Shell" };
+      }
+      if (lower.includes("dc motor") || lower.includes("servo core")) {
+        return { type: "SELECT_COMPONENT", componentId: "servo_motor_core", componentName: "Internal Coreless DC Motor" };
+      }
+    }
+
     if (lower.includes("label heliomotion") || lower.includes("show labels") || lower.includes("enable labels") || lower.startsWith("label")) {
       return { type: "LABEL", value: true };
     }
     if (lower.includes("hide labels") || lower.includes("remove labels")) {
       return { type: "LABEL", value: false };
     }
+    if (lower.includes("compare")) {
+      return { type: "COMPARE" };
+    }
+    if (lower.includes("diagnose") || lower.includes("check diagnostics") || lower.includes("diagnostic")) {
+      return { type: "DIAGNOSE" };
+    }
+
     if (lower.includes("explain this") || lower.includes("what is this part") || lower.includes("tell me about this") || lower.includes("explain the selected") || lower.includes("explain component")) {
       return { type: "EXPLAIN" };
+    }
+
+    if (lower.includes("trace") || lower.includes("power path") || lower.includes("how does this work") || lower.includes("what drives this") || lower.includes("what does this connect to")) {
+      let functionKey = null;
+      if (lower.includes("combustion") || lower.includes("fire") || lower.includes("bang")) functionKey = "combustion";
+      else if (lower.includes("cooling") || lower.includes("water") || lower.includes("coolant")) functionKey = "cooling";
+      else if (lower.includes("crank") || lower.includes("power") || lower.includes("drive")) functionKey = "crankshaft";
+      else if (lower.includes("fuel") || lower.includes("intake") || lower.includes("air")) functionKey = "fuel";
+      else if (lower.includes("gear") || lower.includes("transmission")) functionKey = "gears";
+      else if (lower.includes("feedback") || lower.includes("sensor")) functionKey = "feedback";
+      
+      return { type: "TRACE_FUNCTION", functionKey: functionKey || "power" };
     }
 
     if (lower.includes("move component") || lower.includes("shift component")) {
@@ -846,6 +713,105 @@ Output JSON only, in this exact format:
     }
     return null;
   }
+
+
+  
+  
+  
+  app.post("/api/generate-structure", async (req, res) => {
+    try {
+      const { objectQuery } = req.body;
+      if (!objectQuery) return res.status(400).json({ error: "Missing objectQuery" });
+
+      const ai = getGeminiClient();
+      if (!ai) return res.status(500).json({ error: "Gemini client not initialized" });
+
+      const { Type } = require("@google/genai");
+      const schema = {
+        type: Type.OBJECT,
+        required: ["reasoning", "components"],
+        properties: {
+          reasoning: {
+            type: Type.OBJECT,
+            required: ["category", "functionalSystems", "description"],
+            properties: {
+              category: { type: Type.STRING },
+              functionalSystems: { type: Type.ARRAY, items: { type: Type.STRING } },
+              description: { type: Type.STRING }
+            }
+          },
+          components: {
+            type: Type.ARRAY,
+            description: "Must contain exactly 10 to 15 components",
+            items: {
+              type: Type.OBJECT,
+              required: ["id", "name", "description", "geometry", "position", "size", "rotation", "color", "materialType"],
+              properties: {
+                id: { type: Type.STRING },
+                name: { type: Type.STRING },
+                description: { type: Type.STRING },
+                geometry: { type: Type.STRING },
+                position: { 
+                  type: Type.OBJECT,
+                  required: ["x", "y", "z"],
+                  properties: { x: { type: Type.NUMBER }, y: { type: Type.NUMBER }, z: { type: Type.NUMBER } }
+                },
+                size: { 
+                  type: Type.OBJECT,
+                  required: ["w", "h", "d"],
+                  properties: { w: { type: Type.NUMBER }, h: { type: Type.NUMBER }, d: { type: Type.NUMBER } }
+                },
+                rotation: { 
+                  type: Type.OBJECT,
+                  required: ["x", "y", "z"],
+                  properties: { x: { type: Type.NUMBER }, y: { type: Type.NUMBER }, z: { type: Type.NUMBER } }
+                },
+                color: { type: Type.STRING },
+                materialType: { type: Type.STRING },
+                parentId: { type: Type.STRING }
+              }
+            }
+          }
+        }
+      };
+
+      const prompt = `As an expert mechanical engineer and 3D technical artist, decompose the physical object "${objectQuery}" into a hierarchical structural assembly of 3D primitive geometric components.
+
+Process:
+1. UNIVERSAL OBJECT UNDERSTANDING: Determine what the object is, its category, primary function, and physical domain.
+2. FUNCTIONAL SYSTEM ANALYSIS: Identify major systems (e.g. Mechanical, Electrical, Optical).
+3. STRUCTURAL DECOMPOSITION: Break it down into 8 to 15 major and secondary components. YOU MUST GENERATE AT LEAST 8 COMPONENTS.
+4. COMPONENT HIERARCHY: Establish parent-child relationships between components (using parentId).
+5. ASSEMBLY RELATIONSHIPS: Ensure components physically connect. Define position and rotation relative to the object's origin. Rotation must be in DEGREES.
+6. GEOMETRY STRATEGY SELECTION: Choose the most accurate procedural shape.
+7. MATERIAL ASSIGNMENT: Assign realistic physical materials.
+
+Ensure:
+- The model must be fully assembled at the origin.
+- Use realistic material types and colors.
+- Size is in meters (e.g., 1.0 = 1 meter). 
+
+Allowed geometry values: box, roundedBox, cylinder, sphere, tube, torus, cone, spokeWheel.
+Allowed materialType values: PBR_MATTE, PBR_METALLIC, PBR_GLASS, THERMAL_HEATMAP, XRAY_GLASS, CARBON_FIBER, PLASTIC_ROUGH, ALUMINUM_ANODIZED, STEEL_MACHINED.
+`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: schema,
+          temperature: 0.1
+        }
+      });
+      
+      const result = JSON.parse(response.text);
+      res.json(result);
+    } catch (err) {
+      console.error("Structure Gen Error:", err.message, err.stack);
+      res.status(500).json({ error: "Failed to generate structure" });
+    }
+  });
 
   app.post(["/api/advis", "/api/jarvis"], async (req, res) => {
     const { 

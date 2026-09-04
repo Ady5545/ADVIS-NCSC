@@ -11,6 +11,7 @@ export interface ComponentMetadata {
   assetPath?: string;
   assetScale?: number;
   rotation?: [number, number, number];
+  category?: string;
   interactionEnabled?: boolean;
   specifications?: Record<string, string>;
   engineeringDetails?: {
@@ -28,6 +29,7 @@ export interface EducationalInfo {
   overview: string;
   keyFeatures: string[];
   workingPrinciple: string;
+  functionalPaths?: Record<string, string[]>;
   applications: string[];
   specifications: Record<string, string>;
 }
@@ -124,6 +126,9 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       overview: 'Small, lightweight servo motor.',
       keyFeatures: ['DC Motor', 'Gear Reduction', 'Control Board'],
       workingPrinciple: 'Uses PWM signals to determine desired angle.',
+      functionalPaths: {
+        'Control Path': ['pwm_command', 'control_board', 'dc_motor', 'gear_reduction', 'output_shaft', 'potentiometer']
+      },
       applications: ['RC Vehicles', 'Small Robotics', 'Sensor Mounts'],
       specifications: { 'Torque': '1.8 kg-cm', 'Speed': '0.12 sec/60°', 'Weight': '9g' }
     },
@@ -225,6 +230,9 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       overview: 'An automated mechanism orienting a solar panel payload towards the Sun to maximize energy capture.',
       keyFeatures: ['Dual-Axis Tracking', 'LDR Sensor Array', 'SG90 Micro Servos', 'Arduino Microcontroller', 'Complete Assembled Unit'],
       workingPrinciple: 'LDR sensors detect light intensity differences. The Arduino calculates the optimal angle and drives the servos to align the panel perpendicularly to the light source.',
+      functionalPaths: {
+        'Tracking Loop': ['light_direction', 'ldr_sensor', 'arduino_controller', 'servo_movement', 'panel_orientation']
+      },
       applications: ['Solar Power Plants', 'Spacecraft Solar Arrays', 'Educational Robotics'],
       specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo', 'Controller': 'Arduino UNO' }
     },
@@ -761,6 +769,9 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         'High Specific Power Output & Smooth Torque Curve'
       ],
       workingPrinciple: 'Four-stroke cycle (Intake, Compression, Power, Exhaust) occurring sequentially across 12 cylinders, driving pistons connected to a forged alloy 7-bearing crankshaft.',
+      functionalPaths: {
+        'Power Path': ['combustion', 'piston', 'connecting_rod', 'crankshaft', 'rotational_output']
+      },
       applications: ['Supercars & Luxury Gran Turismos', 'High-Speed Marine Propulsion', 'Aviation Engines'],
       specifications: {
         'Configuration': '60° V12',
@@ -774,10 +785,10 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         engineeringDetails: { material: 'A356-T6 Cast Aluminum', weight: '62.4 kg', tolerances: '±0.01 mm', stressThreshold: '240 MPa', specifications: { 'Cylinder Bores': '12', 'V-Angle': '60 degrees' } }
       },
       { id: 'piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction PVD coated rings.', position: [-0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [-1.1, 0.8, 0], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1' } }
+        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
       },
       { id: 'piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins with full-floating wrist pins.', position: [0.4, 0.6, 0], size: [0.35, 0.8, 2.4], explodedOffset: [1.1, 0.8, 0], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1' } }
+        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
       },
       { id: 'connecting_rods', name: 'H-Beam Titanium Connecting Rods', description: 'Forged Ti-6Al-4V titanium rods engineered for ultra-high RPM reciprocating loads.', position: [0, 0.3, 0], size: [0.5, 0.6, 2.6], explodedOffset: [0, 0.5, 0], shape: 'box', color: '#64748b',
         engineeringDetails: { material: 'Ti-6Al-4V Titanium', weight: '450g each', tensileStrength: '950 MPa' }

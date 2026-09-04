@@ -7,8 +7,6 @@ import { HologramCore } from './HologramCore';
 import { ChatPanel } from './ChatPanel';
 import { InputArea } from './InputArea';
 import { Sidebar } from './Sidebar';
-import { MemoryManager } from './MemoryManager';
-import { SystemPanels } from './SystemPanels';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
@@ -22,6 +20,8 @@ import { GestureProvider, GestureFrameUpdater, useGestureEngine } from './Gestur
 import { SpatialObjectEngine, SpatialMode } from './SpatialObjectEngine';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { EngineeringHUD } from './EngineeringHUD';
+import { ScientificHUD } from './ScientificHUD';
+import { ScientificLaunchpad } from './ScientificLaunchpad';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -48,6 +48,10 @@ import { LearningSession } from './LearnEngine/LearnTypes';
 import { buildChemistryLesson } from './LearnEngine/LessonBuilder';
 import { LearnWorkspace } from './LearnEngine/LearnWorkspace';
 import { ChemistryVisuals } from './LearnEngine/ChemistryVisuals';
+import { MolecularVisuals } from './LearnEngine/MolecularVisuals';
+import { SessionMoleculeProvider, useSessionMolecule } from './LearnEngine/SessionMoleculeContext';
+import { MolecularBuilderHUD } from './LearnEngine/MolecularBuilderHUD';
+import { ModelBuilder, ModelRegistry } from './AutonomousModelEngine';
 
 import { HolographicCursor } from './HolographicCursor';
 
@@ -79,7 +83,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
   }
 }
 
-export default function App() {
+function AppContent() {
   const [systemState, setSystemState] = useState<SystemState>('ONLINE');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -90,6 +94,8 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [themeColor, setThemeColor] = useState('#22d3ee');
   const [speechRate, setSpeechRate] = useState(1.05);
+
+  const sessionMolecule = useSessionMolecule();
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary', themeColor);
@@ -120,7 +126,6 @@ export default function App() {
     setRecentActions(prev => [...prev.slice(-9), { type, target, name, timestamp: Date.now() }]);
   };
 
-  const [showMemoryManager, setShowMemoryManager] = useState<boolean>(false);
   const handTracking = useHandTracking(cvEnabled);
   
   // Spatial Object Engine State Management
@@ -139,7 +144,18 @@ export default function App() {
   const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
   const [blueprintEnabled, setBlueprintEnabled] = useState<boolean>(false);
   const [highlightedComponentId, setHighlightedComponentId] = useState<string | null>(null);
+  const [isolatedComponentId, setIsolatedComponentId] = useState<string | null>(null);
+  const [tracedFunctionKey, setTracedFunctionKey] = useState<string | null>(null);
+  const [isKinematicPlaying, setIsKinematicPlaying] = useState<boolean>(true);
+  const [kinematicSpeed, setKinematicSpeed] = useState<number>(1.0);
+  const [kinematicTimeOffset, setKinematicTimeOffset] = useState<number>(0);
   const [measurementMode, setMeasurementMode] = useState<boolean>(false);
+  const [v12Rpm, setV12Rpm] = useState<number>(600);
+  const [v12Direction, setV12Direction] = useState<number>(1);
+  const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
+  const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
+
+  const [actionPreview, setActionPreview] = useState<string | null>(null);
 
   const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
     setComponentTransforms(prev => ({
@@ -192,9 +208,9 @@ export default function App() {
         body: JSON.stringify({ message: "clear chat", mode: "normal", deviceId: localStorage.getItem('advis_device_id') })
       });
       if (soundEnabled && window.speechSynthesis) {
-        const u = new SpeechSynthesisUtterance("Clean slate protocol engaged, sir. All records expunged.");
+        const u = new SpeechSynthesisUtterance("Workspace reset. Active session cleared.");
         u.rate = speechRate;
-        u.pitch = 0.9;
+        u.pitch = 1.0;
         window.speechSynthesis.speak(u);
       }
     } catch (e: any) {
@@ -466,11 +482,11 @@ export default function App() {
           timestamp: Date.now()
         })));
       } else {
-        setMessages([{ role: 'assistant', content: 'Welcome online, Sir. Holographic interface fully restored and functional.', timestamp: Date.now() }]);
+        setMessages([{ role: 'assistant', content: 'Welcome to A.D.V.I.S. Scientific visualization workspace online.', timestamp: Date.now() }]);
       }
     } catch (e) {
       console.warn("fetch history warn:", (e as Error).message);
-      setMessages([{ role: 'assistant', content: 'Welcome online, Sir. (Offline Mode Active)', timestamp: Date.now() }]);
+      setMessages([{ role: 'assistant', content: 'Scientific workspace online. (Offline Mode Active)', timestamp: Date.now() }]);
     }
   };
 
@@ -520,18 +536,114 @@ export default function App() {
     }
     
     const deviceId = localStorage.getItem('advis_device_id') || 'default';
+    const lowerCmd = displayMessage.toLowerCase().trim();
 
-    const activeWorkspace = activeLearningSession 
-      ? 'CHEMISTRY' 
-      : (currentSpatialObject 
-        ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
-        : 'HUD');
+    // Direct CAD & Kinematic Command Intercepts
+    if (lowerCmd.includes('play the engine') || lowerCmd.includes('play engine') || lowerCmd.includes('start engine') || lowerCmd.includes('run engine')) {
+      setIsKinematicPlaying(true);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: `Kinematic simulation active. Engine operating at ${v12Rpm} RPM.`, timestamp: Date.now() }]);
+      return;
+    }
+    if (lowerCmd.includes('pause the engine') || lowerCmd.includes('pause engine') || lowerCmd.includes('stop engine')) {
+      setIsKinematicPlaying(false);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Kinematic simulation paused.', timestamp: Date.now() }]);
+      return;
+    }
+    if (lowerCmd.includes('rpm')) {
+      const rpmMatch = lowerCmd.match(/(\d+)/);
+      if (rpmMatch) {
+        const rpmVal = parseInt(rpmMatch[1], 10);
+        setV12Rpm(rpmVal);
+        setSystemState('ONLINE');
+        setMessages(prev => [...prev, { role: 'assistant', content: `Engine rotational velocity adjusted to ${rpmVal} RPM.`, timestamp: Date.now() }]);
+        return;
+      }
+    }
+    if (lowerCmd.includes('select the crankshaft') || lowerCmd.includes('select crankshaft')) {
+      setSelectedComponentId('v12_crankshaft');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Selected crankshaft component.', timestamp: Date.now() }]);
+      return;
+    }
+    if (lowerCmd.includes('magnify it') || lowerCmd === 'magnify' || lowerCmd.includes('focus component')) {
+      setIsMagnifierFocused(true);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Magnifier Mode active. Camera locked onto target component.', timestamp: Date.now() }]);
+      return;
+    }
+    if (lowerCmd.includes('exit magnify') || lowerCmd.includes('unmagnify') || lowerCmd.includes('close magnify')) {
+      setIsMagnifierFocused(false);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Exited Magnifier Mode.', timestamp: Date.now() }]);
+      return;
+    }
+
+    // Step 0: Check for Autonomous Scientific Model Construction / Mutation Intent
+    const activeObjStr = typeof currentSpatialObject === 'string' ? currentSpatialObject : (Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : null);
+    if (!file && ModelBuilder.isAutonomousQuery(displayMessage, activeObjStr)) {
+      try {
+        const isMutation = ModelBuilder.isMutationQuery(displayMessage);
+        
+        if (!isMutation) {
+          sessionMolecule.closeSession();
+          setActiveLearningSession(null);
+        }
+        
+        const buildRes = await ModelBuilder.constructFromQuery(displayMessage, {
+          activeObjectId: activeObjStr,
+          selectedComponentId: selectedComponentId
+        });
+
+        if (!isMutation) {
+          setCurrentSpatialObject(buildRes.spatialObject.id);
+          setSelectedComponentId(null);
+          setHoveredComponentId(null);
+          changeSpatialMode('INSPECTION');
+        } else {
+          setCurrentSpatialObject([buildRes.spatialObject.id, Date.now().toString()]);
+        }
+
+        pushRecentAction(isMutation ? 'AUTONOMOUS_MODEL_MUTATE' : 'AUTONOMOUS_MODEL_CONSTRUCT', buildRes.spatialObject.id, buildRes.plan.displayName);
+
+        setSystemState('ONLINE');
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: buildRes.userExplanation,
+            timestamp: Date.now()
+          }
+        ]);
+
+        if (soundEnabled && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(isMutation ? `Updated ${buildRes.plan.displayName}.` : `Constructed ${buildRes.plan.displayName}. Mathematical validation complete.`);
+          u.rate = speechRate;
+          u.pitch = 1.0;
+          window.speechSynthesis.speak(u);
+        }
+        return;
+      } catch (err: any) {
+        console.error('Autonomous Model Construction Error:', err);
+      }
+    }
+
+    const activeWorkspace = sessionMolecule.isSessionActive
+      ? 'CHEMISTRY'
+      : (activeLearningSession 
+        ? 'CHEMISTRY' 
+        : (currentSpatialObject 
+          ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
+          : 'HUD'));
 
     const butlerContext = {
       activeProjectId,
       activeWorkspace,
       activeSpatialObject: currentSpatialObject,
-      activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || null,
+      activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || (sessionMolecule.isSessionActive && sessionMolecule.molecule ? sessionMolecule.molecule.metadata?.name : null),
+      activeMolecule: sessionMolecule.getMolecularContextForAI(),
       selectedComponentId,
       hoveredComponentId,
       spatialMode,
@@ -573,8 +685,21 @@ export default function App() {
         pushRecentAction('PROJECT_SWITCH', data.activeProjectId, 'Project');
       }
 
+      if (data.molecularAction) {
+        if (!sessionMolecule.isSessionActive && activeLearningSession?.context?.entity) {
+          sessionMolecule.loadCanonical(activeLearningSession.context.entity);
+          setActiveLearningSession(null);
+        }
+        sessionMolecule.executeStructuredAction(data.molecularAction);
+        if (data.molecularAction.type === 'INITIALIZE_BUILDER' || data.molecularAction.type === 'ADD_ATOM' || data.molecularAction.type === 'RESTORE_LAST' || data.molecularAction.type === 'REMOVE_ATOM' || data.molecularAction.type === 'CHANGE_BOND_ORDER') {
+          setCurrentSpatialObject(null);
+          setActiveLearningSession(null);
+        }
+      }
+
       if (data.learnAction) {
         const { subject, intent, learnMode } = data.learnAction;
+        sessionMolecule.closeSession();
         pushRecentAction('START_LEARNING_SESSION', subject || 'CHEMISTRY', subject);
         setActiveLearningSession(buildChemistryLesson(subject || 'UNKNOWN', intent || 'UNKNOWN', learnMode || 'TEACH_ME'));
       }
@@ -582,12 +707,18 @@ export default function App() {
       if (data.spatialAction) {
         const action = data.spatialAction;
         
+        const actionDesc = data.butlerDecision?.userObjective || action.type;
+        setActionPreview(`Action Confirmed: ${actionDesc}`);
+        setTimeout(() => setActionPreview(null), 2500);
+        
         if (action.type === 'DISPLAY_SCIENTIFIC') {
           const targetFormula = action.formula || action.assetId || 'UNKNOWN';
+          sessionMolecule.closeSession();
           pushRecentAction('DISPLAY_SCIENTIFIC', targetFormula, action.name || targetFormula);
           setCurrentSpatialObject(null);
           setActiveLearningSession(buildChemistryLesson(targetFormula, 'SHOW_STRUCTURE', 'SHOW_ME'));
         } else if (action.type === 'DISPLAY' || action.type === 'PRESENT') {
+          sessionMolecule.closeSession();
           const idsToCheck = action.objectIds || (action.objectId ? [action.objectId] : []);
           pushRecentAction('DISPLAY', idsToCheck[0] || 'MODEL', action.name || idsToCheck[0]);
           for (const oid of idsToCheck) {
@@ -605,10 +736,25 @@ export default function App() {
         }
 
         if (action.type === 'DISPLAY') {
-          if (action.objectIds) {
-            setCurrentSpatialObject(action.objectIds);
-          } else if (action.objectId) {
-            setCurrentSpatialObject(action.objectId);
+          sessionMolecule.closeSession();
+          const targetId = action.objectId || (action.objectIds ? action.objectIds[0] : null);
+          if (targetId && !SPATIAL_LIBRARY[targetId] && !ModelRegistry.getModel(targetId)) {
+            try {
+              const buildRes = await ModelBuilder.constructFromQuery(action.name || targetId);
+              setCurrentSpatialObject(buildRes.spatialObject.id);
+            } catch {
+              if (action.objectIds) {
+                setCurrentSpatialObject(action.objectIds);
+              } else if (action.objectId) {
+                setCurrentSpatialObject(action.objectId);
+              }
+            }
+          } else {
+            if (action.objectIds) {
+              setCurrentSpatialObject(action.objectIds);
+            } else if (action.objectId) {
+              setCurrentSpatialObject(action.objectId);
+            }
           }
           setSelectedComponentId(null);
           setHoveredComponentId(null);
@@ -628,6 +774,7 @@ export default function App() {
         } else if (action.type === 'LABEL') {
           setShowLabels(action.value);
         } else if (action.type === 'PRESENT') {
+          sessionMolecule.closeSession();
           if (action.objectIds) {
             setCurrentSpatialObject(action.objectIds);
           } else if (action.objectId) {
@@ -636,7 +783,41 @@ export default function App() {
           setSelectedComponentId(null);
           setHoveredComponentId(null);
           changeSpatialMode('DEMO');
+        } else if (action.type === 'SELECT_COMPONENT') {
+          if (action.componentId) {
+            setSelectedComponentId(action.componentId);
+            pushRecentAction('SELECT_COMPONENT', action.componentId, action.componentName || action.componentId);
+          }
+        } else if (action.type === 'TRACE_FUNCTION') {
+          if (action.functionKey) {
+            setTracedFunctionKey(action.functionKey);
+            pushRecentAction('TRACE_FUNCTION', action.functionKey, action.functionKey);
+          }
+        } else if (action.type === 'ISOLATE' || action.type === 'ISOLATE_COMPONENT') {
+          if (action.value === false) {
+            setIsolatedComponentId(null);
+          } else {
+            const targetComp = action.componentId || selectedComponentId;
+            if (targetComp) {
+              setIsolatedComponentId(targetComp);
+              setSelectedComponentId(targetComp);
+            }
+          }
+        } else if (action.type === 'COMPARE') {
+          setCurrentView('compare');
+        } else if (action.type === 'DIAGNOSE') {
+          // In future, open diagnostic panel
+          console.log("DIAGNOSE action triggered");
+
+        } else if (action.type === 'KINEMATICS') {
+          if (action.playing !== undefined) {
+            setIsKinematicPlaying(action.playing);
+          }
+          if (action.speed !== undefined) {
+            setKinematicSpeed(action.speed);
+          }
         } else if (action.type === 'CLOSE') {
+          sessionMolecule.closeSession();
           pushRecentAction('CLOSE', null, null);
           setCurrentSpatialObject(null);
           setSelectedComponentId(null);
@@ -840,7 +1021,7 @@ export default function App() {
     } catch (e) {
       console.warn('handleSendMessage error:', e);
       
-      setMessages([{ role: 'assistant', content: 'Welcome online, Sir. (Offline Mode Active)', timestamp: Date.now() }]);
+      setMessages([{ role: 'assistant', content: 'Scientific workspace online. (Offline Mode Active)', timestamp: Date.now() }]);
       setSystemState('ONLINE');
 
       setTimeout(() => { setSystemState('ONLINE'); sessionActiveRef.current = false; }, 3000);
@@ -849,482 +1030,437 @@ export default function App() {
 
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
+  const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
+
   return (
-    <AppErrorBoundary>
-      <GestureProvider handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession}>
-        {/* TEMPORARY DIAGNOSTIC MARKER REQUIRED BY USER REQUEST */}
-        <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, background: '#00ff00', color: '#000000', padding: '8px 16px', fontWeight: 'bold', fontSize: '16px', fontFamily: 'monospace', borderBottomRightRadius: '8px', boxShadow: '0 0 10px rgba(0,255,0,0.8)' }}>
-          ADVIS R3F DIAGNOSTIC - STATE: {systemState}
-        </div>
-
-        <div ref={containerRef} className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans selection:bg-cyan-500/30">
-        <div 
-          className="pointer-events-none absolute inset-0 z-0 opacity-30 transition-opacity duration-300"
-          style={{
-            background: `radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%)`
-          }}
-        />
-        
-        <Background systemState={systemState} themeColor={themeColor} />
-        
-        
-        {/* Learn Engine Layer */}
-        {activeLearningSession && (
-          <LearnWorkspace 
-             session={activeLearningSession} 
-             onClose={() => setActiveLearningSession(null)} 
-             onUpdateSession={setActiveLearningSession} 
-          />
-        )}
-        
-        {/* MediaPipe CV Tracking Adapter */}
-        <MediaPipeAdapter enabled={cvEnabled} />
-
-        {/* 3D Canvas Layer */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
-            <ambientLight intensity={1.5} />
-            <directionalLight position={[10, 10, 10]} intensity={2} />
-            <pointLight position={[-10, -10, -10]} intensity={1} color="#67e8f9" />
-            <pointLight position={[0, 5, -5]} intensity={1.5} color="#0ea5e9" />
-            <GestureFrameUpdater handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
-            <CameraRig isSpatial={!!currentSpatialObject || !!activeLearningSession} />
-            <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
-          
-            <React.Suspense fallback={null}>
-              {activeLearningSession && activeLearningSession.steps && activeLearningSession.steps[activeLearningSession.currentStepIndex] && (
-                 <ChemistryVisuals visualStateId={activeLearningSession.steps[activeLearningSession.currentStepIndex].visualStateId} />
-              )}
-              
-              <SpatialObjectEngine 
-                currentSpatialObject={currentSpatialObject}
-                selectedComponentId={selectedComponentId}
-                hoveredComponentId={hoveredComponentId}
-                isExploded={isExploded}
-                isPresentationMode={isPresentationMode}
-                presentationStep={presentationStep}
-                spatialMode={spatialMode}
-                onInteractionStateChange={setIsUserInteracting}
-                setSelectedComponentId={setSelectedComponentId}
-                setHoveredComponentId={setHoveredComponentId}
-                handTracking={handTracking}
-                setPresentationStep={setPresentationStep}
-                setMessages={setMessages}
-                soundEnabled={soundEnabled}
-                showLabels={showLabels}
-                componentTransforms={componentTransforms}
-                explodedFactor={explodedFactor}
-                xrayEnabled={xrayEnabled}
-                blueprintEnabled={blueprintEnabled}
-                highlightedComponentId={highlightedComponentId}
-              />
-            </React.Suspense>
-            
-            <EffectComposer>
-              <Bloom 
-                luminanceThreshold={0.5} 
-                mipmapBlur 
-                intensity={0.1 * hologramIntensity} 
-              />
-              <ChromaticAberration 
-                blendFunction={BlendFunction.NORMAL} 
-                offset={new THREE.Vector2(0.0005, 0.0005)} 
-                radialModulation={false}
-                modulationOffset={0}
-              />
-              <Noise opacity={0.012} />
-            </EffectComposer>
-          </Canvas>
+    <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
+      {/* TEMPORARY DIAGNOSTIC MARKER REQUIRED BY USER REQUEST */}
+      <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, background: '#00ff00', color: '#000000', padding: '8px 16px', fontWeight: 'bold', fontSize: '16px', fontFamily: 'monospace', borderBottomRightRadius: '8px', boxShadow: '0 0 10px rgba(0,255,0,0.8)' }}>
+        ADVIS R3F DIAGNOSTIC - STATE: {systemState}
       </div>
 
-      {/* UI Layer */}
-      <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
-        <div className={`transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
-          <MobileNav currentView={currentView} setView={setCurrentView} />
-        </div>
-        <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
-          <div className={`hidden lg:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
-            <Sidebar currentView={currentView} setView={setCurrentView} />
-          </div>
-          
-          <div className="flex-1 flex justify-center lg:justify-between relative">
-            <div className={`hidden xl:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform -translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
-              <SystemPanels side="left" handTracking={handTracking} />
-            </div>
-            <div className={`w-full max-w-[450px] flex flex-col h-full pt-16 lg:pt-0 pb-[140px] md:pb-[120px] transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-y-16 opacity-0 scale-95 pointer-events-none' : 'transform translate-y-0 opacity-100 scale-100 pointer-events-auto'}`}>
-              <ChatPanel messages={messages} systemState={systemState} audioLevel={audioLevel} />
-            </div>
-            <div className={`hidden xl:block transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-x-16 opacity-0 scale-90 pointer-events-none' : 'transform translate-x-0 opacity-100 scale-100 pointer-events-auto'}`}>
-              <SystemPanels side="right" handTracking={handTracking} />
-            </div>
-          </div>
-        </div>
-        
-        <div className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ${(currentSpatialObject || activeLearningSession) ? 'transform translate-y-full opacity-0 pointer-events-none' : 'transform translate-y-0 opacity-100 pointer-events-auto'}`}>
-          <InputArea 
-            onSend={handleSendMessage} 
-            systemState={systemState}
-            setSystemState={setSystemState}
-            setView={setCurrentView}
-            currentView={currentView}
-            audioLevel={audioLevel}
-            wakeWordEnergy={wakeWordEnergy}
-            handTracking={handTracking}
-          />
-        </div>
-      </div>
-
-      {/* Hand Loss State Notification */}
-      {cvEnabled && handTracking.state === 'LOST' && (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[45] font-mono text-xs text-amber-500 bg-black/90 border border-amber-500/30 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.2)] animate-pulse pointer-events-none">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-          <span className="font-bold tracking-widest uppercase">INTERACTION PAUSED — HAND POSITION LOST</span>
-        </div>
-      )}
+      <div ref={containerRef} className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans selection:bg-cyan-500/30">
       
-      {currentSpatialObject && (
-        <div className="fixed top-8 left-8 z-40 pointer-events-auto flex flex-col gap-3 max-w-[340px] font-mono text-cyan-400 animate-fade-in mix-blend-screen bg-slate-950/80 p-3.5 rounded-lg border border-cyan-500/30 backdrop-blur-md shadow-2xl">
-          <div className="flex flex-col border-l-2 border-cyan-400 pl-3 py-0.5">
-            <div className="font-bold tracking-[0.2em] text-cyan-300 uppercase flex items-center justify-between text-[10px]">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></span>
-                SPATIAL WORKSPACE
-              </div>
-              <div className={`px-2 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase border transition-all ${
-                isUserInteracting 
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                  : 'bg-cyan-500/10 text-cyan-400/80 border-cyan-500/30'
-              }`}>
-                {isUserInteracting ? '● INTERACTING' : '○ VIEWING'}
-              </div>
-            </div>
-            <div className="text-white font-bold text-lg mt-1 tracking-wide shadow-cyan-500/50 drop-shadow-md">
-              {Array.isArray(currentSpatialObject)
-                ? currentSpatialObject.map(id => SPATIAL_LIBRARY[id]?.name || id).join(' + ')
-                : (SPATIAL_LIBRARY[currentSpatialObject || '']?.name || currentSpatialObject)}
-            </div>
-            <div className="text-[10px] text-cyan-400/70 italic mt-0.5 uppercase tracking-widest">
-              {Array.isArray(currentSpatialObject)
-                ? 'Engineering Showcase'
-                : (SPATIAL_LIBRARY[currentSpatialObject || '']?.category || 'Engineering')}
-            </div>
+      {/* Action Preview Overlay */}
+      {actionPreview && (
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none animate-fade-in-down">
+          <div className="bg-emerald-950/90 border border-emerald-400 text-emerald-300 px-4 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            {actionPreview}
           </div>
-
-          {/* PRESENTATION MODE SELECTOR (4 STATES) */}
-          <div className="flex flex-col gap-1.5 mt-0.5">
-            <div className="text-[9px] uppercase tracking-wider text-cyan-400/60 font-bold">Presentation State</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[9px] font-bold uppercase">
-              {/* 1. INSPECTION MODE */}
-              <button
-                onClick={() => changeSpatialMode('INSPECTION')}
-                className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
-                  spatialMode === 'INSPECTION'
-                    ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                    : 'border-cyan-500/20 bg-slate-900/40 hover:bg-cyan-950/40 text-cyan-400/70'
-                }`}
-                title="1. Inspection Mode: Manual gesture inspection, zero auto-rotation, stable pointing"
-              >
-                <span>1. Inspection</span>
-                {spatialMode === 'INSPECTION' && <span className="text-[8px] text-cyan-300 font-extrabold">✓</span>}
-              </button>
-
-              {/* 2. SHOWCASE MODE */}
-              <button
-                onClick={() => changeSpatialMode('SHOWCASE')}
-                className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
-                  spatialMode === 'SHOWCASE'
-                    ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                    : 'border-cyan-500/20 bg-slate-900/40 hover:bg-cyan-950/40 text-cyan-400/70'
-                }`}
-                title="2. Showcase Mode: Slow cinematic automatic rotation"
-              >
-                <span>2. Showcase</span>
-                {spatialMode === 'SHOWCASE' && <span className="text-[8px] text-emerald-300 font-extrabold">Auto</span>}
-              </button>
-
-              {/* 3. EXPLODED ANALYSIS MODE */}
-              <button
-                onClick={() => changeSpatialMode('EXPLODED')}
-                className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
-                  spatialMode === 'EXPLODED'
-                    ? 'bg-purple-500/25 border-purple-400 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                    : 'border-cyan-500/20 bg-slate-900/40 hover:bg-cyan-950/40 text-cyan-400/70'
-                }`}
-                title="3. Exploded Analysis Mode: Disassemble components into exploded offset view"
-              >
-                <span>3. Exploded</span>
-                {spatialMode === 'EXPLODED' && <span className="text-[8px] text-purple-300 font-extrabold">Parts</span>}
-              </button>
-
-              {/* 4. DEMO MODE */}
-              <button
-                onClick={() => changeSpatialMode('DEMO')}
-                className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
-                  spatialMode === 'DEMO'
-                    ? 'bg-amber-500/25 border-amber-400 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-                    : 'border-cyan-500/20 bg-slate-900/40 hover:bg-cyan-950/40 text-cyan-400/70'
-                }`}
-                title="4. Demo Mode: Guided narrative component demonstration"
-              >
-                <span>4. Demo</span>
-                {spatialMode === 'DEMO' && <span className="text-[8px] text-amber-300 font-extrabold">Guided</span>}
-              </button>
-            </div>
-          </div>
-
-          {/* EXIT BUTTON */}
-          <div className="flex flex-col gap-1.5 pt-1 border-t border-cyan-500/20 mt-1">
-            <button
-              onClick={() => setIsEngineeringMode(true)}
-              className="w-full py-1.5 px-3 rounded border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-200 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
-            >
-              <span>⚡ Open Engineering Mode</span>
-            </button>
-            <div className="flex justify-between items-center">
-              <span className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-mono">ADVIS 3D V2</span>
-              <button 
-                onClick={() => {
-                  setCurrentSpatialObject(null);
-                  setSelectedComponentId(null);
-                  setHoveredComponentId(null);
-                  changeSpatialMode('INSPECTION');
-                }}
-                className="px-2.5 py-1 rounded border border-red-500/40 bg-red-950/30 hover:bg-red-900/50 hover:border-red-400 text-red-400 text-[9px] transition-all font-bold uppercase cursor-pointer backdrop-blur-sm"
-                title="Close spatial projection"
-              >
-                Exit Spatial Mode
-              </button>
-            </div>
-          </div>
-
-          {spatialMode === 'DEMO' && (() => {
-            const primaryObjId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
-            const obj = primaryObjId ? SPATIAL_LIBRARY[primaryObjId] : null;
-            const compCount = obj?.components.length || 1;
-            return (
-              <div className="mt-1">
-                <div className="text-[9px] text-amber-400/80 uppercase tracking-widest font-bold mb-1 flex justify-between">
-                  <span>Demonstration Active</span>
-                  <span>Step {presentationStep + 1} / {compCount + 1}</span>
-                </div>
-                <div className="w-full bg-slate-900 rounded-full h-1 overflow-hidden border border-amber-500/20">
-                  <div 
-                    className="bg-amber-400 h-full transition-all duration-1000 ease-in-out shadow-[0_0_8px_rgba(245,158,11,0.6)]" 
-                    style={{ width: `${Math.max(5, ((presentationStep + 1) / (compCount + 1)) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       )}
 
-      {/* SELECTED COMPONENT DETAIL VIEW HUD CARD */}
-      {currentSpatialObject && selectedComponentId && (() => {
-        const primaryObjId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
-        const obj = primaryObjId ? SPATIAL_LIBRARY[primaryObjId] : null;
-        const comp = obj?.components.find(c => c.id === selectedComponentId);
-        if (!comp) return null;
-        const specs = comp.specifications || obj?.educationalInformation?.specifications || {
-          "Component ID": comp.id,
-          "Shape": comp.shape.toUpperCase(),
-          "Position": comp.position.join(', '),
-          "Offset": comp.explodedOffset.join(', ')
-        };
-        return (
-          <div className="fixed top-8 right-8 z-40 pointer-events-auto flex flex-col gap-3 w-80 font-mono text-cyan-400 animate-fade-in mix-blend-screen bg-slate-950/85 p-4 rounded-xl border border-cyan-400/40 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.25)]">
-            <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
-                <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">COMPONENT SPECIFICATION</span>
-              </div>
-              <button
-                onClick={() => setSelectedComponentId(null)}
-                className="text-cyan-400/60 hover:text-cyan-200 text-xs px-1.5 py-0.5 rounded border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer"
-                title="Deselect Component"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="text-white font-bold text-base tracking-wide mt-1">
-              {comp.name}
-            </div>
-            <div className="text-[10px] text-cyan-300/80 leading-relaxed font-sans font-light">
-              {comp.description}
-            </div>
-
-            <div className="mt-1 flex flex-col gap-1.5">
-              <div className="text-[9px] uppercase tracking-wider text-cyan-400/60 font-bold">Technical Specifications</div>
-              <div className="bg-slate-900/60 rounded-lg p-2.5 border border-cyan-500/20 flex flex-col gap-1 text-[10px]">
-                {Object.entries(specs).slice(0, 5).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center border-b border-cyan-500/10 last:border-0 py-0.5">
-                    <span className="text-cyan-400/70 text-[9px]">{k}:</span>
-                    <span className="text-cyan-200 font-bold text-[9px]">{String(v)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedComponentId(null)}
-              className="mt-1 w-full py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold uppercase tracking-widest rounded transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>CLEAR SELECTION</span>
-            </button>
-          </div>
-        );
-      })()}
-
-      <HolographicCursor handTracking={handTracking} isSpatial={!!currentSpatialObject || !!activeLearningSession} />
-      <ViewModal 
-        currentView={currentView} 
-        setView={setCurrentView} 
-        messages={messages} 
-        hologramIntensity={hologramIntensity} 
-        setHologramIntensity={setHologramIntensity} 
-        soundEnabled={soundEnabled} 
-        setSoundEnabled={setSoundEnabled} 
-        themeColor={themeColor} 
-        setThemeColor={setThemeColor} 
-        speechRate={speechRate} 
-        setSpeechRate={setSpeechRate} 
-        strictSecurity={strictSecurity}
-        setStrictSecurity={setStrictSecurity}
-        triggerBarnDoor={() => requireBiometric(() => setBarnDoorActive(true))}
-        triggerCleanSlate={() => requireBiometric(handleCleanSlate)}
-        cvEnabled={cvEnabled}
-        setCvEnabled={setCvEnabled}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 opacity-30 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%)`
+        }}
       />
       
-      {/* Barn Door Protocol Overlay */}
-      {barnDoorActive && (
-        <div className="fixed inset-0 z-[100] bg-red-950/90 flex flex-col items-center justify-center pointer-events-auto overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
-          <motion.div 
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="absolute inset-0 border-[20px] border-red-600/50 box-border pointer-events-none"
-          />
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-center z-10"
-          >
-            <div className="text-red-500 mb-6 flex justify-center">
-              <svg className="w-32 h-32 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v2h-2v-2zm0-10h2v8h-2V7z"/></svg>
-            </div>
-            <h1 className="text-4xl md:text-7xl font-mono font-bold tracking-[0.2em] text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] mb-4 uppercase">
-              BARN DOOR PROTOCOL
-            </h1>
-            <p className="text-red-400 text-lg md:text-xl font-mono tracking-widest uppercase mb-12 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]">
-              System Locked. Unauthorized Access Restricted.
-            </p>
-            <button 
-              onClick={() => setBarnDoorActive(false)}
-              className="px-8 py-4 border-2 border-red-500/50 text-red-500 font-mono tracking-widest hover:bg-red-500 hover:text-black hover:shadow-[0_0_30px_rgba(239,68,68,0.8)] transition-all uppercase rounded font-bold"
-            >
-              OVERRIDE PROTOCOL
-            </button>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Biometric Scanner Overlay */}
-      {biometricActive && (
-        <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center font-mono">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="flex flex-col items-center border border-cyan-500/30 bg-cyan-950/20 p-12 rounded-2xl shadow-[0_0_30px_rgba(0,255,255,0.15)] relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
-            
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="relative mb-8 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
-            >
-              <Fingerprint size={120} strokeWidth={1} />
-              
-              <motion.div 
-                animate={{ top: ['0%', '100%', '0%'] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                className="absolute left-0 right-0 h-1 bg-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,1)] z-10 opacity-70"
-              />
-            </motion.div>
-            
-            <div className="text-xl text-cyan-300 tracking-[0.2em] mb-2 z-10 font-bold uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
-              BIOMETRIC VERIFICATION REQUIRED
-            </div>
-            
-            <div className="text-cyan-500/70 text-sm tracking-widest mb-10 z-10">
-              PLACE FINGER ON SCANNER TO AUTHORIZE
-            </div>
-            
-            <div className="flex gap-4 z-10">
-              <button 
-                onClick={() => setBiometricActive(false)}
-                className="px-6 py-2 border border-cyan-500/50 text-cyan-500 hover:bg-cyan-900/30 transition-colors rounded tracking-widest text-xs"
-              >
-                CANCEL
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setBiometricActive(false);
-                  if (pendingAction) {
-                    setTimeout(() => pendingAction(), 300);
-                  }
-                }}
-                className="px-6 py-2 bg-cyan-500/20 border border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-black transition-colors rounded tracking-widest text-xs shadow-[0_0_10px_rgba(34,211,238,0.3)] hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] font-bold flex items-center gap-2"
-              >
-                <Lock size={14} />
-                AUTHORIZE OVERRIDE
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Engineering Mode HUD Overlay (Phase 1A & 1D) */}
-      {isEngineeringMode && (
-        <EngineeringHUD 
-          onClose={() => setIsEngineeringMode(false)} 
-          activeObject={currentSpatialObject} 
-          selectedComponentId={selectedComponentId}
-          onSelectComponent={setSelectedComponentId}
-          componentTransforms={componentTransforms}
-          onUpdateComponentTransform={handleUpdateComponentTransform}
-          explodedFactor={explodedFactor}
-          onUpdateExplodedFactor={setExplodedFactor}
-          xrayEnabled={xrayEnabled}
-          onToggleXray={() => setXrayEnabled(!xrayEnabled)}
-          blueprintEnabled={blueprintEnabled}
-          onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
-          highlightedComponentId={highlightedComponentId}
-          onHighlightComponent={setHighlightedComponentId}
-          measurementMode={measurementMode}
-          onToggleMeasurement={() => setMeasurementMode(!measurementMode)}
+      <Background systemState={systemState} themeColor={themeColor} />
+      
+      
+      {/* Learn Engine Layer */}
+      {activeLearningSession && (
+        <LearnWorkspace 
+           session={activeLearningSession} 
+           onClose={() => setActiveLearningSession(null)} 
+           onUpdateSession={setActiveLearningSession} 
         />
       )}
+      
+      {/* MediaPipe CV Tracking Adapter */}
+      <MediaPipeAdapter enabled={cvEnabled} />
 
-      {/* Connection Screen / Cinematic Boot Loader */}
-      {(systemState === 'CONNECTING') && (
-        <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center font-mono">
-          <div className="text-5xl font-bold tracking-[0.3em] text-cyan-400 mb-8 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-            A.D.V.I.S.
-          </div>
-          <div className="w-64 h-1 bg-cyan-900/50 rounded-full overflow-hidden">
-            <div className="h-full bg-cyan-400 animate-pulse w-full"></div>
-          </div>
-          <div className="mt-4 text-cyan-400/80 text-sm tracking-widest animate-pulse">
-            INITIALIZING CORE PLEXUS...
-          </div>
-        </div>
-      )}
+      {/* 3D Canvas Layer */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[10, 10, 10]} intensity={2} />
+          <pointLight position={[-10, -10, -10]} intensity={1} color="#67e8f9" />
+          <pointLight position={[0, 5, -5]} intensity={1.5} color="#0ea5e9" />
+          <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
+          <CameraRig isSpatial={isSpatial} />
+          <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={isSpatial} />
+        
+          <React.Suspense fallback={null}>
+            {activeLearningSession && activeLearningSession.steps && activeLearningSession.steps[activeLearningSession.currentStepIndex] && (
+               <ChemistryVisuals visualStateId={activeLearningSession.steps[activeLearningSession.currentStepIndex].visualStateId} />
+            )}
+
+            {sessionMolecule.isSessionActive && sessionMolecule.molecule && !activeLearningSession && (
+              <MolecularVisuals
+                moleculeData={sessionMolecule.molecule}
+                externalSelectedAtomId={sessionMolecule.selectedAtomId}
+                externalSelectedBondId={sessionMolecule.selectedBondId}
+                onAtomSelect={(atomId) => sessionMolecule.selectAtom(atomId)}
+                onBondSelect={(bondId) => sessionMolecule.selectBond(bondId)}
+                measurementMode={measurementMode}
+              />
+            )}
+            
+            <SpatialObjectEngine 
+              currentSpatialObject={currentSpatialObject}
+              selectedComponentId={selectedComponentId}
+              hoveredComponentId={hoveredComponentId}
+              isExploded={isExploded}
+              isPresentationMode={isPresentationMode}
+              presentationStep={presentationStep}
+              spatialMode={spatialMode}
+              onInteractionStateChange={setIsUserInteracting}
+              setSelectedComponentId={setSelectedComponentId}
+              setHoveredComponentId={setHoveredComponentId}
+              handTracking={handTracking}
+              setPresentationStep={setPresentationStep}
+              setMessages={setMessages}
+              soundEnabled={soundEnabled}
+              showLabels={showLabels}
+              componentTransforms={componentTransforms}
+              explodedFactor={explodedFactor}
+              xrayEnabled={xrayEnabled}
+              blueprintEnabled={blueprintEnabled}
+              highlightedComponentId={highlightedComponentId}
+              isolatedComponentId={isolatedComponentId}
+              tracedFunctionKey={tracedFunctionKey}
+              isKinematicPlaying={isKinematicPlaying}
+              kinematicSpeed={kinematicSpeed}
+              kinematicTimeOffset={kinematicTimeOffset}
+              v12Rpm={v12Rpm}
+              v12Direction={v12Direction}
+              isMagnifierFocused={isMagnifierFocused}
+              lodTier={lodTier}
+            />
+          </React.Suspense>
+          
+          <EffectComposer>
+            <Bloom 
+              luminanceThreshold={0.5} 
+              mipmapBlur 
+              intensity={0.1 * hologramIntensity} 
+            />
+            <ChromaticAberration 
+               
+              offset={new THREE.Vector2(0.0005, 0.0005)} 
+              
+              
+            />
+            <Noise opacity={0.012} />
+          </EffectComposer>
+        </Canvas>
     </div>
-    </GestureProvider>
+
+    {/* Molecular Builder HUD Layer */}
+    <MolecularBuilderHUD 
+      measurementMode={measurementMode}
+      onToggleMeasurement={() => setMeasurementMode(!measurementMode)}
+    />
+
+    {/* UI Layer */}
+    <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
+      <div className={`transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
+        <MobileNav currentView={currentView} setView={setCurrentView} />
+      </div>
+      <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
+        <div className={`hidden lg:block transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
+          <Sidebar currentView={currentView} setView={setCurrentView} />
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center relative">
+          {(!currentSpatialObject && !activeLearningSession && !sessionMolecule.isSessionActive) && (
+            <div className="w-full flex justify-center pb-24 md:pb-20">
+              <ScientificLaunchpad
+                onOpenView={(view) => setCurrentView(view)}
+                onSelectMolecule={(formulaOrKey) => {
+                  sessionMolecule.closeSession();
+                  setCurrentSpatialObject(null);
+                  setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
+                }}
+                onSelectSpatialObject={(objectId) => {
+                  sessionMolecule.closeSession();
+                  setActiveLearningSession(null);
+                  setCurrentSpatialObject(objectId);
+                  changeSpatialMode('INSPECTION');
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ${isSpatial ? 'transform translate-y-full opacity-0 pointer-events-none' : 'transform translate-y-0 opacity-100 pointer-events-auto'}`}>
+        <InputArea 
+          onSend={handleSendMessage} 
+          systemState={systemState}
+          setSystemState={setSystemState}
+          setView={setCurrentView}
+          currentView={currentView}
+          audioLevel={audioLevel}
+          wakeWordEnergy={wakeWordEnergy}
+          handTracking={handTracking}
+        />
+      </div>
+    </div>
+
+    {/* Hand Loss State Notification */}
+    {cvEnabled && handTracking.state === 'LOST' && (
+      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[45] font-mono text-xs text-amber-500 bg-black/90 border border-amber-500/30 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.2)] animate-pulse pointer-events-none">
+        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+        <span className="font-bold tracking-widest uppercase">INTERACTION PAUSED — HAND POSITION LOST</span>
+      </div>
+    )}
+    
+    {/* 4-CORNER HIGH-VALUE SCIENTIFIC HUD */}
+    {!activeLearningSession && !sessionMolecule.isSessionActive && (
+      <ScientificHUD
+        activeSpatialObject={currentSpatialObject}
+        activeLearningSession={activeLearningSession}
+        spatialMode={spatialMode}
+        onChangeSpatialMode={changeSpatialMode}
+        isExploded={isExploded}
+        onToggleExploded={() => setIsExploded(!isExploded)}
+        xrayEnabled={xrayEnabled}
+        onToggleXray={() => setXrayEnabled(!xrayEnabled)}
+        blueprintEnabled={blueprintEnabled}
+        onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
+        onOpenEngineeringMode={() => setIsEngineeringMode(true)}
+        onExitSpatial={() => {
+          sessionMolecule.closeSession();
+          setCurrentSpatialObject(null);
+          setSelectedComponentId(null);
+          setHoveredComponentId(null);
+          changeSpatialMode('INSPECTION');
+        }}
+        selectedComponentId={selectedComponentId}
+        onSelectComponent={setSelectedComponentId}
+        handTracking={handTracking}
+        cvEnabled={cvEnabled}
+        onToggleCv={() => setCvEnabled(!cvEnabled)}
+        onSelectMolecule={(formulaOrKey) => {
+          sessionMolecule.closeSession();
+          setCurrentSpatialObject(null);
+          setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
+        }}
+        onSelectSpatialObject={(objectId, mode) => {
+          sessionMolecule.closeSession();
+          setActiveLearningSession(null);
+          setCurrentSpatialObject(objectId);
+          changeSpatialMode(mode || 'INSPECTION');
+        }}
+        onStartLesson={(subject, intent: any) => {
+          sessionMolecule.closeSession();
+          setCurrentSpatialObject(null);
+          setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
+        }}
+        onOpenView={(view) => setCurrentView(view)}
+        presentationStep={presentationStep}
+        isolatedComponentId={isolatedComponentId}
+        onToggleIsolate={setIsolatedComponentId}
+        tracedFunctionKey={tracedFunctionKey}
+        onTraceFunction={setTracedFunctionKey}
+        isKinematicPlaying={isKinematicPlaying}
+        onToggleKinematicPlaying={() => setIsKinematicPlaying(!isKinematicPlaying)}
+        kinematicSpeed={kinematicSpeed}
+        onChangeKinematicSpeed={setKinematicSpeed}
+        kinematicTimeOffset={kinematicTimeOffset}
+        onChangeKinematicTimeOffset={setKinematicTimeOffset}
+        onSendMessage={handleSendMessage}
+      />
+    )}
+
+    <HolographicCursor handTracking={handTracking} isSpatial={isSpatial} />
+    <ViewModal 
+      currentView={currentView} 
+      setView={setCurrentView} 
+      messages={messages} 
+      hologramIntensity={hologramIntensity} 
+      setHologramIntensity={setHologramIntensity} 
+      soundEnabled={soundEnabled} 
+      setSoundEnabled={setSoundEnabled} 
+      themeColor={themeColor} 
+      setThemeColor={setThemeColor} 
+      speechRate={speechRate} 
+      setSpeechRate={setSpeechRate} 
+      strictSecurity={strictSecurity}
+      setStrictSecurity={setStrictSecurity}
+      triggerBarnDoor={() => requireBiometric(() => setBarnDoorActive(true))}
+      triggerCleanSlate={() => requireBiometric(handleCleanSlate)}
+      cvEnabled={cvEnabled}
+      setCvEnabled={setCvEnabled}
+      onSelectMolecule={(formulaOrKey) => {
+        sessionMolecule.closeSession();
+        setCurrentSpatialObject(null);
+        setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
+      }}
+      onLoadMoleculeBuilder={(formulaOrKey) => {
+        setActiveLearningSession(null);
+        setCurrentSpatialObject(null);
+        sessionMolecule.loadCanonical(formulaOrKey);
+      }}
+      onSelectSpatialObject={(objectId, mode) => {
+        sessionMolecule.closeSession();
+        setActiveLearningSession(null);
+        setCurrentSpatialObject(objectId);
+        changeSpatialMode(mode || 'INSPECTION');
+      }}
+      onStartLesson={(subject, intent: any) => {
+        sessionMolecule.closeSession();
+        setCurrentSpatialObject(null);
+        setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
+      }}
+      handTracking={handTracking}
+      activeSpatialObject={currentSpatialObject}
+      activeLearningSession={activeLearningSession}
+      spatialMode={spatialMode}
+      isExploded={isExploded}
+      selectedComponentId={selectedComponentId}
+    />
+    
+    {/* Workspace Lockdown Overlay */}
+    {barnDoorActive && (
+      <div className="fixed inset-0 z-[100] bg-red-950/90 flex flex-col items-center justify-center pointer-events-auto overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
+        <motion.div 
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="absolute inset-0 border-[20px] border-red-600/50 box-border pointer-events-none"
+        />
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center z-10"
+        >
+          <div className="text-red-500 mb-6 flex justify-center">
+            <svg className="w-32 h-32 animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v2h-2v-2zm0-10h2v8h-2V7z"/></svg>
+          </div>
+          <h1 className="text-4xl md:text-7xl font-mono font-bold tracking-[0.2em] text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] mb-4 uppercase">
+            WORKSPACE LOCKDOWN
+          </h1>
+          <p className="text-red-400 text-lg md:text-xl font-mono tracking-widest uppercase mb-12 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]">
+            Workspace Locked. Access Restricted.
+          </p>
+          <button 
+            onClick={() => setBarnDoorActive(false)}
+            className="px-8 py-4 border-2 border-red-500/50 text-red-500 font-mono tracking-widest hover:bg-red-500 hover:text-black hover:shadow-[0_0_30px_rgba(239,68,68,0.8)] transition-all uppercase rounded font-bold"
+          >
+            UNLOCK WORKSPACE
+          </button>
+        </motion.div>
+      </div>
+    )}
+
+    {/* Biometric Scanner Overlay */}
+    {biometricActive && (
+      <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center font-mono">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="flex flex-col items-center border border-cyan-500/30 bg-cyan-950/20 p-12 rounded-2xl shadow-[0_0_30px_rgba(0,255,255,0.15)] relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+          
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            className="relative mb-8 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+          >
+            <Fingerprint size={120} strokeWidth={1} />
+            
+            <motion.div 
+              animate={{ top: ['0%', '100%', '0%'] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+              className="absolute left-0 right-0 h-1 bg-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,1)] z-10 opacity-70"
+            />
+          </motion.div>
+          
+          <div className="text-xl text-cyan-300 tracking-[0.2em] mb-2 z-10 font-bold uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+            BIOMETRIC VERIFICATION REQUIRED
+          </div>
+          
+          <div className="text-cyan-500/70 text-sm tracking-widest mb-10 z-10">
+            PLACE FINGER ON SCANNER TO AUTHORIZE
+          </div>
+          
+          <div className="flex gap-4 z-10">
+            <button 
+              onClick={() => setBiometricActive(false)}
+              className="px-6 py-2 border border-cyan-500/50 text-cyan-500 hover:bg-cyan-900/30 transition-colors rounded tracking-widest text-xs"
+            >
+              CANCEL
+            </button>
+            
+            <button 
+              onClick={() => {
+                setBiometricActive(false);
+                if (pendingAction) {
+                  setTimeout(() => pendingAction(), 300);
+                }
+              }}
+              className="px-6 py-2 bg-cyan-500/20 border border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-black transition-colors rounded tracking-widest text-xs shadow-[0_0_10px_rgba(34,211,238,0.3)] hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] font-bold flex items-center gap-2"
+            >
+              <Lock size={14} />
+              AUTHORIZE OVERRIDE
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )}
+
+    {/* Engineering Mode HUD Overlay (Phase 1A & 1D) */}
+    {isEngineeringMode && (
+      <EngineeringHUD 
+        onClose={() => setIsEngineeringMode(false)} 
+        activeObject={currentSpatialObject} 
+        selectedComponentId={selectedComponentId}
+        onSelectComponent={setSelectedComponentId}
+        componentTransforms={componentTransforms}
+        onUpdateComponentTransform={handleUpdateComponentTransform}
+        explodedFactor={explodedFactor}
+        onUpdateExplodedFactor={setExplodedFactor}
+        xrayEnabled={xrayEnabled}
+        onToggleXray={() => setXrayEnabled(!xrayEnabled)}
+        blueprintEnabled={blueprintEnabled}
+        onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
+        highlightedComponentId={highlightedComponentId}
+        onHighlightComponent={setHighlightedComponentId}
+        measurementMode={measurementMode}
+        onToggleMeasurement={() => setMeasurementMode(!measurementMode)}
+        v12Rpm={v12Rpm}
+        onUpdateV12Rpm={setV12Rpm}
+        v12Direction={v12Direction}
+        onToggleV12Direction={() => setV12Direction(prev => (prev === 1 ? -1 : 1))}
+        isMagnifierFocused={isMagnifierFocused}
+        onToggleMagnifier={() => setIsMagnifierFocused(prev => !prev)}
+        lodTier={lodTier}
+        onUpdateLodTier={setLodTier}
+      />
+    )}
+
+    {/* Connection Screen / Cinematic Boot Loader */}
+    {(systemState === 'CONNECTING') && (
+      <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center font-mono">
+        <div className="text-5xl font-bold tracking-[0.3em] text-cyan-400 mb-8 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+          A.D.V.I.S.
+        </div>
+        <div className="w-64 h-1 bg-cyan-900/50 rounded-full overflow-hidden">
+          <div className="h-full bg-cyan-400 animate-pulse w-full"></div>
+        </div>
+        <div className="mt-4 text-cyan-400/80 text-sm tracking-widest animate-pulse">
+          INITIALIZING CORE PLEXUS...
+        </div>
+      </div>
+    )}
+  </div>
+  </GestureProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AppErrorBoundary>
+      <SessionMoleculeProvider>
+        <AppContent />
+      </SessionMoleculeProvider>
     </AppErrorBoundary>
   );
 }

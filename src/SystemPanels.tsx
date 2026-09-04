@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { WeatherWidget } from './WeatherWidget';
+import { HandTrackingData } from './useHandTracking';
+import { SPATIAL_LIBRARY } from './SpatialLibrary';
+import { LearningSession } from './LearnEngine/LearnTypes';
 
 function Panel({ title, children }: { title: string, children: React.ReactNode }) {
   return (
-    <div className="relative bg-black/30 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-5 pointer-events-auto shadow-[0_0_30px_rgba(0,255,255,0.08)] w-64 overflow-hidden group">
+    <div className="relative bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-5 pointer-events-auto shadow-[0_0_30px_rgba(0,255,255,0.08)] w-64 overflow-hidden group">
       <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-cyan-400 group-hover:border-cyan-300 transition-colors" />
       <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-cyan-400 group-hover:border-cyan-300 transition-colors" />
       <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-cyan-400 group-hover:border-cyan-300 transition-colors" />
@@ -17,7 +19,7 @@ function Panel({ title, children }: { title: string, children: React.ReactNode }
         <div className="text-[11px] text-cyan-300 font-mono tracking-[0.2em] uppercase font-semibold">{title}</div>
       </div>
       
-      <div className="relative z-10">
+      <div className="relative z-10 font-mono">
         {children}
       </div>
       
@@ -26,221 +28,190 @@ function Panel({ title, children }: { title: string, children: React.ReactNode }
   );
 }
 
-import { HandTrackingData } from './useHandTracking';
-
-export function SystemPanels({ side, handTracking }: { side: 'left' | 'right', handTracking?: HandTrackingData }) {
+export function SystemPanels({ 
+  side, 
+  handTracking,
+  activeSpatialObject,
+  activeLearningSession,
+  spatialMode = 'INSPECTION',
+  isExploded = false,
+  selectedComponentId = null,
+  cvEnabled = false
+}: { 
+  side: 'left' | 'right', 
+  handTracking?: HandTrackingData,
+  activeSpatialObject?: string | string[] | null,
+  activeLearningSession?: LearningSession | null,
+  spatialMode?: string,
+  isExploded?: boolean,
+  selectedComponentId?: string | null,
+  cvEnabled?: boolean
+}) {
   const [time, setTime] = useState(new Date());
-  const [batteryLevel, setBatteryLevel] = useState(100);
-  const [downlink, setDownlink] = useState(0);
-  const [rtt, setRtt] = useState(0);
-  const [memUsage, setMemUsage] = useState(50);
-  const [cpuFake, setCpuFake] = useState(20);
-  const [quantumState, setQuantumState] = useState(0.999);
-
-  const [browserInfo, setBrowserInfo] = useState('');
   const [micStatus, setMicStatus] = useState<'INACTIVE' | 'ACTIVE' | 'DENIED'>('INACTIVE');
-  const [isCharging, setIsCharging] = useState(false);
-  const [coords, setCoords] = useState<{lat: number, lng: number} | null>(null);
-  const [temp, setTemp] = useState<number | null>(null);
+  const [sessionUptime, setSessionUptime] = useState(0);
 
   useEffect(() => {
-    // Get browser info
-    const ua = navigator.userAgent;
-    let browser = "UNKNOWN";
-    if(ua.includes("Firefox")) browser = "FIREFOX";
-    else if(ua.includes("Chrome")) browser = "CHROME";
-    else if(ua.includes("Safari")) browser = "SAFARI";
-    else if(ua.includes("Edge")) browser = "EDGE";
-    setBrowserInfo(browser);
-
     const timer = setInterval(() => {
       setTime(new Date());
-      
-      const p = performance as any;
-      if (p && p.memory) {
-        setMemUsage(Math.round((p.memory.usedJSHeapSize / p.memory.jsHeapSizeLimit) * 100));
-      }
+      setSessionUptime(prev => prev + 1);
     }, 1000);
 
-    const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    if (conn) {
-      setDownlink(conn.downlink || 0);
-      setRtt(conn.rtt || 0);
-      conn.addEventListener('change', () => {
-        setDownlink(conn.downlink || 0);
-        setRtt(conn.rtt || 0);
-      });
-    }
-
-    if ('getBattery' in navigator) {
-      (navigator as any).getBattery().then((battery: any) => {
-        setBatteryLevel(battery.level * 100);
-        setIsCharging(battery.charging);
-        battery.addEventListener('levelchange', () => {
-          setBatteryLevel(battery.level * 100);
-        });
-        battery.addEventListener('chargingchange', () => {
-          setIsCharging(battery.charging);
-        });
-      });
-    }
-    
-    // check mic permissions
+    // Check mic permissions
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({ name: 'microphone' as PermissionName }).then((permissionStatus) => {
-        if(permissionStatus.state === 'granted') setMicStatus('ACTIVE');
+        if (permissionStatus.state === 'granted') setMicStatus('ACTIVE');
         else if (permissionStatus.state === 'denied') setMicStatus('DENIED');
         else setMicStatus('INACTIVE');
         
         permissionStatus.onchange = () => {
-           if(permissionStatus.state === 'granted') setMicStatus('ACTIVE');
-           else if (permissionStatus.state === 'denied') setMicStatus('DENIED');
-           else setMicStatus('INACTIVE');
+          if (permissionStatus.state === 'granted') setMicStatus('ACTIVE');
+          else if (permissionStatus.state === 'denied') setMicStatus('DENIED');
+          else setMicStatus('INACTIVE');
         };
       }).catch(() => {
-         setMicStatus('INACTIVE');
+        setMicStatus('INACTIVE');
       });
-    }
-
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          setCoords({ lat: latitude, lng: longitude });
-          try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-            const data = await res.json();
-            if (data.current_weather) {
-              setTemp(data.current_weather.temperature);
-            }
-          } catch (err) {
-            console.warn("fetch warn:", (err as Error).message);
-          }
-        },
-        (err) => console.warn("geo warn:", err.message)
-      );
     }
 
     return () => clearInterval(timer);
   }, []);
 
+  const activeTargetName = activeLearningSession 
+    ? `Lesson: ${activeLearningSession.context?.entity || activeLearningSession.context?.topic}` 
+    : (Array.isArray(activeSpatialObject)
+        ? activeSpatialObject.map(id => SPATIAL_LIBRARY[id]?.name || id).join(', ')
+        : (activeSpatialObject ? SPATIAL_LIBRARY[activeSpatialObject]?.name || activeSpatialObject : 'Hologram Core (Idle)'));
+
   if (side === 'left') {
     return (
       <div className="flex flex-col gap-6 z-10 shrink-0">
-        <Panel title="Core Processing">
-          <div className="flex flex-col gap-4">
+        <Panel title="Spatial Telemetry">
+          <div className="flex flex-col gap-3 text-xs">
             <div>
-              <div className="flex justify-between text-[10px] text-cyan-200 font-mono mb-1.5 tracking-wider">
-                <span>AI CONNECTION</span>
-                <span className="text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]">ESTABLISHED</span>
+              <div className="text-[10px] text-cyan-500/70 uppercase">ACTIVE TARGET</div>
+              <div className="text-cyan-200 font-semibold truncate" title={activeTargetName}>
+                {activeTargetName}
               </div>
             </div>
-            
+
             <div>
-              <div className="flex justify-between text-[10px] text-cyan-200 font-mono mb-1.5 tracking-wider">
-                <span>MEMORY ALLOCATION</span>
-                <span className="text-cyan-400">{memUsage}%</span>
-              </div>
-              <div className="h-1.5 bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-500/20">
-                <motion.div className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" animate={{ width: `${memUsage}%` }} transition={{ duration: 0.8, ease: "easeOut" }} />
+              <div className="text-[10px] text-cyan-500/70 uppercase">SPATIAL MODE</div>
+              <div className="text-cyan-300">
+                {spatialMode}
               </div>
             </div>
-            
-            <div className="pt-2 border-t border-cyan-500/20">
-               <div className="flex justify-between text-[10px] text-cyan-200 font-mono tracking-wider">
-                 <span>MICROPHONE</span>
-                 <span className={micStatus === 'ACTIVE' ? "text-green-400" : micStatus === 'DENIED' ? "text-red-400" : "text-yellow-400"}>
-                   {micStatus}
-                 </span>
-               </div>
+
+            <div>
+              <div className="text-[10px] text-cyan-500/70 uppercase">ASSEMBLY STATE</div>
+              <div className={isExploded ? "text-amber-300 font-semibold" : "text-cyan-400"}>
+                {isExploded ? 'EXPLODED VIEW' : 'NOMINAL (COLLAPSED)'}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[10px] text-cyan-500/70 uppercase">SELECTED NODE</div>
+              <div className="text-cyan-200 truncate" title={selectedComponentId || 'None'}>
+                {selectedComponentId || 'WHOLE ASSEMBLY'}
+              </div>
             </div>
           </div>
         </Panel>
 
-        <Panel title="Atmospherics">
-          <WeatherWidget />
+        <Panel title="Vision & Gestures">
+          <div className="flex flex-col gap-3 text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] text-cyan-500/70 uppercase">CAMERA TRACKING</span>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${cvEnabled ? 'text-green-400 bg-green-950/40 border border-green-500/30' : 'text-cyan-500/60 bg-black/40'}`}>
+                {cvEnabled ? 'ACTIVE' : 'OFF'}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] text-cyan-500/70 uppercase">HAND DETECTION</span>
+              <span className={(handTracking?.handsDetected ?? 0) > 0 ? "text-green-400 font-semibold" : "text-yellow-400/80"}>
+                {(handTracking?.handsDetected ?? 0) > 0 ? 'LOCKED' : (cvEnabled ? 'TRACKING...' : 'STANDBY')}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] text-cyan-500/70 uppercase">ACTIVE GESTURE</span>
+              <span className="text-cyan-200 font-bold px-1.5 py-0.5 bg-cyan-950/40 rounded border border-cyan-500/30">
+                {handTracking?.gesture || 'NONE'}
+              </span>
+            </div>
+
+            <div className="pt-2 border-t border-cyan-500/20 flex justify-between items-center">
+              <span className="text-[10px] text-cyan-500/70 uppercase">AUDIO INPUT</span>
+              <span className={micStatus === 'ACTIVE' ? "text-green-400 font-semibold" : micStatus === 'DENIED' ? "text-red-400" : "text-yellow-400"}>
+                {micStatus}
+              </span>
+            </div>
+          </div>
         </Panel>
       </div>
     );
   }
 
+  const formatUptime = (sec: number) => {
+    const mins = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${mins}m ${s.toString().padStart(2, '0')}s`;
+  };
+
   return (
     <div className="flex flex-col gap-6 z-10 shrink-0">
-      <Panel title="Chronos Sync">
-        <div className="flex flex-col items-center py-2">
-          <div className="text-4xl text-white font-mono tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+      <Panel title="Session Sync">
+        <div className="flex flex-col items-center py-1">
+          <div className="text-3xl text-white font-mono tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
             {time.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
           </div>
-          <div className="text-sm text-cyan-400 font-mono tracking-[0.3em] mt-1">
+          <div className="text-xs text-cyan-400 font-mono tracking-[0.3em] mt-1">
             {time.getSeconds().toString().padStart(2, '0')}
           </div>
-          <div className="text-[10px] text-cyan-500/70 font-mono tracking-widest mt-3 uppercase border-t border-cyan-500/20 pt-2 w-full text-center">
-            {time.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+          <div className="text-[10px] text-cyan-500/70 font-mono tracking-widest mt-2 uppercase border-t border-cyan-500/20 pt-2 w-full text-center">
+            {time.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+          </div>
+          <div className="flex justify-between w-full text-[10px] text-cyan-400/80 mt-2 pt-1 border-t border-cyan-500/10">
+            <span>UPTIME:</span>
+            <span>{formatUptime(sessionUptime)}</span>
           </div>
         </div>
       </Panel>
 
-      <Panel title="System Status">
-        <div className="flex flex-col gap-3 py-1">
-          <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
-            <span className="text-cyan-500/80">FRAMEWORK</span>
-            <span className="text-cyan-200 truncate max-w-[100px] text-right" title={navigator.platform}>
-              {/* @ts-ignore */}
-              {navigator.userAgentData?.platform || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0 ? 'iPad' : navigator.platform === 'MacIntel' ? 'macOS (ARM/x86)' : navigator.platform)}
-            </span>
+      <Panel title="Subsystem Pipeline">
+        <div className="flex flex-col gap-2 text-xs py-1">
+          <div className="flex items-center justify-between">
+            <span className="text-cyan-500/80 text-[10px]">3D WEBGL ENGINE</span>
+            <span className="text-green-400 text-[11px] font-semibold">ACTIVE (60 FPS)</span>
           </div>
-          <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
-            <span className="text-cyan-500/80">BROWSER</span>
-            <span className="text-cyan-200 truncate max-w-[100px] text-right">{browserInfo}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-cyan-500/80 text-[10px]">MOLECULAR SOLVER</span>
+            <span className="text-green-400 text-[11px]">ONLINE</span>
           </div>
-          <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
-            <span className="text-cyan-500/80">COORDINATES</span>
-            <span className="text-cyan-200">
-              {coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : 'LOCATING...'}
-            </span>
+          <div className="flex items-center justify-between">
+            <span className="text-cyan-500/80 text-[10px]">KINEMATIC ASSEMBLY</span>
+            <span className="text-green-400 text-[11px]">ONLINE</span>
           </div>
-          <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
-            <span className="text-cyan-500/80">LOCAL TEMP</span>
-            <span className="text-cyan-200">
-              {temp !== null ? `${Math.round(temp)}°C` : 'SENSING...'}
-            </span>
+          <div className="flex items-center justify-between">
+            <span className="text-cyan-500/80 text-[10px]">AI SCIENTIFIC CORE</span>
+            <span className="text-green-400 text-[11px]">READY</span>
           </div>
         </div>
       </Panel>
       
-      <Panel title="Energy Matrix">
-        <div className="relative w-32 h-32 mx-auto my-2">
-          {/* Decorative outer ring */}
-          <div className="absolute inset-0 rounded-full border border-cyan-500/10 animate-[spin_10s_linear_infinite]" />
-          <div className="absolute inset-2 rounded-full border border-cyan-500/20 border-dashed animate-[spin_15s_linear_infinite_reverse]" />
+      <Panel title="Spatial Orientation">
+        <div className="relative w-28 h-28 mx-auto my-1 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-cyan-500/20 animate-[spin_20s_linear_infinite]" />
+          <div className="absolute inset-2 rounded-full border border-cyan-500/30 border-dashed animate-[spin_12s_linear_infinite_reverse]" />
+          <div className="absolute inset-5 rounded-full border border-cyan-400/40" />
           
-          <svg className="w-full h-full transform -rotate-90">
-            <circle cx="64" cy="64" r="50" fill="none" stroke="rgba(0,255,255,0.05)" strokeWidth="6" />
-            <circle 
-              cx="64" 
-              cy="64" 
-              r="50" 
-              fill="none" 
-              stroke="url(#gradient)" 
-              strokeWidth="6" 
-              strokeDasharray="314.15" 
-              strokeDashoffset={314.15 - (314.15 * batteryLevel) / 100} 
-              strokeLinecap="round"
-              className="drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] transition-all duration-1000" 
-            />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={isCharging ? "#4ade80" : "#00ffff"} />
-                <stop offset="100%" stopColor={isCharging ? "#22c55e" : "#0066ff"} />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl text-white font-mono drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
-              {Math.round(batteryLevel)}<span className="text-sm text-cyan-400">%</span>
+          <div className="flex flex-col items-center justify-center z-10">
+            <span className="text-cyan-300 font-bold text-xs">
+              {(handTracking?.handsDetected ?? 0) > 0 ? 'TRACKING' : 'READY'}
             </span>
-            <span className="text-[8px] text-cyan-500 font-mono tracking-widest mt-1">
-              {isCharging ? 'CHARGING' : 'CAPACITY'}
+            <span className="text-[8px] text-cyan-500/80 tracking-widest mt-0.5 uppercase">
+              3D WORKSPACE
             </span>
           </div>
         </div>
@@ -248,4 +219,3 @@ export function SystemPanels({ side, handTracking }: { side: 'left' | 'right', h
     </div>
   );
 }
-

@@ -18,6 +18,14 @@ interface EngineeringInspectorProps {
   onHighlightComponent?: (id: string | null) => void;
   measurementMode?: boolean;
   onToggleMeasurement?: () => void;
+  v12Rpm?: number;
+  onUpdateV12Rpm?: (rpm: number) => void;
+  v12Direction?: number;
+  onToggleV12Direction?: () => void;
+  isMagnifierFocused?: boolean;
+  onToggleMagnifier?: () => void;
+  lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
+  onUpdateLodTier?: (tier: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA') => void;
 }
 
 export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({ 
@@ -35,7 +43,15 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
   highlightedComponentId,
   onHighlightComponent,
   measurementMode,
-  onToggleMeasurement
+  onToggleMeasurement,
+  v12Rpm = 600,
+  onUpdateV12Rpm,
+  v12Direction = 1,
+  onToggleV12Direction,
+  isMagnifierFocused,
+  onToggleMagnifier,
+  lodTier = 'HIGH',
+  onUpdateLodTier
 }) => {
   const [activeTab, setActiveTab] = useState<'metadata' | 'components' | 'limits' | 'maintenance' | 'tools'>('metadata');
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
@@ -216,6 +232,56 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
               </div>
             </div>
 
+            {/* V12 Kinematic & Engine RPM Controls */}
+            <div className="md:col-span-2 bg-slate-900/60 border border-amber-500/30 p-4 rounded-xl space-y-3">
+              <div className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-amber-400" /> Mechanical Kinematic Controls (RPM / Direction)
+                </span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-mono">
+                  {v12Rpm} RPM
+                </span>
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-amber-300/80">
+                    <span>Engine Rotation Speed:</span>
+                    <span className="font-mono font-bold text-amber-200">{v12Rpm} RPM</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="6000"
+                    step="50"
+                    value={v12Rpm}
+                    onChange={(e) => onUpdateV12Rpm?.(parseInt(e.target.value) || 0)}
+                    className="w-full accent-amber-400 cursor-pointer"
+                  />
+                  <div className="flex gap-2 pt-1">
+                    {[0, 600, 1500, 3000, 6000].map((rpmVal) => (
+                      <button
+                        key={rpmVal}
+                        onClick={() => onUpdateV12Rpm?.(rpmVal)}
+                        className={`flex-1 py-1 rounded text-[10px] font-mono font-bold cursor-pointer border transition-all ${v12Rpm === rpmVal ? 'bg-amber-500/30 border-amber-400 text-amber-200' : 'bg-slate-950 border-amber-500/20 text-amber-400/60 hover:bg-amber-950/30'}`}
+                      >
+                        {rpmVal === 0 ? 'IDLE' : `${rpmVal}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-amber-500/20">
+                  <span className="text-xs text-amber-300/80">Rotation Direction:</span>
+                  <button
+                    onClick={onToggleV12Direction}
+                    className="px-4 py-1.5 rounded-lg border border-amber-500/40 bg-slate-950 hover:bg-amber-950/50 text-xs font-mono font-bold text-amber-300 transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <span>{v12Direction === 1 ? 'CLOCKWISE (CW)' : 'COUNTER-CLOCKWISE (CCW)'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Measurement & Telemetry Foundation */}
             <div className="md:col-span-2 bg-slate-900/60 border border-cyan-500/20 p-4 rounded-xl space-y-3">
               <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-2">
@@ -322,9 +388,38 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
                       <div className="text-[10px] text-cyan-500/70 uppercase">Part ID: {selectedComp.id}</div>
                       <h3 className="text-sm font-bold text-cyan-100">{selectedComp.name}</h3>
                     </div>
-                    <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded text-[10px]">
-                      STATUS: NOMINAL
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (onHighlightComponent && selectedComp) {
+                            onHighlightComponent(selectedComp.id);
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                          highlightedComponentId === selectedComp?.id
+                            ? 'bg-cyan-500/40 border-cyan-300 text-cyan-100 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                            : 'bg-cyan-950/60 border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/60'
+                        }`}
+                      >
+                        👁️ {highlightedComponentId === selectedComp?.id ? 'INSPECTED' : 'INSPECT'}
+                      </button>
+
+                      {onToggleMagnifier && (
+                        <button
+                          onClick={onToggleMagnifier}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                            isMagnifierFocused 
+                              ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                              : 'bg-cyan-950/60 border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/60'
+                          }`}
+                        >
+                          🔍 {isMagnifierFocused ? 'EXIT MAGNIFY' : 'MAGNIFY'}
+                        </button>
+                      )}
+                      <span className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded text-[10px]">
+                        STATUS: NOMINAL
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-xs text-cyan-300/80">{selectedComp.description}</p>

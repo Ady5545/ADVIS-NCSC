@@ -1,0 +1,2 @@
+sed -i 's/import React, { useState, useEffect } from "react";/import React, { useState, useEffect } from "react";\nimport { Menu } from "lucide-react";/g' src/ScientificHUD.tsx
+sed -i 's/const isEngineeringActive = !!activeSpatialObject && !activeLearningSession;/const [showControlsOnMobile, setShowControlsOnMobile] = useState(false);\n  const isEngineeringActive = !!activeSpatialObject \&\& !activeLearningSession;/g' src/ScientificHUD.tsx
