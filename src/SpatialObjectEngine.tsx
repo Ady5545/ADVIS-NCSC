@@ -1177,8 +1177,8 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
   };
 
   if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
-  if (id === 'piston_left_bank') return <PistonAssemblyBank bank="left" sign={-1} {...generatorProps} />;
-  if (id === 'piston_right_bank') return <PistonAssemblyBank bank="right" sign={1} {...generatorProps} />;
+  if (id === 'piston_left_bank') return <PistonAssemblyBank bank="left" {...generatorProps} />;
+  if (id === 'piston_right_bank') return <PistonAssemblyBank bank="right" {...generatorProps} />;
   if (id === 'connecting_rods') return <ConnectingRodsAssembly {...generatorProps} />;
   if (id === 'crankshaft') return <CrankshaftAssembly {...generatorProps} />;
   if (id === 'valvetrain') return <ValvetrainAssembly {...generatorProps} />;
@@ -2489,15 +2489,17 @@ export function SpatialObjectEngine({
       rotation={[0.2, -0.4, 0]}
       scale={[0.001, 0.001, 0.001]}
     >
-      {/* Base Holographic Projector (Tony Stark style from below) */}
-      <group position={[0, -2.8, 0]}>
-        <Cylinder args={[0.3, 0.4, 0.1, 32]}>
-           <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.2} />
-        </Cylinder>
-        <Cylinder args={[0.25, 0.25, 0.11, 32]}>
-           <meshBasicMaterial color="#06b6d4" />
-        </Cylinder>
-      </group>
+      {/* Base Holographic Projector (only rendered for abstract holographic models, strictly excluded from V12 mechanical engine) */}
+      {!objectIds.includes('v12_engine') && !objectIds.some(id => SPATIAL_LIBRARY[id]?.category === 'Automotive') && (
+        <group position={[0, -2.8, 0]}>
+          <Cylinder args={[0.3, 0.4, 0.1, 32]}>
+             <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.2} />
+          </Cylinder>
+          <Cylinder args={[0.25, 0.25, 0.11, 32]}>
+             <meshBasicMaterial color="#06b6d4" />
+          </Cylinder>
+        </group>
+      )}
 
       {/* RENDER THE OBJECT STATUS OR COMPONENTS */}
       <group>
