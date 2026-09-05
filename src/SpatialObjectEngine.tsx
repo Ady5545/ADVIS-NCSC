@@ -1,9 +1,10 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelRegistry } from './AutonomousModelEngine';
+import { calculateAutoFitScale } from './autoFitViewport';
 
 class GLTFErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: any) { super(props); this.state = { hasError: false }; }
@@ -59,27 +60,14 @@ function RealisticGLTFModel({
       console.log("GLB LOADED: " + url);
       const clone = scene.clone();
       
-      const box = new THREE.Box3().setFromObject(clone);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      
-      const maxDim = Math.max(size.x, size.y, size.z);
-      let dist = camera.position.length();
-      if (dist < 1 || isNaN(dist)) dist = 15;
-      
-      const fov = (camera as THREE.PerspectiveCamera).fov || 45;
-      const vFOV = THREE.MathUtils.degToRad(fov);
-      const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
-      
-      const targetSize = visibleHeight * 0.75; 
-      const scaleMultiplier = maxDim > 0 ? targetSize / maxDim : 1.0;
+      const fit = calculateAutoFitScale(clone, camera, 0.75, scale || 1.0);
 
-      clone.position.x = -center.x;
-      clone.position.y = -center.y;
-      clone.position.z = -center.z;
+      clone.position.x = -fit.center.x;
+      clone.position.y = -fit.center.y;
+      clone.position.z = -fit.center.z;
       
-      clone.scale.setScalar(scaleMultiplier);
-      clone.position.multiplyScalar(scaleMultiplier);
+      clone.scale.setScalar(fit.scale);
+      clone.position.multiplyScalar(fit.scale);
 
       // Preserve original PBR materials and textures (no cyan tint washout)
       clone.traverse((child: any) => {
@@ -175,6 +163,97 @@ function RealisticGLTFModel({
 // 3D Spatial Metadata library with components and offsets
 import { ComponentMetadata, ObjectMetadata, SPATIAL_LIBRARY } from './SpatialLibrary';
 import { useGestureEngine } from './GestureContext';
+
+/**
+ * ProceduralAssemblyAutoFitter
+ * Universal auto-fit wrapper for procedural engineering and scientific assemblies.
+ * Measures the complete rendered geometry bounds (including all nested children: block,
+ * intake runners, exhaust collectors, valvetrain, accessories) using the shared
+ * calculateAutoFitScale utility to consistently occupy ~75% of visible viewport height.
+ * Eliminates frame-by-frame scale feedback loops and maintains stable geometry across animations.
+ */
+function ProceduralAssemblyAutoFitter({
+  obj,
+  offsetX,
+  isMultiObject,
+  children
+}: {
+  obj: ObjectMetadata;
+  offsetX: number;
+  isMultiObject: boolean;
+  children: React.ReactNode;
+}) {
+  const containerRef = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+  const isGltf = Boolean(
+    (obj.assetPath && obj.assetPath.endsWith('.glb')) ||
+    (obj.components && obj.components.length > 0 && obj.components.some(c => c.assetPath && c.assetPath.endsWith('.glb')))
+  );
+  
+  // Use defaultScale as fallback initial scale
+  const [fittedScale, setFittedScale] = useState<number>(() => {
+    return isGltf ? 1.0 : (obj.defaultScale || 1.0);
+  });
+
+  useLayoutEffect(() => {
+    // GLTF models internally scale their own clone via calculateAutoFitScale
+    if (isGltf) {
+      setFittedScale(1.0);
+      return;
+    }
+
+    if (!containerRef.current) return;
+
+    let rafId: number;
+
+    const measureAndFit = () => {
+      if (!containerRef.current) return;
+
+      const fit = calculateAutoFitScale(
+        containerRef.current,
+        camera,
+        0.75,
+        obj.defaultScale || 1.0
+      );
+
+      if (fit.isValid && fit.scale > 0) {
+        const finalScale = isMultiObject ? fit.scale * 0.8 : fit.scale;
+        setFittedScale(finalScale);
+      } else {
+        // If geometry is mounting on the initial frame, retry once on next animation frame
+        rafId = requestAnimationFrame(() => {
+          if (!containerRef.current) return;
+          const retry = calculateAutoFitScale(
+            containerRef.current,
+            camera,
+            0.75,
+            obj.defaultScale || 1.0
+          );
+          if (retry.isValid && retry.scale > 0) {
+            const finalScale = isMultiObject ? retry.scale * 0.8 : retry.scale;
+            setFittedScale(finalScale);
+          }
+        });
+      }
+    };
+
+    measureAndFit();
+
+    window.addEventListener('resize', measureAndFit);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', measureAndFit);
+    };
+  }, [obj.id, camera, isMultiObject, isGltf]);
+
+  return (
+    <group position={[offsetX, 0, 0]}>
+      <group ref={containerRef} scale={[fittedScale, fittedScale, fittedScale]}>
+        {children}
+      </group>
+    </group>
+  );
+}
 
 export type SpatialMode = 'INSPECTION' | 'SHOWCASE' | 'EXPLODED' | 'DEMO';
 
@@ -2513,7 +2592,7 @@ export function SpatialObjectEngine({
           const offsetX = (idx * spacing) - (totalWidth / 2);
 
           return (
-            <group key={objId} position={[offsetX, 0, 0]}>
+            <ProceduralAssemblyAutoFitter key={objId} obj={obj} offsetX={offsetX} isMultiObject={objectIds.length > 1}>
               {obj.modelStatus === 'AWAITING_ASSET' ? (
                 <Html position={[0, 0, 0]} center transform distanceFactor={12}>
                   <div className="flex flex-col items-center justify-center border border-cyan-500/20 bg-cyan-950/30 px-10 py-8 rounded-2xl backdrop-blur-lg shadow-[0_0_30px_rgba(6,182,212,0.1)]">
@@ -2698,7 +2777,7 @@ export function SpatialObjectEngine({
                   )}
                 </group>
               )}
-            </group>
+            </ProceduralAssemblyAutoFitter>
           );
         })}
       </group>

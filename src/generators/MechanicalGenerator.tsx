@@ -64,7 +64,7 @@ export function EngineMaterial({
 
   switch (materialType) {
     case 'CAST_ALUMINUM': 
-      r = 0.52; m = 0.72; c = baseColor || '#cbd5e1'; 
+      r = 0.58; m = 0.65; c = baseColor || '#94a3b8'; 
       break;
     case 'FORGED_STEEL': 
       r = 0.22; m = 0.94; c = baseColor || '#94a3b8'; cc = 0.4; cr = 0.1; 
@@ -115,7 +115,7 @@ export function EngineMaterial({
       emissive={isSelected ? "#0284c7" : (isHovered ? "#0ea5e9" : "#000000")}
       emissiveIntensity={isSelected ? 0.6 : (isHovered ? 0.25 : 0)}
       wireframe={isSelected}
-      envMapIntensity={1.4}
+      envMapIntensity={1.0}
     />
   );
 }

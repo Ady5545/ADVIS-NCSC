@@ -1097,7 +1097,7 @@ function AppContent() {
           {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
           <EnvironmentErrorBoundary>
             <React.Suspense fallback={null}>
-              <Environment preset="studio" environmentIntensity={0.8} background={false} />
+              <Environment preset="studio" environmentIntensity={0.35} background={false} />
             </React.Suspense>
           </EnvironmentErrorBoundary>
 
@@ -1109,13 +1109,13 @@ function AppContent() {
           <directionalLight position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
 
           {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
-          <directionalLight position={[-12, 8, 10]} intensity={0.8} color="#f1f5f9" />
+          <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
 
-          {/* 4. Rim / Edge Light: High rear-opposing source that separates model silhouette from the dark canvas */}
-          <directionalLight position={[0, 14, -14]} intensity={1.4} color="#e2e8f0" />
+          {/* 4. Rim / Edge Light: Controlled rear-opposing source that cleanly separates model silhouette without washing edges */}
+          <directionalLight position={[0, 14, -14]} intensity={0.75} color="#e2e8f0" />
 
-          {/* 5. Underside Ground Bounce: Soft lower illumination keeping oil pan and lower chassis details readable */}
-          <directionalLight position={[0, -10, 4]} intensity={0.25} color="#94a3b8" />
+          {/* 5. Underside Ground Bounce: Subtle lower illumination keeping oil pan and lower chassis details readable */}
+          <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
@@ -1172,7 +1172,7 @@ function AppContent() {
           
           <EffectComposer>
             <Bloom 
-              luminanceThreshold={0.5} 
+              luminanceThreshold={0.85} 
               mipmapBlur 
               intensity={0.1 * hologramIntensity} 
             />
