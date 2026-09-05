@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -79,6 +80,23 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
         </div>
       );
     }
+    return this.props.children;
+  }
+}
+
+class EnvironmentErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.warn("HDR Environment loading deferred or offline, utilizing calibrated studio lighting rig:", error);
+  }
+  render() {
+    if (this.state.hasError) return null;
     return this.props.children;
   }
 }
@@ -1076,10 +1094,29 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[10, 10, 10]} intensity={2} />
-          <pointLight position={[-10, -10, -10]} intensity={1} color="#67e8f9" />
-          <pointLight position={[0, 5, -5]} intensity={1.5} color="#0ea5e9" />
+          {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
+          <EnvironmentErrorBoundary>
+            <React.Suspense fallback={null}>
+              <Environment preset="studio" environmentIntensity={0.8} background={false} />
+            </React.Suspense>
+          </EnvironmentErrorBoundary>
+
+          {/* Calibrated Studio 3-Point Engineering Lighting Rig */}
+          {/* 1. Low neutral ambient light: Establishes depth and prevents washed-out cavities */}
+          <ambientLight intensity={0.4} color="#f8fafc" />
+
+          {/* 2. Key Light: High-angle front-right directional source establishing primary form and crisp shadow separation */}
+          <directionalLight position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+
+          {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
+          <directionalLight position={[-12, 8, 10]} intensity={0.8} color="#f1f5f9" />
+
+          {/* 4. Rim / Edge Light: High rear-opposing source that separates model silhouette from the dark canvas */}
+          <directionalLight position={[0, 14, -14]} intensity={1.4} color="#e2e8f0" />
+
+          {/* 5. Underside Ground Bounce: Soft lower illumination keeping oil pan and lower chassis details readable */}
+          <directionalLight position={[0, -10, 4]} intensity={0.25} color="#94a3b8" />
+
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
           <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={isSpatial} />
