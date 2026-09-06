@@ -257,6 +257,11 @@ function ProceduralAssemblyAutoFitter({
 
 export type SpatialMode = 'INSPECTION' | 'SHOWCASE' | 'EXPLODED' | 'DEMO';
 
+// Continuous Explode / Assemble Tuning Parameters
+export const GESTURE_EXPLODE_MIN_DISTANCE = 0.18; // Hands close together (approx 0.0 -> fully assembled)
+export const GESTURE_EXPLODE_MAX_DISTANCE = 0.58; // Hands spread apart (approx 1.0 -> fully exploded)
+export const GESTURE_EXPLODE_SMOOTHING = 0.12;    // Exponential smoothing factor for responsive, jitter-free explode
+
 interface SpatialObjectEngineProps {
   currentSpatialObject: string | string[] | null;
   selectedComponentId: string | null;
@@ -276,6 +281,7 @@ interface SpatialObjectEngineProps {
   showLabels?: boolean;
   componentTransforms?: Record<string, { position: [number, number, number], rotation: [number, number, number], scale: [number, number, number] }>;
   explodedFactor?: number;
+  explodeAmount?: number;
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   highlightedComponentId?: string | null;
@@ -1718,6 +1724,7 @@ export function SpatialObjectEngine({
   showLabels = false,
   componentTransforms,
   explodedFactor = 0,
+  explodeAmount,
   xrayEnabled = false,
   blueprintEnabled = false,
   highlightedComponentId = null,
@@ -1823,6 +1830,17 @@ export function SpatialObjectEngine({
   const presentationStepRef = useRef(presentationStep);
   const currentSpatialObjectRef = useRef(currentSpatialObject);
   const isExplodedRef = useRef(isExploded);
+
+  // Continuous Explode / Assemble Controller State
+  const initialExplodeAmount = explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : (isExploded ? 1.0 : 0.0));
+  const continuousExplodeRef = useRef<number>(initialExplodeAmount);
+  const targetExplodeRef = useRef<number>(initialExplodeAmount);
+  const isGestureControllingExplodeRef = useRef<boolean>(false);
+  const lastTwoHandTrackingTimeRef = useRef<number>(0);
+  const prevIsExplodedPropRef = useRef<boolean>(isExploded);
+  const prevSpatialModePropRef = useRef<SpatialMode | undefined>(spatialMode);
+  const prevExplodedPropValRef = useRef<number | undefined>(explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : undefined));
+
   const isKinematicPlayingRef = useRef(isKinematicPlaying);
   const kinematicSpeedRef = useRef(kinematicSpeed);
   const kinematicAngleRef = useRef(0);
@@ -2522,6 +2540,80 @@ export function SpatialObjectEngine({
       }
     }
     
+    // =========================================================================
+    // CONTINUOUS TWO-HAND GESTURE EXPLODE / ASSEMBLE CONTROLLER
+    // =========================================================================
+    const now = performance.now();
+
+    // 1. UI / Command Precedence Detection:
+    // When user presses Explode/Assemble button, triggers voice/chat action, or changes spatialMode
+    if (prevIsExplodedPropRef.current !== isExploded) {
+      prevIsExplodedPropRef.current = isExploded;
+      targetExplodeRef.current = isExploded ? 1.0 : 0.0;
+      isGestureControllingExplodeRef.current = false;
+    }
+    if (prevSpatialModePropRef.current !== spatialMode) {
+      prevSpatialModePropRef.current = spatialMode;
+      if (spatialMode === 'EXPLODED') {
+        targetExplodeRef.current = 1.0;
+        isGestureControllingExplodeRef.current = false;
+      } else if (spatialMode === 'INSPECTION') {
+        targetExplodeRef.current = 0.0;
+        isGestureControllingExplodeRef.current = false;
+      }
+    }
+    const activeExplodeProp = explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : undefined);
+    if (activeExplodeProp !== undefined && activeExplodeProp !== null && activeExplodeProp !== prevExplodedPropValRef.current) {
+      prevExplodedPropValRef.current = activeExplodeProp;
+      targetExplodeRef.current = THREE.MathUtils.clamp(activeExplodeProp, 0.0, 1.0);
+      isGestureControllingExplodeRef.current = false;
+    }
+
+    // 2. Gesture Control: Active Two-Hand Distance
+    const ht = handTrackingRef.current;
+    const isTracking = Boolean(ht && ht.state === 'TRACKING');
+    const lPos = ht?.leftHandPosition;
+    const rPos = ht?.rightHandPosition;
+    const handsCount = ht?.handsDetected ?? ((lPos && rPos) ? 2 : 0);
+    const hasTwoHands = isTracking && (handsCount === 2 || Boolean(lPos && rPos));
+    const trackingConfidence = ht?.confidence ?? 1.0;
+
+    if (hasTwoHands && trackingConfidence >= 0.4) {
+      const currentHandsDist = ht?.handsDistance || (lPos && rPos ? Math.hypot(lPos.x - rPos.x, lPos.y - rPos.y) : 0);
+
+      if (currentHandsDist > 0.05) {
+        // Map normalized hand distance to 0.0 -> 1.0 explode amount
+        const normalizedDist = (currentHandsDist - GESTURE_EXPLODE_MIN_DISTANCE) / (GESTURE_EXPLODE_MAX_DISTANCE - GESTURE_EXPLODE_MIN_DISTANCE);
+        const clampedTarget = THREE.MathUtils.clamp(normalizedDist, 0.0, 1.0);
+
+        isGestureControllingExplodeRef.current = true;
+        targetExplodeRef.current = clampedTarget;
+        lastTwoHandTrackingTimeRef.current = now;
+      }
+    } else {
+      // 3. Safe Tracking Loss Handling:
+      // If two hands were lost, buffer briefly (450ms) to avoid visible snapping from temporary occlusion,
+      // then disengage gesture control while maintaining the last stable explode amount.
+      const timeSinceTwoHands = now - lastTwoHandTrackingTimeRef.current;
+      if (timeSinceTwoHands >= 450) {
+        isGestureControllingExplodeRef.current = false;
+      }
+    }
+
+    // 4. Exponential Smoothing Filter:
+    // Smooths the gesture-derived explode amount to eliminate raw MediaPipe landmark jitter
+    // while keeping the interaction physically responsive without lag.
+    continuousExplodeRef.current = THREE.MathUtils.lerp(
+      continuousExplodeRef.current,
+      targetExplodeRef.current,
+      GESTURE_EXPLODE_SMOOTHING
+    );
+
+    // Dead-band clamp to exact target when difference is negligible to prevent floating-point oscillation
+    if (Math.abs(continuousExplodeRef.current - targetExplodeRef.current) < 0.0005) {
+      continuousExplodeRef.current = targetExplodeRef.current;
+    }
+
     // G. Explode animations and mechanical reciprocating movements
     const currentObjIds = currentSpatialObjectRef.current 
       ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
@@ -2533,13 +2625,20 @@ export function SpatialObjectEngine({
     }
     const kAngle = kinematicAngleRef.current;
 
+    const currentExplodeAmount = continuousExplodeRef.current;
+
     currentObjIds.forEach(objId => {
       const activeObject = SPATIAL_LIBRARY[objId];
       if (activeObject) {
         activeObject.components.forEach(comp => {
           const meshObj = componentRefs.current[comp.id];
           if (meshObj) {
-            const targetOffset = isExplodedRef.current ? comp.explodedOffset : [0, 0, 0];
+            const baseOffset = comp.explodedOffset || [0, 0, 0];
+            const targetOffset = [
+              baseOffset[0] * currentExplodeAmount,
+              baseOffset[1] * currentExplodeAmount,
+              baseOffset[2] * currentExplodeAmount
+            ];
             meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
             meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
             meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
@@ -2678,7 +2777,7 @@ export function SpatialObjectEngine({
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
                       const expOffset = comp.explodedOffset || [0, 0, 0];
-                      const currentExplodedFactor = explodedFactor || 0;
+                      const currentExplodedFactor = explodeAmount !== undefined ? explodeAmount : (explodedFactor || (isExploded ? 1.0 : 0.0));
                       
                       const pos: [number, number, number] = [
                         basePos[0] + expOffset[0] * currentExplodedFactor,

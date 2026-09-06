@@ -342,31 +342,16 @@ export function GestureFrameUpdater({
           const centerX = (lPos.x + rPos.x) / 2;
           const centerY = (lPos.y + rPos.y) / 2;
 
-          // Record neutral reference point when entering two-hand zoom mode
+          // Record neutral reference point when entering two-hand mode
           if (initialHandsDistRef.current === null || initialTargetRadiusRef.current === null) {
             initialHandsDistRef.current = currentHandsDist;
             initialTargetRadiusRef.current = spatialCam.targetRadius;
           }
 
-          // --- Priority 1: Delta-based Two-Hand Zoom relative to initial reference distance ---
+          // In spatial object mode, two-hand distance is bound to continuous Explode / Assemble in SpatialObjectEngine.
+          // Camera radius is kept stable so separating/closing hands does not trigger conflicting camera zoom.
           const rawDistDelta = currentHandsDist - initialHandsDistRef.current;
-          const DEADZONE_ZOOM = 0.015; // Ignore small distance fluctuations and noise
-
-          if (Math.abs(rawDistDelta) > DEADZONE_ZOOM) {
-            const effectiveDistDelta = rawDistDelta - Math.sign(rawDistDelta) * DEADZONE_ZOOM;
-            const BASE_ZOOM_SENSITIVITY = 12.0;
-
-            // Hands moving apart from starting distance (rawDistDelta > 0) = Zoom IN (targetRadius DECREASES)
-            // Hands moving closer from starting distance (rawDistDelta < 0) = Zoom OUT (targetRadius INCREASES)
-            const targetRadiusFromInitial = initialTargetRadiusRef.current - (effectiveDistDelta * BASE_ZOOM_SENSITIVITY * smartZoomScale);
-            const clampedTargetRadius = THREE.MathUtils.clamp(targetRadiusFromInitial, 3.0, 38.0);
-
-            curDeltaRadius = clampedTargetRadius - spatialCam.targetRadius;
-            spatialCam.targetRadius = clampedTargetRadius;
-          } else {
-            // Inside deadzone: camera maintains target zoom steadily without drift
-            curDeltaRadius = 0;
-          }
+          curDeltaRadius = 0;
 
           if (lastHandsMidpoint.current === null) {
             lastHandsMidpoint.current = new THREE.Vector3(centerX, centerY, currentHandsDist);
