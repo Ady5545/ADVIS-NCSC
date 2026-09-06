@@ -12,6 +12,7 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
   const [summonEvents, setSummonEvents] = useState<{ id: number }[]>([]);
   const [cycleEvents, setCycleEvents] = useState<{ dir: 'LEFT' | 'RIGHT', id: number }[]>([]);
   const [carryRotateActive, setCarryRotateActive] = useState(false);
+  const [scaleFeedback, setScaleFeedback] = useState<{ active: boolean; scale?: number; direction?: 'UP' | 'DOWN'; componentId?: string | null }>({ active: false });
   const [showDebugHUD, setShowDebugHUD] = useState<boolean>(() => {
     return localStorage.getItem('advis_gesture_hud') === 'true';
   });
@@ -123,11 +124,22 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
       setCarryRotateActive(Boolean(ce.detail?.active));
     };
 
+    const handleTwoHandScale = (e: Event) => {
+      const ce = e as CustomEvent<{ active: boolean; componentId?: string | null; scale?: number; direction?: 'UP' | 'DOWN' }>;
+      setScaleFeedback({
+        active: Boolean(ce.detail?.active),
+        scale: ce.detail?.scale,
+        direction: ce.detail?.direction,
+        componentId: ce.detail?.componentId
+      });
+    };
+
     window.addEventListener('advis-selection-success', handleSuccess);
     window.addEventListener('advis-tap', handleTap);
     window.addEventListener('advis-fist-confirm', handleFistConfirm);
     window.addEventListener('advis-model-cycle', handleCycle);
     window.addEventListener('advis-carry-rotate-active', handleCarryRotate);
+    window.addEventListener('advis-two-hand-scale-active', handleTwoHandScale);
 
     return () => {
       window.removeEventListener('advis-selection-success', handleSuccess);
@@ -135,6 +147,7 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
       window.removeEventListener('advis-fist-confirm', handleFistConfirm);
       window.removeEventListener('advis-model-cycle', handleCycle);
       window.removeEventListener('advis-carry-rotate-active', handleCarryRotate);
+      window.removeEventListener('advis-two-hand-scale-active', handleTwoHandScale);
     };
   }, [position.x, position.y]);
 
@@ -540,32 +553,56 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
       </div>
 
       {/* 7. TWO-HAND INTERACTION FEEDBACK */}
-      {handTracking.interactionState === 'TWO_HAND_INTERACTION' && handTracking.leftHandPosition && handTracking.rightHandPosition && (
-        <svg className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }}>
-          {handTracking.gesture === 'TWO HAND SCALE' && (
-            <line 
-              x1={(1 - handTracking.leftHandPosition.x) * window.innerWidth} 
-              y1={handTracking.leftHandPosition.y * window.innerHeight} 
-              x2={(1 - handTracking.rightHandPosition.x) * window.innerWidth} 
-              y2={handTracking.rightHandPosition.y * window.innerHeight} 
-              stroke="rgba(6, 182, 212, 0.4)" 
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-          )}
-          {handTracking.gesture === 'TWO HAND ROTATE' && (
-            <circle 
-              cx={((1 - handTracking.leftHandPosition.x) * window.innerWidth + (1 - handTracking.rightHandPosition.x) * window.innerWidth) / 2} 
-              cy={(handTracking.leftHandPosition.y * window.innerHeight + handTracking.rightHandPosition.y * window.innerHeight) / 2} 
-              r={Math.sqrt(Math.pow((1 - handTracking.leftHandPosition.x) * window.innerWidth - (1 - handTracking.rightHandPosition.x) * window.innerWidth, 2) + Math.pow(handTracking.leftHandPosition.y * window.innerHeight - handTracking.rightHandPosition.y * window.innerHeight, 2)) / 2}
-              fill="transparent" 
-              stroke="rgba(6, 182, 212, 0.2)" 
-              strokeWidth="1"
-              strokeDasharray="10 10"
-            />
-          )}
-        </svg>
-      )}
+      {handTracking.interactionState === 'TWO_HAND_INTERACTION' && handTracking.leftHandPosition && handTracking.rightHandPosition && (() => {
+        const x1 = (1 - handTracking.leftHandPosition.x) * window.innerWidth;
+        const y1 = handTracking.leftHandPosition.y * window.innerHeight;
+        const x2 = (1 - handTracking.rightHandPosition.x) * window.innerWidth;
+        const y2 = handTracking.rightHandPosition.y * window.innerHeight;
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const isScaling = Boolean(scaleFeedback.active || handTracking.gesture === 'TWO HAND SCALE');
+        const scalePercent = Math.round((scaleFeedback.scale || 1.0) * 100);
+
+        return (
+          <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }}>
+            <svg className="w-full h-full">
+              {/* Connector line between hands */}
+              <line 
+                x1={x1} y1={y1} 
+                x2={x2} y2={y2} 
+                stroke={isScaling ? "rgba(251, 191, 36, 0.65)" : "rgba(6, 182, 212, 0.45)"} 
+                strokeWidth="2"
+                strokeDasharray="6 4"
+              />
+              {/* Left hand anchor reticle */}
+              <circle cx={x1} cy={y1} r="14" fill="none" stroke={isScaling ? "rgba(251, 191, 36, 0.7)" : "rgba(6, 182, 212, 0.5)"} strokeWidth="1.5" strokeDasharray="3 3" />
+              <circle cx={x1} cy={y1} r="3" fill={isScaling ? "#fbbf24" : "#22d3ee"} />
+
+              {/* Right hand anchor reticle */}
+              <circle cx={x2} cy={y2} r="14" fill="none" stroke={isScaling ? "rgba(251, 191, 36, 0.7)" : "rgba(6, 182, 212, 0.5)"} strokeWidth="1.5" strokeDasharray="3 3" />
+              <circle cx={x2} cy={y2} r="3" fill={isScaling ? "#fbbf24" : "#22d3ee"} />
+            </svg>
+
+            {/* Midpoint Holographic Scale HUD */}
+            <div 
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
+              style={{ left: midX, top: midY }}
+            >
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-black/85 border border-amber-400/60 shadow-[0_0_16px_rgba(251,191,36,0.35)] backdrop-blur-sm">
+                <span className="text-amber-400 font-mono text-xs font-bold">
+                  {scaleFeedback.direction === 'UP' ? '◂ SCALE UP ▸' : scaleFeedback.direction === 'DOWN' ? '▸ SCALE DOWN ◂' : 'SCALE'}
+                </span>
+                <span className="font-mono text-xs text-white font-black bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-400/30">
+                  {scalePercent}%
+                </span>
+              </div>
+              <div className="font-mono text-[9px] text-amber-300/80 tracking-widest uppercase mt-0.5">
+                {scaleFeedback.componentId ? `PART: ${scaleFeedback.componentId}` : 'MODEL ASSEMBLY'}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {/* 8. FIST HOLD & ROTARY DIAL RING */}
       {handTracking.gesture === 'FIST' && (
         <div 

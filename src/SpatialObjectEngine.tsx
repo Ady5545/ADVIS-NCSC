@@ -1879,6 +1879,13 @@ export function SpatialObjectEngine({
   const stillAnchorPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const rotateOriginPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const rotateStartAnglesRef = useRef<[number, number, number]>([0, 0, 0]);
+
+  // Component Scale State (Gesture 4: Two hands, distance changing = scale)
+  const componentDragScalesRef = useRef<Record<string, number>>({});
+  const modelAssemblyScaleRef = useRef<number>(1.0);
+  const prevTwoHandDistRef = useRef<number | null>(null);
+  const activeScaleTargetCompIdRef = useRef<string | null>(null);
+
   const [, setDragTriggerState] = useState<number>(0);
 
   useEffect(() => {
@@ -1912,9 +1919,14 @@ export function SpatialObjectEngine({
     const handleSnapBack = () => {
       componentDragOffsetsRef.current = {};
       componentDragRotationsRef.current = {};
+      componentDragScalesRef.current = {};
+      modelAssemblyScaleRef.current = 1.0;
+      prevTwoHandDistRef.current = null;
+      activeScaleTargetCompIdRef.current = null;
       activeDragCompIdRef.current = null;
       carryModeRef.current = 'DRAG';
       window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', { detail: { active: false } }));
+      window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', { detail: { active: false } }));
       setDragTriggerState(Date.now());
       if (soundEnabled) playHologramSound('COLLAPSE');
     };
@@ -2533,7 +2545,7 @@ export function SpatialObjectEngine({
       mainGroupRef.current.position.x = panOffsetRef.current.x;
       mainGroupRef.current.position.y = floatUpY + panOffsetRef.current.y;
       mainGroupRef.current.position.z = panOffsetRef.current.z;
-      mainGroupRef.current.scale.setScalar(sTrans);
+      mainGroupRef.current.scale.setScalar(sTrans * modelAssemblyScaleRef.current);
 
       const currentGesture = handTrackingRef.current?.gesture;
 
@@ -2680,7 +2692,7 @@ export function SpatialObjectEngine({
       isGestureControllingExplodeRef.current = false;
     }
 
-    // 2. Gesture Control: Active Two-Hand Distance
+    // 2. Gesture Control: Active Two-Hand Distance for Gesture 4 (Scale)
     const ht = handTrackingRef.current;
     const isTracking = Boolean(ht && ht.state === 'TRACKING');
     const lPos = ht?.leftHandPosition;
@@ -2689,35 +2701,74 @@ export function SpatialObjectEngine({
     const hasTwoHands = isTracking && (handsCount === 2 || Boolean(lPos && rPos));
     const trackingConfidence = ht?.confidence ?? 1.0;
 
-    if (hasTwoHands && trackingConfidence >= 0.4) {
+    // Target for scaling: actively held component, selected component, hovered component, or overall model assembly
+    const activeTargetCompId = activeDragCompIdRef.current || selectedComponentIdRef.current || (hoveredComponentIdRef.current && targetConfidenceRef.current >= 0.2 ? hoveredComponentIdRef.current : null);
+
+    if (hasTwoHands && trackingConfidence >= 0.35) {
       const currentHandsDist = ht?.handsDistance || (lPos && rPos ? Math.hypot(lPos.x - rPos.x, lPos.y - rPos.y) : 0);
 
-      if (currentHandsDist > 0.05) {
-        // Map normalized hand distance to 0.0 -> 1.0 explode amount
-        const normalizedDist = (currentHandsDist - GESTURE_EXPLODE_MIN_DISTANCE) / (GESTURE_EXPLODE_MAX_DISTANCE - GESTURE_EXPLODE_MIN_DISTANCE);
-        const clampedTarget = THREE.MathUtils.clamp(normalizedDist, 0.0, 1.0);
+      if (currentHandsDist > 0.04) {
+        if (prevTwoHandDistRef.current === null) {
+          // First frame of two hands detected or re-acquired after occlusion:
+          // Latch the current baseline distance so delta starts at 0 (prevents sudden scale jumping!)
+          prevTwoHandDistRef.current = currentHandsDist;
+          activeScaleTargetCompIdRef.current = activeTargetCompId;
+        } else {
+          // Real-time distance change
+          const distDelta = currentHandsDist - prevTwoHandDistRef.current;
+          prevTwoHandDistRef.current = currentHandsDist;
 
-        isGestureControllingExplodeRef.current = true;
-        targetExplodeRef.current = clampedTarget;
+          // Dead-band to suppress minor camera jitter
+          if (Math.abs(distDelta) > 0.001) {
+            // Distance increasing (+distDelta) scales UP; decreasing (-distDelta) scales DOWN
+            const scaleSensitivity = 2.4;
+            const deltaScale = distDelta * scaleSensitivity;
+
+            const scaleTargetId = activeScaleTargetCompIdRef.current || activeTargetCompId;
+            let resultingScale = 1.0;
+
+            if (scaleTargetId) {
+              const currentScale = componentDragScalesRef.current[scaleTargetId] || 1.0;
+              resultingScale = THREE.MathUtils.clamp(currentScale + deltaScale, 0.25, 4.0);
+              componentDragScalesRef.current[scaleTargetId] = resultingScale;
+            } else {
+              const currentModelScale = modelAssemblyScaleRef.current;
+              resultingScale = THREE.MathUtils.clamp(currentModelScale + deltaScale, 0.25, 3.5);
+              modelAssemblyScaleRef.current = resultingScale;
+            }
+
+            window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', {
+              detail: { 
+                active: true, 
+                componentId: scaleTargetId,
+                scale: resultingScale,
+                direction: distDelta > 0 ? 'UP' : 'DOWN'
+              }
+            }));
+          }
+        }
         lastTwoHandTrackingTimeRef.current = now;
       }
     } else {
-      // 3. Safe Tracking Loss Handling:
-      // If two hands were lost, buffer briefly (450ms) to avoid visible snapping from temporary occlusion,
-      // then disengage gesture control while maintaining the last stable explode amount.
+      // Both hands lost or occluded:
+      // Grace period buffer (350ms) to ignore momentary frame drops, then cleanly release baseline
       const timeSinceTwoHands = now - lastTwoHandTrackingTimeRef.current;
-      if (timeSinceTwoHands >= 450) {
-        isGestureControllingExplodeRef.current = false;
+      if (timeSinceTwoHands >= 350) {
+        if (prevTwoHandDistRef.current !== null) {
+          prevTwoHandDistRef.current = null;
+          activeScaleTargetCompIdRef.current = null;
+          window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', {
+            detail: { active: false }
+          }));
+        }
       }
     }
 
-    // 4. Exponential Smoothing Filter:
-    // Smooths the gesture-derived explode amount to eliminate raw MediaPipe landmark jitter
-    // while keeping the interaction physically responsive without lag.
+    // 4. Exponential Smoothing Filter for Explode (now decoupled from two-hand distance):
     continuousExplodeRef.current = THREE.MathUtils.lerp(
       continuousExplodeRef.current,
       targetExplodeRef.current,
-      GESTURE_EXPLODE_SMOOTHING
+      0.15
     );
 
     // Dead-band clamp to exact target when difference is negligible to prevent floating-point oscillation
@@ -2773,10 +2824,16 @@ export function SpatialObjectEngine({
             meshObj.rotation.y += (targetRotY - meshObj.rotation.y) * rotLerpFactor;
             meshObj.rotation.z += (targetRotZ - meshObj.rotation.z) * rotLerpFactor;
 
+            const targetCompScale = componentDragScalesRef.current[comp.id] || 1.0;
+            const currentScaleX = meshObj.scale.x;
+            const smoothedCompScale = currentScaleX + (targetCompScale - currentScaleX) * 0.25;
+
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
               const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5 * (heartPulseSpeed > 0 ? heartPulseSpeed : 1)) * 0.06;
-              meshObj.scale.set(pulse, pulse, pulse);
+              meshObj.scale.set(smoothedCompScale * pulse, smoothedCompScale * pulse, smoothedCompScale * pulse);
+            } else {
+              meshObj.scale.set(smoothedCompScale, smoothedCompScale, smoothedCompScale);
             }
           }
         });
