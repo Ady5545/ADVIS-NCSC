@@ -10,6 +10,7 @@ interface GestureLegendProps {
 export function GestureLegend({ handTracking }: GestureLegendProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [tapFlash, setTapFlash] = useState(false);
+  const [rotateModeActive, setRotateModeActive] = useState(false);
 
   const activeGesture = handTracking?.gesture || 'NONE';
   const rawGesture = handTracking?.rawGesture || activeGesture;
@@ -22,8 +23,17 @@ export function GestureLegend({ handTracking }: GestureLegendProps) {
       const t = setTimeout(() => setTapFlash(false), 550);
       return () => clearTimeout(t);
     };
+    const handleCarryRotate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ active: boolean }>;
+      setRotateModeActive(Boolean(customEvent.detail?.active));
+    };
+
     window.addEventListener('advis-tap', handleTap);
-    return () => window.removeEventListener('advis-tap', handleTap);
+    window.addEventListener('advis-carry-rotate-active', handleCarryRotate);
+    return () => {
+      window.removeEventListener('advis-tap', handleTap);
+      window.removeEventListener('advis-carry-rotate-active', handleCarryRotate);
+    };
   }, []);
 
   const gestures = [
@@ -40,7 +50,7 @@ export function GestureLegend({ handTracking }: GestureLegendProps) {
       name: '2. Pinch & Move',
       action: 'Drag Part / Free Placement',
       icon: Move,
-      isActive: isTracking && (activeGesture === 'PINCH' || handTracking?.interactionState === 'PINCH_DRAG') && !tapFlash,
+      isActive: isTracking && (activeGesture === 'PINCH' || handTracking?.interactionState === 'PINCH_DRAG') && !tapFlash && !rotateModeActive,
       color: 'emerald',
     },
     {
@@ -48,7 +58,7 @@ export function GestureLegend({ handTracking }: GestureLegendProps) {
       name: '3. Hold Still',
       action: 'Rotate 3D in Place',
       icon: Rotate3d,
-      isActive: false,
+      isActive: isTracking && rotateModeActive,
       color: 'indigo',
     },
     {

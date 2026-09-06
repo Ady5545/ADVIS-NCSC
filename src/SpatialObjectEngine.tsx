@@ -1870,6 +1870,15 @@ export function SpatialObjectEngine({
   const dragStartIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const initialDragOffsetRef = useRef<[number, number, number]>([0, 0, 0]);
   const componentDragOffsetsRef = useRef<Record<string, [number, number, number]>>({});
+  
+  // Component Carry Rotate State (Gesture 3: Hold still while carrying)
+  const componentDragRotationsRef = useRef<Record<string, [number, number, number]>>({});
+  const carryModeRef = useRef<'DRAG' | 'ROTATE'>('DRAG');
+  const lastCarryPosRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
+  const stillSinceTimeRef = useRef<number>(0);
+  const stillAnchorPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rotateOriginPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rotateStartAnglesRef = useRef<[number, number, number]>([0, 0, 0]);
   const [, setDragTriggerState] = useState<number>(0);
 
   useEffect(() => {
@@ -1902,6 +1911,10 @@ export function SpatialObjectEngine({
     };
     const handleSnapBack = () => {
       componentDragOffsetsRef.current = {};
+      componentDragRotationsRef.current = {};
+      activeDragCompIdRef.current = null;
+      carryModeRef.current = 'DRAG';
+      window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', { detail: { active: false } }));
       setDragTriggerState(Date.now());
       if (soundEnabled) playHologramSound('COLLAPSE');
     };
@@ -2253,7 +2266,7 @@ export function SpatialObjectEngine({
           const isPinchJustTriggered = isPinchActive && !prevPinchStateRef.current;
           prevPinchStateRef.current = isPinchActive;
 
-          // PINCH-AND-DRAG COMPONENT MANIPULATION
+          // PINCH-AND-DRAG COMPONENT MANIPULATION & CARRY 3D ROTATE (Gesture 2 & 3)
           if (isPinchJustTriggered) {
             const targetCompId = foundComponentId || hoveredComponentIdRef.current;
             if (targetCompId && componentRefs.current[targetCompId]) {
@@ -2270,6 +2283,15 @@ export function SpatialObjectEngine({
               }
               const cur = componentDragOffsetsRef.current[targetCompId] || [0, 0, 0];
               initialDragOffsetRef.current = [cur[0], cur[1], cur[2]];
+
+              // Initialize carry state (starts in translation mode)
+              carryModeRef.current = 'DRAG';
+              stillSinceTimeRef.current = 0;
+              const cursorX = gEngine.cursorPosition ? gEngine.cursorPosition.x : 0.5;
+              const cursorY = gEngine.cursorPosition ? gEngine.cursorPosition.y : 0.5;
+              lastCarryPosRef.current = { x: cursorX, y: cursorY, time: performance.now() };
+              stillAnchorPosRef.current = { x: cursorX, y: cursorY };
+
               if (soundEnabled) playHologramSound('SELECT');
             } else {
               // Pinch made in open space: do not drag any component
@@ -2279,22 +2301,97 @@ export function SpatialObjectEngine({
 
           if (isPinchActive && activeDragCompIdRef.current) {
             const draggedId = activeDragCompIdRef.current;
-            if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
-              const delta = dragPlaneIntersectRef.current.clone().sub(dragStartIntersectRef.current);
-              const init = initialDragOffsetRef.current;
-              componentDragOffsetsRef.current[draggedId] = [
-                init[0] + delta.x,
-                init[1] + delta.y,
-                init[2] + delta.z
+            const now = performance.now();
+            const curX = gEngine.cursorPosition ? gEngine.cursorPosition.x : lastCarryPosRef.current.x;
+            const curY = gEngine.cursorPosition ? gEngine.cursorPosition.y : lastCarryPosRef.current.y;
+            const dt = Math.max((now - lastCarryPosRef.current.time) / 1000, 0.001);
+            const frameDist = Math.hypot(curX - lastCarryPosRef.current.x, curY - lastCarryPosRef.current.y);
+            const handSpeed = frameDist / dt; // normalized speed per second
+
+            lastCarryPosRef.current = { x: curX, y: curY, time: now };
+
+            if (carryModeRef.current === 'DRAG') {
+              // GESTURE 3 STILLNESS DETECTION:
+              // Require genuinely stationary hand (low velocity AND tight drift radius) sustained for 400ms.
+              // This strictly prevents momentary slowing down or micro-pauses mid-drag from triggering rotate.
+              const distFromAnchor = Math.hypot(curX - stillAnchorPosRef.current.x, curY - stillAnchorPosRef.current.y);
+
+              if (handSpeed < 0.055 && distFromAnchor < 0.025) {
+                if (stillSinceTimeRef.current === 0) {
+                  stillSinceTimeRef.current = now;
+                  stillAnchorPosRef.current = { x: curX, y: curY };
+                } else if (now - stillSinceTimeRef.current >= 400) {
+                  // Hand has held still for a natural pause while carrying: switch to 3D rotate mode!
+                  carryModeRef.current = 'ROTATE';
+                  rotateOriginPosRef.current = { x: curX, y: curY };
+                  const curRot = componentDragRotationsRef.current[draggedId] || [0, 0, 0];
+                  rotateStartAnglesRef.current = [curRot[0], curRot[1], curRot[2]];
+                  if (soundEnabled) playHologramSound('FOCUS');
+                  window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
+                    detail: { active: true, componentId: draggedId }
+                  }));
+                }
+              } else {
+                // Hand is traveling or moving; reset stillness timer
+                stillSinceTimeRef.current = 0;
+                stillAnchorPosRef.current = { x: curX, y: curY };
+              }
+
+              // In DRAG mode: translate the component along the view plane
+              if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
+                const delta = dragPlaneIntersectRef.current.clone().sub(dragStartIntersectRef.current);
+                const init = initialDragOffsetRef.current;
+                componentDragOffsetsRef.current[draggedId] = [
+                  init[0] + delta.x,
+                  init[1] + delta.y,
+                  init[2] + delta.z
+                ];
+              }
+            } else if (carryModeRef.current === 'ROTATE') {
+              // IN 3D ROTATE MODE:
+              // Small hand movements from the stationary anchor point rotate the component in 3D in place!
+              const dx = curX - rotateOriginPosRef.current.x;
+              const dy = curY - rotateOriginPosRef.current.y;
+              const initRot = rotateStartAnglesRef.current;
+
+              // Pitch (X-axis) and Yaw (Y-axis) rotation with intuitive sensitivity
+              componentDragRotationsRef.current[draggedId] = [
+                initRot[0] - dy * 4.5,
+                initRot[1] + dx * 4.5,
+                initRot[2]
               ];
+
+              // If the user decides to move the component across the screen again (large travel),
+              // seamlessly resume DRAG mode without requiring release
+              const distFromRotateOrigin = Math.hypot(dx, dy);
+              if (distFromRotateOrigin > 0.18 && handSpeed > 0.12) {
+                carryModeRef.current = 'DRAG';
+                stillSinceTimeRef.current = 0;
+                stillAnchorPosRef.current = { x: curX, y: curY };
+                if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
+                  dragStartIntersectRef.current.copy(dragPlaneIntersectRef.current);
+                }
+                const cur = componentDragOffsetsRef.current[draggedId] || [0, 0, 0];
+                initialDragOffsetRef.current = [cur[0], cur[1], cur[2]];
+                window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
+                  detail: { active: false, componentId: draggedId }
+                }));
+              }
             }
           } else if (!isPinchActive && activeDragCompIdRef.current) {
-            // Releasing the pinch drops the component wherever it currently is
+            // Releasing the pinch drops the component wherever it currently is with its 3D rotation
+            if (carryModeRef.current === 'ROTATE') {
+              window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
+                detail: { active: false }
+              }));
+            }
             if (soundEnabled) playHologramSound('FOCUS');
             window.dispatchEvent(new CustomEvent('advis-selection-success', {
               detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
             }));
             activeDragCompIdRef.current = null;
+            carryModeRef.current = 'DRAG';
+            stillSinceTimeRef.current = 0;
             setDragTriggerState(Date.now());
           }
 
@@ -2664,6 +2761,17 @@ export function SpatialObjectEngine({
             meshObj.position.x += (targetX - meshObj.position.x) * lerpFactor;
             meshObj.position.y += (targetY - meshObj.position.y) * lerpFactor;
             meshObj.position.z += (targetZ - meshObj.position.z) * lerpFactor;
+
+            const baseRot = comp.rotation || [0, 0, 0];
+            const dragRot = componentDragRotationsRef.current[comp.id] || [0, 0, 0];
+            const targetRotX = baseRot[0] + dragRot[0];
+            const targetRotY = baseRot[1] + dragRot[1];
+            const targetRotZ = baseRot[2] + dragRot[2];
+
+            const rotLerpFactor = isBeingDragged ? 0.65 : 0.15;
+            meshObj.rotation.x += (targetRotX - meshObj.rotation.x) * rotLerpFactor;
+            meshObj.rotation.y += (targetRotY - meshObj.rotation.y) * rotLerpFactor;
+            meshObj.rotation.z += (targetRotZ - meshObj.rotation.z) * rotLerpFactor;
 
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;

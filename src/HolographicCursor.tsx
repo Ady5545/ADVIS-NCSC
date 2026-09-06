@@ -11,6 +11,7 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
   const [repulsorEvents, setRepulsorEvents] = useState<{ id: number }[]>([]);
   const [summonEvents, setSummonEvents] = useState<{ id: number }[]>([]);
   const [cycleEvents, setCycleEvents] = useState<{ dir: 'LEFT' | 'RIGHT', id: number }[]>([]);
+  const [carryRotateActive, setCarryRotateActive] = useState(false);
   const [showDebugHUD, setShowDebugHUD] = useState<boolean>(() => {
     return localStorage.getItem('advis_gesture_hud') === 'true';
   });
@@ -117,16 +118,23 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
       setCycleEvents(prev => [...prev, { dir: ce.detail?.direction || 'RIGHT', id: Date.now() }]);
     };
 
+    const handleCarryRotate = (e: Event) => {
+      const ce = e as CustomEvent<{ active: boolean }>;
+      setCarryRotateActive(Boolean(ce.detail?.active));
+    };
+
     window.addEventListener('advis-selection-success', handleSuccess);
     window.addEventListener('advis-tap', handleTap);
     window.addEventListener('advis-fist-confirm', handleFistConfirm);
     window.addEventListener('advis-model-cycle', handleCycle);
+    window.addEventListener('advis-carry-rotate-active', handleCarryRotate);
 
     return () => {
       window.removeEventListener('advis-selection-success', handleSuccess);
       window.removeEventListener('advis-tap', handleTap);
       window.removeEventListener('advis-fist-confirm', handleFistConfirm);
       window.removeEventListener('advis-model-cycle', handleCycle);
+      window.removeEventListener('advis-carry-rotate-active', handleCarryRotate);
     };
   }, [position.x, position.y]);
 
@@ -590,6 +598,32 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
           </svg>
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-amber-300 font-bold uppercase tracking-widest bg-black/80 px-2 py-0.5 rounded border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.3)]">
             {handTracking.fistHoldProgress && handTracking.fistHoldProgress > 0.7 ? 'HOLD TO RESET' : 'PAUSED / FROZEN'}
+          </div>
+        </div>
+      )}
+
+      {/* 8B. GESTURE 3: CARRY 3D ROTATION INDICATOR */}
+      {carryRotateActive && (
+        <div 
+          className="absolute pointer-events-none"
+          style={{
+            left: position.x,
+            top: position.y,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <svg width="64" height="64" className="absolute -left-[32px] -top-[32px] animate-[spin_5s_linear_infinite]">
+            <circle
+              cx="32" cy="32" r="24"
+              fill="transparent"
+              stroke="rgba(99, 102, 241, 0.45)"
+              strokeWidth="2"
+              strokeDasharray="5 5"
+            />
+          </svg>
+          <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-indigo-300 font-bold uppercase tracking-widest bg-black/85 px-2.5 py-0.5 rounded border border-indigo-400/50 shadow-[0_0_12px_rgba(99,102,241,0.4)] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+            3D ROTATE
           </div>
         </div>
       )}
