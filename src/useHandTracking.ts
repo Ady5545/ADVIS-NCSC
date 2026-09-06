@@ -22,7 +22,6 @@ export type GestureType =
   | 'PINCH'
   | 'TWO FINGER NAVIGATION'
   | 'TWO FINGER SCROLL'
-  | 'HOVER'
   | 'TWO FINGER ROTATION'
   | 'TWO FINGER ZOOM'
   | 'OPEN PALM'
@@ -42,11 +41,14 @@ export interface HandTrackingData {
   fps: number;
   confidence: number;
   gesture: GestureType;
+  rawGesture?: GestureType;
   cursorPosition: { x: number, y: number, z: number } | null;
   scrollPosition: { x: number, y: number, z: number } | null;
   pinchDistance: number;
   twoFingerDistance: number;
   handRotation: number;
+  fistRotationDelta?: number;
+  fistHoldProgress?: number;
   leftHandPosition: { x: number, y: number, z: number } | null;
   rightHandPosition: { x: number, y: number, z: number } | null;
   handsDistance: number;
@@ -236,6 +238,25 @@ export function useHandTracking(enabled: boolean) {
     startTime: number;
   }>({ candidate: 'NONE', locked: 'NONE', startTime: 0 });
 
+  // Fist Hold Confirm, Rotation Dial, and Summon detection
+  const fistStartTimeRef = useRef<number>(0);
+  const fistConfirmedRef = useRef<boolean>(false);
+  const lastFistRotationRef = useRef<number | null>(null);
+
+  // Open-palm Push (Repulsor Reset) detection
+  const lastZRef = useRef<number>(0);
+  const lastZTimeRef = useRef<number>(0);
+  const lastPushTimeRef = useRef<number>(0);
+
+  // Two Finger Navigation & Swipe
+  const twoFingerSwipeRef = useRef<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    startTime: number;
+    lastSwipeTime: number;
+  }>({ active: false, startX: 0, startY: 0, startTime: 0, lastSwipeTime: 0 });
+
   const { handState } = useTrackingState();
   useEffect(() => {
     const processHands = (state: NormalizedHandState) => {
@@ -264,6 +285,8 @@ export function useHandTracking(enabled: boolean) {
         let rawCursor = { x: 0.5, y: 0.5, z: 0.1 };
         let rawGesture: GestureType = 'NONE';
         let pinchDist = 1;
+        let fistRotDelta = 0;
+        let fistHoldProgress = 0;
 
         if (numHands === 1) {
           const lm = state.hands.map(h => h.landmarks)[0];
@@ -284,16 +307,95 @@ export function useHandTracking(enabled: boolean) {
           smoothedRef.current.twoFingerDist = smoothedRef.current.twoFingerDist * 0.9 + rawTwoFingerDist * 0.1;
 
           const isStablePinch = pinchDist < 0.038;
+          const isTwoFinger = isIndex && isMiddle && !isRing && !isPinky;
+          const isFist = !isThumb && !isIndex && !isMiddle && !isRing && !isPinky;
 
           if (isStablePinch) {
             rawGesture = 'PINCH';
           } else if (isIndex && !isMiddle && !isRing && !isPinky) {
             rawGesture = 'INDEX POINTER';
-          } else if (!isThumb && !isIndex && !isMiddle && !isRing && !isPinky) {
+          } else if (isTwoFinger) {
+            const dy = lm[8].y - (prevMetricsRef.current.handPos?.y ?? lm[8].y);
+            const dx = lm[8].x - (prevMetricsRef.current.handPos?.x ?? lm[8].x);
+            if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 0.005) {
+              rawGesture = 'TWO FINGER SCROLL';
+            } else {
+              rawGesture = 'TWO FINGER NAVIGATION';
+            }
+          } else if (isFist) {
             rawGesture = 'FIST';
           } else {
             // Open palm / open hand gesture: allow object rotation/orbit from any hand position
             rawGesture = 'OPEN PALM';
+          }
+
+          // Single-fist Hold, Confirm & Rotary Dial Tracking
+          if (rawGesture === 'FIST') {
+            if (fistStartTimeRef.current === 0) {
+              fistStartTimeRef.current = now;
+              fistConfirmedRef.current = false;
+              lastFistRotationRef.current = rawRotation;
+            }
+            const fistElapsed = now - fistStartTimeRef.current;
+            fistHoldProgress = Math.min(1.0, fistElapsed / 320);
+
+            // Dial rotation delta while fist is closed
+            if (lastFistRotationRef.current !== null) {
+              let diff = rawRotation - lastFistRotationRef.current;
+              while (diff < -Math.PI) diff += 2 * Math.PI;
+              while (diff > Math.PI) diff -= 2 * Math.PI;
+              if (Math.abs(diff) > 0.015 && Math.abs(diff) < 0.35) {
+                fistRotDelta = diff;
+                lastFistRotationRef.current = rawRotation;
+              }
+            }
+
+            if (fistElapsed >= 320 && !fistConfirmedRef.current) {
+              fistConfirmedRef.current = true;
+              const screenX = (1 - lm[9].x) * window.innerWidth;
+              const screenY = lm[9].y * window.innerHeight;
+              window.dispatchEvent(new CustomEvent('advis-fist-confirm', {
+                detail: { x: screenX, y: screenY, timestamp: now }
+              }));
+            }
+          } else {
+            if (fistStartTimeRef.current !== 0) {
+              const heldDuration = now - fistStartTimeRef.current;
+              // Deliberate Summon Gesture: closed fist held then deliberately opening into spread palm!
+              if (heldDuration >= 200 && (isIndex && isMiddle && isRing && isPinky)) {
+                const screenX = (1 - lm[9].x) * window.innerWidth;
+                const screenY = lm[9].y * window.innerHeight;
+                window.dispatchEvent(new CustomEvent('advis-summon-model', {
+                  detail: { x: screenX, y: screenY, timestamp: now }
+                }));
+              }
+              fistStartTimeRef.current = 0;
+              fistConfirmedRef.current = false;
+              lastFistRotationRef.current = null;
+            }
+          }
+
+          // Open-palm Push (Repulsor Blast Reset)
+          if (rawGesture === 'OPEN PALM') {
+            const currentZ = rawCursor.z;
+            const lastZ = lastZRef.current;
+            const lastZTime = lastZTimeRef.current;
+            const dtZ = now - lastZTime;
+            
+            if (dtZ > 35 && dtZ < 220 && lastZ > 0) {
+              const deltaZ = currentZ - lastZ;
+              const zVel = deltaZ / dtZ;
+              if (deltaZ > 0.028 && zVel > 0.00025 && (now - lastPushTimeRef.current > 1200)) {
+                lastPushTimeRef.current = now;
+                const screenX = (1 - rawCursor.x) * window.innerWidth;
+                const screenY = rawCursor.y * window.innerHeight;
+                window.dispatchEvent(new CustomEvent('advis-repulsor-reset', {
+                  detail: { x: screenX, y: screenY, timestamp: now }
+                }));
+              }
+            }
+            lastZRef.current = currentZ;
+            lastZTimeRef.current = now;
           }
           
           prevMetricsRef.current.handRotation = rawRotation;
@@ -388,8 +490,8 @@ export function useHandTracking(enabled: boolean) {
 
         // --- Gesture Locking and Priority transition rules ---
         const isFunctional = (g: GestureType) => {
-          return g === 'INDEX POINTER' || g === 'PINCH' || g === 'TWO FINGER SCROLL' || 
-                 g.startsWith('TWO HAND') || g === 'TWO FINGER ROTATION' || g === 'TWO FINGER ZOOM' || g === 'CLAP';
+          return g === 'INDEX POINTER' || g === 'PINCH' || g === 'TWO FINGER SCROLL' || g === 'TWO FINGER NAVIGATION' ||
+                 g.startsWith('TWO HAND') || g === 'TWO FINGER ROTATION' || g === 'TWO FINGER ZOOM' || g === 'CLAP' || g === 'FIST';
         };
 
         let activeGesture = stabilizedGesture;
@@ -509,6 +611,36 @@ export function useHandTracking(enabled: boolean) {
             swipe.active = false;
           }
 
+          // Two-Finger Navigation Flick / Model & Panel Cycling
+          const tfSwipe = twoFingerSwipeRef.current;
+          if ((activeGesture === 'TWO FINGER NAVIGATION' || activeGesture === 'TWO FINGER SCROLL') && cursorPosition) {
+            if (!tfSwipe.active) {
+              tfSwipe.active = true;
+              tfSwipe.startX = cursorPosition.x;
+              tfSwipe.startY = cursorPosition.y;
+              tfSwipe.startTime = now;
+            } else {
+              const dx = cursorPosition.x - tfSwipe.startX;
+              const dy = cursorPosition.y - tfSwipe.startY;
+              const dt = now - tfSwipe.startTime;
+
+              if (dt < 420 && dt > 45) {
+                if (now - tfSwipe.lastSwipeTime > 750) {
+                  if (Math.abs(dx) > 0.12 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+                    const dir = dx > 0 ? 'RIGHT' : 'LEFT';
+                    window.dispatchEvent(new CustomEvent('advis-model-cycle', { detail: { direction: dir } }));
+                    tfSwipe.lastSwipeTime = now;
+                    tfSwipe.active = false;
+                  }
+                }
+              } else if (dt >= 420) {
+                tfSwipe.active = false;
+              }
+            }
+          } else {
+            twoFingerSwipeRef.current.active = false;
+          }
+
           // Process JARVIS-style Pinch State Machine
           const isPinchDetected = activeGesture === 'PINCH';
           const psm = pinchStateMachineRef.current;
@@ -548,6 +680,10 @@ export function useHandTracking(enabled: boolean) {
             interactionState = psm.state;
           } else if (activeGesture === 'INDEX POINTER') {
             interactionState = 'HOVERING';
+          } else if (activeGesture === 'TWO FINGER SCROLL') {
+            interactionState = 'SCROLL';
+          } else if (activeGesture === 'TWO FINGER NAVIGATION') {
+            interactionState = 'TRACKING';
           } else if (activeGesture === 'OPEN PALM') {
             interactionState = 'TRACKING';
           } else if (activeGesture === 'FIST') {
@@ -635,11 +771,14 @@ export function useHandTracking(enabled: boolean) {
           fps: frameCountRef.current,
           confidence,
           gesture: activeGesture,
+          rawGesture,
           cursorPosition,
           scrollPosition,
           pinchDistance: pinchDist,
           twoFingerDistance: smoothedRef.current.twoFingerDist,
           handRotation: numHands === 1 ? smoothedRef.current.oneHandRot : smoothedRef.current.twoHandRot,
+          fistRotationDelta: fistRotDelta,
+          fistHoldProgress,
           leftHandPosition: lHandPos,
           rightHandPosition: rHandPos,
           handsDistance: handsDist,

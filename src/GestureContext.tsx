@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef } from 'react';
+import React, { createContext, useContext, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { HandTrackingData } from './useHandTracking';
@@ -237,6 +237,21 @@ export function GestureFrameUpdater({
   isSpatial: boolean 
 }) {
   const state = useContext(GestureContext);
+
+  useEffect(() => {
+    const handleRepulsorReset = () => {
+      if (state) {
+        state.spatialCam.targetTheta = 0;
+        state.spatialCam.targetPhi = Math.PI / 2.6;
+        state.spatialCam.targetRadius = isSpatial ? 7.0 : 15.0;
+        window.dispatchEvent(new CustomEvent('advis-selection-success', {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      }
+    };
+    window.addEventListener('advis-repulsor-reset', handleRepulsorReset);
+    return () => window.removeEventListener('advis-repulsor-reset', handleRepulsorReset);
+  }, [state, isSpatial]);
 
   const physics = useRef({
     posX: { vel: 0 }, posY: { vel: 0 }, posZ: { vel: 0 },

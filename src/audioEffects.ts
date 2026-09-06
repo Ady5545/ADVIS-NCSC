@@ -13,7 +13,7 @@ function getContext() {
   return audioContext;
 }
 
-function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.1) {
+export function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.1) {
   try {
     const ctx = getContext();
     const osc = ctx.createOscillator();

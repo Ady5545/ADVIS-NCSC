@@ -1863,6 +1863,34 @@ export function SpatialObjectEngine({
   const raycastTargetSourceRef = useRef<'NONE' | 'COMPONENT_MESH' | 'PARENT_MODEL' | 'BACKGROUND' | 'UNKNOWN'>('NONE');
   const lastTwoHandMetricsRef = useRef<{ x: number; y: number; dist: number } | null>(null);
 
+  // Component Pinch-and-Drag & Dial Rotation State
+  const activeDragCompIdRef = useRef<string | null>(null);
+  const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane());
+  const dragPlaneIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
+  const dragStartIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
+  const componentDragOffsetsRef = useRef<Record<string, [number, number, number]>>({});
+  const [, setDragTriggerState] = useState<number>(0);
+
+  useEffect(() => {
+    const handleFistConfirm = () => {
+      if (hoveredComponentIdRef.current) {
+        setSelectedComponentId(hoveredComponentIdRef.current);
+        if (soundEnabled) playHologramSound('FOCUS');
+      }
+    };
+    const handleSnapBack = () => {
+      componentDragOffsetsRef.current = {};
+      setDragTriggerState(Date.now());
+      if (soundEnabled) playHologramSound('COLLAPSE');
+    };
+    window.addEventListener('advis-fist-confirm', handleFistConfirm);
+    window.addEventListener('advis-snapback-components', handleSnapBack);
+    return () => {
+      window.removeEventListener('advis-fist-confirm', handleFistConfirm);
+      window.removeEventListener('advis-snapback-components', handleSnapBack);
+    };
+  }, [setSelectedComponentId, soundEnabled]);
+
   const effectiveMode = spatialMode || (isPresentationMode ? 'DEMO' : isExploded ? 'EXPLODED' : 'INSPECTION');
   const spatialModeRef = useRef<SpatialMode>(effectiveMode);
   const isInteractingRef = useRef<boolean>(false);
@@ -2201,6 +2229,59 @@ export function SpatialObjectEngine({
                                handTrackingRef.current?.gesture === 'PINCH';
           const isPinchJustTriggered = isPinchActive && !prevPinchStateRef.current;
           prevPinchStateRef.current = isPinchActive;
+
+          // PINCH-AND-DRAG COMPONENT MANIPULATION
+          if (isPinchJustTriggered) {
+            const targetCompId = foundComponentId || hoveredComponentIdRef.current;
+            if (targetCompId && componentRefs.current[targetCompId]) {
+              activeDragCompIdRef.current = targetCompId;
+              selectedComponentIdRef.current = targetCompId;
+              setSelectedComponentId(targetCompId);
+
+              const meshObj = componentRefs.current[targetCompId];
+              const camDir = camera.getWorldDirection(new THREE.Vector3()).negate();
+              dragPlaneRef.current.setFromNormalAndCoplanarPoint(camDir, meshObj.position);
+
+              if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
+                dragStartIntersectRef.current.copy(dragPlaneIntersectRef.current);
+              }
+              if (soundEnabled) playHologramSound('SELECT');
+            }
+          }
+
+          if (isPinchActive && activeDragCompIdRef.current) {
+            const draggedId = activeDragCompIdRef.current;
+            if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
+              const delta = dragPlaneIntersectRef.current.clone().sub(dragStartIntersectRef.current);
+              const curOffset = componentDragOffsetsRef.current[draggedId] || [0, 0, 0];
+              componentDragOffsetsRef.current[draggedId] = [
+                curOffset[0] + (delta.x - curOffset[0]) * 0.45,
+                curOffset[1] + (delta.y - curOffset[1]) * 0.45,
+                curOffset[2] + (delta.z - curOffset[2]) * 0.45
+              ];
+            }
+          } else if (!isPinchActive && activeDragCompIdRef.current) {
+            const releasedId = activeDragCompIdRef.current;
+            const curOffset = componentDragOffsetsRef.current[releasedId] || [0, 0, 0];
+            const dist = Math.hypot(curOffset[0], curOffset[1], curOffset[2]);
+
+            if (dist < 0.4) {
+              // Close to original slot: snap back
+              componentDragOffsetsRef.current[releasedId] = [0, 0, 0];
+              if (soundEnabled) playHologramSound('COLLAPSE');
+              window.dispatchEvent(new CustomEvent('advis-selection-success', {
+                detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+              }));
+            } else {
+              // Kept displaced in space for floating inspection
+              if (soundEnabled) playHologramSound('FOCUS');
+              window.dispatchEvent(new CustomEvent('advis-selection-success', {
+                detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+              }));
+            }
+            activeDragCompIdRef.current = null;
+            setDragTriggerState(Date.now());
+          }
 
           if (foundComponentId && hitPoint) {
             hoverHitPointRef.current = hitPoint;
@@ -2639,9 +2720,25 @@ export function SpatialObjectEngine({
               baseOffset[1] * currentExplodeAmount,
               baseOffset[2] * currentExplodeAmount
             ];
-            meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
-            meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
-            meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
+            const dragOffset = componentDragOffsetsRef.current[comp.id] || [0, 0, 0];
+            const isBeingDragged = activeDragCompIdRef.current === comp.id;
+
+            const targetX = comp.position[0] + targetOffset[0] + dragOffset[0];
+            const targetY = comp.position[1] + targetOffset[1] + dragOffset[1];
+            const targetZ = comp.position[2] + targetOffset[2] + dragOffset[2];
+
+            const lerpFactor = isBeingDragged ? 0.35 : 0.08;
+            meshObj.position.x += (targetX - meshObj.position.x) * lerpFactor;
+            meshObj.position.y += (targetY - meshObj.position.y) * lerpFactor;
+            meshObj.position.z += (targetZ - meshObj.position.z) * lerpFactor;
+
+            // Single-fist fine rotary dial control
+            const ht = handTrackingRef.current;
+            if (ht && ht.fistRotationDelta) {
+              if (selectedComponentIdRef.current === comp.id || activeDragCompIdRef.current === comp.id) {
+                meshObj.rotation.y += ht.fistRotationDelta * 1.8;
+              }
+            }
 
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
@@ -2652,6 +2749,11 @@ export function SpatialObjectEngine({
         });
       }
     });
+
+    // Global assembly rotation via single-fist rotary dial when no individual part is selected
+    if (ht && ht.fistRotationDelta && !selectedComponentIdRef.current && mainGroupRef.current) {
+      mainGroupRef.current.rotation.y += ht.fistRotationDelta * 1.2;
+    }
   });
 
   const objectIds = Array.isArray(currentSpatialObject) 

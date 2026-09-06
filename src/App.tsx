@@ -10,7 +10,7 @@ import { InputArea } from './InputArea';
 import { Sidebar } from './Sidebar';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
-import { playStateTransitionSound } from './audioEffects';
+import { playStateTransitionSound, playTone } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
 import { Fingerprint, Lock } from 'lucide-react';
@@ -1047,6 +1047,55 @@ function AppContent() {
   };
 
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
+
+  // Gesture-controlled spatial navigation & summon listeners
+  useEffect(() => {
+    const available = ['v12_engine', 'human_heart', 'drone_frame', 'microscope', 'solar_tracker'];
+
+    const handleModelCycle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ direction: 'LEFT' | 'RIGHT' }>;
+      const dir = customEvent.detail?.direction || 'RIGHT';
+      setCurrentSpatialObject(prev => {
+        const cur = typeof prev === 'string' ? prev : (Array.isArray(prev) ? prev[0] : 'v12_engine');
+        const idx = available.indexOf(cur);
+        const validIdx = idx >= 0 ? idx : 0;
+        const nextIdx = dir === 'RIGHT' 
+          ? (validIdx + 1) % available.length 
+          : (validIdx - 1 + available.length) % available.length;
+        return available[nextIdx];
+      });
+      setSelectedComponentId(null);
+      setHoveredComponentId(null);
+      if (soundEnabled) {
+        playTone(900, 'sine', 0.1, 0.08);
+        setTimeout(() => playTone(1200, 'sine', 0.15, 0.08), 80);
+      }
+    };
+
+    const handleSummon = () => {
+      setCurrentSpatialObject(prev => {
+        const cur = typeof prev === 'string' ? prev : (Array.isArray(prev) ? prev[0] : 'v12_engine');
+        const idx = available.indexOf(cur);
+        const validIdx = idx >= 0 ? idx : 0;
+        const nextIdx = (validIdx + 1) % available.length;
+        return available[nextIdx];
+      });
+      setSelectedComponentId(null);
+      setHoveredComponentId(null);
+      if (soundEnabled) {
+        playTone(550, 'triangle', 0.15, 0.1);
+        setTimeout(() => playTone(880, 'sine', 0.2, 0.1), 100);
+        setTimeout(() => playTone(1400, 'sine', 0.3, 0.1), 220);
+      }
+    };
+
+    window.addEventListener('advis-model-cycle', handleModelCycle);
+    window.addEventListener('advis-summon-model', handleSummon);
+    return () => {
+      window.removeEventListener('advis-model-cycle', handleModelCycle);
+      window.removeEventListener('advis-summon-model', handleSummon);
+    };
+  }, [soundEnabled]);
 
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
 
