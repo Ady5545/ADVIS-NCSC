@@ -1868,6 +1868,7 @@ export function SpatialObjectEngine({
   const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane());
   const dragPlaneIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const dragStartIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
+  const initialDragOffsetRef = useRef<[number, number, number]>([0, 0, 0]);
   const componentDragOffsetsRef = useRef<Record<string, [number, number, number]>>({});
   const [, setDragTriggerState] = useState<number>(0);
 
@@ -2267,7 +2268,12 @@ export function SpatialObjectEngine({
               if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
                 dragStartIntersectRef.current.copy(dragPlaneIntersectRef.current);
               }
+              const cur = componentDragOffsetsRef.current[targetCompId] || [0, 0, 0];
+              initialDragOffsetRef.current = [cur[0], cur[1], cur[2]];
               if (soundEnabled) playHologramSound('SELECT');
+            } else {
+              // Pinch made in open space: do not drag any component
+              activeDragCompIdRef.current = null;
             }
           }
 
@@ -2275,32 +2281,19 @@ export function SpatialObjectEngine({
             const draggedId = activeDragCompIdRef.current;
             if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
               const delta = dragPlaneIntersectRef.current.clone().sub(dragStartIntersectRef.current);
-              const curOffset = componentDragOffsetsRef.current[draggedId] || [0, 0, 0];
+              const init = initialDragOffsetRef.current;
               componentDragOffsetsRef.current[draggedId] = [
-                curOffset[0] + (delta.x - curOffset[0]) * 0.45,
-                curOffset[1] + (delta.y - curOffset[1]) * 0.45,
-                curOffset[2] + (delta.z - curOffset[2]) * 0.45
+                init[0] + delta.x,
+                init[1] + delta.y,
+                init[2] + delta.z
               ];
             }
           } else if (!isPinchActive && activeDragCompIdRef.current) {
-            const releasedId = activeDragCompIdRef.current;
-            const curOffset = componentDragOffsetsRef.current[releasedId] || [0, 0, 0];
-            const dist = Math.hypot(curOffset[0], curOffset[1], curOffset[2]);
-
-            if (dist < 0.4) {
-              // Close to original slot: snap back
-              componentDragOffsetsRef.current[releasedId] = [0, 0, 0];
-              if (soundEnabled) playHologramSound('COLLAPSE');
-              window.dispatchEvent(new CustomEvent('advis-selection-success', {
-                detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-              }));
-            } else {
-              // Kept displaced in space for floating inspection
-              if (soundEnabled) playHologramSound('FOCUS');
-              window.dispatchEvent(new CustomEvent('advis-selection-success', {
-                detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-              }));
-            }
+            // Releasing the pinch drops the component wherever it currently is
+            if (soundEnabled) playHologramSound('FOCUS');
+            window.dispatchEvent(new CustomEvent('advis-selection-success', {
+              detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+            }));
             activeDragCompIdRef.current = null;
             setDragTriggerState(Date.now());
           }
@@ -2470,25 +2463,14 @@ export function SpatialObjectEngine({
         prevPinchPosRef.current = null;
         isGrabbingRef.current = false;
         rotationVelocityRef.current = 0;
-      } else if (isSingleHandPinch && !isTargetingComp && gEngine.cursorPosition) {
-        // OPEN SPACE PINCH: Grab & pan the entire 3D model in space
-        const cursorX = gEngine.cursorPosition.x;
-        const cursorY = gEngine.cursorPosition.y;
-
-        if (prevPinchPosRef.current === null) {
-          prevPinchPosRef.current = { x: cursorX, y: cursorY };
-          isGrabbingRef.current = true;
-          hasUserInteractedRef.current = true;
-        } else {
-          const dx = cursorX - prevPinchPosRef.current.x;
-          const dy = cursorY - prevPinchPosRef.current.y;
-          prevPinchPosRef.current = { x: cursorX, y: cursorY };
-
-          panOffsetRef.current.x += dx * 10.0;
-          panOffsetRef.current.y -= dy * 10.0;
-        }
+      } else if (isSingleHandPinch && !isTargetingComp) {
+        // EMPTY SPACE PINCH: Reserved for Gesture 5 (explode scrub) later.
+        // For now an empty-space pinch-drag does nothing.
+        prevPinchPosRef.current = null;
+        isGrabbingRef.current = false;
+        rotationVelocityRef.current = 0;
       } else {
-        // Reset single-hand pinch state when pinch ends (model remains where it was dropped)
+        // Reset single-hand pinch state when pinch ends
         if (prevPinchPosRef.current !== null || isGrabbingRef.current) {
           prevPinchPosRef.current = null;
           isGrabbingRef.current = false;
@@ -2678,7 +2660,7 @@ export function SpatialObjectEngine({
             const targetY = comp.position[1] + targetOffset[1] + dragOffset[1];
             const targetZ = comp.position[2] + targetOffset[2] + dragOffset[2];
 
-            const lerpFactor = isBeingDragged ? 0.35 : 0.08;
+            const lerpFactor = isBeingDragged ? 0.85 : 0.12;
             meshObj.position.x += (targetX - meshObj.position.x) * lerpFactor;
             meshObj.position.y += (targetY - meshObj.position.y) * lerpFactor;
             meshObj.position.z += (targetZ - meshObj.position.z) * lerpFactor;

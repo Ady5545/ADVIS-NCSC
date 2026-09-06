@@ -222,8 +222,9 @@ export function useHandTracking(enabled: boolean) {
     startTime: number;
     startX: number;
     startY: number;
+    hasTravelled: boolean;
     lastTapTime: number;
-  }>({ pinching: false, startTime: 0, startX: 0, startY: 0, lastTapTime: 0 });
+  }>({ pinching: false, startTime: 0, startX: 0, startY: 0, hasTravelled: false, lastTapTime: 0 });
 
 
   // Gesture locking and stability
@@ -307,6 +308,12 @@ export function useHandTracking(enabled: boolean) {
               tapTrackerRef.current.startTime = now;
               tapTrackerRef.current.startX = rawCursor.x;
               tapTrackerRef.current.startY = rawCursor.y;
+              tapTrackerRef.current.hasTravelled = false;
+            } else {
+              const curTravel = Math.hypot(rawCursor.x - tapTrackerRef.current.startX, rawCursor.y - tapTrackerRef.current.startY);
+              if (curTravel > 0.035) {
+                tapTrackerRef.current.hasTravelled = true;
+              }
             }
           } else {
             if (tapTrackerRef.current.pinching) {
@@ -314,7 +321,7 @@ export function useHandTracking(enabled: boolean) {
               const pinchDuration = now - tapTrackerRef.current.startTime;
               const pinchTravel = Math.hypot(rawCursor.x - tapTrackerRef.current.startX, rawCursor.y - tapTrackerRef.current.startY);
 
-              if (pinchDuration >= 35 && pinchDuration <= 360 && pinchTravel < 0.045 && (now - tapTrackerRef.current.lastTapTime > 180)) {
+              if (!tapTrackerRef.current.hasTravelled && pinchDuration >= 35 && pinchDuration <= 360 && pinchTravel < 0.035 && (now - tapTrackerRef.current.lastTapTime > 180)) {
                 tapTrackerRef.current.lastTapTime = now;
                 isTapThisFrame = true;
 
