@@ -91,6 +91,15 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
       }
     };
 
+    const handleTap = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        const x = customEvent.detail.screenX || position.x;
+        const y = customEvent.detail.screenY || position.y;
+        setSuccessEvents(prev => [...prev, { x, y, id: Date.now() }]);
+      }
+    };
+
     const handleFistConfirm = () => {
       setFistConfirmEvents(prev => [...prev, { x: position.x > 0 ? position.x : window.innerWidth / 2, y: position.y > 0 ? position.y : window.innerHeight / 2, id: Date.now() }]);
     };
@@ -109,16 +118,14 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
     };
 
     window.addEventListener('advis-selection-success', handleSuccess);
+    window.addEventListener('advis-tap', handleTap);
     window.addEventListener('advis-fist-confirm', handleFistConfirm);
-    window.addEventListener('advis-repulsor-reset', handleRepulsor);
-    window.addEventListener('advis-summon-model', handleSummon);
     window.addEventListener('advis-model-cycle', handleCycle);
 
     return () => {
       window.removeEventListener('advis-selection-success', handleSuccess);
+      window.removeEventListener('advis-tap', handleTap);
       window.removeEventListener('advis-fist-confirm', handleFistConfirm);
-      window.removeEventListener('advis-repulsor-reset', handleRepulsor);
-      window.removeEventListener('advis-summon-model', handleSummon);
       window.removeEventListener('advis-model-cycle', handleCycle);
     };
   }, [position.x, position.y]);
@@ -582,15 +589,15 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
             />
           </svg>
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] text-amber-300 font-bold uppercase tracking-widest bg-black/80 px-2 py-0.5 rounded border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.3)]">
-            {handTracking.fistHoldProgress && handTracking.fistHoldProgress > 0.8 ? 'HOLD TO LOCK' : 'ROTARY DIAL'}
+            {handTracking.fistHoldProgress && handTracking.fistHoldProgress > 0.7 ? 'HOLD TO RESET' : 'PAUSED / FROZEN'}
           </div>
         </div>
       )}
         </>
       )}
 
-      {/* 9. ON-SCREEN GESTURE DEBUG HUD (Toggleable via 'G' or HUD button) */}
-      <div className="fixed bottom-4 left-4 z-[10000] pointer-events-auto flex flex-col items-start gap-1">
+      {/* 9. ON-SCREEN GESTURE TELEMETRY (Toggleable via 'G' or HUD button) */}
+      <div className="fixed bottom-4 right-4 z-[10000] pointer-events-auto flex flex-col items-end gap-1">
         <button
           onClick={() => {
             setShowDebugHUD(prev => {
@@ -602,7 +609,7 @@ export function HolographicCursor({ handTracking, isSpatial }: { handTracking: H
           className="px-2.5 py-1 text-[10px] font-mono tracking-widest uppercase rounded border transition-all duration-150 backdrop-blur-md bg-black/75 border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/80 hover:border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] flex items-center gap-1.5 cursor-pointer"
         >
           <span className={`w-1.5 h-1.5 rounded-full ${showDebugHUD ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-500'}`} />
-          GESTURE HUD [G]
+          TELEMETRY [G]
         </button>
 
         {showDebugHUD && (

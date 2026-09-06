@@ -55,6 +55,7 @@ import { MolecularBuilderHUD } from './LearnEngine/MolecularBuilderHUD';
 import { ModelBuilder, ModelRegistry } from './AutonomousModelEngine';
 
 import { HolographicCursor } from './HolographicCursor';
+import { GestureLegend } from './components/GestureLegend';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -1072,28 +1073,9 @@ function AppContent() {
       }
     };
 
-    const handleSummon = () => {
-      setCurrentSpatialObject(prev => {
-        const cur = typeof prev === 'string' ? prev : (Array.isArray(prev) ? prev[0] : 'v12_engine');
-        const idx = available.indexOf(cur);
-        const validIdx = idx >= 0 ? idx : 0;
-        const nextIdx = (validIdx + 1) % available.length;
-        return available[nextIdx];
-      });
-      setSelectedComponentId(null);
-      setHoveredComponentId(null);
-      if (soundEnabled) {
-        playTone(550, 'triangle', 0.15, 0.1);
-        setTimeout(() => playTone(880, 'sine', 0.2, 0.1), 100);
-        setTimeout(() => playTone(1400, 'sine', 0.3, 0.1), 220);
-      }
-    };
-
     window.addEventListener('advis-model-cycle', handleModelCycle);
-    window.addEventListener('advis-summon-model', handleSummon);
     return () => {
       window.removeEventListener('advis-model-cycle', handleModelCycle);
-      window.removeEventListener('advis-summon-model', handleSummon);
     };
   }, [soundEnabled]);
 
@@ -1355,6 +1337,7 @@ function AppContent() {
     )}
 
     <HolographicCursor handTracking={handTracking} isSpatial={isSpatial} />
+    <GestureLegend handTracking={handTracking} isSpatial={isSpatial} />
     <ViewModal 
       currentView={currentView} 
       setView={setCurrentView} 

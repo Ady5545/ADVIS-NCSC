@@ -1872,10 +1872,31 @@ export function SpatialObjectEngine({
   const [, setDragTriggerState] = useState<number>(0);
 
   useEffect(() => {
-    const handleFistConfirm = () => {
+    const handleTap = () => {
       if (hoveredComponentIdRef.current) {
-        setSelectedComponentId(hoveredComponentIdRef.current);
-        if (soundEnabled) playHologramSound('FOCUS');
+        const targetId = hoveredComponentIdRef.current;
+        if (selectedComponentIdRef.current === targetId) {
+          // Toggle close/deselect if already open
+          selectedComponentIdRef.current = null;
+          setSelectedComponentId(null);
+          if (soundEnabled) playHologramSound('COLLAPSE');
+        } else {
+          // Select / open if not open
+          selectedComponentIdRef.current = targetId;
+          setSelectedComponentId(targetId);
+          if (soundEnabled) playHologramSound('FOCUS');
+        }
+        window.dispatchEvent(new CustomEvent('advis-selection-success', {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
+      } else if (selectedComponentIdRef.current !== null) {
+        // Tapping in empty space closes / deselects the currently open component
+        selectedComponentIdRef.current = null;
+        setSelectedComponentId(null);
+        if (soundEnabled) playHologramSound('COLLAPSE');
+        window.dispatchEvent(new CustomEvent('advis-selection-success', {
+          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        }));
       }
     };
     const handleSnapBack = () => {
@@ -1883,10 +1904,10 @@ export function SpatialObjectEngine({
       setDragTriggerState(Date.now());
       if (soundEnabled) playHologramSound('COLLAPSE');
     };
-    window.addEventListener('advis-fist-confirm', handleFistConfirm);
+    window.addEventListener('advis-tap', handleTap);
     window.addEventListener('advis-snapback-components', handleSnapBack);
     return () => {
-      window.removeEventListener('advis-fist-confirm', handleFistConfirm);
+      window.removeEventListener('advis-tap', handleTap);
       window.removeEventListener('advis-snapback-components', handleSnapBack);
     };
   }, [setSelectedComponentId, soundEnabled]);
@@ -1950,6 +1971,7 @@ export function SpatialObjectEngine({
   const rotationVelocityRef = useRef<number>(0);
   const lastHandRotationRef = useRef<number | null>(null);
   const prevPinchPosRef = useRef<{ x: number; y: number } | null>(null);
+  const panOffsetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
 
   // Diagnostic Keyboard Control for Model Transform Isolation Test
   useEffect(() => {
@@ -2297,14 +2319,8 @@ export function SpatialObjectEngine({
             const confidence = targetConfidenceRef.current;
 
             // INTENT-BASED SELECTION: Pointer movement alone ONLY hovers/targets.
-            // Pinch gesture is STRICTLY REQUIRED to select the component!
-            if (isPinchActive && (isPinchJustTriggered || confidence >= 0.2)) {
-              selectionStateRef.current = 'PINCH SELECT';
-              if (selectedComponentIdRef.current !== foundComponentId) {
-                selectedComponentIdRef.current = foundComponentId;
-                setSelectedComponentId(foundComponentId);
-              }
-            } else if (selectedComponentIdRef.current === foundComponentId) {
+            // Tap (quick pinch touch & release) is REQUIRED to select / open or toggle close!
+            if (selectedComponentIdRef.current === foundComponentId) {
               selectionStateRef.current = 'DETAIL VIEW';
             } else if (confidence >= 0.5) {
               selectionStateRef.current = 'TARGET CONFIRMED';
@@ -2423,27 +2439,13 @@ export function SpatialObjectEngine({
     if (mainGroupRef.current) {
       const floatUpY = THREE.MathUtils.lerp(-2.8, 0, sTrans);
 
-      // Hologram remains anchored in 3D world space at origin
-      objectPosRef.current.set(0, 0, 0);
-      objectVelRef.current.set(0, 0, 0);
-
-      mainGroupRef.current.position.x = 0;
-      mainGroupRef.current.position.y = floatUpY;
-      mainGroupRef.current.position.z = 0;
+      // Model position follows world origin + pan offset
+      mainGroupRef.current.position.x = panOffsetRef.current.x;
+      mainGroupRef.current.position.y = floatUpY + panOffsetRef.current.y;
+      mainGroupRef.current.position.z = panOffsetRef.current.z;
       mainGroupRef.current.scale.setScalar(sTrans);
 
-      // =========================================================================
-      // INTENT SEPARATION & STRICT GESTURE ROTATION CONTROLLER
-      // =========================================================================
-      // States:
-      // - HAND_PRESENT: Hand detected, open palm, stationary -> NO ACTION. Model frozen.
-      // - HAND_HOVER: Pointing gesture -> Pointer raycast selection only. Zero model movement.
-      // - PINCH_ACTIVE: Single-hand pinch -> Controlled rotation via hand movement DELTA (dx).
-      // - TWO_HAND_ROTATE: Explicit two-hand rotation gesture -> Controlled rotation via angle DELTA.
-      // =========================================================================
-
       const currentGesture = handTrackingRef.current?.gesture;
-      const rawHandRot = handTrackingRef.current?.handRotation;
 
       // 1. PINCH_ACTIVE check
       const isSingleHandPinch = gEngine.isHandActive &&
@@ -2451,15 +2453,8 @@ export function SpatialObjectEngine({
         (gEngine.isPinch || gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG' || currentGesture === 'PINCH') &&
         gEngine.cursorPosition !== null;
 
-      // 2. TWO_HAND_ROTATE check
-      const isTwoHandRotate = gEngine.isHandActive &&
-        gEngine.handsCount === 2 &&
-        (currentGesture === 'TWO HAND ROTATE' ||
-         currentGesture === 'TWO FINGER ROTATION' ||
-         gEngine.interactionState === 'ROTATING');
-
       // Intentional manipulation active flag
-      const isActivelyInteracting = isSingleHandPinch || isTwoHandRotate;
+      const isActivelyInteracting = isSingleHandPinch;
 
       if (isInteractingRef.current !== isActivelyInteracting) {
         isInteractingRef.current = isActivelyInteracting;
@@ -2468,80 +2463,36 @@ export function SpatialObjectEngine({
         }
       }
 
-      let frameInspectionRotDelta = 0;
       const isTargetingComp = hoveredComponentIdRef.current !== null && targetConfidenceRef.current >= 0.2;
 
       if (isSingleHandPinch && isTargetingComp) {
-        // COMPONENT SELECTION PINCH: Suppress inspection model rotation so object remains stable during component selection
+        // COMPONENT SELECTION PINCH: Part drag handled by raycaster plane above
         prevPinchPosRef.current = null;
         isGrabbingRef.current = false;
         rotationVelocityRef.current = 0;
       } else if (isSingleHandPinch && !isTargetingComp && gEngine.cursorPosition) {
-        // INSPECTION MANIPULATION PINCH: Single-hand pinch in empty space rotates 3D model
+        // OPEN SPACE PINCH: Grab & pan the entire 3D model in space
         const cursorX = gEngine.cursorPosition.x;
         const cursorY = gEngine.cursorPosition.y;
 
         if (prevPinchPosRef.current === null) {
-          // Initial pinch grab frame: capture start position without rotation jump
           prevPinchPosRef.current = { x: cursorX, y: cursorY };
           isGrabbingRef.current = true;
           hasUserInteractedRef.current = true;
-          rotationVelocityRef.current = 0;
         } else {
-          // Hand movement delta
           const dx = cursorX - prevPinchPosRef.current.x;
+          const dy = cursorY - prevPinchPosRef.current.y;
           prevPinchPosRef.current = { x: cursorX, y: cursorY };
 
-          const DEADZONE_DISPLACEMENT = 0.0015; // Noise deadzone filter
-          if (Math.abs(dx) > DEADZONE_DISPLACEMENT) {
-            // Directional movement delta induces rotation
-            const rotVel = -dx * 2.5;
-            rotationVelocityRef.current = THREE.MathUtils.clamp(rotVel, -0.06, 0.06);
-            idleRotationRef.current += rotationVelocityRef.current;
-            frameInspectionRotDelta = rotVel;
-          } else {
-            // DEAD STOP REQUIREMENT: Hand stopped moving -> velocity rapidly decays to zero!
-            rotationVelocityRef.current *= 0.3;
-            if (Math.abs(rotationVelocityRef.current) < 0.0001) {
-              rotationVelocityRef.current = 0;
-            }
-          }
+          panOffsetRef.current.x += dx * 10.0;
+          panOffsetRef.current.y -= dy * 10.0;
         }
       } else {
-        // Reset single-hand pinch state when pinch ends
+        // Reset single-hand pinch state when pinch ends (model remains where it was dropped)
         if (prevPinchPosRef.current !== null || isGrabbingRef.current) {
           prevPinchPosRef.current = null;
           isGrabbingRef.current = false;
         }
-      }
-
-      if (isTwoHandRotate && rawHandRot !== undefined) {
-        if (lastHandRotationRef.current === null) {
-          lastHandRotationRef.current = rawHandRot;
-          rotationVelocityRef.current = 0;
-        } else {
-          let rotDelta = rawHandRot - lastHandRotationRef.current;
-          lastHandRotationRef.current = rawHandRot;
-
-          while (rotDelta < -Math.PI) rotDelta += 2 * Math.PI;
-          while (rotDelta > Math.PI) rotDelta -= 2 * Math.PI;
-
-          const DEADZONE_ROTATION = 0.012;
-          if (Math.abs(rotDelta) > DEADZONE_ROTATION) {
-            hasUserInteractedRef.current = true;
-            const rotVel = rotDelta * 0.8;
-            rotationVelocityRef.current = THREE.MathUtils.clamp(rotVel, -0.06, 0.06);
-            idleRotationRef.current += rotationVelocityRef.current;
-          } else {
-            // DEAD STOP REQUIREMENT: Hands stopped rotating -> velocity rapidly decays to zero!
-            rotationVelocityRef.current *= 0.3;
-            if (Math.abs(rotationVelocityRef.current) < 0.0001) {
-              rotationVelocityRef.current = 0;
-            }
-          }
-        }
-      } else {
-        lastHandRotationRef.current = null;
       }
 
       // If user is not intentionally pinching or two-hand rotating (e.g. HAND_PRESENT or HAND_HOVER)
@@ -2732,14 +2683,6 @@ export function SpatialObjectEngine({
             meshObj.position.y += (targetY - meshObj.position.y) * lerpFactor;
             meshObj.position.z += (targetZ - meshObj.position.z) * lerpFactor;
 
-            // Single-fist fine rotary dial control
-            const ht = handTrackingRef.current;
-            if (ht && ht.fistRotationDelta) {
-              if (selectedComponentIdRef.current === comp.id || activeDragCompIdRef.current === comp.id) {
-                meshObj.rotation.y += ht.fistRotationDelta * 1.8;
-              }
-            }
-
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
               const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5 * (heartPulseSpeed > 0 ? heartPulseSpeed : 1)) * 0.06;
@@ -2749,11 +2692,6 @@ export function SpatialObjectEngine({
         });
       }
     });
-
-    // Global assembly rotation via single-fist rotary dial when no individual part is selected
-    if (ht && ht.fistRotationDelta && !selectedComponentIdRef.current && mainGroupRef.current) {
-      mainGroupRef.current.rotation.y += ht.fistRotationDelta * 1.2;
-    }
   });
 
   const objectIds = Array.isArray(currentSpatialObject) 

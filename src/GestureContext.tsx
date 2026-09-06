@@ -238,20 +238,8 @@ export function GestureFrameUpdater({
 }) {
   const state = useContext(GestureContext);
 
-  useEffect(() => {
-    const handleRepulsorReset = () => {
-      if (state) {
-        state.spatialCam.targetTheta = 0;
-        state.spatialCam.targetPhi = Math.PI / 2.6;
-        state.spatialCam.targetRadius = isSpatial ? 7.0 : 15.0;
-        window.dispatchEvent(new CustomEvent('advis-selection-success', {
-          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-        }));
-      }
-    };
-    window.addEventListener('advis-repulsor-reset', handleRepulsorReset);
-    return () => window.removeEventListener('advis-repulsor-reset', handleRepulsorReset);
-  }, [state, isSpatial]);
+  const fistHoldTimerRef = useRef<number>(0);
+  const fistResetTriggeredRef = useRef<boolean>(false);
 
   const physics = useRef({
     posX: { vel: 0 }, posY: { vel: 0 }, posZ: { vel: 0 },
@@ -416,7 +404,7 @@ export function GestureFrameUpdater({
             const rawSpeed = Math.hypot(velX, velY);
 
             // --- Priority 2: One-Hand Open Palm = Rotation/Orbit from any hand position ---
-            const isPalmGesture = handTracking.gesture === 'OPEN PALM' || interactionState === 'TRACKING';
+            const isPalmGesture = handTracking.gesture === 'OPEN PALM';
             if (isPalmGesture) {
               const DEADZONE_ORBIT = 0.0006;
               if (Math.hypot(dx, dy) > DEADZONE_ORBIT) {
@@ -440,8 +428,27 @@ export function GestureFrameUpdater({
                 }
               }
             }
-            // --- Priority 3: Index Pointing = Selection (Raycast cursor only, no camera movement) ---
-            // --- Priority 4: Pinch = Manipulation (Intentional object grab, stable pinch detection, no camera zoom) ---
+
+            // Closed Fist = Instant Freeze & Stop, with soft reset if held for >1000ms
+            if (handTracking.gesture === 'FIST') {
+              curDeltaTheta = 0;
+              curDeltaPhi = 0;
+              if (fistHoldTimerRef.current === 0) {
+                fistHoldTimerRef.current = performance.now();
+                fistResetTriggeredRef.current = false;
+              } else if (!fistResetTriggeredRef.current && (performance.now() - fistHoldTimerRef.current >= 1000)) {
+                fistResetTriggeredRef.current = true;
+                spatialCam.targetTheta = 0;
+                spatialCam.targetPhi = Math.PI / 2.6;
+                spatialCam.targetRadius = isSpatial ? 7.0 : 15.0;
+                window.dispatchEvent(new CustomEvent('advis-selection-success', {
+                  detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+                }));
+              }
+            } else {
+              fistHoldTimerRef.current = 0;
+              fistResetTriggeredRef.current = false;
+            }
 
             // Single hand NEVER alters camera radius (zoom)
             curDeltaRadius = 0;
@@ -532,30 +539,10 @@ export function GestureFrameUpdater({
           state.cameraTarget.z = 15;
         }
 
-        if (gesture === 'TWO FINGER ROTATION') {
-          state.targetRot.z = -handRotation;
-        } else if (gesture === 'TWO HAND ENERGY') {
-          state.targetEnergy.current = Math.max(0, 1 - handsDistance * 2);
-          state.targetScale.current = 1.0 + state.targetEnergy.current * 0.5;
-        } else if (leftHandPosition && rightHandPosition) {
-          if (gesture === 'TWO HAND POSITION') {
-            const centerX = (leftHandPosition.x + rightHandPosition.x) / 2;
-            const centerY = (leftHandPosition.y + rightHandPosition.y) / 2;
-            state.targetPos.x = (centerX - 0.5) * 10;
-            state.targetPos.y = -(centerY - 0.5) * 10;
-          } else if (gesture === 'TWO HAND SCALE') {
-            state.targetScale.current = Math.max(0.5, Math.min(3.0, handsDistance * 3.5));
-          } else if (gesture === 'TWO HAND ROTATE') {
-            state.targetRot.x = (leftHandPosition.y - rightHandPosition.y) * 2.5;
-            state.targetRot.y = (leftHandPosition.x - rightHandPosition.x) * 2.5;
-          } else if (gesture === 'TWO HAND GRAB') {
-            state.targetEnergy.current = 0.5;
-            state.targetScale.current = 1.05;
-          }
-        } else if (gesture === 'TWO FINGER ZOOM') {
-          state.targetScale.current = Math.max(0.5, Math.min(2.5, twoFingerDistance * 5));
+        if (gesture === 'TWO HAND SCALE' && leftHandPosition && rightHandPosition) {
+          state.targetScale.current = Math.max(0.5, Math.min(3.0, handsDistance * 3.5));
         } else if (gesture === 'FIST') {
-          // Locked
+          // Locked / paused
         } else {
           state.targetRot.x = threeState.pointer.y * 0.4;
           state.targetRot.y = threeState.pointer.x * 0.4;
