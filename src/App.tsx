@@ -26,15 +26,37 @@ import { ScientificLaunchpad } from './ScientificLaunchpad';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificActionRouter } from './scientific/ScientificActionRouter';
 import { useScientificStore } from './scientific/ScientificStore';
+import { V12EngineController } from './components/v12/V12EngineController';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
+  const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
+
+  useEffect(() => {
+    const handlePreset = (e: any) => {
+      const preset = e.detail;
+      if (!preset) return;
+      if (gestureState?.spatialCam) {
+        gestureState.spatialCam.targetRadius = preset.radius;
+        gestureState.spatialCam.targetTheta = preset.theta;
+        gestureState.spatialCam.targetPhi = preset.phi;
+      }
+      if (preset.target) {
+        lookAtRef.current.set(preset.target[0], preset.target[1], preset.target[2]);
+      } else {
+        lookAtRef.current.set(0, 0, 0);
+      }
+    };
+    window.addEventListener('advis-camera-preset', handlePreset);
+    return () => window.removeEventListener('advis-camera-preset', handlePreset);
+  }, [gestureState]);
+
   useFrame((state) => {
     const lerpSpeed = isSpatial ? 0.35 : 0.05;
     state.camera.position.x += (gestureState.cameraTarget.x - state.camera.position.x) * lerpSpeed;
     state.camera.position.y += (gestureState.cameraTarget.y - state.camera.position.y) * lerpSpeed;
     state.camera.position.z += (gestureState.cameraTarget.z - state.camera.position.z) * lerpSpeed;
-    state.camera.lookAt(0, 0, 0);
+    state.camera.lookAt(lookAtRef.current.x, lookAtRef.current.y, lookAtRef.current.z);
   });
   return null;
 }
@@ -176,6 +198,9 @@ function AppContent() {
   const [v12Direction, setV12Direction] = useState<number>(1);
   const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
   const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
+  const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
+  const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
+  const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
 
   const [actionPreview, setActionPreview] = useState<string | null>(null);
 
@@ -1253,6 +1278,9 @@ function AppContent() {
               v12Direction={v12Direction}
               isMagnifierFocused={isMagnifierFocused}
               lodTier={lodTier}
+              focusedCylinder={focusedCylinder}
+              chargeFlowEnabled={chargeFlowEnabled}
+              vectorsEnabled={vectorsEnabled}
             />
           </React.Suspense>
           
@@ -1405,6 +1433,34 @@ function AppContent() {
         kinematicTimeOffset={kinematicTimeOffset}
         onChangeKinematicTimeOffset={setKinematicTimeOffset}
         onSendMessage={handleSendMessage}
+      />
+    )}
+
+    {/* DEDICATED V12 ENGINE CONTROL & TELEMETRY SUITE */}
+    {currentSpatialObject === 'v12_engine' && (
+      <V12EngineController
+        v12Rpm={v12Rpm}
+        onRpmChange={setV12Rpm}
+        isKinematicPlaying={isKinematicPlaying}
+        onTogglePlayPause={() => setIsKinematicPlaying(!isKinematicPlaying)}
+        kinematicSpeed={kinematicSpeed}
+        onSpeedChange={setKinematicSpeed}
+        xrayEnabled={xrayEnabled}
+        onToggleXray={() => setXrayEnabled(!xrayEnabled)}
+        blueprintEnabled={blueprintEnabled}
+        onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
+        showLabels={showLabels}
+        onToggleLabels={() => setShowLabels(!showLabels)}
+        chargeFlowEnabled={chargeFlowEnabled}
+        onToggleChargeFlow={() => setChargeFlowEnabled(!chargeFlowEnabled)}
+        vectorsEnabled={vectorsEnabled}
+        onToggleVectors={() => setVectorsEnabled(!vectorsEnabled)}
+        isolatedComponentId={isolatedComponentId}
+        onToggleIsolate={(comp) => setIsolatedComponentId(isolatedComponentId === comp ? null : comp)}
+        selectedComponentId={selectedComponentId}
+        onSelectComponent={setSelectedComponentId}
+        focusedCylinder={focusedCylinder}
+        onSelectCylinder={setFocusedCylinder}
       />
     )}
 

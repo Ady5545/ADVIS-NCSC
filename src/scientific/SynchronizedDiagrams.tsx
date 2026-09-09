@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
 import { CyclePhase } from './ScientificSchema';
+import { V12SynchronizedDiagrams } from './V12SynchronizedDiagrams';
+
+export { V12SynchronizedDiagrams };
 
 export interface DiagramContext {
   currentPhase?: CyclePhase;
@@ -16,6 +19,7 @@ class ScientificDiagramRegistryClass {
   constructor() {
     this.registerMechanicalOttoCycle();
     this.registerCardiovascularWiggers();
+    this.registerV12Diagrams();
   }
 
   public register(key: string, renderer: DiagramRenderer) {
@@ -216,6 +220,16 @@ class ScientificDiagramRegistryClass {
     this.register('four_stroke_engine_v1', renderOttoCycle);
     this.register('v8_engine_scientific', renderOttoCycle);
     this.register('PV_DIAGRAM', renderOttoCycle);
+  }
+
+  private registerV12Diagrams() {
+    const renderV12: DiagramRenderer = () => {
+      return <V12SynchronizedDiagrams />;
+    };
+
+    this.register('v12_engine', renderV12);
+    this.register('V12_DIAGRAM', renderV12);
+    this.register('v12_powertrain', renderV12);
   }
 
   private registerCardiovascularWiggers() {

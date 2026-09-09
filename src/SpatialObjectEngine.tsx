@@ -1,6 +1,8 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
+import { EngineKinematicsBus } from './scientific/EngineKinematicsBus';
+import { V12VisualOverlays } from './generators/V12VisualOverlays';
 import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
@@ -290,6 +292,9 @@ interface SpatialObjectEngineProps {
   v12Direction?: number;
   isMagnifierFocused?: boolean;
   lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
+  focusedCylinder?: number;
+  chargeFlowEnabled?: boolean;
+  vectorsEnabled?: boolean;
 }
 
 
@@ -1731,7 +1736,10 @@ export function SpatialObjectEngine({
   v12Rpm = 600,
   v12Direction = 1,
   isMagnifierFocused = false,
-  lodTier = 'HIGH'
+  lodTier = 'HIGH',
+  focusedCylinder = 1,
+  chargeFlowEnabled = true,
+  vectorsEnabled = false
 }: SpatialObjectEngineProps) {
   const gestureState = useGestureEngine();
   const { raycaster, camera, scene } = useThree();
@@ -1834,6 +1842,19 @@ export function SpatialObjectEngine({
   v12DirectionRef.current = v12Direction;
   const isMagnifierFocusedRef = useRef(isMagnifierFocused);
   isMagnifierFocusedRef.current = isMagnifierFocused;
+  const focusedCylinderRef = useRef(focusedCylinder);
+  focusedCylinderRef.current = focusedCylinder;
+
+  // Listen for manual crank angle scrubbing from V12 Controller
+  useEffect(() => {
+    const handleScrub = (e: any) => {
+      if (e.detail && typeof e.detail.angleDeg === 'number') {
+        kinematicAngleRef.current = (e.detail.angleDeg * Math.PI) / 180;
+      }
+    };
+    window.addEventListener('advis-scrub-crank', handleScrub);
+    return () => window.removeEventListener('advis-scrub-crank', handleScrub);
+  }, []);
 
   // Intent-Based Selection System State Machine
   const selectionStateRef = useRef<'NONE' | 'HOVERING' | 'TARGET CONFIRMED' | 'PINCH SELECT' | 'DETAIL VIEW'>('NONE');
@@ -2535,6 +2556,18 @@ export function SpatialObjectEngine({
     }
     const kAngle = kinematicAngleRef.current;
 
+    // Real-time Engine Kinematics Telemetry Broadcast
+    if (currentObjIds.includes('v12_engine')) {
+      const angleDeg = (kinematicAngleRef.current * 180) / Math.PI;
+      EngineKinematicsBus.update(
+        angleDeg,
+        v12RpmRef.current || 600,
+        kinematicSpeedRef.current,
+        isKinematicPlayingRef.current,
+        focusedCylinderRef.current || 1
+      );
+    }
+
     currentObjIds.forEach(objId => {
       const activeObject = SPATIAL_LIBRARY[objId];
       if (activeObject) {
@@ -2797,6 +2830,15 @@ export function SpatialObjectEngine({
           );
         })}
       </group>
+
+      {/* V12 DYNAMIC OVERLAYS (Combustion Flame, Charge Flow, Vectors) */}
+      {objectIds.includes('v12_engine') && (
+        <V12VisualOverlays
+          chargeFlowEnabled={chargeFlowEnabled}
+          vectorsEnabled={vectorsEnabled}
+          focusedCylinder={focusedCylinder}
+        />
+      )}
 
       {/* 3D HOLOGRAPHIC TARGETING BEAM AND RETICLE */}
       <TargetingBeam 

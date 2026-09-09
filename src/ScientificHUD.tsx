@@ -689,7 +689,8 @@ export function ScientificHUD({
       {/* ─────────────────────────────────────────────────────────────
           5. BOTTOM-CENTER: WORKSTATION COMMAND BAR & KINEMATIC TIMELINE
          ───────────────────────────────────────────────────────────── */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-30 flex flex-col gap-2 items-center w-full max-w-xl px-4">
+      {activeSpatialObject !== 'v12_engine' && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-30 flex flex-col gap-2 items-center w-full max-w-xl px-4">
         {/* Contextual Command Bar */}
         {onSendMessage && (
           <div className="w-full bg-slate-950/90 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-2 shadow-[0_0_30px_rgba(6,182,212,0.25)] flex flex-col gap-1.5 transition-all">
@@ -901,6 +902,7 @@ export function ScientificHUD({
           </div>
         )}
       </div>
+      )}
 
     </div>
   );
