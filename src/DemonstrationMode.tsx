@@ -38,6 +38,71 @@ interface DemoScript {
 
 const DEMO_SCRIPTS: DemoScript[] = [
   {
+    id: 'four_stroke_scientific',
+    title: 'Four-Stroke Thermodynamic & Kinematic Engine',
+    category: 'Thermodynamics & Kinematics',
+    overview: 'Full kinematic simulation of the 4-Stroke Otto cycle (720°) with synchronized real-time P-V indicator diagram, moving piston, rotating crankshaft, and timed valvetrain.',
+    steps: [
+      {
+        title: 'Stroke 1: Intake Stroke (0° - 180°)',
+        subtitle: 'Charge Induction & Volumetric Efficiency',
+        description: 'The overhead intake poppet valve unseats. The piston descends from TDC (0°) to BDC (180°), creating a negative pressure gradient drawing in the stoichiometric air-fuel charge.',
+        parameters: { 'Crank Angle': '0° → 180°', 'Intake Valve': 'OPEN (Lift: 9.5mm)', 'Exhaust Valve': 'SEALED', 'Cylinder Pressure': '0.98 Bar' },
+        modelTarget: { type: 'eng', id: 'v8_engine_scientific' }
+      },
+      {
+        title: 'Stroke 2: Compression Stroke (180° - 360°)',
+        subtitle: 'Isentropic Polytropic Compression',
+        description: 'Both intake and exhaust poppet valves remain tightly seated. The rotating crankshaft drives the forged connecting rod and piston upward toward TDC, compressing the gas volume by 10.5:1 ratio.',
+        parameters: { 'Crank Angle': '180° → 360°', 'Intake Valve': 'SEALED', 'Exhaust Valve': 'SEALED', 'Peak Pressure': '24.2 Bar', 'Polytropic Index': 'gamma = 1.35' },
+        modelTarget: { type: 'eng', id: 'v8_engine_scientific' }
+      },
+      {
+        title: 'Stroke 3: Combustion & Power Stroke (360° - 540°)',
+        subtitle: 'Isochoric Spark Heat Release & Expansion Work',
+        description: 'The iridium spark plug discharges at 12° BTDC. Flame propagation creates instantaneous pressure peak (>65 Bar), exerting downward mechanical thrust through the piston crown and conrod onto the crankshaft crankpin.',
+        parameters: { 'Crank Angle': '360° → 540°', 'Spark Discharge': '12° BTDC', 'Peak Temp': '2450 K', 'Positive Work': 'W = integral(P dV)' },
+        modelTarget: { type: 'eng', id: 'v8_engine_scientific' }
+      },
+      {
+        title: 'Stroke 4: Exhaust Scavenging Stroke (540° - 720°)',
+        subtitle: 'Exhaust Gas Evacuation & Residual Scavenging',
+        description: 'The sodium-cooled exhaust valve opens near BDC. As the piston ascends back to TDC, combusted exhaust gases are forcefully evacuated through the cylinder head port into the manifold.',
+        parameters: { 'Crank Angle': '540° → 720°', 'Intake Valve': 'SEALED', 'Exhaust Valve': 'OPEN (Lift: 8.8mm)', 'Backpressure': '1.15 Bar' },
+        modelTarget: { type: 'eng', id: 'v8_engine_scientific' }
+      }
+    ]
+  },
+  {
+    id: 'human_cardiovascular_atlas',
+    title: 'Cardiovascular Hemodynamics & Pulmonary Gas Exchange',
+    category: 'Biophysical Systems',
+    overview: 'Explore cardiac cycle phases, Frank-Starling stroke work, systemic aortic distribution, and pulmonary capillary diffusion.',
+    steps: [
+      {
+        title: 'Phase 1: Ventricular Diastole & Atrial Filling',
+        subtitle: 'Ventricular Relaxation & Compliance',
+        description: 'Ventricular myocardium relaxes. Atrioventricular valves open, and blood passively fills both ventricles up to End-Diastolic Volume (EDV = ~120 mL).',
+        parameters: { 'Left Ventricle': 'Relaxed (EDV 120 mL)', 'Aortic Valve': 'Closed', 'Diastolic Pressure': '80 mmHg' },
+        modelTarget: { type: 'eng', id: 'human_anatomy_scientific' }
+      },
+      {
+        title: 'Phase 2: Isovolumetric Contraction & Systolic Ejection',
+        subtitle: 'High-Pressure Stroke Work',
+        description: 'The thick left ventricular wall contracts vigorously, generating pressure exceeding 120 mmHg to open the aortic semilunar valve and eject stroke volume into systemic circulation.',
+        parameters: { 'Peak Systolic Pressure': '120 mmHg', 'Stroke Volume': '70 mL', 'Ejection Fraction': '58 - 65 %' },
+        modelTarget: { type: 'eng', id: 'human_anatomy_scientific' }
+      },
+      {
+        title: 'Phase 3: Pulmonary Diffusion & Blood Oxygenation',
+        subtitle: 'Alveolar Capillary Transport',
+        description: 'Deoxygenated blood pumped through the pulmonary trunk enters capillary beds around 300 million pulmonary alveoli for passive O2 and CO2 exchange across the respiratory membrane.',
+        parameters: { 'Alveolar pO2': '104 mmHg', 'Capillary pCO2': '40 mmHg', 'Exchange Area': '~100 m²' },
+        modelTarget: { type: 'eng', id: 'human_anatomy_scientific' }
+      }
+    ]
+  },
+  {
     id: 'v12_cycle',
     title: 'V12 Engine 4-Stroke Thermodynamic Cycle',
     category: 'Mechanical Kinematics',

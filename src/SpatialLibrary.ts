@@ -61,6 +61,89 @@ export interface ObjectMetadata {
 
 export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
 
+  v8_engine_scientific: {
+    id: 'v8_engine_scientific',
+    name: 'Four-Stroke Kinematic Engine',
+    path: '/models/automotive/v8.glb',
+    assetPath: '/models/automotive/v8.glb',
+    modelStatus: 'AVAILABLE',
+    category: 'Mechanical Engineering',
+    description: 'A structured, simulation-driven 4-stroke internal combustion engine with real thermodynamic cycle, rotating crankshaft, reciprocating piston, and synchronized double-overhead valvetrain.',
+    defaultScale: 1.2,
+    educationalInformation: {
+      overview: 'Demonstrates the Otto four-stroke cycle: Intake, Compression, Power, and Exhaust with real-time synchronized P-V indicator diagrams and governing equations.',
+      keyFeatures: [
+        'Forged Steel Crankshaft with 90° Crankpins',
+        'Reciprocating Piston with Wrist Pin & Compression Rings',
+        'Kinematic H-Beam Connecting Rod',
+        'Overhead Double Camshafts & Poppet Valves',
+        'High-Voltage Spark Plug Ignition Arc'
+      ],
+      workingPrinciple: 'Chemical energy stored in hydrocarbon fuel is released during constant-volume combustion, expanding rapidly against the piston face to produce linear kinematic force, converted to rotational mechanical torque by the slider-crank linkage.',
+      applications: ['Automotive Powertrains', 'Aviation Piston Engines', 'Marine Propulsion', 'Industrial Power Generation'],
+      specifications: {
+        'Cycle': 'Four-Stroke Otto Cycle (720°)',
+        'Displacement': '500 cc / cyl',
+        'Compression Ratio': '10.5 : 1',
+        'Bore x Stroke': '88.0 mm x 82.0 mm',
+        'Governing Law': 'P * V^gamma = C (Isentropic)'
+      }
+    },
+    components: [
+      { id: 'crankshaft_main', name: 'Forged Crankshaft', description: 'Primary rotational shaft converting linear piston reciprocating work into mechanical torque.', position: [0, -1.2, 0], size: [0.3, 0.3, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#64748b' },
+      { id: 'flywheel', name: 'Flywheel', description: 'Heavy rotational inertia disc storing kinetic energy to smooth out cyclic torque pulsations.', position: [0, -1.2, 1.8], size: [1.6, 1.6, 0.18], explodedOffset: [0, -1.2, 1.2], shape: 'cylinder', color: '#475569' },
+      { id: 'combustion_chamber_cyl1', name: 'Cylinder 1 Chamber', description: 'Rigid sealed enclosure containing explosive thermo-expansion.', position: [0, 0.4, 0], size: [1.1, 1.8, 1.1], explodedOffset: [0, 0.6, 0], shape: 'cylinder', color: '#334155' },
+      { id: 'piston_cyl1', name: 'Piston Crown', description: 'Lightweight reciprocating piston with compression rings and wrist pin.', position: [0, 0.2, 0], size: [0.88, 0.62, 0.88], explodedOffset: [0, 0.8, 0], shape: 'cylinder', color: '#94a3b8' },
+      { id: 'conrod_cyl1', name: 'Connecting Rod', description: 'Forged H-beam rod linking piston wrist pin to crankshaft journal pin.', position: [0, -0.4, 0], size: [0.16, 1.2, 0.2], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#94a3b8' },
+      { id: 'spark_plug_cyl1', name: 'Spark Plug', description: 'Iridium electrode generating timed electrical arc to trigger combustion.', position: [0, 1.5, 0], size: [0.15, 0.6, 0.15], explodedOffset: [0, 1.8, 0], shape: 'cylinder', color: '#f8fafc' },
+      { id: 'intake_valve_cyl1', name: 'Intake Valve', description: 'Poppet valve metering incoming air-fuel charge into the cylinder.', position: [-0.3, 1.3, 0], size: [0.36, 0.7, 0.36], explodedOffset: [-0.6, 1.2, 0], shape: 'cylinder', color: '#38bdf8' },
+      { id: 'exhaust_valve_cyl1', name: 'Exhaust Valve', description: 'Sodium-cooled poppet valve scavenging combusted exhaust gases.', position: [0.3, 1.3, 0], size: [0.32, 0.7, 0.32], explodedOffset: [0.6, 1.2, 0], shape: 'cylinder', color: '#f59e0b' },
+      { id: 'intake_camshaft', name: 'Intake Camshaft', description: 'Overhead rotating shaft with precision lobe profiles driving intake valves.', position: [-0.3, 1.8, 0], size: [0.2, 0.2, 2.8], explodedOffset: [-1.0, 1.5, 0], shape: 'cylinder', color: '#cbd5e1' },
+      { id: 'exhaust_camshaft', name: 'Exhaust Camshaft', description: 'Overhead rotating shaft driving exhaust valves timed to piston displacement.', position: [0.3, 1.8, 0], size: [0.2, 0.2, 2.8], explodedOffset: [1.0, 1.5, 0], shape: 'cylinder', color: '#cbd5e1' },
+      { id: 'timing_chain', name: 'Timing Chain', description: 'Dual-roller synchronous chain maintaining exact 2:1 gear ratio between crankshaft and camshafts.', position: [0, 0.3, -1.5], size: [0.9, 3.2, 0.1], explodedOffset: [0, 0.3, -1.2], shape: 'torus', color: '#0284c7' }
+    ]
+  },
+
+  human_anatomy_scientific: {
+    id: 'human_anatomy_scientific',
+    name: 'Cardiovascular & Respiratory Atlas',
+    path: '/models/biology/heart.glb',
+    assetPath: '/models/biology/heart.glb',
+    modelStatus: 'AVAILABLE',
+    category: 'Biological Systems',
+    description: 'Hierarchical anatomical atlas with discrete cardiac chambers, great vessels, trachea, and pulmonic lobes with real physiological hemodynamics.',
+    defaultScale: 1.1,
+    educationalInformation: {
+      overview: 'Explore human cardiac physiology, Frank-Starling stroke work, systemic oxygen transport, and synchronized respiratory gas exchange.',
+      keyFeatures: [
+        'Muscular Left Ventricle with Thick Myocardial Wall',
+        'Low-Pressure Pulmonary Right Ventricle',
+        'Elastic Systemic Aorta with Semilunar Valve',
+        'Cartilaginous C-Ring Trachea',
+        'Bilateral Pulmonic Alveolar Gas Exchange Lobes'
+      ],
+      workingPrinciple: 'Deoxygenated blood returns to the right atrium and ventricle, which pumps it to the lungs for oxygenation. Oxygen-rich blood returns to the high-pressure left ventricle, which ejects it into the ascending aorta across the systemic arterial tree.',
+      applications: ['Medical Anatomy Education', 'Cardiovascular Hemodynamics', 'Surgical Planning', 'Physiological Simulation'],
+      specifications: {
+        'Resting Cardiac Output': '5.0 L/min',
+        'Stroke Volume': '70 mL',
+        'Ejection Fraction': '58 - 65 %',
+        'Systemic Pressure': '120 / 80 mmHg',
+        'Governing Law': 'CO = HR * SV (Cardiac Output)'
+      }
+    },
+    components: [
+      { id: 'human_torso', name: 'Axial Spine & Rib Cage', description: 'Rigid skeletal framework shielding vital thoracic organs.', position: [0, 0, 0], size: [2.2, 3.0, 1.2], explodedOffset: [0, 0, 1.2], shape: 'box', color: '#e2e8f0' },
+      { id: 'heart_myocardium', name: 'Cardiac Myocardium Wall', description: 'Specialized striated cardiac muscle exhibiting continuous syncytial contraction.', position: [0, 0.2, 0], size: [1.2, 1.4, 1.1], explodedOffset: [0, 0.3, 0], shape: 'custom', color: '#e11d48' },
+      { id: 'left_ventricle', name: 'Left Ventricle', description: 'Primary systemic muscular chamber generating 120 mmHg systolic ejection pressure.', position: [0.18, 0, 0.1], size: [0.7, 0.9, 0.7], explodedOffset: [0.5, 0, 0.4], shape: 'custom', color: '#be123c' },
+      { id: 'right_ventricle', name: 'Right Ventricle', description: 'Crescent-shaped muscular chamber propelling deoxygenated blood to pulmonic bed.', position: [-0.18, 0, 0.1], size: [0.65, 0.85, 0.65], explodedOffset: [-0.5, 0, 0.4], shape: 'custom', color: '#9f1239' },
+      { id: 'ascending_aorta', name: 'Ascending Aorta', description: 'Large high-elasticity arterial trunk distributing oxygenated blood throughout the body.', position: [0.08, 0.8, 0], size: [0.35, 1.1, 0.35], explodedOffset: [0.2, 0.9, 0], shape: 'cylinder', color: '#f43f5e' },
+      { id: 'trachea', name: 'Trachea', description: 'Rigid airway tube reinforced with hyaline cartilage rings guiding air to bronchi.', position: [0, 1.2, -0.2], size: [0.22, 1.2, 0.22], explodedOffset: [0, 1.2, -0.5], shape: 'cylinder', color: '#38bdf8' },
+      { id: 'left_lung', name: 'Left Lung', description: 'Dual-lobed pulmonary organ containing 150 million alveoli for oxygen-CO2 exchange.', position: [0.85, 0.3, -0.1], size: [0.8, 1.6, 0.7], explodedOffset: [1.5, 0.3, 0], shape: 'custom', color: '#fb7185' },
+      { id: 'right_lung', name: 'Right Lung', description: 'Tri-lobed pulmonary organ performing bulk diffusion of atmospheric gases.', position: [-0.85, 0.3, -0.1], size: [0.85, 1.6, 0.75], explodedOffset: [-1.5, 0.3, 0], shape: 'custom', color: '#fb7185' }
+    ]
+  },
+
   arduino_uno: {
     id: 'arduino_uno',
     name: 'Arduino UNO R3',

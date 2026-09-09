@@ -358,10 +358,52 @@ export class UniversalGeometryVocabulary {
     width: number,
     height: number,
     depth: number,
-    finCount = 8,
-    finThickness = 0.03,
-    finProtrusion = 0.4
+    finCount?: number,
+    finThickness?: number,
+    finProtrusion?: number
+  ): THREE.BufferGeometry;
+  public static createCoolingFinArray(
+    count: number,
+    width: number,
+    height: number,
+    depth: number,
+    finThickness?: number
+  ): THREE.BufferGeometry;
+  public static createCoolingFinArray(
+    a: number,
+    b: number,
+    c: number,
+    d?: number,
+    e?: number,
+    f?: number
   ): THREE.BufferGeometry {
+    // If called with (count, width, height, depth, finThickness)
+    // HighFidelityGenerators calls: (count <= 20, width < 1, height, depth, finThickness)
+    if (d !== undefined && Number.isInteger(a) && a <= 20 && b <= 2 && f === undefined) {
+      const count = a;
+      const width = b;
+      const height = c;
+      const depth = d;
+      const finThickness = e ?? 0.02;
+      const geoms: THREE.BufferGeometry[] = [];
+      const step = count > 1 ? (depth - finThickness) / (count - 1) : 0;
+      for (let i = 0; i < count; i++) {
+        const z = -depth / 2 + i * step + finThickness / 2;
+        const fin = new THREE.BoxGeometry(width, height, finThickness);
+        fin.translate(0, 0, z);
+        geoms.push(fin);
+      }
+      return this.mergeGeometries(geoms);
+    }
+
+    // Default: (width, height, depth, finCount, finThickness, finProtrusion)
+    const width = a;
+    const height = b;
+    const depth = c;
+    const finCount = d ?? 8;
+    const finThickness = e ?? 0.03;
+    const finProtrusion = f ?? 0.4;
+
     const geoms: THREE.BufferGeometry[] = [];
     const spacing = depth / (finCount + 1);
 
@@ -569,27 +611,6 @@ export class UniversalGeometryVocabulary {
     }
     base.computeVertexNormals();
     return base;
-  }
-
-  /**
-   * Creates an array of cooling heat-sink fins (for motor housings, PC radiators, engine components).
-   */
-  public static createCoolingFinArray(
-    count: number,
-    width: number,
-    height: number,
-    depth: number,
-    finThickness: number = 0.02
-  ): THREE.BufferGeometry {
-    const geoms: THREE.BufferGeometry[] = [];
-    const step = count > 1 ? (depth - finThickness) / (count - 1) : 0;
-    for (let i = 0; i < count; i++) {
-      const z = -depth / 2 + i * step + finThickness / 2;
-      const fin = new THREE.BoxGeometry(width, height, finThickness);
-      fin.translate(0, 0, z);
-      geoms.push(fin);
-    }
-    return this.mergeGeometries(geoms);
   }
 
   /**

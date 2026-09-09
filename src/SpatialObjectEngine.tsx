@@ -1,4 +1,6 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
+import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
+import { ScientificSystemScene } from './scientific/ScientificSystemScene';
 import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
@@ -257,11 +259,6 @@ function ProceduralAssemblyAutoFitter({
 
 export type SpatialMode = 'INSPECTION' | 'SHOWCASE' | 'EXPLODED' | 'DEMO';
 
-// Continuous Explode / Assemble Tuning Parameters
-export const GESTURE_EXPLODE_MIN_DISTANCE = 0.18; // Hands close together (approx 0.0 -> fully assembled)
-export const GESTURE_EXPLODE_MAX_DISTANCE = 0.58; // Hands spread apart (approx 1.0 -> fully exploded)
-export const GESTURE_EXPLODE_SMOOTHING = 0.12;    // Exponential smoothing factor for responsive, jitter-free explode
-
 interface SpatialObjectEngineProps {
   currentSpatialObject: string | string[] | null;
   selectedComponentId: string | null;
@@ -281,7 +278,6 @@ interface SpatialObjectEngineProps {
   showLabels?: boolean;
   componentTransforms?: Record<string, { position: [number, number, number], rotation: [number, number, number], scale: [number, number, number] }>;
   explodedFactor?: number;
-  explodeAmount?: number;
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   highlightedComponentId?: string | null;
@@ -1724,7 +1720,6 @@ export function SpatialObjectEngine({
   showLabels = false,
   componentTransforms,
   explodedFactor = 0,
-  explodeAmount,
   xrayEnabled = false,
   blueprintEnabled = false,
   highlightedComponentId = null,
@@ -1830,17 +1825,6 @@ export function SpatialObjectEngine({
   const presentationStepRef = useRef(presentationStep);
   const currentSpatialObjectRef = useRef(currentSpatialObject);
   const isExplodedRef = useRef(isExploded);
-
-  // Continuous Explode / Assemble Controller State
-  const initialExplodeAmount = explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : (isExploded ? 1.0 : 0.0));
-  const continuousExplodeRef = useRef<number>(initialExplodeAmount);
-  const targetExplodeRef = useRef<number>(initialExplodeAmount);
-  const isGestureControllingExplodeRef = useRef<boolean>(false);
-  const lastTwoHandTrackingTimeRef = useRef<number>(0);
-  const prevIsExplodedPropRef = useRef<boolean>(isExploded);
-  const prevSpatialModePropRef = useRef<SpatialMode | undefined>(spatialMode);
-  const prevExplodedPropValRef = useRef<number | undefined>(explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : undefined));
-
   const isKinematicPlayingRef = useRef(isKinematicPlaying);
   const kinematicSpeedRef = useRef(kinematicSpeed);
   const kinematicAngleRef = useRef(0);
@@ -1862,81 +1846,6 @@ export function SpatialObjectEngine({
   const lastOverlayUpdateRef = useRef<number>(0);
   const raycastTargetSourceRef = useRef<'NONE' | 'COMPONENT_MESH' | 'PARENT_MODEL' | 'BACKGROUND' | 'UNKNOWN'>('NONE');
   const lastTwoHandMetricsRef = useRef<{ x: number; y: number; dist: number } | null>(null);
-
-  // Component Pinch-and-Drag & Dial Rotation State
-  const activeDragCompIdRef = useRef<string | null>(null);
-  const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane());
-  const dragPlaneIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
-  const dragStartIntersectRef = useRef<THREE.Vector3>(new THREE.Vector3());
-  const initialDragOffsetRef = useRef<[number, number, number]>([0, 0, 0]);
-  const componentDragOffsetsRef = useRef<Record<string, [number, number, number]>>({});
-  
-  // Component Carry Rotate State (Gesture 3: Hold still while carrying)
-  const componentDragRotationsRef = useRef<Record<string, [number, number, number]>>({});
-  const carryModeRef = useRef<'DRAG' | 'ROTATE'>('DRAG');
-  const lastCarryPosRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
-  const stillSinceTimeRef = useRef<number>(0);
-  const stillAnchorPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const rotateOriginPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const rotateStartAnglesRef = useRef<[number, number, number]>([0, 0, 0]);
-
-  // Component Scale State (Gesture 4: Two hands, distance changing = scale)
-  const componentDragScalesRef = useRef<Record<string, number>>({});
-  const modelAssemblyScaleRef = useRef<number>(1.0);
-  const prevTwoHandDistRef = useRef<number | null>(null);
-  const activeScaleTargetCompIdRef = useRef<string | null>(null);
-
-  const [, setDragTriggerState] = useState<number>(0);
-
-  useEffect(() => {
-    const handleTap = () => {
-      if (hoveredComponentIdRef.current) {
-        const targetId = hoveredComponentIdRef.current;
-        if (selectedComponentIdRef.current === targetId) {
-          // Toggle close/deselect if already open
-          selectedComponentIdRef.current = null;
-          setSelectedComponentId(null);
-          if (soundEnabled) playHologramSound('COLLAPSE');
-        } else {
-          // Select / open if not open
-          selectedComponentIdRef.current = targetId;
-          setSelectedComponentId(targetId);
-          if (soundEnabled) playHologramSound('FOCUS');
-        }
-        window.dispatchEvent(new CustomEvent('advis-selection-success', {
-          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-        }));
-      } else if (selectedComponentIdRef.current !== null) {
-        // Tapping in empty space closes / deselects the currently open component
-        selectedComponentIdRef.current = null;
-        setSelectedComponentId(null);
-        if (soundEnabled) playHologramSound('COLLAPSE');
-        window.dispatchEvent(new CustomEvent('advis-selection-success', {
-          detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-        }));
-      }
-    };
-    const handleSnapBack = () => {
-      componentDragOffsetsRef.current = {};
-      componentDragRotationsRef.current = {};
-      componentDragScalesRef.current = {};
-      modelAssemblyScaleRef.current = 1.0;
-      prevTwoHandDistRef.current = null;
-      activeScaleTargetCompIdRef.current = null;
-      activeDragCompIdRef.current = null;
-      carryModeRef.current = 'DRAG';
-      window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', { detail: { active: false } }));
-      window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', { detail: { active: false } }));
-      setDragTriggerState(Date.now());
-      if (soundEnabled) playHologramSound('COLLAPSE');
-    };
-    window.addEventListener('advis-tap', handleTap);
-    window.addEventListener('advis-snapback-components', handleSnapBack);
-    return () => {
-      window.removeEventListener('advis-tap', handleTap);
-      window.removeEventListener('advis-snapback-components', handleSnapBack);
-    };
-  }, [setSelectedComponentId, soundEnabled]);
 
   const effectiveMode = spatialMode || (isPresentationMode ? 'DEMO' : isExploded ? 'EXPLODED' : 'INSPECTION');
   const spatialModeRef = useRef<SpatialMode>(effectiveMode);
@@ -1997,7 +1906,6 @@ export function SpatialObjectEngine({
   const rotationVelocityRef = useRef<number>(0);
   const lastHandRotationRef = useRef<number | null>(null);
   const prevPinchPosRef = useRef<{ x: number; y: number } | null>(null);
-  const panOffsetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
 
   // Diagnostic Keyboard Control for Model Transform Isolation Test
   useEffect(() => {
@@ -2278,135 +2186,6 @@ export function SpatialObjectEngine({
           const isPinchJustTriggered = isPinchActive && !prevPinchStateRef.current;
           prevPinchStateRef.current = isPinchActive;
 
-          // PINCH-AND-DRAG COMPONENT MANIPULATION & CARRY 3D ROTATE (Gesture 2 & 3)
-          if (isPinchJustTriggered) {
-            const targetCompId = foundComponentId || hoveredComponentIdRef.current;
-            if (targetCompId && componentRefs.current[targetCompId]) {
-              activeDragCompIdRef.current = targetCompId;
-              selectedComponentIdRef.current = targetCompId;
-              setSelectedComponentId(targetCompId);
-
-              const meshObj = componentRefs.current[targetCompId];
-              const camDir = camera.getWorldDirection(new THREE.Vector3()).negate();
-              dragPlaneRef.current.setFromNormalAndCoplanarPoint(camDir, meshObj.position);
-
-              if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
-                dragStartIntersectRef.current.copy(dragPlaneIntersectRef.current);
-              }
-              const cur = componentDragOffsetsRef.current[targetCompId] || [0, 0, 0];
-              initialDragOffsetRef.current = [cur[0], cur[1], cur[2]];
-
-              // Initialize carry state (starts in translation mode)
-              carryModeRef.current = 'DRAG';
-              stillSinceTimeRef.current = 0;
-              const cursorX = gEngine.cursorPosition ? gEngine.cursorPosition.x : 0.5;
-              const cursorY = gEngine.cursorPosition ? gEngine.cursorPosition.y : 0.5;
-              lastCarryPosRef.current = { x: cursorX, y: cursorY, time: performance.now() };
-              stillAnchorPosRef.current = { x: cursorX, y: cursorY };
-
-              if (soundEnabled) playHologramSound('SELECT');
-            } else {
-              // Pinch made in open space: do not drag any component
-              activeDragCompIdRef.current = null;
-            }
-          }
-
-          if (isPinchActive && activeDragCompIdRef.current) {
-            const draggedId = activeDragCompIdRef.current;
-            const now = performance.now();
-            const curX = gEngine.cursorPosition ? gEngine.cursorPosition.x : lastCarryPosRef.current.x;
-            const curY = gEngine.cursorPosition ? gEngine.cursorPosition.y : lastCarryPosRef.current.y;
-            const dt = Math.max((now - lastCarryPosRef.current.time) / 1000, 0.001);
-            const frameDist = Math.hypot(curX - lastCarryPosRef.current.x, curY - lastCarryPosRef.current.y);
-            const handSpeed = frameDist / dt; // normalized speed per second
-
-            lastCarryPosRef.current = { x: curX, y: curY, time: now };
-
-            if (carryModeRef.current === 'DRAG') {
-              // GESTURE 3 STILLNESS DETECTION:
-              // Require genuinely stationary hand (low velocity AND tight drift radius) sustained for 400ms.
-              // This strictly prevents momentary slowing down or micro-pauses mid-drag from triggering rotate.
-              const distFromAnchor = Math.hypot(curX - stillAnchorPosRef.current.x, curY - stillAnchorPosRef.current.y);
-
-              if (handSpeed < 0.055 && distFromAnchor < 0.025) {
-                if (stillSinceTimeRef.current === 0) {
-                  stillSinceTimeRef.current = now;
-                  stillAnchorPosRef.current = { x: curX, y: curY };
-                } else if (now - stillSinceTimeRef.current >= 400) {
-                  // Hand has held still for a natural pause while carrying: switch to 3D rotate mode!
-                  carryModeRef.current = 'ROTATE';
-                  rotateOriginPosRef.current = { x: curX, y: curY };
-                  const curRot = componentDragRotationsRef.current[draggedId] || [0, 0, 0];
-                  rotateStartAnglesRef.current = [curRot[0], curRot[1], curRot[2]];
-                  if (soundEnabled) playHologramSound('FOCUS');
-                  window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
-                    detail: { active: true, componentId: draggedId }
-                  }));
-                }
-              } else {
-                // Hand is traveling or moving; reset stillness timer
-                stillSinceTimeRef.current = 0;
-                stillAnchorPosRef.current = { x: curX, y: curY };
-              }
-
-              // In DRAG mode: translate the component along the view plane
-              if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
-                const delta = dragPlaneIntersectRef.current.clone().sub(dragStartIntersectRef.current);
-                const init = initialDragOffsetRef.current;
-                componentDragOffsetsRef.current[draggedId] = [
-                  init[0] + delta.x,
-                  init[1] + delta.y,
-                  init[2] + delta.z
-                ];
-              }
-            } else if (carryModeRef.current === 'ROTATE') {
-              // IN 3D ROTATE MODE:
-              // Small hand movements from the stationary anchor point rotate the component in 3D in place!
-              const dx = curX - rotateOriginPosRef.current.x;
-              const dy = curY - rotateOriginPosRef.current.y;
-              const initRot = rotateStartAnglesRef.current;
-
-              // Pitch (X-axis) and Yaw (Y-axis) rotation with intuitive sensitivity
-              componentDragRotationsRef.current[draggedId] = [
-                initRot[0] - dy * 4.5,
-                initRot[1] + dx * 4.5,
-                initRot[2]
-              ];
-
-              // If the user decides to move the component across the screen again (large travel),
-              // seamlessly resume DRAG mode without requiring release
-              const distFromRotateOrigin = Math.hypot(dx, dy);
-              if (distFromRotateOrigin > 0.18 && handSpeed > 0.12) {
-                carryModeRef.current = 'DRAG';
-                stillSinceTimeRef.current = 0;
-                stillAnchorPosRef.current = { x: curX, y: curY };
-                if (raycaster.ray.intersectPlane(dragPlaneRef.current, dragPlaneIntersectRef.current)) {
-                  dragStartIntersectRef.current.copy(dragPlaneIntersectRef.current);
-                }
-                const cur = componentDragOffsetsRef.current[draggedId] || [0, 0, 0];
-                initialDragOffsetRef.current = [cur[0], cur[1], cur[2]];
-                window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
-                  detail: { active: false, componentId: draggedId }
-                }));
-              }
-            }
-          } else if (!isPinchActive && activeDragCompIdRef.current) {
-            // Releasing the pinch drops the component wherever it currently is with its 3D rotation
-            if (carryModeRef.current === 'ROTATE') {
-              window.dispatchEvent(new CustomEvent('advis-carry-rotate-active', {
-                detail: { active: false }
-              }));
-            }
-            if (soundEnabled) playHologramSound('FOCUS');
-            window.dispatchEvent(new CustomEvent('advis-selection-success', {
-              detail: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-            }));
-            activeDragCompIdRef.current = null;
-            carryModeRef.current = 'DRAG';
-            stillSinceTimeRef.current = 0;
-            setDragTriggerState(Date.now());
-          }
-
           if (foundComponentId && hitPoint) {
             hoverHitPointRef.current = hitPoint;
 
@@ -2421,8 +2200,14 @@ export function SpatialObjectEngine({
             const confidence = targetConfidenceRef.current;
 
             // INTENT-BASED SELECTION: Pointer movement alone ONLY hovers/targets.
-            // Tap (quick pinch touch & release) is REQUIRED to select / open or toggle close!
-            if (selectedComponentIdRef.current === foundComponentId) {
+            // Pinch gesture is STRICTLY REQUIRED to select the component!
+            if (isPinchActive && (isPinchJustTriggered || confidence >= 0.2)) {
+              selectionStateRef.current = 'PINCH SELECT';
+              if (selectedComponentIdRef.current !== foundComponentId) {
+                selectedComponentIdRef.current = foundComponentId;
+                setSelectedComponentId(foundComponentId);
+              }
+            } else if (selectedComponentIdRef.current === foundComponentId) {
               selectionStateRef.current = 'DETAIL VIEW';
             } else if (confidence >= 0.5) {
               selectionStateRef.current = 'TARGET CONFIRMED';
@@ -2541,13 +2326,27 @@ export function SpatialObjectEngine({
     if (mainGroupRef.current) {
       const floatUpY = THREE.MathUtils.lerp(-2.8, 0, sTrans);
 
-      // Model position follows world origin + pan offset
-      mainGroupRef.current.position.x = panOffsetRef.current.x;
-      mainGroupRef.current.position.y = floatUpY + panOffsetRef.current.y;
-      mainGroupRef.current.position.z = panOffsetRef.current.z;
-      mainGroupRef.current.scale.setScalar(sTrans * modelAssemblyScaleRef.current);
+      // Hologram remains anchored in 3D world space at origin
+      objectPosRef.current.set(0, 0, 0);
+      objectVelRef.current.set(0, 0, 0);
+
+      mainGroupRef.current.position.x = 0;
+      mainGroupRef.current.position.y = floatUpY;
+      mainGroupRef.current.position.z = 0;
+      mainGroupRef.current.scale.setScalar(sTrans);
+
+      // =========================================================================
+      // INTENT SEPARATION & STRICT GESTURE ROTATION CONTROLLER
+      // =========================================================================
+      // States:
+      // - HAND_PRESENT: Hand detected, open palm, stationary -> NO ACTION. Model frozen.
+      // - HAND_HOVER: Pointing gesture -> Pointer raycast selection only. Zero model movement.
+      // - PINCH_ACTIVE: Single-hand pinch -> Controlled rotation via hand movement DELTA (dx).
+      // - TWO_HAND_ROTATE: Explicit two-hand rotation gesture -> Controlled rotation via angle DELTA.
+      // =========================================================================
 
       const currentGesture = handTrackingRef.current?.gesture;
+      const rawHandRot = handTrackingRef.current?.handRotation;
 
       // 1. PINCH_ACTIVE check
       const isSingleHandPinch = gEngine.isHandActive &&
@@ -2555,8 +2354,15 @@ export function SpatialObjectEngine({
         (gEngine.isPinch || gEngine.interactionState === 'PINCH_HOLD' || gEngine.interactionState === 'PINCH_START' || gEngine.interactionState === 'PINCH_DRAG' || currentGesture === 'PINCH') &&
         gEngine.cursorPosition !== null;
 
+      // 2. TWO_HAND_ROTATE check
+      const isTwoHandRotate = gEngine.isHandActive &&
+        gEngine.handsCount === 2 &&
+        (currentGesture === 'TWO HAND ROTATE' ||
+         currentGesture === 'TWO FINGER ROTATION' ||
+         gEngine.interactionState === 'ROTATING');
+
       // Intentional manipulation active flag
-      const isActivelyInteracting = isSingleHandPinch;
+      const isActivelyInteracting = isSingleHandPinch || isTwoHandRotate;
 
       if (isInteractingRef.current !== isActivelyInteracting) {
         isInteractingRef.current = isActivelyInteracting;
@@ -2565,25 +2371,80 @@ export function SpatialObjectEngine({
         }
       }
 
+      let frameInspectionRotDelta = 0;
       const isTargetingComp = hoveredComponentIdRef.current !== null && targetConfidenceRef.current >= 0.2;
 
       if (isSingleHandPinch && isTargetingComp) {
-        // COMPONENT SELECTION PINCH: Part drag handled by raycaster plane above
+        // COMPONENT SELECTION PINCH: Suppress inspection model rotation so object remains stable during component selection
         prevPinchPosRef.current = null;
         isGrabbingRef.current = false;
         rotationVelocityRef.current = 0;
-      } else if (isSingleHandPinch && !isTargetingComp) {
-        // EMPTY SPACE PINCH: Reserved for Gesture 5 (explode scrub) later.
-        // For now an empty-space pinch-drag does nothing.
-        prevPinchPosRef.current = null;
-        isGrabbingRef.current = false;
-        rotationVelocityRef.current = 0;
+      } else if (isSingleHandPinch && !isTargetingComp && gEngine.cursorPosition) {
+        // INSPECTION MANIPULATION PINCH: Single-hand pinch in empty space rotates 3D model
+        const cursorX = gEngine.cursorPosition.x;
+        const cursorY = gEngine.cursorPosition.y;
+
+        if (prevPinchPosRef.current === null) {
+          // Initial pinch grab frame: capture start position without rotation jump
+          prevPinchPosRef.current = { x: cursorX, y: cursorY };
+          isGrabbingRef.current = true;
+          hasUserInteractedRef.current = true;
+          rotationVelocityRef.current = 0;
+        } else {
+          // Hand movement delta
+          const dx = cursorX - prevPinchPosRef.current.x;
+          prevPinchPosRef.current = { x: cursorX, y: cursorY };
+
+          const DEADZONE_DISPLACEMENT = 0.0015; // Noise deadzone filter
+          if (Math.abs(dx) > DEADZONE_DISPLACEMENT) {
+            // Directional movement delta induces rotation
+            const rotVel = -dx * 2.5;
+            rotationVelocityRef.current = THREE.MathUtils.clamp(rotVel, -0.06, 0.06);
+            idleRotationRef.current += rotationVelocityRef.current;
+            frameInspectionRotDelta = rotVel;
+          } else {
+            // DEAD STOP REQUIREMENT: Hand stopped moving -> velocity rapidly decays to zero!
+            rotationVelocityRef.current *= 0.3;
+            if (Math.abs(rotationVelocityRef.current) < 0.0001) {
+              rotationVelocityRef.current = 0;
+            }
+          }
+        }
       } else {
         // Reset single-hand pinch state when pinch ends
         if (prevPinchPosRef.current !== null || isGrabbingRef.current) {
           prevPinchPosRef.current = null;
           isGrabbingRef.current = false;
         }
+      }
+
+      if (isTwoHandRotate && rawHandRot !== undefined) {
+        if (lastHandRotationRef.current === null) {
+          lastHandRotationRef.current = rawHandRot;
+          rotationVelocityRef.current = 0;
+        } else {
+          let rotDelta = rawHandRot - lastHandRotationRef.current;
+          lastHandRotationRef.current = rawHandRot;
+
+          while (rotDelta < -Math.PI) rotDelta += 2 * Math.PI;
+          while (rotDelta > Math.PI) rotDelta -= 2 * Math.PI;
+
+          const DEADZONE_ROTATION = 0.012;
+          if (Math.abs(rotDelta) > DEADZONE_ROTATION) {
+            hasUserInteractedRef.current = true;
+            const rotVel = rotDelta * 0.8;
+            rotationVelocityRef.current = THREE.MathUtils.clamp(rotVel, -0.06, 0.06);
+            idleRotationRef.current += rotationVelocityRef.current;
+          } else {
+            // DEAD STOP REQUIREMENT: Hands stopped rotating -> velocity rapidly decays to zero!
+            rotationVelocityRef.current *= 0.3;
+            if (Math.abs(rotationVelocityRef.current) < 0.0001) {
+              rotationVelocityRef.current = 0;
+            }
+          }
+        }
+      } else {
+        lastHandRotationRef.current = null;
       }
 
       // If user is not intentionally pinching or two-hand rotating (e.g. HAND_PRESENT or HAND_HOVER)
@@ -2663,119 +2524,6 @@ export function SpatialObjectEngine({
       }
     }
     
-    // =========================================================================
-    // CONTINUOUS TWO-HAND GESTURE EXPLODE / ASSEMBLE CONTROLLER
-    // =========================================================================
-    const now = performance.now();
-
-    // 1. UI / Command Precedence Detection:
-    // When user presses Explode/Assemble button, triggers voice/chat action, or changes spatialMode
-    if (prevIsExplodedPropRef.current !== isExploded) {
-      prevIsExplodedPropRef.current = isExploded;
-      targetExplodeRef.current = isExploded ? 1.0 : 0.0;
-      isGestureControllingExplodeRef.current = false;
-    }
-    if (prevSpatialModePropRef.current !== spatialMode) {
-      prevSpatialModePropRef.current = spatialMode;
-      if (spatialMode === 'EXPLODED') {
-        targetExplodeRef.current = 1.0;
-        isGestureControllingExplodeRef.current = false;
-      } else if (spatialMode === 'INSPECTION') {
-        targetExplodeRef.current = 0.0;
-        isGestureControllingExplodeRef.current = false;
-      }
-    }
-    const activeExplodeProp = explodeAmount !== undefined ? explodeAmount : (explodedFactor > 0 ? explodedFactor : undefined);
-    if (activeExplodeProp !== undefined && activeExplodeProp !== null && activeExplodeProp !== prevExplodedPropValRef.current) {
-      prevExplodedPropValRef.current = activeExplodeProp;
-      targetExplodeRef.current = THREE.MathUtils.clamp(activeExplodeProp, 0.0, 1.0);
-      isGestureControllingExplodeRef.current = false;
-    }
-
-    // 2. Gesture Control: Active Two-Hand Distance for Gesture 4 (Scale)
-    const ht = handTrackingRef.current;
-    const isTracking = Boolean(ht && ht.state === 'TRACKING');
-    const lPos = ht?.leftHandPosition;
-    const rPos = ht?.rightHandPosition;
-    const handsCount = ht?.handsDetected ?? ((lPos && rPos) ? 2 : 0);
-    const hasTwoHands = isTracking && (handsCount === 2 || Boolean(lPos && rPos));
-    const trackingConfidence = ht?.confidence ?? 1.0;
-
-    // Target for scaling: actively held component, selected component, hovered component, or overall model assembly
-    const activeTargetCompId = activeDragCompIdRef.current || selectedComponentIdRef.current || (hoveredComponentIdRef.current && targetConfidenceRef.current >= 0.2 ? hoveredComponentIdRef.current : null);
-
-    if (hasTwoHands && trackingConfidence >= 0.35) {
-      const currentHandsDist = ht?.handsDistance || (lPos && rPos ? Math.hypot(lPos.x - rPos.x, lPos.y - rPos.y) : 0);
-
-      if (currentHandsDist > 0.04) {
-        if (prevTwoHandDistRef.current === null) {
-          // First frame of two hands detected or re-acquired after occlusion:
-          // Latch the current baseline distance so delta starts at 0 (prevents sudden scale jumping!)
-          prevTwoHandDistRef.current = currentHandsDist;
-          activeScaleTargetCompIdRef.current = activeTargetCompId;
-        } else {
-          // Real-time distance change
-          const distDelta = currentHandsDist - prevTwoHandDistRef.current;
-          prevTwoHandDistRef.current = currentHandsDist;
-
-          // Dead-band to suppress minor camera jitter
-          if (Math.abs(distDelta) > 0.001) {
-            // Distance increasing (+distDelta) scales UP; decreasing (-distDelta) scales DOWN
-            const scaleSensitivity = 2.4;
-            const deltaScale = distDelta * scaleSensitivity;
-
-            const scaleTargetId = activeScaleTargetCompIdRef.current || activeTargetCompId;
-            let resultingScale = 1.0;
-
-            if (scaleTargetId) {
-              const currentScale = componentDragScalesRef.current[scaleTargetId] || 1.0;
-              resultingScale = THREE.MathUtils.clamp(currentScale + deltaScale, 0.25, 4.0);
-              componentDragScalesRef.current[scaleTargetId] = resultingScale;
-            } else {
-              const currentModelScale = modelAssemblyScaleRef.current;
-              resultingScale = THREE.MathUtils.clamp(currentModelScale + deltaScale, 0.25, 3.5);
-              modelAssemblyScaleRef.current = resultingScale;
-            }
-
-            window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', {
-              detail: { 
-                active: true, 
-                componentId: scaleTargetId,
-                scale: resultingScale,
-                direction: distDelta > 0 ? 'UP' : 'DOWN'
-              }
-            }));
-          }
-        }
-        lastTwoHandTrackingTimeRef.current = now;
-      }
-    } else {
-      // Both hands lost or occluded:
-      // Grace period buffer (350ms) to ignore momentary frame drops, then cleanly release baseline
-      const timeSinceTwoHands = now - lastTwoHandTrackingTimeRef.current;
-      if (timeSinceTwoHands >= 350) {
-        if (prevTwoHandDistRef.current !== null) {
-          prevTwoHandDistRef.current = null;
-          activeScaleTargetCompIdRef.current = null;
-          window.dispatchEvent(new CustomEvent('advis-two-hand-scale-active', {
-            detail: { active: false }
-          }));
-        }
-      }
-    }
-
-    // 4. Exponential Smoothing Filter for Explode (now decoupled from two-hand distance):
-    continuousExplodeRef.current = THREE.MathUtils.lerp(
-      continuousExplodeRef.current,
-      targetExplodeRef.current,
-      0.15
-    );
-
-    // Dead-band clamp to exact target when difference is negligible to prevent floating-point oscillation
-    if (Math.abs(continuousExplodeRef.current - targetExplodeRef.current) < 0.0005) {
-      continuousExplodeRef.current = targetExplodeRef.current;
-    }
-
     // G. Explode animations and mechanical reciprocating movements
     const currentObjIds = currentSpatialObjectRef.current 
       ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
@@ -2787,53 +2535,21 @@ export function SpatialObjectEngine({
     }
     const kAngle = kinematicAngleRef.current;
 
-    const currentExplodeAmount = continuousExplodeRef.current;
-
     currentObjIds.forEach(objId => {
       const activeObject = SPATIAL_LIBRARY[objId];
       if (activeObject) {
         activeObject.components.forEach(comp => {
           const meshObj = componentRefs.current[comp.id];
           if (meshObj) {
-            const baseOffset = comp.explodedOffset || [0, 0, 0];
-            const targetOffset = [
-              baseOffset[0] * currentExplodeAmount,
-              baseOffset[1] * currentExplodeAmount,
-              baseOffset[2] * currentExplodeAmount
-            ];
-            const dragOffset = componentDragOffsetsRef.current[comp.id] || [0, 0, 0];
-            const isBeingDragged = activeDragCompIdRef.current === comp.id;
-
-            const targetX = comp.position[0] + targetOffset[0] + dragOffset[0];
-            const targetY = comp.position[1] + targetOffset[1] + dragOffset[1];
-            const targetZ = comp.position[2] + targetOffset[2] + dragOffset[2];
-
-            const lerpFactor = isBeingDragged ? 0.85 : 0.12;
-            meshObj.position.x += (targetX - meshObj.position.x) * lerpFactor;
-            meshObj.position.y += (targetY - meshObj.position.y) * lerpFactor;
-            meshObj.position.z += (targetZ - meshObj.position.z) * lerpFactor;
-
-            const baseRot = comp.rotation || [0, 0, 0];
-            const dragRot = componentDragRotationsRef.current[comp.id] || [0, 0, 0];
-            const targetRotX = baseRot[0] + dragRot[0];
-            const targetRotY = baseRot[1] + dragRot[1];
-            const targetRotZ = baseRot[2] + dragRot[2];
-
-            const rotLerpFactor = isBeingDragged ? 0.65 : 0.15;
-            meshObj.rotation.x += (targetRotX - meshObj.rotation.x) * rotLerpFactor;
-            meshObj.rotation.y += (targetRotY - meshObj.rotation.y) * rotLerpFactor;
-            meshObj.rotation.z += (targetRotZ - meshObj.rotation.z) * rotLerpFactor;
-
-            const targetCompScale = componentDragScalesRef.current[comp.id] || 1.0;
-            const currentScaleX = meshObj.scale.x;
-            const smoothedCompScale = currentScaleX + (targetCompScale - currentScaleX) * 0.25;
+            const targetOffset = isExplodedRef.current ? comp.explodedOffset : [0, 0, 0];
+            meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
+            meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
+            meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
 
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
               const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5 * (heartPulseSpeed > 0 ? heartPulseSpeed : 1)) * 0.06;
-              meshObj.scale.set(smoothedCompScale * pulse, smoothedCompScale * pulse, smoothedCompScale * pulse);
-            } else {
-              meshObj.scale.set(smoothedCompScale, smoothedCompScale, smoothedCompScale);
+              meshObj.scale.set(pulse, pulse, pulse);
             }
           }
         });
@@ -2922,7 +2638,21 @@ export function SpatialObjectEngine({
                    : obj.id === 'hydrogen_atom' ? <HydrogenAtom />
                   : obj.id === 'atomic_nucleus' ? <AtomicNucleus />
                   : obj.id === 'magnetic_field' ? <MagneticField />
-                  : (
+                  : ScientificModelRegistry.getModel(obj.id) ? (
+                    <ScientificSystemScene
+                      model={ScientificModelRegistry.getModel(obj.id)!}
+                      selectedComponentId={selectedComponentId}
+                      onSelectComponent={(id) => setSelectedComponentId(id)}
+                      hoveredComponentId={hoveredComponentId}
+                      isExploded={isExploded}
+                      explodedFactor={explodedFactor}
+                      showLabels={showLabels}
+                      v12Rpm={v12Rpm}
+                      isKinematicPlaying={isKinematicPlaying}
+                      isolatedComponentId={isolatedComponentId}
+                      highlightedComponentId={highlightedComponentId}
+                    />
+                  ) : (
                     obj.components.map(comp => {
                       const isHovered = hoveredComponentId === comp.id;
                       const isSelected = selectedComponentId === comp.id;
@@ -2964,7 +2694,7 @@ export function SpatialObjectEngine({
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
                       const expOffset = comp.explodedOffset || [0, 0, 0];
-                      const currentExplodedFactor = explodeAmount !== undefined ? explodeAmount : (explodedFactor || (isExploded ? 1.0 : 0.0));
+                      const currentExplodedFactor = explodedFactor || 0;
                       
                       const pos: [number, number, number] = [
                         basePos[0] + expOffset[0] * currentExplodedFactor,

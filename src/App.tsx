@@ -10,7 +10,7 @@ import { InputArea } from './InputArea';
 import { Sidebar } from './Sidebar';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
-import { playStateTransitionSound, playTone } from './audioEffects';
+import { playStateTransitionSound } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
 import { Fingerprint, Lock } from 'lucide-react';
@@ -23,6 +23,9 @@ import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { EngineeringHUD } from './EngineeringHUD';
 import { ScientificHUD } from './ScientificHUD';
 import { ScientificLaunchpad } from './ScientificLaunchpad';
+import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
+import { ScientificActionRouter } from './scientific/ScientificActionRouter';
+import { useScientificStore } from './scientific/ScientificStore';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -55,7 +58,6 @@ import { MolecularBuilderHUD } from './LearnEngine/MolecularBuilderHUD';
 import { ModelBuilder, ModelRegistry } from './AutonomousModelEngine';
 
 import { HolographicCursor } from './HolographicCursor';
-import { GestureLegend } from './components/GestureLegend';
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -137,6 +139,7 @@ function AppContent() {
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
   const [cvEnabled, setCvEnabled] = useState<boolean>(false);
+  const [cameraPermissionError, setCameraPermissionError] = useState<string | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [activeLearningSession, setActiveLearningSession] = useState<LearningSession | null>(null);
   const [recentActions, setRecentActions] = useState<Array<{ type: string; target?: string | null; name?: string | null; timestamp: number }>>([]);
@@ -317,6 +320,16 @@ function AppContent() {
     };
     window.addEventListener('advis-swipe', handleSwipe);
     return () => window.removeEventListener('advis-swipe', handleSwipe);
+  }, []);
+
+  useEffect(() => {
+    const handleCameraDenied = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      setCvEnabled(false);
+      setCameraPermissionError(detail?.message || 'Camera permission was denied.');
+    };
+    window.addEventListener('advis-camera-permission-denied', handleCameraDenied);
+    return () => window.removeEventListener('advis-camera-permission-denied', handleCameraDenied);
   }, []);
 
   useEffect(() => {
@@ -556,6 +569,78 @@ function AppContent() {
     
     const deviceId = localStorage.getItem('advis_device_id') || 'default';
     const lowerCmd = displayMessage.toLowerCase().trim();
+
+    // 0. Direct Scientific Model Launch Intent
+    if (lowerCmd.includes('four stroke') || lowerCmd.includes('4 stroke') || lowerCmd.includes('4-stroke') || lowerCmd.includes('otto cycle') || (lowerCmd.includes('piston engine') && !lowerCmd.includes('v12'))) {
+      setCurrentSpatialObject('v8_engine_scientific');
+      useScientificStore.getState().setActiveModel('four_stroke_engine_v1');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Loaded Four-Stroke Kinematic & Thermodynamic Engine. Kinematic crankshaft linkage, reciprocating piston, double-overhead valvetrain, and synchronized P-V indicator diagram online.',
+        timestamp: Date.now()
+      }]);
+      return;
+    }
+
+    if (lowerCmd.includes('human anatomy') || lowerCmd.includes('cardiovascular') || lowerCmd.includes('human heart') || lowerCmd.includes('respiratory atlas')) {
+      setCurrentSpatialObject('human_anatomy_scientific');
+      useScientificStore.getState().setActiveModel('human_cardiovascular_atlas');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Loaded Human Cardiovascular & Respiratory Atlas. Ventricular myocardium, systemic aortic trunk, trachea, and pulmonic gas exchange lobes initialized.',
+        timestamp: Date.now()
+      }]);
+      return;
+    }
+
+    // 0b. Scientific Action Router Execution for Active Scientific Model
+    const scientificStore = useScientificStore.getState();
+    let curSciModel = scientificStore.activeModel;
+    if (!curSciModel) {
+      if (currentSpatialObject === 'v8_engine_scientific' || currentSpatialObject === 'v8_engine') {
+        scientificStore.setActiveModel('four_stroke_engine_v1');
+        curSciModel = scientificStore.activeModel;
+      } else if (currentSpatialObject === 'human_anatomy_scientific') {
+        scientificStore.setActiveModel('human_cardiovascular_atlas');
+        curSciModel = scientificStore.activeModel;
+      }
+    }
+
+    if (curSciModel && scientificStore.simulation && scientificStore.graph) {
+      const router = new ScientificActionRouter(
+        curSciModel,
+        scientificStore.simulation,
+        scientificStore.graph,
+        {
+          onSelectComponent: (id) => setSelectedComponentId(id),
+          onIsolateSubsystem: (subId) => scientificStore.setIsolatedSubsystemId(subId),
+          onSetExplosion: (factor) => {
+            setIsExploded(factor > 0.1);
+            setExplodedFactor(factor);
+            scientificStore.setExplosionFactor(factor);
+          }
+        }
+      );
+
+      const parsedAction = router.parseNaturalLanguage(lowerCmd);
+      if (parsedAction) {
+        const res = router.executeAction(parsedAction);
+        if (res.success) {
+          if (parsedAction.type === 'SET_PARAMETER' && parsedAction.parameter === 'rpm' && parsedAction.value) {
+            setV12Rpm(parsedAction.value);
+          } else if (parsedAction.type === 'START_SIMULATION') {
+            setIsKinematicPlaying(true);
+          } else if (parsedAction.type === 'PAUSE_SIMULATION') {
+            setIsKinematicPlaying(false);
+          }
+          setSystemState('ONLINE');
+          setMessages(prev => [...prev, { role: 'assistant', content: res.feedback, timestamp: Date.now() }]);
+          return;
+        }
+      }
+    }
 
     // Direct CAD & Kinematic Command Intercepts
     if (lowerCmd.includes('play the engine') || lowerCmd.includes('play engine') || lowerCmd.includes('start engine') || lowerCmd.includes('run engine')) {
@@ -1049,36 +1134,6 @@ function AppContent() {
 
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
-  // Gesture-controlled spatial navigation & summon listeners
-  useEffect(() => {
-    const available = ['v12_engine', 'human_heart', 'drone_frame', 'microscope', 'solar_tracker'];
-
-    const handleModelCycle = (e: Event) => {
-      const customEvent = e as CustomEvent<{ direction: 'LEFT' | 'RIGHT' }>;
-      const dir = customEvent.detail?.direction || 'RIGHT';
-      setCurrentSpatialObject(prev => {
-        const cur = typeof prev === 'string' ? prev : (Array.isArray(prev) ? prev[0] : 'v12_engine');
-        const idx = available.indexOf(cur);
-        const validIdx = idx >= 0 ? idx : 0;
-        const nextIdx = dir === 'RIGHT' 
-          ? (validIdx + 1) % available.length 
-          : (validIdx - 1 + available.length) % available.length;
-        return available[nextIdx];
-      });
-      setSelectedComponentId(null);
-      setHoveredComponentId(null);
-      if (soundEnabled) {
-        playTone(900, 'sine', 0.1, 0.08);
-        setTimeout(() => playTone(1200, 'sine', 0.15, 0.08), 80);
-      }
-    };
-
-    window.addEventListener('advis-model-cycle', handleModelCycle);
-    return () => {
-      window.removeEventListener('advis-model-cycle', handleModelCycle);
-    };
-  }, [soundEnabled]);
-
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
 
   return (
@@ -1270,8 +1325,22 @@ function AppContent() {
       </div>
     </div>
 
+    {/* Camera Permission State Notification */}
+    {cameraPermissionError && (
+      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[46] font-mono text-xs text-rose-400 bg-black/90 border border-rose-500/40 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(244,63,94,0.2)]">
+        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+        <span className="font-bold tracking-widest uppercase">{cameraPermissionError}</span>
+        <button
+          onClick={() => setCameraPermissionError(null)}
+          className="ml-3 text-[10px] text-rose-300 hover:text-white underline cursor-pointer"
+        >
+          DISMISS
+        </button>
+      </div>
+    )}
+
     {/* Hand Loss State Notification */}
-    {cvEnabled && handTracking.state === 'LOST' && (
+    {cvEnabled && handTracking.state === 'LOST' && !cameraPermissionError && (
       <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[45] font-mono text-xs text-amber-500 bg-black/90 border border-amber-500/30 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.2)] animate-pulse pointer-events-none">
         <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
         <span className="font-bold tracking-widest uppercase">INTERACTION PAUSED — HAND POSITION LOST</span>
@@ -1303,7 +1372,10 @@ function AppContent() {
         onSelectComponent={setSelectedComponentId}
         handTracking={handTracking}
         cvEnabled={cvEnabled}
-        onToggleCv={() => setCvEnabled(!cvEnabled)}
+        onToggleCv={() => {
+          setCameraPermissionError(null);
+          setCvEnabled(!cvEnabled);
+        }}
         onSelectMolecule={(formulaOrKey) => {
           sessionMolecule.closeSession();
           setCurrentSpatialObject(null);
@@ -1337,7 +1409,6 @@ function AppContent() {
     )}
 
     <HolographicCursor handTracking={handTracking} isSpatial={isSpatial} />
-    <GestureLegend handTracking={handTracking} isSpatial={isSpatial} />
     <ViewModal 
       currentView={currentView} 
       setView={setCurrentView} 
