@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CADScope</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <!-- Inter font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/viewer.css">
+  <script>
+    // Apply a saved light-theme preference before first paint.
+    try {
+      if (localStorage.getItem('cadscope-theme') === 'light') {
+        document.documentElement.dataset.theme = 'light';
+      }
+    } catch (e) { /* storage unavailable; keep the dark default */ }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <h1>CADScope</h1>
+        <a id="modelGithubLink" href="https://github.com/erikbuild/CADScope" target="_blank">GitHub</a>
+      </div>
+      <div class="header-links">
+        <label class="theme-switch sm-header-toggle">
+          <span>Enable SpaceMouse</span>
+          <input type="checkbox" id="smEnabled" role="switch" aria-label="Enable SpaceMouse">
+          <span class="theme-switch-track" aria-hidden="true"></span>
+        </label>
+        <span class="header-divider" aria-hidden="true"></span>
+        <label class="theme-switch">
+          <span aria-hidden="true">☾</span>
+          <input type="checkbox" id="themeToggle" role="switch" aria-label="Light theme">
+          <span class="theme-switch-track" aria-hidden="true"></span>
+          <span aria-hidden="true">☀</span>
+        </label>
+        <button id="settingsBtn" class="settings-btn" type="button" aria-label="Settings">
+          <!-- Material Symbols gear (Apache-2.0) -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Config Panel (Sidebar) -->
+      <aside class="config-panel">
+        <div class="config-panel-content">
+          <section class="config-section">
+            <h3>Assembly</h3>
+            <select id="modelSelect"></select>
+          </section>
+
+          <section class="config-section button-row">
+            <button class="btn-secondary" id="copyLinkBtn">Copy URL</button>
+            <button class="btn-secondary" id="resetColorsBtn">Reset Defaults</button>
+          </section>
+
+          <div id="colorControls" style="display:none"></div>
+
+          <section class="config-section">
+            <h3>Model Hierarchy</h3>
+            <div class="search-wrapper">
+              <input id="treeSearch" type="text" placeholder="Search parts...">
+              <button id="treeSearchClear" class="search-clear" type="button">&times;</button>
+            </div>
+            <div id="tree"></div>
+          </section>
+        </div>
+      </aside>
+
+      <!-- 3D Viewer -->
+      <div class="viewer-container">
+        <canvas id="viewer"></canvas>
+
+        <!-- Viewer Controls -->
+        <div id="viewControls">
+          <button class="viewer-btn"></button>
+          <button class="viewer-btn" onclick="setView('top')" title="Top">▲<br>Top</button>
+          <button class="viewer-btn" onclick="setView('front')" title="Front">◉<br>Front</button>
+
+          <button class="viewer-btn" onclick="setView('left')" title="Left">◀<br>Left</button>
+          <button class="viewer-btn" onclick="setView('home')" title="Home">⌂<br>Home</button>
+          <button class="viewer-btn" onclick="setView('right')" title="Right">▶<br>Right</button>
+                 
+          <button class="viewer-btn"></button>
+          <button class="viewer-btn" onclick="setView('bottom')" title="Bottom">▼<br>Bottom</button>
+          <button class="viewer-btn" onclick="setView('back')" title="Back">◈<br>Back</button>
+
+          <div class="viewer-btn-separator"></div>
+          
+          <button class="viewer-btn" onclick="zoom(0.2)" title="Zoom Out">−<br>Zoom</button>
+          <button class="viewer-btn" onclick="resetZoom()" title="Reset Zoom">⟳<br>Reset</button>
+          <button class="viewer-btn" onclick="zoom(-0.2)" title="Zoom In">+<br>Zoom</button>
+          
+          <div class="viewer-btn-separator"></div>
+          
+          <label class="slider-label" for="brightnessSlider">Brightness</label>
+          <input type="range" id="brightnessSlider" min="0" max="200" value="150" title="Brightness">
+        </div>
+
+        <!-- Mobile warning: shown instead of auto-loading the model -->
+        <div class="mobile-warning hidden" id="mobileWarning">
+          <p><strong>Best viewed on a desktop browser.</strong></p>
+          <p>The 3D models are 40&ndash;100&nbsp;MB downloads, which can
+             crash mobile browsers or eat into a data plan.</p>
+          <button class="btn-secondary" id="mobileLoadBtn">Load the 3D model anyway</button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading-indicator hidden" id="loadingOverlay">
+          <div class="loading-line">
+            <div class="spinner-small"></div>
+            <span id="loadingText">Loading model...</span>
+          </div>
+          <div class="loading-progress" id="loadingProgress">
+            <div class="loading-progress-fill" id="loadingProgressFill"></div>
+          </div>
+          <div class="loading-line hidden" id="processingLine">
+            <div class="spinner-small"></div>
+            <span id="processingText"></span>
+          </div>
+        </div>
+
+        <!-- Attribution -->
+        <div class="attribution">
+          <a href="https://github.com/erikbuild/CADScope" target="_blank">CADScope v1.9.1</a> by <a href="https://github.com/erikbuild" target="_blank">@erikbuild</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="settingsModal" class="settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-backdrop"></div>
+    <div class="settings-dialog">
+      <h2 id="settingsTitle">Settings</h2>
+      <section class="settings-section">
+        <h3>SpaceMouse</h3>
+        <p class="settings-help">Requires 3Dconnexion's 3DxWare driver running on
+          this computer. Enabling connects to the driver's local service, so the
+          browser may ask to allow local network access; motion is delivered
+          while this tab is focused.</p>
+        <div class="sm-mapping">
+          <div class="sm-row"><span>Right</span><select id="smDirRight"></select></div>
+          <div class="sm-row"><span>Left</span><select id="smDirLeft"></select></div>
+          <div class="sm-row"><span>In</span><select id="smDirIn"></select></div>
+          <div class="sm-row"><span>Out</span><select id="smDirOut"></select></div>
+          <div class="sm-row"><span>Down</span><select id="smDirDown"></select></div>
+          <div class="sm-row"><span>Up</span><select id="smDirUp"></select></div>
+          <label class="settings-check"><input type="checkbox" id="smSwap"> Swap In-Out and Down-Up</label>
+        </div>
+      </section>
+      <section class="settings-section">
+        <h3>Special</h3>
+        <div class="sm-row sp-row"><span>Coral Wave Mode</span><select id="spFilament"></select></div>
+      </section>
+      <button id="settingsClose" type="button">Close</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="assets/viewer.js"></script>
+</body>
+</html>

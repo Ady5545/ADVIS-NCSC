@@ -2,6 +2,7 @@
 // A.D.V.I.S. High-Precision Procedural V12 Internal Combustion Engine Engineering Assembly & Real-Time Kinematics
 
 import React, { useRef, useMemo } from 'react';
+import { EntityRef } from '../scientific/architecture/ComponentRegistrationWrapper';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -276,6 +277,15 @@ export function getPistonStroke(crankAngle: number, bank: 'left' | 'right'): num
 // ----------------------------------------------------
 export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
+  return (
+    <EntityRef id="v12.engine_block" name="Engine Block Assembly" type="assembly">
+      <InternalEngineBlockAssembly isHovered={isHovered} isSelected={isSelected} focusedCylinder={focusedCylinder} xrayEnabled={xrayEnabled} blueprintEnabled={blueprintEnabled} sysTimeRef={sysTimeRef} />
+    </EntityRef>
+  );
+}
+
+function InternalEngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   // True 60-degree V12 block profile with open central valley & deep skirt
   const blockShape = useMemo(() => {
@@ -333,8 +343,11 @@ export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xr
         const isLeftFocused = state.focusedCylinder === leftCylNum;
         const isRightFocused = state.focusedCylinder === rightCylNum;
 
+        const leftCylId = `v12.bank_a.cylinder${leftCylNum < 10 ? '0' : ''}${leftCylNum}`;
+        const rightCylId = `v12.bank_b.cylinder${rightCylNum < 10 ? '0' : ''}${rightCylNum}`;
         return (
           <React.Fragment key={'sleeves_' + i}>
+            <EntityRef id={leftCylId + ".liner"} name={`Cylinder ${leftCylNum} Liner`} type="part">
             {/* Left Bank Cylinder Liner (tilted +30° -> bore axis pointing up-left) */}
             <group 
               rotation={[0, 0, BANK_ANGLE]}
@@ -364,8 +377,9 @@ export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xr
                 <EngineMaterial materialType="CHROME" {...state} />
               </mesh>
             </group>
-
+            </EntityRef>
             {/* Right Bank Cylinder Liner (tilted -30° -> bore axis pointing up-right) */}
+            <EntityRef id={rightCylId + ".liner"} name={`Cylinder ${rightCylNum} Liner`} type="part">
             <group 
               rotation={[0, 0, -BANK_ANGLE]}
               onClick={(e) => {
@@ -391,6 +405,7 @@ export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xr
                 <EngineMaterial materialType="CHROME" {...state} />
               </mesh>
             </group>
+            </EntityRef>
           </React.Fragment>
         );
       })}
@@ -551,7 +566,15 @@ export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xr
 // pendulum-wedge dynamic counterweights with balance drillings,
 // rear flywheel with starter ring gear, and front harmonic balancer.
 // ----------------------------------------------------
-export function CrankshaftAssembly({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, v12Direction = 1, crankAngleRef }: any) {
+export function CrankshaftAssembly(props: any) {
+  return (
+    <EntityRef id="v12.crankshaft" name="Forged Steel Crankshaft" type="assembly">
+      <InternalCrankshaftAssembly {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalCrankshaftAssembly({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, v12Direction = 1, crankAngleRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const crankRef = useRef<THREE.Group>(null);
   const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
@@ -729,7 +752,18 @@ export function CrankshaftAssembly({ isHovered, isSelected, xrayEnabled, bluepri
 // pockets, 3 precision ring lands, slipper skirts with MoS2 anti-friction coating,
 // and DLC full-floating wrist pins reciprocating along the 60° bank bore axes.
 // ----------------------------------------------------
-export function PistonAssemblyBank({
+export function PistonAssemblyBank(props: any) {
+  const { bank } = props;
+  const bankId = bank === 'left' ? 'bank_a' : 'bank_b';
+  const bankName = bank === 'left' ? 'Bank A (Left) Pistons' : 'Bank B (Right) Pistons';
+  return (
+    <EntityRef id={`v12.${bankId}.pistons`} name={bankName} type="assembly">
+       <InternalPistonAssemblyBank {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalPistonAssemblyBank({
   bank,
   isHovered,
   isSelected,
@@ -794,7 +828,9 @@ export function PistonAssemblyBank({
           const isCylFocused = (focusedCylinder === cylNum);
           const cylState = { ...state, isCylinderFocused: isCylFocused };
 
+          const cylPrefix = `v12.${bank === 'left' ? 'bank_a' : 'bank_b'}.cylinder${cylNum < 10 ? '0' : ''}${cylNum}`;
           return (
+            <EntityRef id={`${cylPrefix}.piston`} name={`Cylinder ${cylNum} Piston`} type="part">
             <group 
               key={'piston_' + i} 
               position={[0, 0, z]}
@@ -931,6 +967,7 @@ export function PistonAssemblyBank({
                 </group>
               )}
             </group>
+            </EntityRef>
           );
         })}
       </group>
@@ -944,7 +981,15 @@ export function PistonAssemblyBank({
 // small ends, profiled flanged shanks, fractured big-end caps,
 // and Grade 12.9 ARP 2000 rod bolts articulating dynamically with the crankshaft.
 // ----------------------------------------------------
-export function ConnectingRodsAssembly({
+export function ConnectingRodsAssembly(props: any) {
+  return (
+    <EntityRef id="v12.connecting_rods" name="Connecting Rods Assembly" type="assembly">
+      <InternalConnectingRodsAssembly {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalConnectingRodsAssembly({
   isHovered,
   isSelected,
   focusedCylinder,
@@ -1006,9 +1051,12 @@ export function ConnectingRodsAssembly({
         const leftState = { ...state, isCylinderFocused: isLeftFocused };
         const rightState = { ...state, isCylinderFocused: isRightFocused };
 
+        const leftCylPrefix = `v12.bank_a.cylinder${leftCylNum < 10 ? '0' : ''}${leftCylNum}`;
+        const rightCylPrefix = `v12.bank_b.cylinder${rightCylNum < 10 ? '0' : ''}${rightCylNum}`;
         return (
           <React.Fragment key={'rod_pair_' + i}>
             {/* Bank 1 (Left) Titanium H-Beam Rod */}
+            <EntityRef id={`${leftCylPrefix}.connecting_rod`} name={`Cylinder ${leftCylNum} Connecting Rod`} type="part">
             <group
               onClick={(e) => {
                 e.stopPropagation();
@@ -1066,8 +1114,9 @@ export function ConnectingRodsAssembly({
                 </mesh>
               )}
             </group>
-
+            </EntityRef>
             {/* Bank 2 (Right) Titanium H-Beam Rod */}
+            <EntityRef id={`${rightCylPrefix}.connecting_rod`} name={`Cylinder ${rightCylNum} Connecting Rod`} type="part">
             <group
               onClick={(e) => {
                 e.stopPropagation();
@@ -1119,6 +1168,7 @@ export function ConnectingRodsAssembly({
                 </mesh>
               )}
             </group>
+            </EntityRef>
           </React.Fragment>
         );
       })}
@@ -1540,6 +1590,14 @@ export function CanonicalCylinderBank({
 // ----------------------------------------------------
 export function ValvetrainAssembly(props: any) {
   return (
+    <EntityRef id="v12.valvetrain" name="DOHC Valvetrain Assembly" type="assembly">
+      <InternalValvetrainAssembly {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalValvetrainAssembly(props: any) {
+  return (
     <group position={[0, 0, 0]}>
       {/* Bank A (Left Bank): tilted at -30°, distinct cylinder head and wrinkle red cover */}
       <CanonicalCylinderBank bank="left" isLeftBank={true} {...props} />
@@ -1556,7 +1614,15 @@ export function ValvetrainAssembly(props: any) {
 // Elevated volumetric dual plenum chambers, forward induction with dual 85mm throttle bodies,
 // 12 continuous 3D curved CatmullRom ram-horn runners, and high-pressure fuel injection rails.
 // ----------------------------------------------------
-export function IntakePlenum({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+export function IntakePlenum(props: any) {
+  return (
+    <EntityRef id="v12.intake_plenum" name="Carbon Fiber Intake Plenum" type="assembly">
+      <InternalIntakePlenum {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalIntakePlenum({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   // 12 Continuous, Seamless 3D Curved Ram-Horn Intake Runners (6 to Bank A on Left, 6 to Bank B on Right)
@@ -1927,7 +1993,15 @@ export function CanonicalExhaustHeader({
   );
 }
 
-export function ExhaustManifold({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+export function ExhaustManifold(props: any) {
+  return (
+    <EntityRef id="v12.exhaust_manifold" name="Inconel Exhaust Manifolds" type="assembly">
+      <InternalExhaustManifold {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalExhaustManifold({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   return (
@@ -1946,7 +2020,15 @@ export function ExhaustManifold({ isHovered, isSelected, xrayEnabled, blueprintE
 // 9-blade viscous fan, high-output compact alternator, automatic belt tensioner,
 // and continuous multi-rib serpentine drive belt loop.
 // ----------------------------------------------------
-export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, crankAngleRef }: any) {
+export function CoolingSystem(props: any) {
+  return (
+    <EntityRef id="v12.cooling_system" name="Cooling & Water Pump System" type="assembly">
+      <InternalCoolingSystem {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalCoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, crankAngleRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const fanRef = useRef<THREE.Group>(null);
   const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
@@ -2073,7 +2155,15 @@ export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEna
 // Includes longitudinal and transverse cooling fins, spin-on high-pressure filter,
 // magnetic brass drain plug, and multi-stage scavenge return bungs.
 // ----------------------------------------------------
-export function LubricationSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+export function LubricationSystem(props: any) {
+  return (
+    <EntityRef id="v12.lubrication_system" name="Dry Sump Lubrication" type="assembly">
+      <InternalLubricationSystem {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalLubricationSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   return (
@@ -2139,7 +2229,15 @@ export function LubricationSystem({ isHovered, isSelected, xrayEnabled, blueprin
 // Braided wiring harness looms, dual Bosch Motorsport ECU module bolted
 // to rear bellhousing bulkhead, and crankshaft/camshaft sensor pickups.
 // ----------------------------------------------------
-export function ElectronicsSensors({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+export function ElectronicsSensors(props: any) {
+  return (
+    <EntityRef id="v12.electronics" name="Engine Management & Sensors" type="assembly">
+      <InternalElectronicsSensors {...props} />
+    </EntityRef>
+  );
+}
+
+function InternalElectronicsSensors({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   return (

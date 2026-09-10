@@ -1,0 +1,26 @@
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Plans
+plans/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Generated reference dumps (regenerate from GLB via build_configurator.py)
+*.scaffold.json
+
+# Large model files (convert locally, don't commit)
+*.step
+*.stp
+*.obj
+*.mtl
+
+# Legacy Cruft
+models/Positron_OLD*
