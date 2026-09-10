@@ -27,6 +27,8 @@ import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificActionRouter } from './scientific/ScientificActionRouter';
 import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
+import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
+import { CameraPreset } from './scientific/V12ScientificConfig';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -40,6 +42,12 @@ function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
         gestureState.spatialCam.targetRadius = preset.radius;
         gestureState.spatialCam.targetTheta = preset.theta;
         gestureState.spatialCam.targetPhi = preset.phi;
+      }
+      if (gestureState?.cameraTarget) {
+        const camX = preset.radius * Math.sin(preset.phi) * Math.sin(preset.theta);
+        const camY = preset.radius * Math.cos(preset.phi);
+        const camZ = preset.radius * Math.sin(preset.phi) * Math.cos(preset.theta);
+        gestureState.cameraTarget.set(camX, camY, camZ);
       }
       if (preset.target) {
         lookAtRef.current.set(preset.target[0], preset.target[1], preset.target[2]);
@@ -203,6 +211,30 @@ function AppContent() {
   const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
 
   const [actionPreview, setActionPreview] = useState<string | null>(null);
+
+  const engineTelemetry = useEngineTelemetry();
+
+  const handleSetCutawayMode = (mode: 'SOLID' | 'GLASS' | 'SECTION') => {
+    if (mode === 'GLASS') {
+      setXrayEnabled(true);
+      setBlueprintEnabled(false);
+    } else if (mode === 'SECTION') {
+      setBlueprintEnabled(true);
+      setXrayEnabled(false);
+    } else {
+      setXrayEnabled(false);
+      setBlueprintEnabled(false);
+    }
+  };
+
+  const handleApplyCameraPreset = (preset: CameraPreset) => {
+    window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
+  };
+
+  const handleScrubAngle = (angleDeg: number) => {
+    setKinematicTimeOffset(angleDeg);
+    window.dispatchEvent(new CustomEvent('advis-scrub-crank', { detail: { angleDeg } }));
+  };
 
   const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
     setComponentTransforms(prev => ({
@@ -1440,15 +1472,20 @@ function AppContent() {
     {currentSpatialObject === 'v12_engine' && (
       <V12EngineController
         v12Rpm={v12Rpm}
+        onChangeRpm={setV12Rpm}
         onRpmChange={setV12Rpm}
         isKinematicPlaying={isKinematicPlaying}
+        onTogglePlaying={() => setIsKinematicPlaying(!isKinematicPlaying)}
         onTogglePlayPause={() => setIsKinematicPlaying(!isKinematicPlaying)}
         kinematicSpeed={kinematicSpeed}
+        onChangeSpeed={setKinematicSpeed}
         onSpeedChange={setKinematicSpeed}
         xrayEnabled={xrayEnabled}
-        onToggleXray={() => setXrayEnabled(!xrayEnabled)}
         blueprintEnabled={blueprintEnabled}
-        onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
+        onSetCutawayMode={handleSetCutawayMode}
+        onApplyCameraPreset={handleApplyCameraPreset}
+        kinematicAngleDeg={engineTelemetry.crankAngleDeg}
+        onScrubAngle={handleScrubAngle}
         showLabels={showLabels}
         onToggleLabels={() => setShowLabels(!showLabels)}
         chargeFlowEnabled={chargeFlowEnabled}
@@ -1461,6 +1498,8 @@ function AppContent() {
         onSelectComponent={setSelectedComponentId}
         focusedCylinder={focusedCylinder}
         onSelectCylinder={setFocusedCylinder}
+        soundEnabled={soundEnabled}
+        onToggleSound={() => setSoundEnabled(!soundEnabled)}
       />
     )}
 

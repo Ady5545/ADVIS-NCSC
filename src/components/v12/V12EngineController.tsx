@@ -44,16 +44,21 @@ export interface V12EngineControllerProps {
   // Cutaway
   xrayEnabled: boolean;
   blueprintEnabled: boolean;
-  onSetCutawayMode: (mode: CutawayMode) => void;
+  onSetCutawayMode?: (mode: CutawayMode) => void;
+  onToggleXray?: () => void;
+  onToggleBlueprint?: () => void;
 
   // Kinematics & Playback
   v12Rpm: number;
-  onChangeRpm: (rpm: number) => void;
+  onChangeRpm?: (rpm: number) => void;
+  onRpmChange?: (rpm: number) => void;
   isKinematicPlaying: boolean;
-  onTogglePlaying: () => void;
+  onTogglePlaying?: () => void;
+  onTogglePlayPause?: () => void;
   kinematicSpeed: number;
-  onChangeSpeed: (speed: number) => void;
-  kinematicAngleDeg: number;
+  onChangeSpeed?: (speed: number) => void;
+  onSpeedChange?: (speed: number) => void;
+  kinematicAngleDeg?: number;
   onScrubAngle?: (angleDeg: number) => void;
 
   // Selection & Cylinder
@@ -77,39 +82,64 @@ export interface V12EngineControllerProps {
   onToggleSound?: () => void;
 }
 
-export function V12EngineController({
-  onApplyCameraPreset,
-  activeCameraPresetId = 'HERO',
-  xrayEnabled,
-  blueprintEnabled,
-  onSetCutawayMode,
-  v12Rpm,
-  onChangeRpm,
-  isKinematicPlaying,
-  onTogglePlaying,
-  kinematicSpeed,
-  onChangeSpeed,
-  kinematicAngleDeg,
-  onScrubAngle,
-  selectedComponentId,
-  onSelectComponent,
-  focusedCylinder,
-  onSelectCylinder,
-  showLabels,
-  onToggleLabels,
-  chargeFlowEnabled,
-  onToggleChargeFlow,
-  vectorsEnabled,
-  onToggleVectors,
-  isolatedComponentId,
-  onToggleIsolate,
-  soundEnabled,
-  onToggleSound
-}: V12EngineControllerProps) {
+export function V12EngineController(props: V12EngineControllerProps) {
+  const {
+    onApplyCameraPreset,
+    activeCameraPresetId = 'HERO',
+    xrayEnabled,
+    blueprintEnabled,
+    onSetCutawayMode,
+    onToggleXray,
+    onToggleBlueprint,
+    v12Rpm,
+    onChangeRpm,
+    onRpmChange,
+    isKinematicPlaying,
+    onTogglePlaying,
+    onTogglePlayPause,
+    kinematicSpeed,
+    onChangeSpeed,
+    onSpeedChange,
+    kinematicAngleDeg,
+    onScrubAngle,
+    selectedComponentId,
+    onSelectComponent,
+    focusedCylinder,
+    onSelectCylinder,
+    showLabels,
+    onToggleLabels,
+    chargeFlowEnabled,
+    onToggleChargeFlow,
+    vectorsEnabled,
+    onToggleVectors,
+    isolatedComponentId,
+    onToggleIsolate,
+    soundEnabled,
+    onToggleSound
+  } = props;
+
   const telemetry = useEngineTelemetry();
   const [showCharts, setShowCharts] = useState(true);
   const [isChartsMinimized, setIsChartsMinimized] = useState(false);
   const [activePreset, setActivePreset] = useState<string>(activeCameraPresetId);
+
+  // Safe fallback dispatchers
+  const changeRpm = onChangeRpm || onRpmChange || (() => {});
+  const togglePlaying = onTogglePlaying || onTogglePlayPause || (() => {});
+  const changeSpeed = onChangeSpeed || onSpeedChange || (() => {});
+  const setCutawayMode = onSetCutawayMode || ((mode: CutawayMode) => {
+    if (mode === 'GLASS') {
+      if (onToggleXray && !xrayEnabled) onToggleXray();
+      if (onToggleBlueprint && blueprintEnabled) onToggleBlueprint();
+    } else if (mode === 'SECTION') {
+      if (onToggleBlueprint && !blueprintEnabled) onToggleBlueprint();
+      if (onToggleXray && xrayEnabled) onToggleXray();
+    } else {
+      if (onToggleXray && xrayEnabled) onToggleXray();
+      if (onToggleBlueprint && blueprintEnabled) onToggleBlueprint();
+    }
+  });
+  const currentAngleDeg = kinematicAngleDeg !== undefined ? kinematicAngleDeg : telemetry.crankAngleDeg;
 
   // Derive cutaway mode
   const currentCutawayMode: CutawayMode = (() => {
@@ -120,7 +150,9 @@ export function V12EngineController({
 
   const handleCameraPresetClick = (preset: CameraPreset) => {
     setActivePreset(preset.id);
-    onApplyCameraPreset(preset);
+    if (onApplyCameraPreset) {
+      onApplyCameraPreset(preset);
+    }
   };
 
   const handleCylinderClick = (cylNum: number) => {
@@ -176,7 +208,7 @@ export function V12EngineController({
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => onSetCutawayMode('SOLID')}
+              onClick={() => setCutawayMode('SOLID')}
               title="Full PBR alloy, carbon fiber, and titanium exterior solid assembly"
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'SOLID'
@@ -188,7 +220,7 @@ export function V12EngineController({
             </button>
 
             <button
-              onClick={() => onSetCutawayMode('GLASS')}
+              onClick={() => setCutawayMode('GLASS')}
               title="Translucent acrylic cutaway revealing reciprocating pistons, conrods, and crankshaft"
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'GLASS'
@@ -200,7 +232,7 @@ export function V12EngineController({
             </button>
 
             <button
-              onClick={() => onSetCutawayMode('SECTION')}
+              onClick={() => setCutawayMode('SECTION')}
               title="Technical blueprint schematic section with internal geometry paths"
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'SECTION'
@@ -322,11 +354,11 @@ export function V12EngineController({
             {/* Play/Pause & Speed Mult */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={onTogglePlaying}
+                onClick={togglePlaying}
                 className={`p-2 rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
                   isKinematicPlaying
                     ? 'bg-amber-500/20 border-amber-400/60 text-amber-300 hover:bg-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
-                    : 'bg-emerald-500/20 border-emerald-400/60 text-emerald-300 hover:bg-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                    : 'bg-emerald-500/20 border-emerald-400/60 text-emerald-300 hover:bg-emerald-500/30 shadow-[0_0_10px_rgba(168,185,129,0.2)]'
                 }`}
                 title={isKinematicPlaying ? 'Pause engine rotation' : 'Start engine rotation'}
               >
@@ -338,7 +370,7 @@ export function V12EngineController({
                 {[0.25, 0.5, 1, 2].map((spd) => (
                   <button
                     key={spd}
-                    onClick={() => onChangeSpeed(spd)}
+                    onClick={() => changeSpeed(spd)}
                     className={`px-1.5 py-1 rounded transition-all cursor-pointer ${
                       kinematicSpeed === spd
                         ? 'bg-cyan-500/30 text-cyan-100 border border-cyan-400/40 shadow-[0_0_6px_rgba(6,182,212,0.3)]'
@@ -363,35 +395,35 @@ export function V12EngineController({
                 max="9000"
                 step="50"
                 value={v12Rpm}
-                onChange={(e) => onChangeRpm(parseFloat(e.target.value))}
+                onChange={(e) => changeRpm(parseFloat(e.target.value))}
                 className="flex-1 accent-cyan-400 h-1.5 bg-slate-900 rounded-lg cursor-pointer appearance-none"
               />
 
               {/* RPM Quick Presets */}
               <div className="hidden sm:flex items-center gap-1 text-[8px] font-bold">
                 <button
-                  onClick={() => onChangeRpm(600)}
+                  onClick={() => changeRpm(600)}
                   className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 cursor-pointer"
                   title="Idle speed (600 RPM)"
                 >
                   Idle
                 </button>
                 <button
-                  onClick={() => onChangeRpm(3000)}
+                  onClick={() => changeRpm(3000)}
                   className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 cursor-pointer"
                   title="Cruising speed (3,000 RPM)"
                 >
                   3K
                 </button>
                 <button
-                  onClick={() => onChangeRpm(6750)}
+                  onClick={() => changeRpm(6750)}
                   className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-amber-300 cursor-pointer"
                   title="Peak torque (6,750 RPM)"
                 >
                   Peak
                 </button>
                 <button
-                  onClick={() => onChangeRpm(8500)}
+                  onClick={() => changeRpm(8500)}
                   className="px-1.5 py-0.5 rounded bg-slate-900 border border-rose-500/40 hover:border-rose-400 text-rose-300 cursor-pointer"
                   title="Maximum power (8,500 RPM)"
                 >
@@ -419,13 +451,13 @@ export function V12EngineController({
           {/* Crank Cycle Scrubber (0° to 720°) */}
           {onScrubAngle && (
             <div className="flex items-center gap-2 pt-1 border-t border-cyan-500/10 text-[8px] text-cyan-400/70">
-              <span className="min-w-[55px] font-bold">CRANK: {((kinematicAngleDeg % 720 + 720) % 720).toFixed(0)}°</span>
+              <span className="min-w-[55px] font-bold">CRANK: {((currentAngleDeg % 720 + 720) % 720).toFixed(0)}°</span>
               <input
                 type="range"
                 min="0"
                 max="720"
                 step="1"
-                value={((kinematicAngleDeg % 720 + 720) % 720)}
+                value={((currentAngleDeg % 720 + 720) % 720)}
                 onChange={(e) => onScrubAngle(parseFloat(e.target.value))}
                 className="flex-1 accent-amber-400 h-1 bg-slate-900 rounded cursor-pointer appearance-none"
               />

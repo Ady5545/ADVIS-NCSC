@@ -11,6 +11,11 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Health check endpoint for container lifecycle monitoring
+  app.get(["/api/health", "/health"], (req, res) => {
+    res.json({ status: "ok" });
+  });
+
   app.use(express.json({ limit: '50mb' }));
   app.use('/models', express.static(path.join(process.cwd(), 'public', 'models'), { 
     maxAge: '1d', 
@@ -93,7 +98,8 @@ async function startServer() {
 
 
   // --- ADVIS MEMORY SERVICE ---
-  const { v4: uuidv4 } = require('crypto');
+  const crypto = require('crypto');
+  const uuidv4 = () => crypto.randomUUID();
   
   app.get("/api/memory", (req, res) => {
     const { projectId } = req.query;
@@ -880,7 +886,10 @@ Allowed materialType values: PBR_MATTE, PBR_METALLIC, PBR_GLASS, THERMAL_HEATMAP
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = require("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR === 'true' ? false : undefined,
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
