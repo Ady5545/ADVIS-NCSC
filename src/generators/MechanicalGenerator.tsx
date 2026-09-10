@@ -287,53 +287,70 @@ export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xr
 function InternalEngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
   const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
 
-  // True 60-degree V12 block profile with open central valley & deep skirt
-  const blockShape = useMemo(() => {
+  // 3-Part V12 Engine Block (Crankcase + 2 Cylinder Banks with Bores)
+  const crankcaseShape = useMemo(() => {
     const shape = new THREE.Shape();
-    // Start at bottom left pan rail
-    shape.moveTo(-0.48, -0.40);
-    // Pan rail bottom flange
-    shape.lineTo(0.48, -0.40);
-    // Lower right crankcase skirt with cross-bolt bulge
+    shape.moveTo(-0.48, -0.40); // Bottom left pan rail
+    shape.lineTo(0.48, -0.40);  // Bottom right pan rail
     shape.lineTo(0.53, -0.22);
-    // Right crankcase bulge around counterweight swings
     shape.lineTo(0.58, -0.04);
-    // Outer wall of Right Bank sloping upward along +30°
-    shape.lineTo(0.74, 0.86);
-    // Right Bank cylinder head deck surface (perpendicular to +30° bore axis)
-    shape.lineTo(0.28, 1.08);
-    // Inner wall of Right Bank descending into the central valley
-    shape.lineTo(0.09, 0.44);
-    // Floor of the Central Lifter/Intake Valley
-    shape.lineTo(-0.09, 0.44);
-    // Inner wall of Left Bank rising out of the central valley
-    shape.lineTo(-0.28, 1.08);
-    // Left Bank cylinder head deck surface (perpendicular to -30° bore axis)
-    shape.lineTo(-0.74, 0.86);
-    // Outer wall of Left Bank sloping downward along -30°
+    shape.lineTo(0.35, 0.44);   // Right bank base
+    shape.lineTo(-0.35, 0.44);  // Left bank base
     shape.lineTo(-0.58, -0.04);
-    // Lower left crankcase skirt
     shape.lineTo(-0.53, -0.22);
-    // Return to start
     shape.lineTo(-0.48, -0.40);
     return shape;
   }, []);
 
-  const extrudeSettings = useMemo(() => ({
-    depth: 3.02,
-    bevelEnabled: true,
-    bevelSegments: 4,
-    steps: 2,
-    bevelSize: 0.035,
-    bevelThickness: 0.035
-  }), []);
+  const bankShape = useMemo(() => {
+    const shape = new THREE.Shape();
+    // Shape X = Local X (-0.26 to 0.26)
+    // Shape Y = Local -Z (-(-1.51) to -(1.51)) -> 1.51 to -1.51
+    shape.moveTo(-0.26, 1.51);
+    shape.lineTo(0.26, 1.51);
+    shape.lineTo(0.26, -1.51);
+    shape.lineTo(-0.26, -1.51);
+    shape.lineTo(-0.26, 1.51);
+    
+    // Add 6 cylinder holes
+    CYLINDER_Z.forEach(z => {
+       const hole = new THREE.Path();
+       hole.absarc(0, -z, 0.21, 0, Math.PI * 2, true);
+       shape.holes.push(hole);
+    });
+    return shape;
+  }, []);
+
+  const crankcaseSettings = useMemo(() => ({ depth: 3.02, bevelEnabled: true, bevelSegments: 4, steps: 2, bevelSize: 0.035, bevelThickness: 0.035 }), []);
+  const bankSettings = useMemo(() => ({ depth: 0.65, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.02, bevelThickness: 0.02, curveSegments: 24 }), []);
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Main Structural Cast Aluminum Monobloc (from z = -1.51 to z = +1.51) */}
+      {/* Lower Crankcase */}
       <mesh position={[0, 0, -1.51]}>
-        <extrudeGeometry args={[blockShape, extrudeSettings]} />
+        <extrudeGeometry args={[crankcaseShape, crankcaseSettings]} />
         <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+      </mesh>
+      
+      {/* Left Cylinder Bank */}
+      <mesh position={[0, 0.40, 0]} rotation={[0, 0, BANK_ANGLE]}>
+         {/* Rotate so that depth is along local Y (bore axis), and shape is in local XZ plane */}
+         <group rotation={[-Math.PI / 2, 0, 0]}>
+           <mesh position={[0, 0, 0]}>
+             <extrudeGeometry args={[bankShape, bankSettings]} />
+             <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+           </mesh>
+         </group>
+      </mesh>
+
+      {/* Right Cylinder Bank */}
+      <mesh position={[0, 0.40, 0]} rotation={[0, 0, -BANK_ANGLE]}>
+         <group rotation={[-Math.PI / 2, 0, 0]}>
+           <mesh position={[0, 0, 0]}>
+             <extrudeGeometry args={[bankShape, bankSettings]} />
+             <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+           </mesh>
+         </group>
       </mesh>
 
       {/* 12 Centrifugally-Cast Ductile Iron Cylinder Liners (6 Left Bank, 6 Right Bank) */}
@@ -1063,48 +1080,78 @@ function InternalConnectingRodsAssembly({
                 window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: leftCylNum } }));
               }}
             >
-              {/* Split Big-End Journal Cap Housing */}
-              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
+              {/* Unified H-Beam Rod Extrusion */}
+              <mesh position={[0, 0, -0.023]}>
+                <extrudeGeometry args={[(() => {
+                  const shape = new THREE.Shape();
+                  const bigR = 0.118;
+                  const smallR = 0.060;
+                  const L = ROD_LENGTH;
+                  
+                  // Big end outer (top half)
+                  shape.absarc(0, 0, bigR, 0, Math.PI, false);
+                  // Transition to shank left
+                  shape.lineTo(-0.042, 0.15);
+                  shape.lineTo(-0.028, L - 0.1);
+                  // Small end outer
+                  shape.absarc(0, L, smallR, Math.PI, 0, true);
+                  // Transition to shank right
+                  shape.lineTo(0.028, L - 0.1);
+                  shape.lineTo(0.042, 0.15);
+                  shape.lineTo(bigR, 0);
+
+                  // Big end inner hole
+                  const bigHole = new THREE.Path();
+                  bigHole.absarc(0, 0, 0.096, 0, Math.PI * 2, true);
+                  shape.holes.push(bigHole);
+
+                  // Small end inner hole
+                  const smallHole = new THREE.Path();
+                  smallHole.absarc(0, L, 0.042, 0, Math.PI * 2, true);
+                  shape.holes.push(smallHole);
+                  
+                  return shape;
+                })(), { depth: 0.046, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.004, bevelThickness: 0.004 }]} />
                 <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              {/* Rod Cap (Bottom half of big end) */}
+              <mesh position={[0, 0, -0.023]}>
+                <extrudeGeometry args={[(() => {
+                  const shape = new THREE.Shape();
+                  const bigR = 0.118;
+                  shape.absarc(0, 0, bigR, Math.PI, 0, false);
+                  shape.lineTo(bigR, -0.02);
+                  shape.lineTo(-bigR, -0.02);
+                  shape.lineTo(-bigR, 0);
+                  const bigHole = new THREE.Path();
+                  bigHole.absarc(0, 0, 0.096, 0, Math.PI * 2, true);
+                  shape.holes.push(bigHole);
+                  return shape;
+                })(), { depth: 0.046, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.004, bevelThickness: 0.004 }]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              {/* H-Beam Recess (Front) */}
+              <mesh position={[0, ROD_LENGTH * 0.5, 0.023]}>
+                <boxGeometry args={[0.035, ROD_LENGTH * 0.70, 0.012]} />
+                <EngineMaterial materialType="TITANIUM" baseColor="#52525b" {...leftState} />
+              </mesh>
+              {/* H-Beam Recess (Back) */}
+              <mesh position={[0, ROD_LENGTH * 0.5, -0.023]}>
+                <boxGeometry args={[0.035, ROD_LENGTH * 0.70, 0.012]} />
+                <EngineMaterial materialType="TITANIUM" baseColor="#52525b" {...leftState} />
               </mesh>
               {/* Tri-Metal Rod Bearing Shell Visible Inside Bore */}
               <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
                 <EngineMaterial materialType="BEARING_BRONZE" {...leftState} />
               </mesh>
-              {/* Two High-Strength ARP 2000 Hex Rod Cap Bolts */}
-              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
-              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
-
-              {/* Profiled H-Beam Shank (I-beam outer flange ribs & recessed central web) */}
-              <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-                <EngineMaterial materialType="TITANIUM" {...leftState} />
-              </mesh>
-              <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-                <EngineMaterial materialType="TITANIUM" {...leftState} />
-              </mesh>
-              <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
-                <EngineMaterial materialType="TITANIUM" {...leftState} />
-              </mesh>
-
-              {/* Small-End Wrist Pin Eyelet with Bronze Bushing */}
-              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
-                <EngineMaterial materialType="TITANIUM" {...leftState} />
-              </mesh>
               <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
                 <EngineMaterial materialType="BEARING_BRONZE" {...leftState} />
               </mesh>
-              {/* Forced Pin Oiling Squirt Hole at Top of Eyelet */}
-              <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
-                <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
-                <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...leftState} />
-              </mesh>
+              {/* Two High-Strength ARP 2000 Hex Rod Cap Bolts */}
+              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
+              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
 
               {/* Focused Rim-Light Outline for Left Rod */}
               {isLeftFocused && (
@@ -1123,42 +1170,64 @@ function InternalConnectingRodsAssembly({
                 window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: rightCylNum } }));
               }}
             >
-              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
+              {/* Unified H-Beam Rod Extrusion */}
+              <mesh position={[0, 0, -0.023]}>
+                <extrudeGeometry args={[(() => {
+                  const shape = new THREE.Shape();
+                  const bigR = 0.118;
+                  const smallR = 0.060;
+                  const L = ROD_LENGTH;
+                  shape.absarc(0, 0, bigR, 0, Math.PI, false);
+                  shape.lineTo(-0.042, 0.15);
+                  shape.lineTo(-0.028, L - 0.1);
+                  shape.absarc(0, L, smallR, Math.PI, 0, true);
+                  shape.lineTo(0.028, L - 0.1);
+                  shape.lineTo(0.042, 0.15);
+                  shape.lineTo(bigR, 0);
+                  const bigHole = new THREE.Path();
+                  bigHole.absarc(0, 0, 0.096, 0, Math.PI * 2, true);
+                  shape.holes.push(bigHole);
+                  const smallHole = new THREE.Path();
+                  smallHole.absarc(0, L, 0.042, 0, Math.PI * 2, true);
+                  shape.holes.push(smallHole);
+                  return shape;
+                })(), { depth: 0.046, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.004, bevelThickness: 0.004 }]} />
                 <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              {/* Rod Cap (Bottom half of big end) */}
+              <mesh position={[0, 0, -0.023]}>
+                <extrudeGeometry args={[(() => {
+                  const shape = new THREE.Shape();
+                  const bigR = 0.118;
+                  shape.absarc(0, 0, bigR, Math.PI, 0, false);
+                  shape.lineTo(bigR, -0.02);
+                  shape.lineTo(-bigR, -0.02);
+                  shape.lineTo(-bigR, 0);
+                  const bigHole = new THREE.Path();
+                  bigHole.absarc(0, 0, 0.096, 0, Math.PI * 2, true);
+                  shape.holes.push(bigHole);
+                  return shape;
+                })(), { depth: 0.046, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.004, bevelThickness: 0.004 }]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH * 0.5, 0.023]}>
+                <boxGeometry args={[0.035, ROD_LENGTH * 0.70, 0.012]} />
+                <EngineMaterial materialType="TITANIUM" baseColor="#52525b" {...rightState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH * 0.5, -0.023]}>
+                <boxGeometry args={[0.035, ROD_LENGTH * 0.70, 0.012]} />
+                <EngineMaterial materialType="TITANIUM" baseColor="#52525b" {...rightState} />
               </mesh>
               <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
                 <EngineMaterial materialType="BEARING_BRONZE" {...rightState} />
               </mesh>
-              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
-              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
-
-              <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-                <EngineMaterial materialType="TITANIUM" {...rightState} />
-              </mesh>
-              <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-                <EngineMaterial materialType="TITANIUM" {...rightState} />
-              </mesh>
-              <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
-                <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
-                <EngineMaterial materialType="TITANIUM" {...rightState} />
-              </mesh>
-
-              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
-                <EngineMaterial materialType="TITANIUM" {...rightState} />
-              </mesh>
               <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
                 <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
                 <EngineMaterial materialType="BEARING_BRONZE" {...rightState} />
               </mesh>
-              <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
-                <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
-                <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...rightState} />
-              </mesh>
+              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
+              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
 
               {/* Focused Rim-Light Outline for Right Rod */}
               {isRightFocused && (
@@ -1239,8 +1308,22 @@ export function CanonicalCylinderBank({
       {/* 1. Cylinder Head Casting (Machined A356-T6 Aluminum Monobloc) */}
       <group position={[0, 1.14, 0]}>
         {/* Main Sculpted Head Block Body */}
-        <mesh>
-          <boxGeometry args={[0.55, 0.35, 3.12]} />
+        <mesh rotation={[0, 0, 0]} position={[0, 0, -1.56]}>
+          <extrudeGeometry args={[(() => {
+            const shape = new THREE.Shape();
+            shape.moveTo(-0.25, -0.17); // bottom inner (valley side)
+            shape.lineTo(-0.20, -0.17);
+            shape.lineTo(0.20, -0.17);
+            shape.lineTo(0.25, -0.17);  // bottom outer (exhaust side)
+            shape.lineTo(0.28, 0.0);    // up to exhaust port bulge
+            shape.lineTo(0.22, 0.15);   // tapering up
+            shape.lineTo(0.12, 0.28);   // outer cam housing
+            shape.lineTo(0.0, 0.25);    // spark plug valley
+            shape.lineTo(-0.12, 0.28);  // inner cam housing
+            shape.lineTo(-0.28, 0.1);   // intake port flange
+            shape.lineTo(-0.25, -0.17); // close
+            return shape;
+          })(), { depth: 3.12, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 }]} />
           <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
         </mesh>
 
@@ -1380,14 +1463,25 @@ export function CanonicalCylinderBank({
               >
                 {/* 2 Intake Valves (Angled toward +X at 18°) */}
                 <group>
-                  <mesh position={[0.12, 0, -0.06]} rotation={[0, 0, -0.18]}>
-                    <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
-                    <EngineMaterial materialType="TITANIUM" {...cylState} />
-                  </mesh>
-                  <mesh position={[0.12, 0, 0.06]} rotation={[0, 0, -0.18]}>
-                    <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
-                    <EngineMaterial materialType="TITANIUM" {...cylState} />
-                  </mesh>
+                  {[-0.06, 0.06].map((zOff, vi) => (
+                    <group key={'inv_'+vi} position={[0.12, 0, zOff]} rotation={[0, 0, -0.18]}>
+                      {/* Valve Stem */}
+                      <mesh position={[0, 0.08, 0]}>
+                        <cylinderGeometry args={[0.008, 0.008, 0.18, 12]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                      {/* Valve Head Flare */}
+                      <mesh position={[0, -0.04, 0]}>
+                        <cylinderGeometry args={[0.008, 0.042, 0.06, 16]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                      {/* Valve Face/Margin */}
+                      <mesh position={[0, -0.07, 0]}>
+                        <cylinderGeometry args={[0.042, 0.042, 0.005, 16]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                    </group>
+                  ))}
                   {/* Valve Springs & Titanium Retainers */}
                   <mesh position={[0.12, 0.05, -0.06]} rotation={[0, 0, -0.18]}>
                     <cylinderGeometry args={[0.026, 0.026, 0.09, 12]} />
@@ -1401,14 +1495,25 @@ export function CanonicalCylinderBank({
 
                 {/* 2 Exhaust Valves (Angled toward -X at 18°) */}
                 <group>
-                  <mesh position={[-0.12, 0, -0.06]} rotation={[0, 0, 0.18]}>
-                    <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
-                    <EngineMaterial materialType="TITANIUM" {...cylState} />
-                  </mesh>
-                  <mesh position={[-0.12, 0, 0.06]} rotation={[0, 0, 0.18]}>
-                    <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
-                    <EngineMaterial materialType="TITANIUM" {...cylState} />
-                  </mesh>
+                  {[-0.06, 0.06].map((zOff, vi) => (
+                    <group key={'exv_'+vi} position={[-0.12, 0, zOff]} rotation={[0, 0, 0.18]}>
+                      {/* Valve Stem */}
+                      <mesh position={[0, 0.08, 0]}>
+                        <cylinderGeometry args={[0.008, 0.008, 0.18, 12]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                      {/* Valve Head Flare */}
+                      <mesh position={[0, -0.04, 0]}>
+                        <cylinderGeometry args={[0.008, 0.036, 0.06, 16]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                      {/* Valve Face/Margin */}
+                      <mesh position={[0, -0.07, 0]}>
+                        <cylinderGeometry args={[0.036, 0.036, 0.005, 16]} />
+                        <EngineMaterial materialType="TITANIUM" {...cylState} />
+                      </mesh>
+                    </group>
+                  ))}
                   <mesh position={[-0.12, 0.05, -0.06]} rotation={[0, 0, 0.18]}>
                     <cylinderGeometry args={[0.025, 0.025, 0.09, 12]} />
                     <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...cylState} />
@@ -1750,6 +1855,23 @@ function InternalIntakePlenum({ isHovered, isSelected, xrayEnabled, blueprintEna
 
       {/* 4. 12 Continuous 3D Curved Ram Intake Runners (6 to Bank A on Left, 6 to Bank B on Right) */}
       {/* Left Bank 1 Runners */}
+            {/* Fuel Rails & Injectors */}
+      <mesh position={[-0.25, 1.25, 0]}>
+        <cylinderGeometry args={[0.015, 0.015, 2.7, 16]} />
+        <EngineMaterial materialType="MACHINED_BILLET" baseColor="#ef4444" {...state} />
+      </mesh>
+      {CYLINDER_Z.map((z, i) => (
+         <group key={'inj_l_'+i} position={[-0.29, 1.20, z]} rotation={[0, 0, Math.PI/6]}>
+            <mesh>
+              <cylinderGeometry args={[0.012, 0.008, 0.08, 12]} />
+              <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...state} />
+            </mesh>
+            <mesh position={[0, 0.04, 0]}>
+              <cylinderGeometry args={[0.005, 0.005, 0.04, 8]} />
+              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#fbbf24" {...state} />
+            </mesh>
+         </group>
+      ))}
       {leftRunners.map((geo, i) => (
         <mesh key={'in_runner_l_' + i} geometry={geo}>
           <EngineMaterial materialType="MACHINED_BILLET" baseColor="#e2e8f0" {...state} />
@@ -1757,6 +1879,23 @@ function InternalIntakePlenum({ isHovered, isSelected, xrayEnabled, blueprintEna
       ))}
 
       {/* Right Bank 2 Runners */}
+            {/* Right Fuel Rail */}
+      <mesh position={[0.25, 1.25, 0]}>
+        <cylinderGeometry args={[0.015, 0.015, 2.7, 16]} />
+        <EngineMaterial materialType="MACHINED_BILLET" baseColor="#ef4444" {...state} />
+      </mesh>
+      {CYLINDER_Z.map((z, i) => (
+         <group key={'inj_r_'+i} position={[0.29, 1.20, z]} rotation={[0, 0, -Math.PI/6]}>
+            <mesh>
+              <cylinderGeometry args={[0.012, 0.008, 0.08, 12]} />
+              <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...state} />
+            </mesh>
+            <mesh position={[0, 0.04, 0]}>
+              <cylinderGeometry args={[0.005, 0.005, 0.04, 8]} />
+              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#fbbf24" {...state} />
+            </mesh>
+         </group>
+      ))}
       {rightRunners.map((geo, i) => (
         <mesh key={'in_runner_r_' + i} geometry={geo}>
           <EngineMaterial materialType="MACHINED_BILLET" baseColor="#e2e8f0" {...state} />
