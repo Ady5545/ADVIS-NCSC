@@ -12,6 +12,7 @@ export interface HolographicMaterialProps {
   baseColor?: string;
   isHovered?: boolean;
   isSelected?: boolean;
+  isCylinderFocused?: boolean;
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   opacity?: number;
@@ -19,6 +20,7 @@ export interface HolographicMaterialProps {
     | 'CAST_ALUMINUM' 
     | 'MACHINED_BILLET'
     | 'FORGED_STEEL' 
+    | 'HONED_LINER'
     | 'CAST_IRON' 
     | 'RUBBER' 
     | 'PLASTIC' 
@@ -37,6 +39,7 @@ export function EngineMaterial({
   baseColor,
   isHovered,
   isSelected,
+  isCylinderFocused,
   xrayEnabled,
   blueprintEnabled,
   opacity = 1,
@@ -56,75 +59,79 @@ export function EngineMaterial({
         metalness={0.88}
         transmission={0.90}
         ior={1.45}
-        emissive={isSelected ? "#0284c7" : (isHovered ? "#38bdf8" : "#000000")}
-        emissiveIntensity={isSelected ? 0.7 : (isHovered ? 0.35 : 0)}
+        emissive={isCylinderFocused ? "#06b6d4" : (isSelected ? "#0284c7" : (isHovered ? "#38bdf8" : "#000000"))}
+        emissiveIntensity={isCylinderFocused ? 0.85 : (isSelected ? 0.7 : (isHovered ? 0.35 : 0))}
       />
     );
   }
 
-  let r = 0.5, m = 0.5, c = baseColor || '#94a3b8';
+  let r = 0.48, m = 0.74, c = baseColor || '#94a3b8';
   let cc = 0.0, cr = 0.0;
 
   switch (materialType) {
     case 'CAST_ALUMINUM': 
-      // Semi-rough cast alloy grain with subtle directional specular
-      r = 0.56; m = 0.68; c = baseColor || '#94a3b8'; 
+      // Cast aluminum: roughness ~0.48, metalness ~0.74, no clearcoat
+      r = 0.48; m = 0.74; c = baseColor || '#94a3b8'; cc = 0.0; cr = 0.0;
+      break;
+    case 'HONED_LINER':
+      // Micro-polished ductile iron with cross-hatch hone appearance
+      r = 0.24; m = 0.92; c = baseColor || '#64748b'; cc = 0.35; cr = 0.08;
       break;
     case 'MACHINED_BILLET':
       // CNC machined high-sheen billet aluminum
-      r = 0.22; m = 0.88; c = baseColor || '#e2e8f0'; cc = 0.5; cr = 0.08;
+      r = 0.22; m = 0.88; c = baseColor || '#e2e8f0'; cc = 0.50; cr = 0.08;
       break;
     case 'FORGED_STEEL': 
-      // High-strength 4340 chromoly forged and quenched steel
-      r = 0.24; m = 0.94; c = baseColor || '#94a3b8'; cc = 0.45; cr = 0.10; 
+      // Steel/iron parts (crankshaft, rods, liners, bolts): metalness ~0.92, roughness ~0.26, clearcoat 0.35
+      r = 0.26; m = 0.92; c = baseColor || '#94a3b8'; cc = 0.35; cr = 0.10; 
       break;
     case 'CAST_IRON': 
-      // Ductile nodular cast iron with graphite matrix
-      r = 0.78; m = 0.62; c = baseColor || '#334155'; 
+      // Ductile nodular cast iron
+      r = 0.65; m = 0.75; c = baseColor || '#334155'; cc = 0.10; cr = 0.20;
       break;
     case 'TITANIUM': 
-      // Ti-6Al-4V brushed aerospace titanium
-      r = 0.30; m = 0.92; c = baseColor || '#a1a1aa'; cc = 0.25; cr = 0.12;
+      // Ti-6Al-4V aerospace titanium
+      r = 0.28; m = 0.92; c = baseColor || '#a1a1aa'; cc = 0.30; cr = 0.12;
       break;
     case 'EXHAUST_STEEL': 
-      // Authentic heat-cycled 321 stainless steel / Inconel with subtle straw-bronze metallic depth
-      r = 0.28; m = 0.92; c = baseColor || '#94a3b8'; cc = 0.35; cr = 0.14; 
+      // Distinct heat-cycled straw-bronze metallic finish
+      r = 0.28; m = 0.90; c = baseColor || '#94a3b8'; cc = 0.40; cr = 0.12; 
       break;
     case 'WRINKLE_RED': 
-      // Iconic Italian racing wrinkle red powder-coat with matte micro-texture
-      r = 0.58; m = 0.20; c = baseColor || '#b91c1c'; cc = 0.20; cr = 0.30; 
+      // Valve covers: proper clearcoat (~0.45) so painted red reads as coated metal, not flat matte
+      r = 0.42; m = 0.35; c = baseColor || '#b91c1c'; cc = 0.45; cr = 0.15; 
       break;
     case 'CARBON_FIBER': 
-      // High-gloss twill weave pre-preg autoclaved carbon composite
+      // High-gloss twill weave carbon composite
       r = 0.36; m = 0.32; c = baseColor || '#18181b'; cc = 0.92; cr = 0.05; 
       break;
     case 'CHROME': 
-      // Mirror-polished mirror chrome / electroplated Grade 12.9 hardware
+      // Mirror-polished mirror chrome / electroplated hardware
       r = 0.05; m = 0.98; c = baseColor || '#f8fafc'; cc = 0.98; cr = 0.02; 
       break;
     case 'RUBBER': 
-      // EPDM synthetic vulcanized rubber
-      r = 0.90; m = 0.04; c = baseColor || '#18181b'; 
+      // Rubber/elastomer parts: roughness ~0.86, zero metalness
+      r = 0.86; m = 0.0; c = baseColor || '#18181b'; cc = 0.0; cr = 0.0;
       break;
     case 'PLASTIC': 
-      // Glass-reinforced nylon PA66 heat-resistant composite
-      r = 0.42; m = 0.12; c = baseColor || '#27272a'; 
+      // Heat-resistant nylon PA66 composite
+      r = 0.42; m = 0.12; c = baseColor || '#27272a'; cc = 0.10; cr = 0.20;
       break;
     case 'COPPER': 
       // Thermal copper gaskets & locknuts
-      r = 0.32; m = 0.88; c = baseColor || '#b45309'; 
+      r = 0.30; m = 0.88; c = baseColor || '#b45309'; cc = 0.20; cr = 0.15;
       break;
     case 'BRASS': 
       // Machined naval brass fittings & throttle plates
-      r = 0.26; m = 0.92; c = baseColor || '#ca8a04'; 
+      r = 0.25; m = 0.92; c = baseColor || '#ca8a04'; cc = 0.30; cr = 0.10;
       break;
     case 'BEARING_BRONZE':
-      // SAE 660 leaded bronze wrist-pin & crankshaft bearing inserts
-      r = 0.35; m = 0.82; c = baseColor || '#d97706';
+      // SAE 660 leaded bronze bearing inserts
+      r = 0.32; m = 0.84; c = baseColor || '#d97706'; cc = 0.25; cr = 0.12;
       break;
     case 'CERAMIC':
       // Alumina oxide white insulator ceramic
-      r = 0.18; m = 0.05; c = baseColor || '#ffffff'; cc = 0.85; cr = 0.05;
+      r = 0.15; m = 0.05; c = baseColor || '#ffffff'; cc = 0.85; cr = 0.05;
       break;
   }
 
@@ -137,11 +144,95 @@ export function EngineMaterial({
       clearcoatRoughness={cr}
       transparent={opacity < 1}
       opacity={opacity}
-      emissive={isSelected ? "#0284c7" : (isHovered ? "#0ea5e9" : "#000000")}
-      emissiveIntensity={isSelected ? 0.6 : (isHovered ? 0.25 : 0)}
+      emissive={isCylinderFocused ? "#06b6d4" : (isSelected ? "#0284c7" : (isHovered ? "#0ea5e9" : "#000000"))}
+      emissiveIntensity={isCylinderFocused ? 0.85 : (isSelected ? 0.6 : (isHovered ? 0.25 : 0))}
       wireframe={isSelected}
-      envMapIntensity={1.1}
+      envMapIntensity={1.25}
+      sheen={isCylinderFocused ? 1.0 : 0}
+      sheenColor={isCylinderFocused ? new THREE.Color("#38bdf8") : undefined}
+      sheenRoughness={isCylinderFocused ? 0.12 : undefined}
     />
+  );
+}
+
+// Reusable Fastener: Grade 12.9 Low-Poly Hex Flange Bolt
+export function HexBolt({
+  position,
+  rotation,
+  radius = 0.016,
+  height = 0.014,
+  state
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  radius?: number;
+  height?: number;
+  state: any;
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      {/* 6-Sided Hex Head */}
+      <mesh position={[0, height * 0.5, 0]}>
+        <cylinderGeometry args={[radius, radius, height, 6]} />
+        <EngineMaterial materialType="FORGED_STEEL" baseColor="#cbd5e1" {...state} />
+      </mesh>
+      {/* Integrated Flange Washer */}
+      <mesh position={[0, height * 0.1, 0]}>
+        <cylinderGeometry args={[radius * 1.35, radius * 1.35, height * 0.2, 16]} />
+        <EngineMaterial materialType="FORGED_STEEL" baseColor="#94a3b8" {...state} />
+      </mesh>
+    </group>
+  );
+}
+
+// Reusable Accessory: Multi-V Serpentine Grooved Pulley
+export function GroovedPulley({
+  position,
+  rotation,
+  radius,
+  width,
+  grooves = 5,
+  state
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  radius: number;
+  width: number;
+  grooves?: number;
+  state: any;
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Main Pulley Hub / Body */}
+      <mesh>
+        <cylinderGeometry args={[radius, radius, width, 32]} />
+        <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...state} />
+      </mesh>
+      {/* Front & Rear Retaining Flange Lips */}
+      <mesh position={[0, width * 0.48, 0]}>
+        <cylinderGeometry args={[radius * 1.05, radius * 1.05, width * 0.08, 32]} />
+        <EngineMaterial materialType="FORGED_STEEL" baseColor="#64748b" {...state} />
+      </mesh>
+      <mesh position={[0, -width * 0.48, 0]}>
+        <cylinderGeometry args={[radius * 1.05, radius * 1.05, width * 0.08, 32]} />
+        <EngineMaterial materialType="FORGED_STEEL" baseColor="#64748b" {...state} />
+      </mesh>
+      {/* Multi-V Grooves Along Belt Track */}
+      {[...Array(grooves)].map((_, gi) => {
+        const yOffset = ((gi - (grooves - 1) / 2) * (width * 0.72)) / grooves;
+        return (
+          <mesh key={'p_groove_' + gi} position={[0, yOffset, 0]}>
+            <torusGeometry args={[radius * 0.99, 0.0035, 6, 32]} />
+            <EngineMaterial materialType="RUBBER" baseColor="#0f172a" {...state} />
+          </mesh>
+        );
+      })}
+      {/* Center Grade 12.9 Retaining Hex Nut */}
+      <mesh position={[0, width * 0.52, 0]}>
+        <cylinderGeometry args={[radius * 0.32, radius * 0.32, width * 0.22, 6]} />
+        <EngineMaterial materialType="CHROME" {...state} />
+      </mesh>
+    </group>
   );
 }
 
@@ -236,44 +327,73 @@ export function EngineBlockAssembly({ isHovered, isSelected, xrayEnabled, bluepr
       </mesh>
 
       {/* 12 Centrifugally-Cast Ductile Iron Cylinder Liners (6 Left Bank, 6 Right Bank) */}
-      {CYLINDER_Z.map((z, i) => (
-        <React.Fragment key={'sleeves_' + i}>
-          {/* Left Bank Cylinder Liner (tilted +30° -> bore axis pointing up-left) */}
-          <group rotation={[0, 0, BANK_ANGLE]}>
-            {/* Ductile Iron Cylinder Wall with Precision Honed Inner Bore */}
-            <mesh position={[0, 0.68, z]}>
-              <cylinderGeometry args={[0.205, 0.205, 0.65, 32, 1, true]} />
-              <EngineMaterial materialType="CAST_IRON" opacity={xrayEnabled ? 0.4 : 0.95} {...state} />
-            </mesh>
-            {/* Stepped Upper Fire-Ring Counterbore Flange (Seats flush into Block Deck) */}
-            <mesh position={[0, 1.00, z]}>
-              <cylinderGeometry args={[0.222, 0.222, 0.022, 32]} />
-              <EngineMaterial materialType="MACHINED_BILLET" {...state} />
-            </mesh>
-            {/* Top Chamfer Lip for Piston Ring Guide */}
-            <mesh position={[0, 1.015, z]}>
-              <cylinderGeometry args={[0.208, 0.204, 0.008, 32]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-          </group>
+      {CYLINDER_Z.map((z, i) => {
+        const leftCylNum = i + 1;
+        const rightCylNum = i + 7;
+        const isLeftFocused = state.focusedCylinder === leftCylNum;
+        const isRightFocused = state.focusedCylinder === rightCylNum;
 
-          {/* Right Bank Cylinder Liner (tilted -30° -> bore axis pointing up-right) */}
-          <group rotation={[0, 0, -BANK_ANGLE]}>
-            <mesh position={[0, 0.68, z]}>
-              <cylinderGeometry args={[0.205, 0.205, 0.65, 32, 1, true]} />
-              <EngineMaterial materialType="CAST_IRON" opacity={xrayEnabled ? 0.4 : 0.95} {...state} />
-            </mesh>
-            <mesh position={[0, 1.00, z]}>
-              <cylinderGeometry args={[0.222, 0.222, 0.022, 32]} />
-              <EngineMaterial materialType="MACHINED_BILLET" {...state} />
-            </mesh>
-            <mesh position={[0, 1.015, z]}>
-              <cylinderGeometry args={[0.208, 0.204, 0.008, 32]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-          </group>
-        </React.Fragment>
-      ))}
+        return (
+          <React.Fragment key={'sleeves_' + i}>
+            {/* Left Bank Cylinder Liner (tilted +30° -> bore axis pointing up-left) */}
+            <group 
+              rotation={[0, 0, BANK_ANGLE]}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: leftCylNum } }));
+              }}
+            >
+              {/* Ductile Iron Cylinder Wall with Precision Honed Inner Bore */}
+              <mesh position={[0, 0.68, z]}>
+                <cylinderGeometry args={[0.205, 0.205, 0.65, 32, 1, true]} />
+                <EngineMaterial 
+                  materialType="HONED_LINER" 
+                  opacity={xrayEnabled ? 0.4 : 0.95} 
+                  isCylinderFocused={isLeftFocused}
+                  {...state} 
+                />
+              </mesh>
+              {/* Stepped Upper Fire-Ring Counterbore Flange (Seats flush into Block Deck) */}
+              <mesh position={[0, 1.00, z]}>
+                <cylinderGeometry args={[0.222, 0.222, 0.022, 32]} />
+                <EngineMaterial materialType="MACHINED_BILLET" isCylinderFocused={isLeftFocused} {...state} />
+              </mesh>
+              {/* Top Chamfer Lip for Piston Ring Guide */}
+              <mesh position={[0, 1.015, z]}>
+                <cylinderGeometry args={[0.208, 0.204, 0.008, 32]} />
+                <EngineMaterial materialType="CHROME" {...state} />
+              </mesh>
+            </group>
+
+            {/* Right Bank Cylinder Liner (tilted -30° -> bore axis pointing up-right) */}
+            <group 
+              rotation={[0, 0, -BANK_ANGLE]}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: rightCylNum } }));
+              }}
+            >
+              <mesh position={[0, 0.68, z]}>
+                <cylinderGeometry args={[0.205, 0.205, 0.65, 32, 1, true]} />
+                <EngineMaterial 
+                  materialType="HONED_LINER" 
+                  opacity={xrayEnabled ? 0.4 : 0.95} 
+                  isCylinderFocused={isRightFocused}
+                  {...state} 
+                />
+              </mesh>
+              <mesh position={[0, 1.00, z]}>
+                <cylinderGeometry args={[0.222, 0.222, 0.022, 32]} />
+                <EngineMaterial materialType="MACHINED_BILLET" isCylinderFocused={isRightFocused} {...state} />
+              </mesh>
+              <mesh position={[0, 1.015, z]}>
+                <cylinderGeometry args={[0.208, 0.204, 0.008, 32]} />
+                <EngineMaterial materialType="CHROME" {...state} />
+              </mesh>
+            </group>
+          </React.Fragment>
+        );
+      })}
 
       {/* 7 Heavy-Duty Cross-Bolted Main Bearing Caps (Deep Skirt 6-Bolt Architecture) */}
       {[-1.45, -0.95, -0.45, 0.05, 0.55, 1.05, 1.45].map((z, i) => (
@@ -293,29 +413,43 @@ export function EngineBlockAssembly({ isHovered, isSelected, xrayEnabled, bluepr
             <cylinderGeometry args={[0.126, 0.126, 0.128, 28, 1, true]} />
             <EngineMaterial materialType="BEARING_BRONZE" {...state} />
           </mesh>
-          {/* 4 Vertical ARP Main Studs (2 Left, 2 Right) with Chrome 12-Pt Flange Nuts */}
-          <mesh position={[-0.21, -0.10, -0.035]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.36, 12]} />
-            <EngineMaterial materialType="CHROME" {...state} />
-          </mesh>
-          <mesh position={[-0.21, -0.10, 0.035]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.36, 12]} />
-            <EngineMaterial materialType="CHROME" {...state} />
-          </mesh>
-          <mesh position={[0.21, -0.10, -0.035]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.36, 12]} />
-            <EngineMaterial materialType="CHROME" {...state} />
-          </mesh>
-          <mesh position={[0.21, -0.10, 0.035]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.36, 12]} />
-            <EngineMaterial materialType="CHROME" {...state} />
-          </mesh>
-          {/* 2 Horizontal Cross-Bolts Clamping Deep Skirt Through Cap */}
-          <mesh position={[0, -0.06, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.015, 0.015, 0.64, 12]} />
-            <EngineMaterial materialType="CHROME" {...state} />
-          </mesh>
+          {/* 4 Vertical ARP Main Studs with Hex Nuts */}
+          <HexBolt position={[-0.21, -0.19, -0.035]} rotation={[Math.PI, 0, 0]} radius={0.018} height={0.016} state={state} />
+          <HexBolt position={[-0.21, -0.19, 0.035]} rotation={[Math.PI, 0, 0]} radius={0.018} height={0.016} state={state} />
+          <HexBolt position={[0.21, -0.19, -0.035]} rotation={[Math.PI, 0, 0]} radius={0.018} height={0.016} state={state} />
+          <HexBolt position={[0.21, -0.19, 0.035]} rotation={[Math.PI, 0, 0]} radius={0.018} height={0.016} state={state} />
+          {/* 2 Horizontal Cross-Bolts Clamping Deep Skirt Through Cap with Hex Heads */}
+          <HexBolt position={[-0.30, -0.06, 0]} rotation={[0, 0, -Math.PI / 2]} radius={0.016} height={0.014} state={state} />
+          <HexBolt position={[0.30, -0.06, 0]} rotation={[0, 0, Math.PI / 2]} radius={0.016} height={0.014} state={state} />
         </group>
+      ))}
+
+      {/* Casting Texture & Structural Ribbing: Longitudinal Oil Gallery Runner & Skirt Grid */}
+      <mesh position={[0, 0.38, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.036, 0.036, 2.96, 16]} />
+        <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+      </mesh>
+      {/* Lower Left & Right Longitudinal Crankcase Stiffening Rib Rails */}
+      <mesh position={[-0.55, -0.16, 0]}>
+        <boxGeometry args={[0.04, 0.035, 2.96]} />
+        <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+      </mesh>
+      <mesh position={[0.55, -0.16, 0]}>
+        <boxGeometry args={[0.04, 0.035, 2.96]} />
+        <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
+      </mesh>
+      {/* Brass Core / Freeze Plugs along Block Flanks */}
+      {[-1.1, -0.6, -0.1, 0.4, 0.9].map((z, i) => (
+        <React.Fragment key={'fplug_' + i}>
+          <mesh position={[-0.56, 0.12, z]} rotation={[0, 0, -Math.PI / 2]}>
+            <cylinderGeometry args={[0.032, 0.032, 0.012, 16]} />
+            <EngineMaterial materialType="BRASS" {...state} />
+          </mesh>
+          <mesh position={[0.56, 0.12, z]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.032, 0.032, 0.012, 16]} />
+            <EngineMaterial materialType="BRASS" {...state} />
+          </mesh>
+        </React.Fragment>
       ))}
 
       {/* External Triangular Stiffening Webs along outer crankcase skirts */}
@@ -567,19 +701,18 @@ export function CrankshaftAssembly({ isHovered, isSelected, xrayEnabled, bluepri
           <cylinderGeometry args={[0.116, 0.116, 0.062, 48]} />
           <EngineMaterial materialType="FORGED_STEEL" {...state} />
         </mesh>
-        {/* 6-Rib Micro-V Serpentine Belt Grooves Rim */}
-        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.006]}>
-          <cylinderGeometry args={[0.122, 0.122, 0.048, 48]} />
-          <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#475569" {...state} />
-        </mesh>
+        {/* Dual-Mass Crankshaft Harmonic Balancer & Multi-Rib Serpentine Drive Pulley */}
+        <GroovedPulley 
+          position={[0, 0, 0]} 
+          rotation={[Math.PI / 2, 0, 0]} 
+          radius={0.122} 
+          width={0.052} 
+          grooves={6} 
+          state={state} 
+        />
         {/* 360° Laser-Etched Timing Degree Marks with TDC White Indicator */}
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.022]}>
           <cylinderGeometry args={[0.124, 0.124, 0.014, 48]} />
-          <EngineMaterial materialType="CHROME" {...state} />
-        </mesh>
-        {/* Center Grade 12.9 Crank Retaining Bolt & Hardened Belleville Washer */}
-        <mesh position={[0, 0, 0.042]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.030, 0.030, 0.026, 16]} />
           <EngineMaterial materialType="CHROME" {...state} />
         </mesh>
       </group>
@@ -597,13 +730,14 @@ export function PistonAssemblyBank({
   bank,
   isHovered,
   isSelected,
+  focusedCylinder,
   xrayEnabled,
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
   v12Direction = 1
 }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
   const isLeft = bank === 'left';
   const boreAngle = isLeft ? BANK_ANGLE : -BANK_ANGLE;
   const bankRef = useRef<THREE.Group>(null);
@@ -614,15 +748,19 @@ export function PistonAssemblyBank({
     pts.push(new THREE.Vector2(0.02, -0.15)); // Inner skirt base
     pts.push(new THREE.Vector2(0.182, -0.15)); // Outer skirt base
     pts.push(new THREE.Vector2(0.188, -0.05)); // Slipper thrust face
-    // 3 Ring Grooves (Top Nitrided Compression, Napier Scraper, 3-Piece Oil Control)
+    // 3 Distinct Ring Grooves (Top Compression, Scraper, 3-Piece Oil Control)
     pts.push(new THREE.Vector2(0.188, -0.015));
-    pts.push(new THREE.Vector2(0.160, -0.015));
-    pts.push(new THREE.Vector2(0.160, 0.005));
+    pts.push(new THREE.Vector2(0.156, -0.015));
+    pts.push(new THREE.Vector2(0.156, 0.005));
     pts.push(new THREE.Vector2(0.188, 0.005));
-    pts.push(new THREE.Vector2(0.188, 0.025));
-    pts.push(new THREE.Vector2(0.160, 0.025));
-    pts.push(new THREE.Vector2(0.160, 0.045));
-    pts.push(new THREE.Vector2(0.188, 0.045));
+    pts.push(new THREE.Vector2(0.188, 0.022));
+    pts.push(new THREE.Vector2(0.156, 0.022));
+    pts.push(new THREE.Vector2(0.156, 0.042));
+    pts.push(new THREE.Vector2(0.188, 0.042));
+    pts.push(new THREE.Vector2(0.188, 0.058));
+    pts.push(new THREE.Vector2(0.156, 0.058));
+    pts.push(new THREE.Vector2(0.156, 0.078));
+    pts.push(new THREE.Vector2(0.188, 0.078));
     pts.push(new THREE.Vector2(0.188, 0.095)); // Crown ring-land edge
     pts.push(new THREE.Vector2(0.02, 0.095));  // Crown combustion dome dish
     return pts;
@@ -644,65 +782,150 @@ export function PistonAssemblyBank({
     // Rotated to bank bore angle: Left Bank +30° (X < 0), Right Bank -30° (X > 0)
     <group position={[0, 0, 0]} rotation={[0, 0, boreAngle]}>
       <group ref={bankRef}>
-        {CYLINDER_Z.map((z, i) => (
-          <group key={'piston_' + i} position={[0, 0, z]}>
-            {/* Forged 4032 High-Silicon Aluminum Alloy Piston Body */}
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <latheGeometry args={[pistonPts, 32]} />
-              <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#cbd5e1" {...state} />
-            </mesh>
+        {CYLINDER_Z.map((z, i) => {
+          const cylNum = isLeft ? (i + 1) : (i + 7);
+          const isCylFocused = (focusedCylinder === cylNum);
+          const cylState = { ...state, isCylinderFocused: isCylFocused };
 
-            {/* Molybdenum Disulfide (MoS2) Dark Anti-Friction Skirt Thrust Face Coating */}
-            <mesh position={[0, -0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.189, 0.189, 0.09, 24, 1, true]} />
-              <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...state} />
-            </mesh>
-
-            {/* 3 Dark PVD Surface-Treated Piston Rings in Grooves */}
-            {[-0.005, 0.015, 0.035].map((yRing, rIdx) => (
-              <mesh key={'ring_' + rIdx} position={[0, yRing, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[0.182, 0.008, 8, 32]} />
-                <EngineMaterial materialType="CAST_IRON" baseColor="#0f172a" {...state} />
+          return (
+            <group 
+              key={'piston_' + i} 
+              position={[0, 0, z]}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum } }));
+              }}
+            >
+              {/* Forged 4032 High-Silicon Aluminum Alloy Piston Body */}
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <latheGeometry args={[pistonPts, 32]} />
+                <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#cbd5e1" {...cylState} />
               </mesh>
-            ))}
 
-            {/* Piston Crown: 4 Precision CNC Valve Relief Pockets (2 Intake, 2 Exhaust) */}
-            {/* 2 Intake Valve Reliefs (+X side) */}
-            <mesh position={[0.072, 0.092, -0.06]} rotation={[0, 0, -0.18]}>
-              <cylinderGeometry args={[0.046, 0.046, 0.015, 16]} />
-              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...state} />
-            </mesh>
-            <mesh position={[0.072, 0.092, 0.06]} rotation={[0, 0, -0.18]}>
-              <cylinderGeometry args={[0.046, 0.046, 0.015, 16]} />
-              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...state} />
-            </mesh>
-            {/* 2 Exhaust Valve Reliefs (-X side) */}
-            <mesh position={[-0.072, 0.092, -0.06]} rotation={[0, 0, 0.18]}>
-              <cylinderGeometry args={[0.042, 0.042, 0.015, 16]} />
-              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...state} />
-            </mesh>
-            <mesh position={[-0.072, 0.092, 0.06]} rotation={[0, 0, 0.18]}>
-              <cylinderGeometry args={[0.042, 0.042, 0.015, 16]} />
-              <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...state} />
-            </mesh>
+              {/* Molybdenum Disulfide (MoS2) Dark Anti-Friction Skirt Thrust Face Coating */}
+              <mesh position={[0, -0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.189, 0.189, 0.09, 24, 1, true]} />
+                <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...cylState} />
+              </mesh>
 
-            {/* DLC-Coated Case-Hardened Full-Floating Steel Wrist Pin */}
-            <mesh rotation={[0, 0, Math.PI / 2]} position={[0, -0.035, 0]}>
-              <cylinderGeometry args={[0.038, 0.038, 0.355, 24]} />
-              <EngineMaterial materialType="FORGED_STEEL" baseColor="#cbd5e1" {...state} />
-            </mesh>
+              {/* 3 Distinct Piston Rings with Material & Geometric Differentiation */}
+              {/* Ring 1: Nitrided Chrome Top Compression Ring */}
+              <mesh position={[0, 0.068, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[0.184, 0.007, 8, 32]} />
+                <EngineMaterial materialType="CHROME" {...cylState} />
+              </mesh>
+              {/* Ring 2: Phosphate-Coated Taper Face Napier Scraper Ring */}
+              <mesh position={[0, 0.032, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[0.183, 0.0075, 8, 32]} />
+                <EngineMaterial materialType="CAST_IRON" baseColor="#1e293b" {...cylState} />
+              </mesh>
+              {/* Ring 3: 3-Piece Oil Control Ring with Steel Expander Rail */}
+              <mesh position={[0, -0.005, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[0.183, 0.008, 8, 32]} />
+                <EngineMaterial materialType="FORGED_STEEL" baseColor="#64748b" {...cylState} />
+              </mesh>
 
-            {/* Wrist Pin Spirolox Retaining Circlips at Pin Boss Ends */}
-            <mesh position={[-0.178, -0.035, 0]} rotation={[0, Math.PI / 2, 0]}>
-              <torusGeometry args={[0.038, 0.004, 8, 20]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-            <mesh position={[0.178, -0.035, 0]} rotation={[0, Math.PI / 2, 0]}>
-              <torusGeometry args={[0.038, 0.004, 8, 20]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-          </group>
-        ))}
+              {/* Cast Wrist Pin Bosses inside Piston Skirt with Bronze Bushing Sleeves */}
+              <group position={[-0.105, -0.035, 0]}>
+                <mesh>
+                  <boxGeometry args={[0.075, 0.12, 0.09]} />
+                  <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#cbd5e1" {...cylState} />
+                </mesh>
+                <mesh rotation={[0, 0, Math.PI / 2]}>
+                  <cylinderGeometry args={[0.044, 0.044, 0.078, 20]} />
+                  <EngineMaterial materialType="BEARING_BRONZE" {...cylState} />
+                </mesh>
+              </group>
+              <group position={[0.105, -0.035, 0]}>
+                <mesh>
+                  <boxGeometry args={[0.075, 0.12, 0.09]} />
+                  <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#cbd5e1" {...cylState} />
+                </mesh>
+                <mesh rotation={[0, 0, Math.PI / 2]}>
+                  <cylinderGeometry args={[0.044, 0.044, 0.078, 20]} />
+                  <EngineMaterial materialType="BEARING_BRONZE" {...cylState} />
+                </mesh>
+              </group>
+
+              {/* Piston Crown: 4 Precision CNC Valve Relief Pockets with Machined Bevels */}
+              {/* 2 Intake Valve Reliefs (+X side) with defined depth and bevels */}
+              <group position={[0.072, 0.092, -0.06]} rotation={[0, 0, -0.18]}>
+                <mesh>
+                  <cylinderGeometry args={[0.046, 0.046, 0.016, 20]} />
+                  <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...cylState} />
+                </mesh>
+                <mesh position={[0, 0.008, 0]}>
+                  <torusGeometry args={[0.046, 0.0035, 6, 20]} />
+                  <EngineMaterial materialType="CHROME" {...cylState} />
+                </mesh>
+              </group>
+              <group position={[0.072, 0.092, 0.06]} rotation={[0, 0, -0.18]}>
+                <mesh>
+                  <cylinderGeometry args={[0.046, 0.046, 0.016, 20]} />
+                  <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...cylState} />
+                </mesh>
+                <mesh position={[0, 0.008, 0]}>
+                  <torusGeometry args={[0.046, 0.0035, 6, 20]} />
+                  <EngineMaterial materialType="CHROME" {...cylState} />
+                </mesh>
+              </group>
+
+              {/* 2 Exhaust Valve Reliefs (-X side) with defined depth and bevels */}
+              <group position={[-0.072, 0.092, -0.06]} rotation={[0, 0, 0.18]}>
+                <mesh>
+                  <cylinderGeometry args={[0.042, 0.042, 0.016, 20]} />
+                  <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...cylState} />
+                </mesh>
+                <mesh position={[0, 0.008, 0]}>
+                  <torusGeometry args={[0.042, 0.0035, 6, 20]} />
+                  <EngineMaterial materialType="CHROME" {...cylState} />
+                </mesh>
+              </group>
+              <group position={[-0.072, 0.092, 0.06]} rotation={[0, 0, 0.18]}>
+                <mesh>
+                  <cylinderGeometry args={[0.042, 0.042, 0.016, 20]} />
+                  <EngineMaterial materialType="MACHINED_BILLET" baseColor="#94a3b8" {...cylState} />
+                </mesh>
+                <mesh position={[0, 0.008, 0]}>
+                  <torusGeometry args={[0.042, 0.0035, 6, 20]} />
+                  <EngineMaterial materialType="CHROME" {...cylState} />
+                </mesh>
+              </group>
+
+              {/* DLC-Coated Case-Hardened Full-Floating Steel Wrist Pin */}
+              <mesh rotation={[0, 0, Math.PI / 2]} position={[0, -0.035, 0]}>
+                <cylinderGeometry args={[0.038, 0.038, 0.355, 24]} />
+                <EngineMaterial materialType="FORGED_STEEL" baseColor="#cbd5e1" {...cylState} />
+              </mesh>
+
+              {/* Wrist Pin Spirolox Retaining Circlips at Pin Boss Ends */}
+              <mesh position={[-0.178, -0.035, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <torusGeometry args={[0.038, 0.004, 8, 20]} />
+                <EngineMaterial materialType="CHROME" {...state} />
+              </mesh>
+              <mesh position={[0.178, -0.035, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <torusGeometry args={[0.038, 0.004, 8, 20]} />
+                <EngineMaterial materialType="CHROME" {...state} />
+              </mesh>
+
+              {/* Secondary Visual Highlight Cue when Cylinder is Focused */}
+              {isCylFocused && (
+                <group>
+                  {/* Glowing Cyan Deck Locator Ring */}
+                  <mesh position={[0, 0.102, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <torusGeometry args={[0.198, 0.006, 8, 36]} />
+                    <meshBasicMaterial color="#38bdf8" />
+                  </mesh>
+                  {/* Outer Rim Outline Aura */}
+                  <mesh position={[0, -0.03, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[0.202, 0.202, 0.25, 24, 1, true]} />
+                    <meshBasicMaterial color="#06b6d4" wireframe transparent opacity={0.45} />
+                  </mesh>
+                </group>
+              )}
+            </group>
+          );
+        })}
       </group>
     </group>
   );
@@ -717,13 +940,14 @@ export function PistonAssemblyBank({
 export function ConnectingRodsAssembly({
   isHovered,
   isSelected,
+  focusedCylinder,
   xrayEnabled,
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
   v12Direction = 1
 }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
   const rodsRef = useRef<THREE.Group>(null);
 
   useFrame((sysState) => {
@@ -763,110 +987,130 @@ export function ConnectingRodsAssembly({
 
   return (
     <group position={[0, 0, 0]} ref={rodsRef}>
-      {CYLINDER_Z.map((z, i) => (
-        <React.Fragment key={'rod_pair_' + i}>
-          {/* Bank 1 (Left) Titanium H-Beam Rod */}
-          <group>
-            {/* Split Big-End Journal Cap Housing */}
-            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            {/* Tri-Metal Rod Bearing Shell Visible Inside Bore */}
-            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
-              <EngineMaterial materialType="BEARING_BRONZE" {...state} />
-            </mesh>
-            {/* Two High-Strength ARP 2000 12-Pt Rod Cap Bolts */}
-            <mesh position={[-0.082, 0, 0]}>
-              <cylinderGeometry args={[0.013, 0.013, 0.082, 12]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-            <mesh position={[0.082, 0, 0]}>
-              <cylinderGeometry args={[0.013, 0.013, 0.082, 12]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
+      {CYLINDER_Z.map((z, i) => {
+        const leftCylNum = i + 1;
+        const rightCylNum = i + 7;
+        const isLeftFocused = (focusedCylinder === leftCylNum);
+        const isRightFocused = (focusedCylinder === rightCylNum);
+        const leftState = { ...state, isCylinderFocused: isLeftFocused };
+        const rightState = { ...state, isCylinderFocused: isRightFocused };
 
-            {/* Profiled H-Beam Shank (I-beam outer flange ribs & recessed central web) */}
-            {/* Outer Flange Rib Left */}
-            <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            {/* Outer Flange Rib Right */}
-            <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            {/* Recessed Center Web */}
-            <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
+        return (
+          <React.Fragment key={'rod_pair_' + i}>
+            {/* Bank 1 (Left) Titanium H-Beam Rod */}
+            <group
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: leftCylNum } }));
+              }}
+            >
+              {/* Split Big-End Journal Cap Housing */}
+              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              {/* Tri-Metal Rod Bearing Shell Visible Inside Bore */}
+              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
+                <EngineMaterial materialType="BEARING_BRONZE" {...leftState} />
+              </mesh>
+              {/* Two High-Strength ARP 2000 Hex Rod Cap Bolts */}
+              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
+              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={leftState} />
 
-            {/* Small-End Wrist Pin Eyelet with Bronze Bushing */}
-            <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
-              <EngineMaterial materialType="BEARING_BRONZE" {...state} />
-            </mesh>
-            {/* Forced Pin Oiling Squirt Hole at Top of Eyelet */}
-            <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
-              <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
-              <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...state} />
-            </mesh>
-          </group>
+              {/* Profiled H-Beam Shank (I-beam outer flange ribs & recessed central web) */}
+              <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
 
-          {/* Bank 2 (Right) Titanium H-Beam Rod */}
-          <group>
-            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
-              <EngineMaterial materialType="BEARING_BRONZE" {...state} />
-            </mesh>
-            <mesh position={[-0.082, 0, 0]}>
-              <cylinderGeometry args={[0.013, 0.013, 0.082, 12]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-            <mesh position={[0.082, 0, 0]}>
-              <cylinderGeometry args={[0.013, 0.013, 0.082, 12]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
+              {/* Small-End Wrist Pin Eyelet with Bronze Bushing */}
+              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
+                <EngineMaterial materialType="TITANIUM" {...leftState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
+                <EngineMaterial materialType="BEARING_BRONZE" {...leftState} />
+              </mesh>
+              {/* Forced Pin Oiling Squirt Hole at Top of Eyelet */}
+              <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
+                <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
+                <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...leftState} />
+              </mesh>
 
-            <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
-              <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
+              {/* Focused Rim-Light Outline for Left Rod */}
+              {isLeftFocused && (
+                <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
+                  <boxGeometry args={[0.088, ROD_LENGTH * 0.88, 0.058]} />
+                  <meshBasicMaterial color="#38bdf8" wireframe transparent opacity={0.55} />
+                </mesh>
+              )}
+            </group>
 
-            <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
-              <EngineMaterial materialType="TITANIUM" {...state} />
-            </mesh>
-            <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
-              <EngineMaterial materialType="BEARING_BRONZE" {...state} />
-            </mesh>
-            <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
-              <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
-              <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...state} />
-            </mesh>
-          </group>
-        </React.Fragment>
-      ))}
+            {/* Bank 2 (Right) Titanium H-Beam Rod */}
+            <group
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: rightCylNum } }));
+              }}
+            >
+              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.118, 0.118, 0.068, 28]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.096, 0.096, 0.066, 24, 1, true]} />
+                <EngineMaterial materialType="BEARING_BRONZE" {...rightState} />
+              </mesh>
+              <HexBolt position={[-0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
+              <HexBolt position={[0.082, -0.045, 0]} rotation={[Math.PI, 0, 0]} radius={0.014} height={0.016} state={rightState} />
+
+              <mesh position={[-0.034, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              <mesh position={[0.034, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.016, ROD_LENGTH * 0.82, 0.046]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
+                <boxGeometry args={[0.052, ROD_LENGTH * 0.80, 0.016]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+
+              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.060, 0.060, 0.068, 24]} />
+                <EngineMaterial materialType="TITANIUM" {...rightState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.042, 0.042, 0.070, 20, 1, true]} />
+                <EngineMaterial materialType="BEARING_BRONZE" {...rightState} />
+              </mesh>
+              <mesh position={[0, ROD_LENGTH + 0.055, 0]}>
+                <cylinderGeometry args={[0.008, 0.008, 0.02, 8]} />
+                <EngineMaterial materialType="CAST_IRON" baseColor="#18181b" {...rightState} />
+              </mesh>
+
+              {/* Focused Rim-Light Outline for Right Rod */}
+              {isRightFocused && (
+                <mesh position={[0, ROD_LENGTH * 0.5, 0]}>
+                  <boxGeometry args={[0.088, ROD_LENGTH * 0.88, 0.058]} />
+                  <meshBasicMaterial color="#38bdf8" wireframe transparent opacity={0.55} />
+                </mesh>
+              )}
+            </group>
+          </React.Fragment>
+        );
+      })}
     </group>
   );
 }
@@ -882,13 +1126,14 @@ export function CanonicalCylinderBank({
   isLeftBank,
   isHovered,
   isSelected,
+  focusedCylinder,
   xrayEnabled,
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
   v12Direction = 1
 }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
   const bankRotation = isLeftBank ? BANK_ANGLE : -BANK_ANGLE;
   const bankScale: [number, number, number] = isLeftBank ? [1, 1, 1] : [-1, 1, 1];
   const camsRef = useRef<THREE.Group>(null);
@@ -1054,50 +1299,71 @@ export function CanonicalCylinderBank({
 
         {/* 24 Titanium Valves & Dual Concentric Coiled Springs (Actively Reciprocating) */}
         <group ref={valvesRef}>
-          {CYLINDER_Z.map((z, i) => (
-            <group key={'valves_' + i} position={[0, -0.10, z]}>
-              {/* 2 Intake Valves (Angled toward +X at 18°) */}
-              <group>
-                <mesh position={[0.12, 0, -0.06]} rotation={[0, 0, -0.18]}>
-                  <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
-                  <EngineMaterial materialType="TITANIUM" {...state} />
-                </mesh>
-                <mesh position={[0.12, 0, 0.06]} rotation={[0, 0, -0.18]}>
-                  <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
-                  <EngineMaterial materialType="TITANIUM" {...state} />
-                </mesh>
-                {/* Valve Springs & Titanium Retainers */}
-                <mesh position={[0.12, 0.05, -0.06]} rotation={[0, 0, -0.18]}>
-                  <cylinderGeometry args={[0.026, 0.026, 0.09, 12]} />
-                  <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...state} />
-                </mesh>
-                <mesh position={[0.12, 0.05, 0.06]} rotation={[0, 0, -0.18]}>
-                  <cylinderGeometry args={[0.026, 0.026, 0.09, 12]} />
-                  <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...state} />
-                </mesh>
-              </group>
+          {CYLINDER_Z.map((z, i) => {
+            const cylNum = isLeftBank ? (i + 1) : (i + 7);
+            const isCylFocused = (focusedCylinder === cylNum);
+            const cylState = { ...state, isCylinderFocused: isCylFocused };
 
-              {/* 2 Exhaust Valves (Angled toward -X at 18°) */}
-              <group>
-                <mesh position={[-0.12, 0, -0.06]} rotation={[0, 0, 0.18]}>
-                  <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
-                  <EngineMaterial materialType="TITANIUM" {...state} />
-                </mesh>
-                <mesh position={[-0.12, 0, 0.06]} rotation={[0, 0, 0.18]}>
-                  <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
-                  <EngineMaterial materialType="TITANIUM" {...state} />
-                </mesh>
-                <mesh position={[-0.12, 0.05, -0.06]} rotation={[0, 0, 0.18]}>
-                  <cylinderGeometry args={[0.025, 0.025, 0.09, 12]} />
-                  <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...state} />
-                </mesh>
-                <mesh position={[-0.12, 0.05, 0.06]} rotation={[0, 0, 0.18]}>
-                  <cylinderGeometry args={[0.025, 0.025, 0.09, 12]} />
-                  <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...state} />
-                </mesh>
+            return (
+              <group 
+                key={'valves_' + i} 
+                position={[0, -0.10, z]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum } }));
+                }}
+              >
+                {/* 2 Intake Valves (Angled toward +X at 18°) */}
+                <group>
+                  <mesh position={[0.12, 0, -0.06]} rotation={[0, 0, -0.18]}>
+                    <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
+                    <EngineMaterial materialType="TITANIUM" {...cylState} />
+                  </mesh>
+                  <mesh position={[0.12, 0, 0.06]} rotation={[0, 0, -0.18]}>
+                    <cylinderGeometry args={[0.016, 0.040, 0.23, 16]} />
+                    <EngineMaterial materialType="TITANIUM" {...cylState} />
+                  </mesh>
+                  {/* Valve Springs & Titanium Retainers */}
+                  <mesh position={[0.12, 0.05, -0.06]} rotation={[0, 0, -0.18]}>
+                    <cylinderGeometry args={[0.026, 0.026, 0.09, 12]} />
+                    <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...cylState} />
+                  </mesh>
+                  <mesh position={[0.12, 0.05, 0.06]} rotation={[0, 0, -0.18]}>
+                    <cylinderGeometry args={[0.026, 0.026, 0.09, 12]} />
+                    <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...cylState} />
+                  </mesh>
+                </group>
+
+                {/* 2 Exhaust Valves (Angled toward -X at 18°) */}
+                <group>
+                  <mesh position={[-0.12, 0, -0.06]} rotation={[0, 0, 0.18]}>
+                    <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
+                    <EngineMaterial materialType="TITANIUM" {...cylState} />
+                  </mesh>
+                  <mesh position={[-0.12, 0, 0.06]} rotation={[0, 0, 0.18]}>
+                    <cylinderGeometry args={[0.016, 0.036, 0.23, 16]} />
+                    <EngineMaterial materialType="TITANIUM" {...cylState} />
+                  </mesh>
+                  <mesh position={[-0.12, 0.05, -0.06]} rotation={[0, 0, 0.18]}>
+                    <cylinderGeometry args={[0.025, 0.025, 0.09, 12]} />
+                    <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...cylState} />
+                  </mesh>
+                  <mesh position={[-0.12, 0.05, 0.06]} rotation={[0, 0, 0.18]}>
+                    <cylinderGeometry args={[0.025, 0.025, 0.09, 12]} />
+                    <EngineMaterial materialType="FORGED_STEEL" baseColor="#475569" {...cylState} />
+                  </mesh>
+                </group>
+
+                {/* Visual Highlight Ring if Cylinder is Focused */}
+                {isCylFocused && (
+                  <mesh position={[0, 0.14, 0]}>
+                    <ringGeometry args={[0.11, 0.13, 24]} />
+                    <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} />
+                  </mesh>
+                )}
               </group>
-            </group>
-          ))}
+            );
+          })}
         </group>
 
         {/* Front Camshaft Timing Sprockets with Dual Roller Chain */}
@@ -1126,11 +1392,26 @@ export function CanonicalCylinderBank({
           <EngineMaterial materialType="WRINKLE_RED" {...state} />
         </mesh>
 
-        {/* Perimeter Sealing Flange with Chrome Fasteners */}
+        {/* Perimeter Sealing Flange with Grade 10.9 Chrome Fasteners */}
         <mesh position={[0, -0.02, 0]}>
           <boxGeometry args={[0.55, 0.025, 3.16]} />
           <EngineMaterial materialType="WRINKLE_RED" {...state} />
         </mesh>
+
+        {/* Perimeter Flange Hex Bolts along Inboard and Outboard edges */}
+        {[-0.24, 0.24].map((xPos, xIdx) => (
+          <React.Fragment key={'vc_flange_side_' + xIdx}>
+            {[-1.48, -1.0, -0.5, 0.0, 0.5, 1.0, 1.48].map((zPos, zIdx) => (
+              <HexBolt 
+                key={'vcbolt_' + xIdx + '_' + zIdx} 
+                position={[xPos, 0.005, zPos]} 
+                radius={0.012} 
+                height={0.014} 
+                state={state} 
+              />
+            ))}
+          </React.Fragment>
+        ))}
 
         {/* Longitudinal Cooling & Stiffening Ribs */}
         {[-0.20, -0.12, 0.12, 0.20].map((x, i) => (
@@ -1146,26 +1427,79 @@ export function CanonicalCylinderBank({
           <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...state} />
         </mesh>
 
-        {/* 6 Flush Coil-on-Plug Ignition Modules */}
-        {CYLINDER_Z.map((z, i) => (
-          <group key={'spwell_' + i} position={[0, 0.09, z]}>
-            {/* CNC Machined Flush Well Socket Ring */}
-            <mesh>
-              <cylinderGeometry args={[0.038, 0.038, 0.026, 20]} />
-              <EngineMaterial materialType="CHROME" {...state} />
-            </mesh>
-            {/* Flush-Seated Direct Ignition Coil Module */}
-            <mesh position={[0, 0.014, 0]}>
-              <cylinderGeometry args={[0.030, 0.030, 0.012, 20]} />
-              <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...state} />
-            </mesh>
-            {/* Concentric Fastener Collar */}
-            <mesh position={[0, 0.020, 0]}>
-              <cylinderGeometry args={[0.009, 0.009, 0.006, 12]} />
-              <EngineMaterial materialType="FORGED_STEEL" {...state} />
-            </mesh>
-          </group>
-        ))}
+        {/* Longitudinal Ignition Wiring Harness Cable along Center Channel */}
+        <mesh position={[0, 0.112, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.008, 0.008, 2.96, 12]} />
+          <EngineMaterial materialType="RUBBER" baseColor="#18181b" {...state} />
+        </mesh>
+
+        {/* 6 High-Fidelity Coil-on-Plug Ignition Modules & Spark Plugs */}
+        {CYLINDER_Z.map((z, i) => {
+          const cylNum = isLeftBank ? (i + 1) : (i + 7);
+          const isCylFocused = (focusedCylinder === cylNum);
+          const cylState = { ...state, isCylinderFocused: isCylFocused };
+
+          return (
+            <group 
+              key={'spwell_' + i} 
+              position={[0, 0.09, z]}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum } }));
+              }}
+            >
+              {/* Spark Plug Base: Steel Shell with 6-sided Hex Socket Nut */}
+              <mesh position={[0, -0.06, 0]}>
+                <cylinderGeometry args={[0.024, 0.024, 0.04, 6]} />
+                <EngineMaterial materialType="FORGED_STEEL" baseColor="#94a3b8" {...cylState} />
+              </mesh>
+              {/* Ribbed White Alumina Ceramic Insulator */}
+              <mesh position={[0, -0.02, 0]}>
+                <cylinderGeometry args={[0.016, 0.016, 0.045, 16]} />
+                <EngineMaterial materialType="CERAMIC" baseColor="#ffffff" {...cylState} />
+              </mesh>
+              {/* Ceramic Concentric Flashover Ribs */}
+              {[-0.03, -0.02, -0.01].map((ribY, rIdx) => (
+                <mesh key={'cer_rib_' + rIdx} position={[0, ribY, 0]}>
+                  <torusGeometry args={[0.0165, 0.002, 6, 16]} />
+                  <EngineMaterial materialType="CERAMIC" baseColor="#ffffff" {...cylState} />
+                </mesh>
+              ))}
+
+              {/* CNC Machined Flush Well Socket Ring in Valve Cover */}
+              <mesh>
+                <cylinderGeometry args={[0.038, 0.038, 0.026, 20]} />
+                <EngineMaterial materialType="CHROME" {...cylState} />
+              </mesh>
+
+              {/* Flush-Seated Direct Pencil Ignition Coil Module with Rubber Sealing Boot */}
+              <mesh position={[0, 0.016, 0]}>
+                <cylinderGeometry args={[0.030, 0.030, 0.016, 20]} />
+                <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...cylState} />
+              </mesh>
+              {/* Coil Mounting Tab with Grade 12.9 Fastener */}
+              <mesh position={[0.032, 0.016, 0]}>
+                <boxGeometry args={[0.024, 0.012, 0.024]} />
+                <EngineMaterial materialType="PLASTIC" baseColor="#18181b" {...cylState} />
+              </mesh>
+              <HexBolt position={[0.036, 0.024, 0]} radius={0.007} height={0.010} state={cylState} />
+
+              {/* Branch Wiring Connector to Central Harness */}
+              <mesh position={[0, 0.025, 0]}>
+                <boxGeometry args={[0.014, 0.012, 0.022]} />
+                <EngineMaterial materialType="PLASTIC" baseColor="#27272a" {...cylState} />
+              </mesh>
+
+              {/* Glowing Aura Highlight when Cylinder is Focused */}
+              {isCylFocused && (
+                <mesh position={[0, 0.038, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                  <torusGeometry args={[0.048, 0.004, 8, 28]} />
+                  <meshBasicMaterial color="#38bdf8" />
+                </mesh>
+              )}
+            </group>
+          );
+        })}
 
         {/* Flush Machined Billet Aluminum Oil Filler Cap (Left Bank only) */}
         {isLeftBank && (
@@ -1629,11 +1963,15 @@ export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEna
         <EngineMaterial materialType="CAST_ALUMINUM" {...state} />
       </mesh>
 
-      {/* Water Pump Drive Pulley */}
-      <mesh position={[0, 0.36, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.122, 0.122, 0.052, 24]} />
-        <EngineMaterial materialType="FORGED_STEEL" {...state} />
-      </mesh>
+      {/* Water Pump Drive Pulley with Multi-Rib Grooves */}
+      <GroovedPulley 
+        position={[0, 0.36, 0.04]} 
+        rotation={[Math.PI / 2, 0, 0]} 
+        radius={0.122} 
+        width={0.052} 
+        grooves={6} 
+        state={state} 
+      />
 
       {/* Aerodynamic 9-Blade Viscous Engine Cooling Fan */}
       <group position={[0, 0.36, 0.14]} ref={fanRef}>
@@ -1664,18 +2002,26 @@ export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEna
           <EngineMaterial materialType="COPPER" {...state} />
         </mesh>
         {/* Alternator Multi-Groove Drive Pulley */}
-        <mesh position={[0, 0, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.068, 0.068, 0.052, 20]} />
-          <EngineMaterial materialType="FORGED_STEEL" {...state} />
-        </mesh>
+        <GroovedPulley 
+          position={[0, 0, 0.04]} 
+          rotation={[Math.PI / 2, 0, 0]} 
+          radius={0.068} 
+          width={0.052} 
+          grooves={5} 
+          state={state} 
+        />
       </group>
 
       {/* 3. Automatic Belt Tensioner & Idler Pulley on Right */}
       <group position={[0.42, 0.18, 0.04]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.068, 0.068, 0.052, 20]} />
-          <EngineMaterial materialType="FORGED_STEEL" {...state} />
-        </mesh>
+        <GroovedPulley 
+          position={[0, 0, 0]} 
+          rotation={[Math.PI / 2, 0, 0]} 
+          radius={0.068} 
+          width={0.052} 
+          grooves={5} 
+          state={state} 
+        />
         {/* Tensioner Sprung Arm */}
         <mesh position={[-0.04, -0.06, -0.03]} rotation={[0, 0, 0.45]}>
           <boxGeometry args={[0.04, 0.12, 0.03]} />
@@ -1720,11 +2066,26 @@ export function LubricationSystem({ isHovered, isSelected, xrayEnabled, blueprin
         <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#1e293b" {...state} />
       </mesh>
 
-      {/* Pan Perimeter Mounting Flange with Fasteners */}
+      {/* Pan Perimeter Mounting Flange with Grade 8.8 Hex Fasteners */}
       <mesh position={[0, -0.015, 0]}>
         <boxGeometry args={[0.98, 0.032, 3.04]} />
         <EngineMaterial materialType="CAST_ALUMINUM" baseColor="#334155" {...state} />
       </mesh>
+
+      {/* Perimeter Flange Hex Bolts along Pan Rails */}
+      {[-0.46, 0.46].map((xPos, xIdx) => (
+        <React.Fragment key={'pan_bolt_side_' + xIdx}>
+          {[-1.4, -0.9, -0.4, 0.1, 0.6, 1.1, 1.4].map((zPos, zIdx) => (
+            <HexBolt 
+              key={'panbolt_' + xIdx + '_' + zIdx} 
+              position={[xPos, 0.005, zPos]} 
+              radius={0.012} 
+              height={0.012} 
+              state={state} 
+            />
+          ))}
+        </React.Fragment>
+      ))}
 
       {/* Longitudinal External Heatsink Cooling Fins along Floor */}
       {[-0.36, -0.22, -0.08, 0.08, 0.22, 0.36].map((x, i) => (

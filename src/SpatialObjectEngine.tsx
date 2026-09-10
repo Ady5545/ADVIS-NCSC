@@ -721,7 +721,9 @@ function EngineeringComponentRenderer({
   blueprintEnabled,
   isHighlighted,
   v12Rpm,
-  v12Direction
+  v12Direction,
+  sysTimeRef,
+  focusedCylinder
 }: {
   comp: ComponentMetadata;
   objectId: string;
@@ -732,6 +734,8 @@ function EngineeringComponentRenderer({
   isHighlighted?: boolean;
   v12Rpm?: number;
   v12Direction?: number;
+  sysTimeRef?: React.MutableRefObject<number> | null;
+  focusedCylinder?: number;
 }) {
   const { id, shape, size, color, assetPath, assetScale } = comp;
   
@@ -1257,9 +1261,10 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     isSelected,
     xrayEnabled: xrayEnabled || false,
     blueprintEnabled: blueprintEnabled || false,
-    sysTimeRef: null,
+    sysTimeRef: sysTimeRef || null,
     v12Rpm: v12Rpm || 600,
-    v12Direction: v12Direction || 1
+    v12Direction: v12Direction || 1,
+    focusedCylinder: focusedCylinder || 1
   };
 
   if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
@@ -1836,6 +1841,7 @@ export function SpatialObjectEngine({
   const isKinematicPlayingRef = useRef(isKinematicPlaying);
   const kinematicSpeedRef = useRef(kinematicSpeed);
   const kinematicAngleRef = useRef(0);
+  const sysTimeRef = useRef<number>(0);
   const v12RpmRef = useRef(v12Rpm);
   v12RpmRef.current = v12Rpm;
   const v12DirectionRef = useRef(v12Direction);
@@ -1849,11 +1855,31 @@ export function SpatialObjectEngine({
   useEffect(() => {
     const handleScrub = (e: any) => {
       if (e.detail && typeof e.detail.angleDeg === 'number') {
-        kinematicAngleRef.current = (e.detail.angleDeg * Math.PI) / 180;
+        const rad = (e.detail.angleDeg * Math.PI) / 180;
+        kinematicAngleRef.current = rad;
+        const omega = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
+        if (omega !== 0) {
+          sysTimeRef.current = rad / omega;
+        }
       }
     };
     window.addEventListener('advis-scrub-crank', handleScrub);
-    return () => window.removeEventListener('advis-scrub-crank', handleScrub);
+
+    const handleCameraPreset = (e: any) => {
+      const preset = e.detail;
+      const gEngine = gestureEngineRef.current;
+      if (preset && gEngine && gEngine.spatialCam) {
+        if (typeof preset.theta === 'number') gEngine.spatialCam.targetTheta = preset.theta;
+        if (typeof preset.phi === 'number') gEngine.spatialCam.targetPhi = preset.phi;
+        if (typeof preset.radius === 'number') gEngine.spatialCam.targetRadius = preset.radius;
+      }
+    };
+    window.addEventListener('advis-camera-preset', handleCameraPreset);
+
+    return () => {
+      window.removeEventListener('advis-scrub-crank', handleScrub);
+      window.removeEventListener('advis-camera-preset', handleCameraPreset);
+    };
   }, []);
 
   // Intent-Based Selection System State Machine
@@ -1884,7 +1910,12 @@ export function SpatialObjectEngine({
 
   useEffect(() => {
     if (!isKinematicPlaying && kinematicTimeOffset !== undefined) {
-      kinematicAngleRef.current = kinematicTimeOffset * (Math.PI / 180);
+      const rad = kinematicTimeOffset * (Math.PI / 180);
+      kinematicAngleRef.current = rad;
+      const omega = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
+      if (omega !== 0) {
+        sysTimeRef.current = rad / omega;
+      }
     }
   }, [kinematicTimeOffset, isKinematicPlaying]);
 
@@ -2553,6 +2584,7 @@ export function SpatialObjectEngine({
     if (isKinematicPlayingRef.current) {
       const v12AngularVel = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1) * 0.12;
       kinematicAngleRef.current += delta * v12AngularVel * kinematicSpeedRef.current;
+      sysTimeRef.current += delta * (kinematicSpeedRef.current || 1.0);
     }
     const kAngle = kinematicAngleRef.current;
 
@@ -2781,6 +2813,8 @@ export function SpatialObjectEngine({
                             isHighlighted={isHighlighted}
                             v12Rpm={v12RpmRef.current}
                             v12Direction={v12DirectionRef.current}
+                            sysTimeRef={sysTimeRef}
+                            focusedCylinder={focusedCylinderRef.current}
                           />
                           
                           {/* Function tracing energetic marker badge */}

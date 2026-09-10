@@ -210,6 +210,16 @@ function AppContent() {
   const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
   const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
 
+  useEffect(() => {
+    const handleCylSelect = (e: any) => {
+      if (e.detail && typeof e.detail.cylNum === 'number') {
+        setFocusedCylinder(e.detail.cylNum);
+      }
+    };
+    window.addEventListener('advis-select-cylinder', handleCylSelect);
+    return () => window.removeEventListener('advis-select-cylinder', handleCylSelect);
+  }, []);
+
   const [actionPreview, setActionPreview] = useState<string | null>(null);
 
   const engineTelemetry = useEngineTelemetry();
