@@ -11,3 +11,4 @@ export * from './ScientificActionRouter';
 export * from './MolecularScientificAdapter';
 export * from './FourStrokeEngineModel';
 export * from './HumanAnatomyModel';
+export * from './V12EngineAudioEngine';

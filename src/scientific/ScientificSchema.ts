@@ -48,8 +48,8 @@ export interface ComponentEducationalMetadata {
   scientificName: string;
   definition: string;
   function: string;
-  importance: string;
-  realWorldRelevance: string;
+  importance?: string;
+  realWorldRelevance?: string;
   commonMisconceptions?: string[];
   curriculumLevel?: 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'UNDERGRADUATE' | 'ADVANCED_RESEARCH';
   governingEquations?: Array<{
@@ -62,7 +62,7 @@ export interface ComponentEducationalMetadata {
 }
 
 export interface ComponentGeometry {
-  type: 'box' | 'cylinder' | 'sphere' | 'torus' | 'cone' | 'piston_assembly' | 'crank_segment' | 'valve' | 'cam' | 'spark_plug' | 'anatomical_organ' | 'custom';
+  type: 'box' | 'cylinder' | 'sphere' | 'torus' | 'cone' | 'piston_assembly' | 'crank_segment' | 'valve' | 'cam' | 'spark_plug' | 'anatomical_organ' | 'custom' | 'composite' | 'vascular_vessel';
   params: Record<string, any>;
   material: {
     pbrPreset?: string;

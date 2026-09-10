@@ -723,7 +723,8 @@ function EngineeringComponentRenderer({
   v12Rpm,
   v12Direction,
   sysTimeRef,
-  focusedCylinder
+  focusedCylinder,
+  crankAngleRef
 }: {
   comp: ComponentMetadata;
   objectId: string;
@@ -736,6 +737,7 @@ function EngineeringComponentRenderer({
   v12Direction?: number;
   sysTimeRef?: React.MutableRefObject<number> | null;
   focusedCylinder?: number;
+  crankAngleRef?: React.MutableRefObject<number> | null;
 }) {
   const { id, shape, size, color, assetPath, assetScale } = comp;
   
@@ -1262,9 +1264,10 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     xrayEnabled: xrayEnabled || false,
     blueprintEnabled: blueprintEnabled || false,
     sysTimeRef: sysTimeRef || null,
-    v12Rpm: v12Rpm || 600,
-    v12Direction: v12Direction || 1,
-    focusedCylinder: focusedCylinder || 1
+    v12Rpm: typeof v12Rpm === 'number' ? v12Rpm : 600,
+    v12Direction: typeof v12Direction === 'number' ? v12Direction : 1,
+    focusedCylinder: typeof focusedCylinder === 'number' ? focusedCylinder : 1,
+    crankAngleRef: crankAngleRef || null
   };
 
   if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
@@ -1786,22 +1789,30 @@ export function SpatialObjectEngine({
              setMatProgress(1);
              
               // Speech Confirmation after render
-              if (!isPresentationMode && soundEnabled && window.speechSynthesis) {
-                  const objectIds = Array.isArray(currentSpatialObject) ? currentSpatialObject : [currentSpatialObject];
-                  const speakText = objectIds.length > 1 
-                    ? `Displaying showcase with ${objectIds.map(id => SPATIAL_LIBRARY[id]?.name || id).join(', ')}.`
-                    : (SPATIAL_LIBRARY[objectIds[0]] ? `Displaying ${SPATIAL_LIBRARY[objectIds[0]].name}.` : 'Displaying models.');
-                  // Check if there is already a speech happening
-                  if (!window.speechSynthesis.speaking) {
-                     const utterance = new SpeechSynthesisUtterance(speakText);
-                     utterance.rate = 1.05;
-                     utterance.pitch = 0.95;
-                     const voices = window.speechSynthesis.getVoices();
-                     let bestVoice = voices.find(v => v.name.includes("Daniel"));
-                     if (!bestVoice) bestVoice = voices.find(v => v.name.includes("UK English Male"));
-                     if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith("en"));
-                     if (bestVoice) utterance.voice = bestVoice;
-                     window.speechSynthesis.speak(utterance);
+              if (!isPresentationMode && soundEnabled && typeof window !== 'undefined' && window.speechSynthesis && currentSpatialObject) {
+                  const rawIds = Array.isArray(currentSpatialObject) ? currentSpatialObject : [currentSpatialObject];
+                  const validIds = rawIds.filter(id => Boolean(SPATIAL_LIBRARY[id] || ModelRegistry.getSpatialObject(id)));
+                  if (validIds.length > 0) {
+                    const firstObj = SPATIAL_LIBRARY[validIds[0]] || ModelRegistry.getSpatialObject(validIds[0]);
+                    const speakText = validIds.length > 1 
+                      ? `Displaying showcase with ${validIds.map(id => (SPATIAL_LIBRARY[id] || ModelRegistry.getSpatialObject(id))?.name || id).join(', ')}.`
+                      : (firstObj ? `Displaying ${firstObj.name}.` : 'Displaying models.');
+                    // Check if there is already a speech happening
+                    if (!window.speechSynthesis.speaking) {
+                       try {
+                         const utterance = new SpeechSynthesisUtterance(speakText);
+                         utterance.rate = 1.05;
+                         utterance.pitch = 0.95;
+                         const voices = window.speechSynthesis.getVoices();
+                         let bestVoice = voices.find(v => v.name.includes("Daniel"));
+                         if (!bestVoice) bestVoice = voices.find(v => v.name.includes("UK English Male"));
+                         if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith("en"));
+                         if (bestVoice) utterance.voice = bestVoice;
+                         window.speechSynthesis.speak(utterance);
+                       } catch (speechErr) {
+                         console.warn("Speech synthesis notice:", speechErr);
+                       }
+                    }
                   }
               }
              
@@ -1857,9 +1868,12 @@ export function SpatialObjectEngine({
       if (e.detail && typeof e.detail.angleDeg === 'number') {
         const rad = (e.detail.angleDeg * Math.PI) / 180;
         kinematicAngleRef.current = rad;
-        const omega = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
+        const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
+        const omega = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
         if (omega !== 0) {
           sysTimeRef.current = rad / omega;
+        } else {
+          sysTimeRef.current = 0;
         }
       }
     };
@@ -1912,9 +1926,12 @@ export function SpatialObjectEngine({
     if (!isKinematicPlaying && kinematicTimeOffset !== undefined) {
       const rad = kinematicTimeOffset * (Math.PI / 180);
       kinematicAngleRef.current = rad;
-      const omega = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
+      const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
+      const omega = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
       if (omega !== 0) {
         sysTimeRef.current = rad / omega;
+      } else {
+        sysTimeRef.current = 0;
       }
     }
   }, [kinematicTimeOffset, isKinematicPlaying]);
@@ -2049,9 +2066,9 @@ export function SpatialObjectEngine({
 
   // Handle Presentation Step Narrative Speaks
   useEffect(() => {
-    if (isPresentationMode && currentSpatialObject && SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string]) {
-      const obj = SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string];
-      
+    const primaryId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : (currentSpatialObject as string);
+    const obj = primaryId ? (SPATIAL_LIBRARY[primaryId] || ModelRegistry.getSpatialObject(primaryId)) : null;
+    if (isPresentationMode && obj) {
       // Step 0 is introduction, step 1+ are components
       if (presentationStep === 0) {
         speakNarration(`Initiating spatial presentation of the ${obj.name}, Sir. This is categorized under ${obj.category}. ${obj.description}`);
@@ -2068,8 +2085,9 @@ export function SpatialObjectEngine({
 
   // Advance presentation steps automatically
   useEffect(() => {
-    if (!isPresentationMode || !currentSpatialObject || !SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string]) return;
-    const obj = SPATIAL_LIBRARY[Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject as string];
+    const primaryId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : (currentSpatialObject as string);
+    const obj = primaryId ? (SPATIAL_LIBRARY[primaryId] || ModelRegistry.getSpatialObject(primaryId)) : null;
+    if (!isPresentationMode || !obj) return;
     const totalSteps = obj.components.length + 1;
 
     const interval = setInterval(() => {
@@ -2166,11 +2184,11 @@ export function SpatialObjectEngine({
         dominantIntent = 'HOVERING';
       }
     }
-    if (Math.random() < 0.04) {
+    if (Math.random() < 0.04 && gEngine?.spatialCam) {
       console.log('[SPATIAL TRANSFORM ISOLATION]', {
-        cameraTheta: Number(gEngine.spatialCam.theta.toFixed(4)),
-        cameraPhi: Number(gEngine.spatialCam.phi.toFixed(4)),
-        cameraRadius: Number(gEngine.spatialCam.radius.toFixed(4)),
+        cameraTheta: Number((gEngine.spatialCam.theta ?? 0).toFixed(4)),
+        cameraPhi: Number((gEngine.spatialCam.phi ?? 0).toFixed(4)),
+        cameraRadius: Number((gEngine.spatialCam.radius ?? 0).toFixed(4)),
         mainGroupRotation: mainGroupRef.current ? {
           x: Number(mainGroupRef.current.rotation.x.toFixed(4)),
           y: Number(mainGroupRef.current.rotation.y.toFixed(4)),
@@ -2179,7 +2197,7 @@ export function SpatialObjectEngine({
         selectedInteractionState: gEngine.interactionState,
         handsCount: gEngine.handsCount,
         isPinch: gEngine.isPinch,
-        zoomDelta: Number(gEngine.zoomDelta.toFixed(4)),
+        zoomDelta: Number((gEngine.zoomDelta ?? 0).toFixed(4)),
         orbitDelta: {
           theta: Number(gEngine.orbitDelta?.theta?.toFixed(4) || 0),
           phi: Number(gEngine.orbitDelta?.phi?.toFixed(4) || 0)
@@ -2581,9 +2599,12 @@ export function SpatialObjectEngine({
       ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
       : [];
 
-    if (isKinematicPlayingRef.current) {
-      const v12AngularVel = ((v12RpmRef.current || 600) / 60) * Math.PI * 2 * (v12DirectionRef.current || 1) * 0.12;
-      kinematicAngleRef.current += delta * v12AngularVel * kinematicSpeedRef.current;
+    const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
+    const isEngineActive = isKinematicPlayingRef.current && currentRpm > 0;
+
+    if (isEngineActive) {
+      const v12AngularVel = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1) * 0.12;
+      kinematicAngleRef.current += delta * v12AngularVel * (kinematicSpeedRef.current || 1.0);
       sysTimeRef.current += delta * (kinematicSpeedRef.current || 1.0);
     }
     const kAngle = kinematicAngleRef.current;
@@ -2593,9 +2614,9 @@ export function SpatialObjectEngine({
       const angleDeg = (kinematicAngleRef.current * 180) / Math.PI;
       EngineKinematicsBus.update(
         angleDeg,
-        v12RpmRef.current || 600,
+        currentRpm,
         kinematicSpeedRef.current,
-        isKinematicPlayingRef.current,
+        isEngineActive,
         focusedCylinderRef.current || 1
       );
     }
@@ -2622,11 +2643,13 @@ export function SpatialObjectEngine({
     });
   });
 
-  const objectIds = Array.isArray(currentSpatialObject) 
+  const rawObjectIds = Array.isArray(currentSpatialObject) 
     ? currentSpatialObject 
     : (currentSpatialObject ? [currentSpatialObject] : []);
 
-  if (objectIds.length === 0 || !objectIds.every(id => SPATIAL_LIBRARY[id])) return null;
+  const objectIds = rawObjectIds.filter(id => Boolean(SPATIAL_LIBRARY[id] || ModelRegistry.getSpatialObject(id)));
+
+  if (objectIds.length === 0) return null;
 
   return (
     <group
@@ -2636,7 +2659,7 @@ export function SpatialObjectEngine({
       scale={[0.001, 0.001, 0.001]}
     >
       {/* Base Holographic Projector (only rendered for abstract holographic models, strictly excluded from V12 mechanical engine) */}
-      {!objectIds.includes('v12_engine') && !objectIds.some(id => SPATIAL_LIBRARY[id]?.category === 'Automotive') && (
+      {!objectIds.includes('v12_engine') && !objectIds.some(id => (SPATIAL_LIBRARY[id] || ModelRegistry.getSpatialObject(id))?.category === 'Automotive') && (
         <group position={[0, -2.8, 0]}>
           <Cylinder args={[0.3, 0.4, 0.1, 32]}>
              <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.2} />
@@ -2650,7 +2673,7 @@ export function SpatialObjectEngine({
       {/* RENDER THE OBJECT STATUS OR COMPONENTS */}
       <group>
         {objectIds.map((objId, idx) => {
-          const obj = SPATIAL_LIBRARY[objId];
+          const obj = SPATIAL_LIBRARY[objId] || ModelRegistry.getSpatialObject(objId);
           if (!obj) return null;
 
           const baseSpacing = 6.0;
@@ -2815,6 +2838,7 @@ export function SpatialObjectEngine({
                             v12Direction={v12DirectionRef.current}
                             sysTimeRef={sysTimeRef}
                             focusedCylinder={focusedCylinderRef.current}
+                            crankAngleRef={kinematicAngleRef}
                           />
                           
                           {/* Function tracing energetic marker badge */}

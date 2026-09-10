@@ -29,6 +29,7 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
+import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -134,6 +135,20 @@ class EnvironmentErrorBoundary extends React.Component<{ children: React.ReactNo
   }
 }
 
+const safeGetStorage = (key: string, fallback: string = ''): string => {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const safeSetStorage = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+};
+
 function AppContent() {
   const [systemState, setSystemState] = useState<SystemState>('ONLINE');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -224,6 +239,19 @@ function AppContent() {
 
   const engineTelemetry = useEngineTelemetry();
 
+  // Dynamic Procedural V12 Sound Synthesis Engine synchronization
+  const isV12Active = Array.isArray(currentSpatialObject)
+    ? currentSpatialObject.includes('v12_engine')
+    : currentSpatialObject === 'v12_engine';
+
+  useV12EngineAudio({
+    active: isV12Active,
+    rpm: v12Rpm,
+    isPlaying: isKinematicPlaying,
+    speed: kinematicSpeed,
+    soundEnabled: soundEnabled
+  });
+
   const handleSetCutawayMode = (mode: 'SOLID' | 'GLASS' | 'SECTION') => {
     if (mode === 'GLASS') {
       setXrayEnabled(true);
@@ -294,7 +322,7 @@ function AppContent() {
       await fetch('/api/advis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: "clear chat", mode: "normal", deviceId: localStorage.getItem('advis_device_id') })
+        body: JSON.stringify({ message: "clear chat", mode: "normal", deviceId: safeGetStorage('advis_device_id') })
       });
       if (soundEnabled && window.speechSynthesis) {
         const u = new SpeechSynthesisUtterance("Workspace reset. Active session cleared.");
@@ -546,11 +574,11 @@ function AppContent() {
 
   useEffect(() => {
     // Generate or retrieve device ID
-    let id = localStorage.getItem('advis_device_id') || localStorage.getItem('jarvis_device_id');
+    let id = safeGetStorage('advis_device_id') || safeGetStorage('jarvis_device_id');
     if (!id) {
       id = 'dev_' + Math.random().toString(36).substr(2, 9);
     }
-    localStorage.setItem('advis_device_id', id);
+    safeSetStorage('advis_device_id', id);
     
     // Fetch history in background immediately
     fetchHistory(id);
@@ -634,7 +662,7 @@ function AppContent() {
       setSystemState('THINKING');
     }
     
-    const deviceId = localStorage.getItem('advis_device_id') || 'default';
+    const deviceId = safeGetStorage('advis_device_id', 'default');
     const lowerCmd = displayMessage.toLowerCase().trim();
 
     // 0. Direct Scientific Model Launch Intent
@@ -773,7 +801,7 @@ function AppContent() {
           setHoveredComponentId(null);
           changeSpatialMode('INSPECTION');
         } else {
-          setCurrentSpatialObject([buildRes.spatialObject.id, Date.now().toString()]);
+          setCurrentSpatialObject(buildRes.spatialObject.id);
         }
 
         pushRecentAction(isMutation ? 'AUTONOMOUS_MODEL_MUTATE' : 'AUTONOMOUS_MODEL_CONSTRUCT', buildRes.spatialObject.id, buildRes.plan.displayName);
@@ -1192,7 +1220,7 @@ function AppContent() {
     } catch (e) {
       console.warn('handleSendMessage error:', e);
       
-      setMessages([{ role: 'assistant', content: 'Scientific workspace online. (Offline Mode Active)', timestamp: Date.now() }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Scientific workspace online. (Offline Mode Active)', timestamp: Date.now() }]);
       setSystemState('ONLINE');
 
       setTimeout(() => { setSystemState('ONLINE'); sessionActiveRef.current = false; }, 3000);
@@ -1479,7 +1507,7 @@ function AppContent() {
     )}
 
     {/* DEDICATED V12 ENGINE CONTROL & TELEMETRY SUITE */}
-    {currentSpatialObject === 'v12_engine' && (
+    {isV12Active && (
       <V12EngineController
         v12Rpm={v12Rpm}
         onChangeRpm={setV12Rpm}

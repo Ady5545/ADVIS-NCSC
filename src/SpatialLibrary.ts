@@ -64,8 +64,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   v8_engine_scientific: {
     id: 'v8_engine_scientific',
     name: 'Four-Stroke Kinematic Engine',
-    path: '/models/automotive/v8.glb',
-    assetPath: '/models/automotive/v8.glb',
+    path: '/models/procedural/v8_engine_scientific',
+    assetPath: 'procedural/automotive/v8_engine_scientific',
     modelStatus: 'AVAILABLE',
     category: 'Mechanical Engineering',
     description: 'A structured, simulation-driven 4-stroke internal combustion engine with real thermodynamic cycle, rotating crankshaft, reciprocating piston, and synchronized double-overhead valvetrain.',
@@ -107,8 +107,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   human_anatomy_scientific: {
     id: 'human_anatomy_scientific',
     name: 'Cardiovascular & Respiratory Atlas',
-    path: '/models/biology/heart.glb',
-    assetPath: '/models/biology/heart.glb',
+    path: '/models/procedural/cardiovascular',
+    assetPath: 'procedural/biology/cardiovascular',
     modelStatus: 'AVAILABLE',
     category: 'Biological Systems',
     description: 'Hierarchical anatomical atlas with discrete cardiac chambers, great vessels, trachea, and pulmonic lobes with real physiological hemodynamics.',
@@ -147,8 +147,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   arduino_uno: {
     id: 'arduino_uno',
     name: 'Arduino UNO R3',
-    path: '/models/arduino_uno.glb',
-    assetPath: '/models/arduino_uno.glb',
+    path: '/models/procedural/arduino_uno',
+    assetPath: 'procedural/engineering/arduino_uno',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
     description: 'ATmega328P based microcontroller board.',
@@ -171,15 +171,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Microcontroller': 'ATmega328P', 'Operating Voltage': '5V', 'Clock Speed': '16 MHz' }
     },
     components: [
-      { id: 'uno_board', name: 'Arduino UNO R3', description: 'Complete High-Fidelity Board.', position: [0, 0, 0], size: [1.0, 0.2, 1.4], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/arduino_uno.glb', assetScale: 1.0 }
+      { id: 'uno_pcb', name: 'PCB Substrate', description: 'FR4 copper-clad substrate board.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#044530' },
+      { id: 'uno_atmega', name: 'ATmega328P MCU', description: '8-bit AVR RISC microcontroller.', position: [0.1, 0.05, 0.2], size: [0.3, 0.08, 0.8], explodedOffset: [0, 0.5, 0], shape: 'box', color: '#1e293b' },
+      { id: 'uno_usb', name: 'USB-B Connector', description: 'USB programming and serial interface port.', position: [-0.35, 0.12, -0.45], size: [0.3, 0.25, 0.35], explodedOffset: [-0.4, 0.2, 0], shape: 'box', color: '#94a3b8' },
+      { id: 'uno_dc', name: 'DC Barrel Jack', description: 'External power input socket (7-12V).', position: [-0.35, 0.12, 0.45], size: [0.3, 0.25, 0.35], explodedOffset: [-0.4, 0, 0.2], shape: 'box', color: '#0f172a' },
+      { id: 'uno_headers', name: 'Pin Headers', description: 'Digital and analog I/O female header rows.', position: [0.4, 0.1, 0], size: [0.1, 0.2, 1.2], explodedOffset: [0.4, 0.2, 0], shape: 'box', color: '#0f172a' }
     ]
   },
 
   esp32: {
     id: 'esp32',
     name: 'ESP32 Development Board',
-    path: '/models/esp32.glb',
-    assetPath: '/models/esp32.glb',
+    path: '/models/procedural/esp32',
+    assetPath: 'procedural/engineering/esp32',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
     description: 'Dual-core MCU with WiFi and Bluetooth.',
@@ -192,15 +196,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Microcontroller': 'ESP32', 'Operating Voltage': '3.3V', 'Clock Speed': '240 MHz' }
     },
     components: [
-      { id: 'esp32_board', name: 'ESP32 Board', description: 'Complete High-Fidelity Board.', position: [0, 0, 0], size: [0.6, 0.1, 1.2], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/esp32.glb', assetScale: 1.0 }
+      { id: 'esp32_pcb', name: 'ESP32 PCB', description: 'Matte black system board.', position: [0, 0, 0], size: [0.6, 0.05, 1.2], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#111111' },
+      { id: 'esp32_module', name: 'ESP-WROOM-32 Shield', description: 'RF shielding can with dual-core Tensilica MCU.', position: [0, 0.05, 0.1], size: [0.45, 0.06, 0.5], explodedOffset: [0, 0.4, 0], shape: 'box', color: '#cbd5e1' },
+      { id: 'esp32_usb', name: 'Micro-USB Port', description: 'UART and power interface.', position: [0, 0.05, -0.55], size: [0.2, 0.08, 0.15], explodedOffset: [0, 0.2, -0.3], shape: 'box', color: '#94a3b8' },
+      { id: 'esp32_headers', name: 'Pin Headers', description: '30-pin dual inline header strip.', position: [0, 0.05, 0], size: [0.55, 0.15, 1.1], explodedOffset: [0, 0.3, 0], shape: 'box', color: '#1f2937' }
     ]
   },
 
   sg90_servo: {
     id: 'sg90_servo',
     name: 'SG90 Micro Servo',
-    path: '/models/sg90_servo.glb',
-    assetPath: '/models/sg90_servo.glb',
+    path: '/models/procedural/sg90_servo',
+    assetPath: 'procedural/engineering/sg90_servo',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
     description: 'TowerPro SG90 9g Micro Servo Motor.',
@@ -216,15 +223,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Torque': '1.8 kg-cm', 'Speed': '0.12 sec/60°', 'Weight': '9g' }
     },
     components: [
-      { id: 'sg90_model', name: 'SG90 Servo', description: 'TowerPro SG90 Asset.', position: [0, 0, 0], size: [0.4, 0.5, 0.4], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/sg90_servo.glb', assetScale: 1.0 }
+      { id: 'sg90_lower_casing', name: 'Lower Translucent Case', description: 'Polycarbonate protective lower enclosure.', position: [0, -0.15, 0], size: [0.4, 0.3, 0.25], explodedOffset: [0, -0.4, 0], shape: 'box', color: '#2563eb' },
+      { id: 'sg90_upper_casing', name: 'Upper Gear Casing', description: 'Molded casing with mounting flanges.', position: [0, 0.15, 0], size: [0.4, 0.3, 0.25], explodedOffset: [0, 0.4, 0], shape: 'box', color: '#2563eb' },
+      { id: 'sg90_dc_motor', name: 'Coreless DC Motor', description: 'High-speed brushed DC actuator.', position: [-0.08, 0, 0], size: [0.15, 0.25, 0.15], explodedOffset: [-0.3, 0, 0], shape: 'cylinder', color: '#cbd5e1' },
+      { id: 'sg90_gear_train', name: 'Nylon Gear Train', description: 'Reduction gear set with output spline.', position: [0.08, 0.12, 0], size: [0.2, 0.2, 0.2], explodedOffset: [0, 0.5, 0], shape: 'cylinder', color: '#f8fafc' },
+      { id: 'sg90_pcb', name: 'PWM Control Board', description: 'Internal servo amplifier circuit.', position: [0, -0.22, 0], size: [0.35, 0.04, 0.2], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#047857' }
     ]
   },
   
   solar_panel: {
     id: 'solar_panel',
     name: 'Solar Panel 70x70mm',
-    path: '/models/solar_panel.glb',
-    assetPath: '/models/solar_panel.glb',
+    path: '/models/procedural/solar_panel',
+    assetPath: 'procedural/engineering/solar_panel',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
     description: 'Monocrystalline photovoltaic panel.',
@@ -237,7 +248,11 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Voltage': '6V', 'Size': '70x70mm' }
     },
     components: [
-      { id: 'sp_model', name: 'Photovoltaic Panel', description: 'High-Fidelity Solar Panel.', position: [0, 0, 0], size: [1.4, 0.05, 1.4], explodedOffset: [0, 0, 0], shape: 'box', assetPath: '/models/solar_panel.glb', assetScale: 1.0 }
+      { id: 'sp_glass', name: 'Tempered Front Glass', description: 'High-transmittance anti-reflective glass.', position: [0, 0.04, 0], size: [1.4, 0.02, 1.4], explodedOffset: [0, 0.5, 0], shape: 'box', color: '#38bdf8' },
+      { id: 'sp_cells', name: 'Monocrystalline Solar Cells', description: 'Textured silicon wafer array.', position: [0, 0.01, 0], size: [1.35, 0.01, 1.35], explodedOffset: [0, 0.2, 0], shape: 'box', color: '#020617' },
+      { id: 'sp_frame', name: 'Anodized Aluminum Frame', description: 'Structural extruded aluminum border.', position: [0, 0, 0], size: [1.45, 0.06, 1.45], explodedOffset: [0, 0, 0], shape: 'box', color: '#e2e8f0' },
+      { id: 'sp_backsheet', name: 'Tedlar Protective Backsheet', description: 'Weatherproof polymer rear layer.', position: [0, -0.02, 0], size: [1.38, 0.01, 1.38], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#f8fafc' },
+      { id: 'sp_jbox', name: 'Bypass Diode Junction Box', description: 'Rear terminal box with bypass protection.', position: [0, -0.05, 0.4], size: [0.3, 0.04, 0.3], explodedOffset: [0, -0.5, 0], shape: 'box', color: '#0f172a' }
     ]
   },
 
@@ -286,8 +301,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   heliomotion: {
     id: 'heliomotion',
     name: 'HELIOMOTION Dual-Axis Solar Tracker',
-    path: '/models/heliomotion.glb',
-    assetPath: '/models/heliomotion.glb',
+    path: '/models/procedural/heliomotion',
+    assetPath: 'procedural/engineering/heliomotion',
     modelStatus: 'AVAILABLE',
     category: 'Engineering',
     description: 'Complete dual-axis solar tracking prototype assembly featuring base frame, dual SG90 servo motors, solar panel assembly, and Arduino microcontroller.',
@@ -320,35 +335,13 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo', 'Controller': 'Arduino UNO' }
     },
     components: [
-      { 
-        id: 'heliomotion_assembly', 
-        name: 'HelioMotion Complete Assembly', 
-        description: 'Complete dual-axis solar tracker engineering assembly.', 
-        position: [0, 0, 0], 
-        size: [2.0, 1.5, 2.0], 
-        explodedOffset: [0, 0, 0], 
-        shape: 'box', 
-        assetPath: '/models/heliomotion.glb', 
-        assetScale: 1.0,
-        engineeringDetails: {
-          material: 'ABS Polycarbonate & Anodized Aluminum',
-          weight: '480g',
-          tolerances: '±0.15mm',
-          stressThreshold: '12.4 MPa',
-          pinout: {
-            'VCC': '5V DC Supply',
-            'GND': 'System Ground',
-            'PAN_SERVO': 'Digital Pin 9 (PWM)',
-            'TILT_SERVO': 'Digital Pin 10 (PWM)',
-            'LDR_AZIMUTH': 'Analog A0',
-            'LDR_ELEVATION': 'Analog A1'
-          },
-          specifications: {
-            'Tracking Accuracy': '±1.5 Degrees',
-            'Power Consumption': '1.2W Peak'
-          }
-        }
-      }
+      { id: 'hm_frame', name: 'Structural Frame & Mast', description: 'Machined anodized aluminum mounting frame.', position: [0, 0, 0], size: [0.8, 1.2, 0.8], explodedOffset: [0, -0.5, 0], shape: 'cylinder', color: '#475569' },
+      { id: 'hm_panel', name: 'Photovoltaic Array', description: 'High-efficiency dual-axis solar module.', position: [0, 0.8, 0], size: [1.6, 0.08, 1.6], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#0284c7' },
+      { id: 'hm_servo_pan', name: 'Pan Azimuth Actuator', description: 'Base 360-degree continuous rotation servo.', position: [0, -0.2, 0], size: [0.3, 0.25, 0.2], explodedOffset: [-0.4, -0.2, 0], shape: 'box', color: '#2563eb' },
+      { id: 'hm_servo_tilt', name: 'Tilt Elevation Actuator', description: 'Upper altitude articulation micro servo.', position: [0, 0.5, 0], size: [0.25, 0.2, 0.2], explodedOffset: [0.4, 0.5, 0], shape: 'box', color: '#2563eb' },
+      { id: 'hm_ldr_array', name: 'Quadrant LDR Pyranometer', description: 'Cross-baffled light sensor array.', position: [0, 0.88, 0], size: [0.3, 0.15, 0.3], explodedOffset: [0, 1.0, 0], shape: 'cylinder', color: '#f59e0b' },
+      { id: 'hm_arduino', name: 'Embedded Controller Board', description: 'Arduino microcontroller running sun-tracking PID logic.', position: [0.35, 0.1, 0], size: [0.5, 0.1, 0.7], explodedOffset: [0.6, 0.1, 0], shape: 'box', color: '#044530' },
+      { id: 'hm_wiring', name: 'Silicone Wiring Harness', description: 'Flexible low-resistance cabling loom.', position: [0, 0.3, 0], size: [0.1, 0.6, 0.1], explodedOffset: [0, 0.3, 0.4], shape: 'cylinder', color: '#ef4444' }
     ]
   },
 
@@ -543,8 +536,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   raspberry_pi: {
     id: 'raspberry_pi',
     name: 'Raspberry Pi 4 Model B',
-    path: '/models/electronics/raspberry_pi.glb',
-    assetPath: '/models/electronics/raspberry_pi.glb',
+    path: '/models/procedural/raspberry_pi',
+    assetPath: 'procedural/electronics/raspberry_pi',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A powerful single-board computer with a quad-core 64-bit ARM processor, dual 4K display support, and full Linux OS capabilities.',
@@ -582,8 +575,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   servo_motor: {
     id: 'servo_motor',
     name: 'Servo Motor SG90',
-    path: '/models/electronics/servo.glb',
-    assetPath: '/models/electronics/servo.glb',
+    path: '/models/procedural/servo',
+    assetPath: 'procedural/electronics/servo',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A tiny and lightweight servo motor providing controlled angular rotation (0 to 180 degrees) via PWM signals.',
@@ -617,8 +610,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   stepper_motor: {
     id: 'stepper_motor',
     name: 'NEMA 17 Stepper Motor',
-    path: '/models/electronics/stepper.glb',
-    assetPath: '/models/electronics/stepper.glb',
+    path: '/models/procedural/stepper',
+    assetPath: 'procedural/electronics/stepper',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A high-precision brushless DC motor that divides a 360-degree rotation into 200 discrete steps (1.8 deg per step).',
@@ -651,8 +644,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   dc_motor: {
     id: 'dc_motor',
     name: 'Brushed DC Motor 130',
-    path: '/models/electronics/dc_motor.glb',
-    assetPath: '/models/electronics/dc_motor.glb',
+    path: '/models/procedural/dc_motor',
+    assetPath: 'procedural/electronics/dc_motor',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A simple direct-current motor that converts electrical energy into high-speed rotational mechanical energy.',
@@ -683,8 +676,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   brushless_motor: {
     id: 'brushless_motor',
     name: 'Outrunner BLDC Motor',
-    path: '/models/electronics/bldc.glb',
-    assetPath: '/models/electronics/bldc.glb',
+    path: '/models/procedural/bldc',
+    assetPath: 'procedural/electronics/bldc',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A high-efficiency 3-phase brushless motor with an external rotating bell housing, providing extreme power-to-weight ratio.',
@@ -715,8 +708,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   breadboard: {
     id: 'breadboard',
     name: 'Solderless Breadboard',
-    path: '/models/electronics/breadboard.glb',
-    assetPath: '/models/electronics/breadboard.glb',
+    path: '/models/procedural/breadboard',
+    assetPath: 'procedural/electronics/breadboard',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'A reusable construction grid with 830 tie-points for rapid electronic circuit assembly without soldering.',
@@ -742,8 +735,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   relay_module: {
     id: 'relay_module',
     name: '5V Optocoupled Relay Module',
-    path: '/models/electronics/relay.glb',
-    assetPath: '/models/electronics/relay.glb',
+    path: '/models/procedural/relay',
+    assetPath: 'procedural/electronics/relay',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'An electrically operated electromagnetic switch allowing low-voltage microcontrollers to control high-voltage AC mains appliances.',
@@ -769,8 +762,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   ultrasonic_sensor: {
     id: 'ultrasonic_sensor',
     name: 'HC-SR04 Ultrasonic Distance Sensor',
-    path: '/models/electronics/ultrasonic.glb',
-    assetPath: '/models/electronics/ultrasonic.glb',
+    path: '/models/procedural/ultrasonic',
+    assetPath: 'procedural/electronics/ultrasonic',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'Emits 40 kHz ultrasonic sound bursts and calculates precise distance by measuring the echo time-of-flight.',
@@ -797,8 +790,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   lcd_display: {
     id: 'lcd_display',
     name: '16x2 Character LCD Module',
-    path: '/models/electronics/lcd.glb',
-    assetPath: '/models/electronics/lcd.glb',
+    path: '/models/procedural/lcd',
+    assetPath: 'procedural/electronics/lcd',
     modelStatus: 'AVAILABLE',
     category: 'Electronics',
     description: 'Displays 32 ASCII alphanumeric characters across two rows of 16 dot-matrix blocks with LED backlighting.',
@@ -903,8 +896,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   inline4_engine: {
     id: 'inline4_engine',
     name: 'Inline-4 DOHC Engine',
-    path: '/models/automotive/inline4.glb',
-    assetPath: '/models/automotive/inline4.glb',
+    path: '/models/procedural/inline4',
+    assetPath: 'procedural/automotive/inline4',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'An internal combustion engine with four cylinders mounted in a straight line along a shared crankcase.',
@@ -929,8 +922,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   v8_engine: {
     id: 'v8_engine',
     name: 'V8 Performance Engine',
-    path: '/models/automotive/v8.glb',
-    assetPath: '/models/automotive/v8.glb',
+    path: '/models/procedural/v8',
+    assetPath: 'procedural/automotive/v8',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'An eight-cylinder engine arranged in two banks of four cylinders, generating immense low-end torque.',
@@ -950,8 +943,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   turbocharger: {
     id: 'turbocharger',
     name: 'Twin-Scroll Turbocharger',
-    path: '/models/automotive/turbo.glb',
-    assetPath: '/models/automotive/turbo.glb',
+    path: '/models/procedural/turbo',
+    assetPath: 'procedural/automotive/turbo',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'A forced-induction turbine device that compresses intake air using waste exhaust gas kinetic energy.',
@@ -977,8 +970,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   differential: {
     id: 'differential',
     name: 'Limited-Slip Differential',
-    path: '/models/automotive/differential.glb',
-    assetPath: '/models/automotive/differential.glb',
+    path: '/models/procedural/differential',
+    assetPath: 'procedural/automotive/differential',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'Allows drive wheels to rotate at different speeds while cornering while locking torque transfer if one wheel slips.',
@@ -998,8 +991,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   gearbox: {
     id: 'gearbox',
     name: '6-Speed Manual Transmission',
-    path: '/models/automotive/gearbox.glb',
-    assetPath: '/models/automotive/gearbox.glb',
+    path: '/models/procedural/gearbox',
+    assetPath: 'procedural/automotive/gearbox',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'A multi-speed transmission using meshing gear sets and synchromesh rings to select drive ratios.',
@@ -1019,8 +1012,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   suspension: {
     id: 'suspension',
     name: 'MacPherson Strut Assembly',
-    path: '/models/automotive/suspension.glb',
-    assetPath: '/models/automotive/suspension.glb',
+    path: '/models/procedural/suspension',
+    assetPath: 'procedural/automotive/suspension',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'Combines a coil spring and telescopic shock absorber into a single structural steering pivot strut.',
@@ -1040,8 +1033,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   brake_disc: {
     id: 'brake_disc',
     name: 'Carbon-Ceramic Ventilated Brake Disc',
-    path: '/models/automotive/brake.glb',
-    assetPath: '/models/automotive/brake.glb',
+    path: '/models/procedural/brake',
+    assetPath: 'procedural/automotive/brake',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'A lightweight carbon-fiber reinforced ceramic brake rotor squeezed by multi-piston hydraulic calipers.',
@@ -1062,8 +1055,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   steering_assembly: {
     id: 'steering_assembly',
     name: 'Rack and Pinion Steering Gear',
-    path: '/models/automotive/steering.glb',
-    assetPath: '/models/automotive/steering.glb',
+    path: '/models/procedural/steering',
+    assetPath: 'procedural/automotive/steering',
     modelStatus: 'AVAILABLE',
     category: 'Automotive',
     description: 'Converts rotational steering wheel motion into linear horizontal tie-rod motion to turn front wheels.',
@@ -1132,8 +1125,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   human_brain: {
     id: 'human_brain',
     name: 'Human Brain Anatomy',
-    path: '/models/anatomy/brain.glb',
-    assetPath: '/models/anatomy/brain.glb',
+    path: '/models/procedural/brain',
+    assetPath: 'procedural/anatomy/brain',
     modelStatus: 'AVAILABLE',
     category: 'Anatomy',
     description: 'The central control organ of the nervous system, containing 86 billion neurons responsible for cognition, memory, emotion, and motor control.',
@@ -1163,8 +1156,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   human_lungs: {
     id: 'human_lungs',
     name: 'Human Respiratory Lungs',
-    path: '/models/anatomy/lungs.glb',
-    assetPath: '/models/anatomy/lungs.glb',
+    path: '/models/procedural/lungs',
+    assetPath: 'procedural/anatomy/lungs',
     modelStatus: 'AVAILABLE',
     category: 'Anatomy',
     description: 'Primary respiratory organs facilitating gas exchange between inhaled atmospheric air and the circulatory bloodstream.',
@@ -1191,8 +1184,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   human_eye: {
     id: 'human_eye',
     name: 'Human Eye Anatomy',
-    path: '/models/anatomy/eye.glb',
-    assetPath: '/models/anatomy/eye.glb',
+    path: '/models/procedural/eye',
+    assetPath: 'procedural/anatomy/eye',
     modelStatus: 'AVAILABLE',
     category: 'Anatomy',
     description: 'A sensory organ that focuses incoming light rays onto photosensitive retinal cells to produce vision.',
@@ -1214,8 +1207,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   human_skeleton: {
     id: 'human_skeleton',
     name: 'Human Skeletal System',
-    path: '/models/anatomy/skeleton.glb',
-    assetPath: '/models/anatomy/skeleton.glb',
+    path: '/models/procedural/skeleton',
+    assetPath: 'procedural/anatomy/skeleton',
     modelStatus: 'AVAILABLE',
     category: 'Anatomy',
     description: 'The internal rigid bone framework protecting organs and anchoring skeletal muscles for movement.',
@@ -1326,8 +1319,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   earth: {
     id: 'earth',
     name: 'Planet Earth Hologram',
-    path: '/models/astronomy/earth.glb',
-    assetPath: '/models/astronomy/earth.glb',
+    path: '/models/procedural/earth',
+    assetPath: 'procedural/astronomy/earth',
     modelStatus: 'AVAILABLE',
     category: 'Astronomy',
     description: 'A multi-layered holographic representation of Earth featuring planetary crust, atmosphere, and cloud layers.',
@@ -1348,8 +1341,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   moon: {
     id: 'moon',
     name: 'The Moon (Earth Satellite)',
-    path: '/models/astronomy/moon.glb',
-    assetPath: '/models/astronomy/moon.glb',
+    path: '/models/procedural/moon',
+    assetPath: 'procedural/astronomy/moon',
     modelStatus: 'AVAILABLE',
     category: 'Astronomy',
     description: 'Earth\'s natural satellite featuring heavily cratered highlands and dark basaltic mare plains.',
@@ -1369,8 +1362,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   solar_system: {
     id: 'solar_system',
     name: 'Solar System Planetary Orbits',
-    path: '/models/astronomy/solar_system.glb',
-    assetPath: '/models/astronomy/solar_system.glb',
+    path: '/models/procedural/solar_system',
+    assetPath: 'procedural/astronomy/solar_system',
     modelStatus: 'AVAILABLE',
     category: 'Astronomy',
     description: 'Interactive scale model of the central Sun and orbital paths of the terrestrial and gas giant planets.',
@@ -1390,8 +1383,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   iss: {
     id: 'iss',
     name: 'International Space Station',
-    path: '/models/astronomy/iss.glb',
-    assetPath: '/models/astronomy/iss.glb',
+    path: '/models/procedural/iss',
+    assetPath: 'procedural/astronomy/iss',
     modelStatus: 'AVAILABLE',
     category: 'Astronomy',
     description: 'Modular habitable space laboratory orbiting Earth in Low Earth Orbit at 28,000 km/h.',
@@ -1422,8 +1415,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
   satellite: {
     id: 'satellite',
     name: 'Geostationary Communication Satellite',
-    path: '/models/astronomy/satellite.glb',
-    assetPath: '/models/astronomy/satellite.glb',
+    path: '/models/procedural/satellite',
+    assetPath: 'procedural/astronomy/satellite',
     modelStatus: 'AVAILABLE',
     category: 'Astronomy',
     description: 'High-capacity telecommunications satellite stationed in geostationary orbit 35,786 km above Earth.',

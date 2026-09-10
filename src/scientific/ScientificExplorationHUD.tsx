@@ -68,7 +68,7 @@ export function ScientificExplorationHUD({
   return (
     <div className="absolute left-6 top-20 bottom-8 z-20 flex flex-col pointer-events-none select-none max-w-sm w-full">
       {/* Container Panel */}
-      <div className="bg-slate-900/90 border border-slate-800 backdrop-blur-md rounded-2xl shadow-2xl flex flex-col pointer-events-auto overflow-hidden h-full">
+      <div className="bg-slate-950/95 border-2 border-cyan-400/80 backdrop-blur-2xl rounded-2xl shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_40px_rgba(0,0,0,0.9)] flex flex-col pointer-events-auto overflow-hidden h-full">
         {/* Top Header */}
         <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-2">

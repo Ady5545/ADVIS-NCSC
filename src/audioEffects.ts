@@ -3,19 +3,26 @@
 
 let audioContext: AudioContext | null = null;
 
-function getContext() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+function getContext(): AudioContext | null {
+  try {
+    if (!audioContext) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return null;
+      audioContext = new AudioCtx();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+    return audioContext;
+  } catch {
+    return null;
   }
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-  return audioContext;
 }
 
 export function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.1) {
   try {
     const ctx = getContext();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -31,7 +38,7 @@ export function playTone(freq: number, type: OscillatorType, duration: number, v
     osc.start();
     osc.stop(ctx.currentTime + duration);
   } catch (e) {
-    console.error("Audio playback failed", e);
+    // Autoplay restrictions or audio hardware transient warning
   }
 }
 

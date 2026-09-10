@@ -989,7 +989,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
     ],
 
     stepFunction: (state, dt, params) => {
-      const rpm = params['rpm'] || 1800;
+      const rpm = params['rpm'] !== undefined ? params['rpm'] : 1800;
       const compressionRatio = params['compressionRatio'] || 10.5;
       const sparkAdvance = params['sparkAdvance'] || 14.0;
 

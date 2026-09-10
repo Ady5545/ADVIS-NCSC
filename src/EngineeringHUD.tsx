@@ -73,9 +73,9 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
 
   return (
     <>
-      <div className="absolute inset-0 z-50 pointer-events-none flex flex-col justify-between p-2 sm:p-4 md:p-6 font-mono text-cyan-400 select-none bg-cyan-950/10 backdrop-blur-[2px] overflow-hidden">
+      <div className="absolute inset-0 z-50 pointer-events-none flex flex-col justify-between p-2 sm:p-4 md:p-6 font-mono text-cyan-400 select-none bg-cyan-950/20 backdrop-blur-[4px] overflow-hidden">
         {/* Top Bar */}
-        <div className="flex items-center justify-between pointer-events-auto bg-slate-950/90 border border-cyan-500/40 px-4 md:px-6 py-2.5 rounded-xl shadow-[0_0_30px_rgba(6,182,212,0.2)] z-30 gap-2 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center justify-between pointer-events-auto bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 px-4 md:px-6 py-2.5 rounded-xl shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_30px_rgba(0,0,0,0.9)] z-30 gap-2 flex-wrap sm:flex-nowrap">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-cyan-500/20 px-3 py-1 rounded border border-cyan-500/50">
               <Cpu className="w-4 h-4 text-cyan-300 animate-pulse" />
@@ -159,7 +159,7 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
           {/* Left-Side: Engineering Project Explorer */}
           {showExplorer && (
             <div className="absolute left-2 sm:left-4 top-0 bottom-0 w-72 max-w-[35vw] pointer-events-none flex flex-col z-40 max-h-full">
-              <div className="bg-slate-950/90 border border-cyan-500/40 rounded-xl backdrop-blur-xl p-3.5 text-cyan-300 font-mono shadow-[0_0_30px_rgba(6,182,212,0.15)] flex flex-col gap-2.5 h-full pointer-events-auto overflow-hidden">
+              <div className="bg-slate-950/95 border-2 border-cyan-400/80 rounded-xl backdrop-blur-2xl p-3.5 text-cyan-300 font-mono shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_30px_rgba(0,0,0,0.9)] flex flex-col gap-2.5 h-full pointer-events-auto overflow-hidden">
                 <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2">
                   <div className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-cyan-400" />
@@ -172,13 +172,13 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
 
                 {/* Component Search */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-cyan-500/60 absolute left-2.5 top-2.5" />
+                  <Search className="w-3.5 h-3.5 text-cyan-400/70 absolute left-2.5 top-2.5" />
                   <input
                     type="text"
                     placeholder="Filter components..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-900/80 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-1 text-xs text-cyan-100 placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-slate-900/90 border border-cyan-500/40 rounded-lg pl-8 pr-3 py-1 text-xs text-cyan-100 placeholder-cyan-500/50 focus:outline-none focus:border-cyan-300 focus:shadow-[0_0_10px_rgba(6,182,212,0.3)]"
                   />
                 </div>
 
@@ -253,32 +253,32 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
 
         {/* Bottom Telemetry Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 pointer-events-auto z-30">
-          <div className="bg-slate-950/90 border border-cyan-500/30 p-2.5 rounded-lg backdrop-blur-md flex flex-col gap-0.5 shadow-lg">
-            <div className="text-[9px] text-cyan-400/60 uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-slate-950/95 border-2 border-cyan-400/70 p-2.5 rounded-lg backdrop-blur-2xl flex flex-col gap-0.5 shadow-[0_0_20px_rgba(6,182,212,0.2),0_8px_20px_rgba(0,0,0,0.9)]">
+            <div className="text-[9px] text-cyan-400/70 uppercase tracking-widest flex items-center gap-1.5 font-bold">
               <Zap className="w-3 h-3 text-cyan-400" /> Voltage
             </div>
-            <div className="text-xs sm:text-sm font-bold text-cyan-200">24.2V DC <span className="text-[9px] text-emerald-400 font-normal">(NOM)</span></div>
+            <div className="text-xs sm:text-sm font-bold text-cyan-100">24.2V DC <span className="text-[9px] text-emerald-400 font-normal">(NOM)</span></div>
           </div>
 
-          <div className="bg-slate-950/90 border border-cyan-500/30 p-2.5 rounded-lg backdrop-blur-md flex flex-col gap-0.5 shadow-lg">
-            <div className="text-[9px] text-cyan-400/60 uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-slate-950/95 border-2 border-cyan-400/70 p-2.5 rounded-lg backdrop-blur-2xl flex flex-col gap-0.5 shadow-[0_0_20px_rgba(6,182,212,0.2),0_8px_20px_rgba(0,0,0,0.9)]">
+            <div className="text-[9px] text-cyan-400/70 uppercase tracking-widest flex items-center gap-1.5 font-bold">
               <Layers className="w-3 h-3 text-cyan-400" /> Thermal
             </div>
-            <div className="text-xs sm:text-sm font-bold text-cyan-200">38.4°C <span className="text-[9px] text-cyan-400/80 font-normal">STABLE</span></div>
+            <div className="text-xs sm:text-sm font-bold text-cyan-100">38.4°C <span className="text-[9px] text-cyan-300 font-normal">STABLE</span></div>
           </div>
 
-          <div className="bg-slate-950/90 border border-cyan-500/30 p-2.5 rounded-lg backdrop-blur-md flex flex-col gap-0.5 shadow-lg">
-            <div className="text-[9px] text-cyan-400/60 uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-slate-950/95 border-2 border-cyan-400/70 p-2.5 rounded-lg backdrop-blur-2xl flex flex-col gap-0.5 shadow-[0_0_20px_rgba(6,182,212,0.2),0_8px_20px_rgba(0,0,0,0.9)]">
+            <div className="text-[9px] text-cyan-400/70 uppercase tracking-widest flex items-center gap-1.5 font-bold">
               <Shield className="w-3 h-3 text-cyan-400" /> Interlock
             </div>
             <div className="text-xs sm:text-sm font-bold text-emerald-400">ARMED</div>
           </div>
 
-          <div className="bg-slate-950/90 border border-cyan-500/30 p-2.5 rounded-lg backdrop-blur-md flex flex-col gap-0.5 shadow-lg">
-            <div className="text-[9px] text-cyan-400/60 uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-slate-950/95 border-2 border-cyan-400/70 p-2.5 rounded-lg backdrop-blur-2xl flex flex-col gap-0.5 shadow-[0_0_20px_rgba(6,182,212,0.2),0_8px_20px_rgba(0,0,0,0.9)]">
+            <div className="text-[9px] text-cyan-400/70 uppercase tracking-widest flex items-center gap-1.5 font-bold">
               <Terminal className="w-3 h-3 text-cyan-400" /> Kernel Mode
             </div>
-            <div className="text-xs sm:text-sm font-bold text-cyan-300">CAD // PHASE-12</div>
+            <div className="text-xs sm:text-sm font-bold text-cyan-200">CAD // PHASE-12</div>
           </div>
         </div>
       </div>

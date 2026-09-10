@@ -801,15 +801,29 @@ Allowed geometry values: box, roundedBox, cylinder, sphere, tube, torus, cone, s
 Allowed materialType values: PBR_MATTE, PBR_METALLIC, PBR_GLASS, THERMAL_HEATMAP, XRAY_GLASS, CARBON_FIBER, PLASTIC_ROUGH, ALUMINUM_ANODIZED, STEEL_MACHINED.
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: schema,
-          temperature: 0.1
-        }
-      });
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema,
+            temperature: 0.1
+          }
+        });
+      } catch (genErr) {
+        console.warn("Primary model gemini-2.5-flash fallback triggered:", genErr.message);
+        response = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-lite',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema,
+            temperature: 0.1
+          }
+        });
+      }
       
       const result = JSON.parse(response.text);
       res.json(result);

@@ -74,7 +74,7 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
 
   if (!objectMeta) {
     return (
-      <div className="bg-slate-950/80 border border-cyan-500/30 p-6 rounded-xl backdrop-blur-md text-cyan-400 font-mono flex flex-col items-center justify-center gap-3">
+      <div className="bg-slate-950/95 border-2 border-cyan-400/80 p-6 rounded-xl backdrop-blur-2xl text-cyan-400 font-mono flex flex-col items-center justify-center gap-3 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_30px_rgba(0,0,0,0.9)]">
         <Database className="w-8 h-8 text-cyan-500/50 animate-pulse" />
         <div className="text-sm font-bold tracking-wider">NO ENGINEERING OBJECT LOADED</div>
         <p className="text-xs text-cyan-400/60 text-center max-w-sm">
@@ -85,7 +85,7 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
   }
 
   return (
-    <div className="bg-slate-950/90 border border-cyan-500/40 rounded-xl backdrop-blur-xl p-4 md:p-6 text-cyan-300 font-mono shadow-[0_0_40px_rgba(6,182,212,0.15)] flex flex-col gap-4 max-h-[75vh] w-full max-w-4xl pointer-events-auto overflow-hidden">
+    <div className="bg-slate-950/95 border-2 border-cyan-400/80 rounded-xl backdrop-blur-2xl p-4 md:p-6 text-cyan-300 font-mono shadow-[0_0_40px_rgba(6,182,212,0.25),0_10px_40px_rgba(0,0,0,0.9)] flex flex-col gap-4 max-h-[75vh] w-full max-w-4xl pointer-events-auto overflow-hidden">
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-cyan-500/30 pb-4 gap-2">
         <div className="flex items-center gap-3">
@@ -99,7 +99,7 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-cyan-500/30 text-xs">
+        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-cyan-500/40 text-xs backdrop-blur-md">
           <button
             onClick={() => setActiveTab('metadata')}
             className={`px-3 py-1.5 rounded transition-all cursor-pointer ${activeTab === 'metadata' ? 'bg-cyan-500/30 text-cyan-100 border border-cyan-500/60 font-bold shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-cyan-400/70 hover:text-cyan-200'}`}

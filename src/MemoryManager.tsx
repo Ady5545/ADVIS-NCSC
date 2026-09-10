@@ -31,7 +31,7 @@ export function MemoryManager({ activeProjectId, onProjectSwitch }: { activeProj
       
       setMemories(mems.sort((a: MemoryEntry, b: MemoryEntry) => b.updatedAt - a.updatedAt));
     } catch (e) {
-      console.error(e);
+      console.warn('[MemoryManager] Failed to load memory data:', e);
     }
     setLoading(false);
   };
@@ -46,36 +46,52 @@ export function MemoryManager({ activeProjectId, onProjectSwitch }: { activeProj
 
   const handleAddMemory = async () => {
     if (!newMemContent.trim()) return;
-    await memoryService.createMemory({
-      content: newMemContent,
-      projectId: activeProjectId || undefined,
-      category: 'PERSONAL',
-      source: 'USER',
-      importance: 5,
-      pinned: false
-    });
-    setNewMemContent('');
-    loadData();
+    try {
+      await memoryService.createMemory({
+        content: newMemContent,
+        projectId: activeProjectId || undefined,
+        category: 'PERSONAL',
+        source: 'USER',
+        importance: 5,
+        pinned: false
+      });
+      setNewMemContent('');
+      loadData();
+    } catch (e) {
+      console.warn('[MemoryManager] Failed to create memory:', e);
+    }
   };
 
   const handleAddProject = async () => {
     if (!newProjName.trim()) return;
-    await memoryService.createProject({
-      name: newProjName,
-      description: 'Auto-created project',
-    });
-    setNewProjName('');
-    loadData();
+    try {
+      await memoryService.createProject({
+        name: newProjName,
+        description: 'Auto-created project',
+      });
+      setNewProjName('');
+      loadData();
+    } catch (e) {
+      console.warn('[MemoryManager] Failed to create project:', e);
+    }
   };
   
   const handleDeleteMemory = async (id: string) => {
-    await memoryService.deleteMemory(id);
-    loadData();
+    try {
+      await memoryService.deleteMemory(id);
+      loadData();
+    } catch (e) {
+      console.warn('[MemoryManager] Failed to delete memory:', e);
+    }
   };
   
   const handleTogglePin = async (mem: MemoryEntry) => {
-    await memoryService.updateMemory(mem.id, { pinned: !mem.pinned });
-    loadData();
+    try {
+      await memoryService.updateMemory(mem.id, { pinned: !mem.pinned });
+      loadData();
+    } catch (e) {
+      console.warn('[MemoryManager] Failed to toggle pin:', e);
+    }
   };
   
   const startEditing = (mem: MemoryEntry) => {
@@ -85,9 +101,13 @@ export function MemoryManager({ activeProjectId, onProjectSwitch }: { activeProj
   
   const saveEdit = async () => {
     if (editingId && editContent.trim()) {
-      await memoryService.updateMemory(editingId, { content: editContent });
-      setEditingId(null);
-      loadData();
+      try {
+        await memoryService.updateMemory(editingId, { content: editContent });
+        setEditingId(null);
+        loadData();
+      } catch (e) {
+        console.warn('[MemoryManager] Failed to save edit:', e);
+      }
     }
   };
 

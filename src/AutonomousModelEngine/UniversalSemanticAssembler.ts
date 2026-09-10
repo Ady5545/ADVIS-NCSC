@@ -103,7 +103,7 @@ export class UniversalSemanticAssembler {
 
       return { components, geometries, meshSpecs };
     } catch (e) {
-      console.error("Semantic Assembler AI failed, fallback to basic generic:", e);
+      console.warn("Semantic Assembler AI fallback engaged:", (e as Error)?.message || e);
       // Fallback
       const id = 'generic_base';
       const geom = UniversalGeometryVocabulary.createRoundedBox(1*scale, 1*scale, 1*scale, 0.1, 4);

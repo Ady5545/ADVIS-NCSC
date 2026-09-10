@@ -157,13 +157,8 @@ export function useSpeechRecognition(
           isListeningRef.current = false;
           try { recognition.stop(); } catch (err) {}
           
-          if (currentState === 'LISTENING' || currentState === 'ONLINE') {
-            setSystemState('ERROR');
-            setTimeout(() => {
-              if (stateRef.current === 'ERROR') {
-                setSystemState('ONLINE');
-              }
-            }, 3000);
+          if (currentState === 'LISTENING') {
+            setSystemState('ONLINE');
           }
         } else {
           if (e.error !== 'no-speech' && e.error !== 'aborted') {

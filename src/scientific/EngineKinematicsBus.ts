@@ -216,25 +216,28 @@ class EngineKinematicsBusClass {
       const torqueContribution = Math.max(0, gasForceN * CRANK_RADIUS_M * tangRad);
       totalTorqueNm += torqueContribution;
 
+      const isEngineActive = isPlaying && rpm > 0;
+
       cylinders.push({
         cylinderIndex: c,
         bank: V12_BANK_MAP[c] || 'L',
         firingOffsetDeg: offset,
         cycleAngleDeg: cylAngleDeg,
         stroke,
-        isFiring,
+        isFiring: isEngineActive ? isFiring : false,
         pistonPositionMm: positionMm,
-        pistonVelocityMs: velocityMs,
-        pistonAccelerationG: accelerationG,
-        cylinderPressureBar: pressureBar,
+        pistonVelocityMs: isEngineActive ? velocityMs : 0,
+        pistonAccelerationG: isEngineActive ? accelerationG : 0,
+        cylinderPressureBar: isEngineActive ? pressureBar : 1.013,
         intakeLiftMm,
         exhaustLiftMm
       });
     }
 
     const focusedTelemetry = cylinders.find(c => c.cylinderIndex === focusedCylinder) || cylinders[0];
-    const meanPistonSpeedMs = (2 * STROKE_MM * rpm) / (60 * 1000);
-    const brakePowerHp = (totalTorqueNm * omega) / 745.7;
+    const isEngineActive = isPlaying && rpm > 0;
+    const meanPistonSpeedMs = isEngineActive ? (2 * STROKE_MM * rpm) / (60 * 1000) : 0;
+    const brakePowerHp = isEngineActive ? (totalTorqueNm * omega) / 745.7 : 0;
 
     return {
       crankAngleDeg: normCrank,
@@ -244,8 +247,8 @@ class EngineKinematicsBusClass {
       focusedCylinder,
       cylinders,
       focusedTelemetry,
-      totalTorqueNm: Math.max(200, Math.min(850, totalTorqueNm * 0.45)), // Scaled continuous torque
-      brakePowerHp: Math.max(20, Math.min(780, brakePowerHp * 0.45)),
+      totalTorqueNm: isEngineActive ? Math.max(20, Math.min(850, totalTorqueNm * 0.45)) : 0, // Scaled continuous torque
+      brakePowerHp: isEngineActive ? Math.max(5, Math.min(780, brakePowerHp * 0.45)) : 0,
       meanPistonSpeedMs,
       timestamp: Date.now()
     };

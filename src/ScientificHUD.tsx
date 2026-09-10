@@ -263,7 +263,7 @@ export function ScientificHUD({
           1. TOP-LEFT WIDGET: ACTIVE MODEL INFORMATION PANEL
          ───────────────────────────────────────────────────────────── */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 pointer-events-auto flex flex-col gap-2 max-w-[320px] md:max-w-[360px] max-h-[40vh] md:max-h-[80vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in z-40">
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
           <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2.5">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${hasActiveModel ? 'bg-cyan-400 animate-ping' : 'bg-cyan-500/50'}`} />
@@ -289,7 +289,7 @@ export function ScientificHUD({
                 <span className="text-base md:text-lg font-bold text-white tracking-wide">{moleculeData.name}</span>
                 <span className="text-xs font-bold text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded border border-cyan-500/40">{moleculeData.formula}</span>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-cyan-950/30 p-2.5 rounded-lg border border-cyan-500/15">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2.5 rounded-lg border border-cyan-500/40">
                 <div className="text-cyan-400/70">Geometry:</div>
                 <div className="text-cyan-200 font-semibold text-right">{moleculeData.geometry}</div>
                 
@@ -323,7 +323,7 @@ export function ScientificHUD({
               </div>
               <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider">{engineeringData.category}</div>
               
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-cyan-950/30 p-2.5 rounded-lg border border-cyan-500/15">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2.5 rounded-lg border border-cyan-500/40">
                 <div className="text-cyan-400/70">Subsystems:</div>
                 <div className="text-cyan-200 font-semibold text-right">{engineeringData.components?.length || 0} Modules</div>
 
@@ -361,12 +361,12 @@ export function ScientificHUD({
       
       {/* Mobile Menu Toggle */}
       <div className="absolute top-4 right-4 md:hidden pointer-events-auto z-50">
-        <button onClick={() => setShowControlsOnMobile(!showControlsOnMobile)} className="bg-slate-900/80 p-2 rounded border border-cyan-500/40 text-cyan-400">
+        <button onClick={() => setShowControlsOnMobile(!showControlsOnMobile)} className="bg-slate-950/95 backdrop-blur-2xl p-2 rounded-lg border-2 border-cyan-400/80 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
       </div>
       <div className={`absolute top-16 right-4 md:top-6 md:right-6 pointer-events-auto flex flex-col gap-2 max-w-[280px] md:max-w-[320px] max-h-[40vh] md:max-h-[80vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in transition-all z-40 ${showControlsOnMobile ? 'flex' : 'hidden md:flex'}`}>
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
           <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2.5">
             <div className="flex items-center gap-2">
               <Sliders size={12} className="text-cyan-400" />
@@ -509,7 +509,7 @@ export function ScientificHUD({
           3. BOTTOM-LEFT WIDGET: CONTEXTUAL EDUCATIONAL INSIGHT
          ───────────────────────────────────────────────────────────── */}
       <div className={`absolute bottom-24 left-4 md:bottom-28 md:left-6 pointer-events-auto flex flex-col gap-2 max-w-[320px] md:max-w-[380px] max-h-[35vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in z-40 ${showControlsOnMobile ? 'flex' : 'hidden md:flex'}`}>
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
           <div className="flex items-center gap-2 border-b border-cyan-500/20 pb-2 mb-2">
             <BookOpen size={13} className="text-amber-400" />
             <span className="text-[10px] font-bold tracking-[0.2em] text-amber-300 uppercase">
@@ -554,7 +554,7 @@ export function ScientificHUD({
         
         {/* COMPONENT INSPECTION CARD (When a component is selected) */}
         {selectedComp ? (
-          <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-400/40 rounded-xl p-3.5 shadow-[0_0_30px_rgba(6,182,212,0.25)]">
+          <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.9)]">
             <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
@@ -576,7 +576,7 @@ export function ScientificHUD({
               {selectedComp?.description}
             </div>
 
-            <div className="bg-cyan-950/30 rounded-lg p-2 border border-cyan-500/20 text-[9px] space-y-1 mb-2">
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-lg p-2 border border-cyan-500/40 text-[9px] space-y-1 mb-2">
               <div className="flex justify-between">
                 <span className="text-cyan-400/70">Shape:</span>
                 <span className="text-cyan-200 font-bold uppercase">{selectedComp?.shape}</span>
@@ -632,7 +632,7 @@ export function ScientificHUD({
           </div>
         ) : (
           /* GESTURE CONTROL & TRACKING STATUS (When no component is selected) */
-          <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+          <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
             <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2">
               <div className="flex items-center gap-2">
                 <Hand size={13} className="text-cyan-400" />
@@ -652,7 +652,7 @@ export function ScientificHUD({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] bg-cyan-950/30 p-2 rounded-lg border border-cyan-500/15 mb-2">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2 rounded-lg border border-cyan-500/40 mb-2">
               <div className="text-cyan-400/70">Tracking:</div>
               <div className={`font-semibold text-right ${cvEnabled && handTracking.state === 'TRACKING' ? 'text-emerald-400' : 'text-cyan-400/60'}`}>
                 {cvEnabled ? (handTracking.state === 'TRACKING' ? 'LOCKED' : 'SEARCHING') : 'STANDBY'}
@@ -693,7 +693,7 @@ export function ScientificHUD({
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-30 flex flex-col gap-2 items-center w-full max-w-xl px-4">
         {/* Contextual Command Bar */}
         {onSendMessage && (
-          <div className="w-full bg-slate-950/90 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-2 shadow-[0_0_30px_rgba(6,182,212,0.25)] flex flex-col gap-1.5 transition-all">
+          <div className="w-full bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-2xl p-2.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.95)] flex flex-col gap-1.5 transition-all">
             {/* Quick Contextual Action Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[9px] font-mono">
               <span className="text-cyan-400/60 font-bold uppercase tracking-wider pl-1 flex items-center gap-1">
@@ -779,7 +779,7 @@ export function ScientificHUD({
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleCommandSubmit} className="flex items-center gap-2 bg-slate-900/80 border border-cyan-500/30 rounded-xl px-3 py-1.5 focus-within:border-cyan-400 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
+            <form onSubmit={handleCommandSubmit} className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-cyan-500/40 rounded-xl px-3 py-1.5 focus-within:border-cyan-300 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">
               <Terminal size={14} className="text-cyan-400/70 shrink-0" />
               <input
                 type="text"
@@ -814,7 +814,7 @@ export function ScientificHUD({
         {hasActiveModel && (
           <div className="flex flex-col gap-1.5 items-center">
             {engineeringDatas[0]?.animations && engineeringDatas[0].animations.length > 0 && (
-              <div className="bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 px-4 py-1.5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] font-mono text-[9px] flex items-center gap-3 min-w-[280px]">
+              <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 px-4 py-1.5 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-[9px] flex items-center gap-3 min-w-[280px]">
                 <span className="text-cyan-400/80 font-bold w-12 text-right">0°</span>
                 <input 
                   type="range" 
@@ -844,7 +844,7 @@ export function ScientificHUD({
               </div>
             )}
 
-            <div className="flex items-center gap-2 bg-slate-950/90 backdrop-blur-md border border-cyan-500/40 px-3.5 py-1.5 rounded-full shadow-[0_0_30px_rgba(6,182,212,0.2)] font-mono text-xs">
+            <div className="flex items-center gap-2 bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 px-4 py-1.5 rounded-full shadow-[0_0_30px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-xs">
               {onToggleKinematicPlaying && (
                 <button
                   onClick={onToggleKinematicPlaying}

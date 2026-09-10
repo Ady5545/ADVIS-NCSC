@@ -29,6 +29,7 @@ import {
   ChevronDown,
   ChevronUp,
   Volume2,
+  VolumeX,
   Flame,
   Wind,
   Compass,
@@ -436,14 +437,30 @@ export function V12EngineController(props: V12EngineControllerProps) {
             {onToggleSound && (
               <button
                 onClick={onToggleSound}
-                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border transition-all cursor-pointer ${
                   soundEnabled
-                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
+                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
                     : 'bg-slate-900 border-cyan-500/20 text-cyan-400/50 hover:text-cyan-300'
                 }`}
-                title="Engine Acoustic Feedback"
+                title={
+                  soundEnabled
+                    ? `V12 Procedural Audio: ACTIVE (${(v12Rpm * (isKinematicPlaying ? kinematicSpeed : 0) / 10).toFixed(0)} Hz firing rate) - Click to Mute`
+                    : 'V12 Procedural Audio: MUTED - Click to Unmute'
+                }
               >
-                <Volume2 size={13} />
+                {soundEnabled ? (
+                  <>
+                    <Volume2 size={13} className={isKinematicPlaying && v12Rpm > 0 ? 'text-cyan-300 animate-pulse' : 'text-cyan-400'} />
+                    <span className="hidden sm:inline text-[8px] font-bold tracking-wider">
+                      {isKinematicPlaying && v12Rpm > 0 ? 'AUDIO ON' : 'AUDIO'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <VolumeX size={13} className="text-cyan-400/40" />
+                    <span className="hidden sm:inline text-[8px] font-bold tracking-wider opacity-60">MUTED</span>
+                  </>
+                )}
               </button>
             )}
           </div>

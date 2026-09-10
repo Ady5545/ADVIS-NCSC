@@ -812,18 +812,33 @@ ${contextSummary}
 
     let aiModel = "gemini-3.1-flash-lite";
     if (image || assignedAgent === "SEARCH_AGENT" || assignedAgent === "VISION_AGENT") {
-      aiModel = "gemini-3.5-flash";
+      aiModel = "gemini-2.5-flash";
     }
 
-    const response = await client.models.generateContent({
-      model: aiModel,
-      contents: contents,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.5,
-        tools: tools
-      }
-    });
+    let response;
+    try {
+      response = await client.models.generateContent({
+        model: aiModel,
+        contents: contents,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.5,
+          tools: tools
+        }
+      });
+    } catch (apiErr) {
+      console.warn(`[ButlerEngine] Primary model ${aiModel} failed, trying fallback:`, apiErr.message);
+      const fallbackModel = (aiModel === "gemini-3.1-flash-lite") ? "gemini-2.5-flash" : "gemini-3.1-flash-lite";
+      response = await client.models.generateContent({
+        model: fallbackModel,
+        contents: contents,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.5,
+          tools: tools
+        }
+      });
+    }
 
     const aiReply = response.text || "I was unable to process that.";
 

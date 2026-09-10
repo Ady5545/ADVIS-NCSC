@@ -274,8 +274,8 @@ export function getPistonStroke(crankAngle: number, bank: 'left' | 'right'): num
 // Deep-skirt 60° V12 cast aluminum monobloc with 12 centrifugally cast
 // iron sleeves, 7 cross-bolted main bearing caps, and cooling jacket galleries.
 // ----------------------------------------------------
-export function EngineBlockAssembly({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+export function EngineBlockAssembly({ isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
 
   // True 60-degree V12 block profile with open central valley & deep skirt
   const blockShape = useMemo(() => {
@@ -551,13 +551,16 @@ export function EngineBlockAssembly({ isHovered, isSelected, xrayEnabled, bluepr
 // pendulum-wedge dynamic counterweights with balance drillings,
 // rear flywheel with starter ring gear, and front harmonic balancer.
 // ----------------------------------------------------
-export function CrankshaftAssembly({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, v12Direction = 1 }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+export function CrankshaftAssembly({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, v12Direction = 1, crankAngleRef }: any) {
+  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const crankRef = useRef<THREE.Group>(null);
+  const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
 
   useFrame((sysState) => {
     if (crankRef.current) {
-      const t = (state.sysTimeRef?.current ?? sysState.clock.elapsedTime) * (v12Rpm / 60) * Math.PI * 2 * v12Direction;
+      const t = state.crankAngleRef
+        ? state.crankAngleRef.current
+        : (state.sysTimeRef?.current ?? (rpm > 0 ? sysState.clock.elapsedTime : 0)) * (rpm / 60) * Math.PI * 2 * v12Direction;
       crankRef.current.rotation.z = t;
     }
   });
@@ -735,12 +738,14 @@ export function PistonAssemblyBank({
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
-  v12Direction = 1
+  v12Direction = 1,
+  crankAngleRef
 }: any) {
-  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const isLeft = bank === 'left';
   const boreAngle = isLeft ? BANK_ANGLE : -BANK_ANGLE;
   const bankRef = useRef<THREE.Group>(null);
+  const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
 
   // Lathed high-compression slipper-skirt profile: crown, ring pack, thrust face
   const pistonPts = useMemo(() => {
@@ -768,7 +773,9 @@ export function PistonAssemblyBank({
 
   useFrame((sysState) => {
     if (!bankRef.current) return;
-    const t = (state.sysTimeRef?.current ?? sysState.clock.elapsedTime) * (v12Rpm / 60) * Math.PI * 2 * v12Direction;
+    const t = state.crankAngleRef
+      ? state.crankAngleRef.current
+      : (state.sysTimeRef?.current ?? (rpm > 0 ? sysState.clock.elapsedTime : 0)) * (rpm / 60) * Math.PI * 2 * v12Direction;
 
     bankRef.current.children.forEach((pistonGrp, i) => {
       const crankAngle = t + CRANK_OFFSETS[i];
@@ -945,14 +952,18 @@ export function ConnectingRodsAssembly({
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
-  v12Direction = 1
+  v12Direction = 1,
+  crankAngleRef
 }: any) {
-  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const rodsRef = useRef<THREE.Group>(null);
+  const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
 
   useFrame((sysState) => {
     if (!rodsRef.current) return;
-    const t = (state.sysTimeRef?.current ?? sysState.clock.elapsedTime) * (v12Rpm / 60) * Math.PI * 2 * v12Direction;
+    const t = state.crankAngleRef
+      ? state.crankAngleRef.current
+      : (state.sysTimeRef?.current ?? (rpm > 0 ? sysState.clock.elapsedTime : 0)) * (rpm / 60) * Math.PI * 2 * v12Direction;
 
     CYLINDER_Z.forEach((z, i) => {
       const crankAngle = t + CRANK_OFFSETS[i];
@@ -1131,16 +1142,20 @@ export function CanonicalCylinderBank({
   blueprintEnabled,
   sysTimeRef,
   v12Rpm = 600,
-  v12Direction = 1
+  v12Direction = 1,
+  crankAngleRef
 }: any) {
-  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef };
+  const state = { isHovered, isSelected, focusedCylinder, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const bankRotation = isLeftBank ? BANK_ANGLE : -BANK_ANGLE;
   const bankScale: [number, number, number] = isLeftBank ? [1, 1, 1] : [-1, 1, 1];
   const camsRef = useRef<THREE.Group>(null);
   const valvesRef = useRef<THREE.Group>(null);
+  const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
 
   useFrame((sysState) => {
-    const t = (state.sysTimeRef?.current ?? sysState.clock.elapsedTime) * (v12Rpm / 60) * Math.PI * v12Direction;
+    const t = state.crankAngleRef
+      ? state.crankAngleRef.current * 0.5
+      : (state.sysTimeRef?.current ?? (rpm > 0 ? sysState.clock.elapsedTime : 0)) * (rpm / 60) * Math.PI * v12Direction;
 
     // Camshafts rotate at half engine speed (4-stroke DOHC)
     if (camsRef.current) {
@@ -1931,13 +1946,16 @@ export function ExhaustManifold({ isHovered, isSelected, xrayEnabled, blueprintE
 // 9-blade viscous fan, high-output compact alternator, automatic belt tensioner,
 // and continuous multi-rib serpentine drive belt loop.
 // ----------------------------------------------------
-export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef }: any) {
-  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef };
+export function CoolingSystem({ isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, v12Rpm = 600, crankAngleRef }: any) {
+  const state = { isHovered, isSelected, xrayEnabled, blueprintEnabled, sysTimeRef, crankAngleRef };
   const fanRef = useRef<THREE.Group>(null);
+  const rpm = typeof v12Rpm === 'number' ? v12Rpm : 600;
 
   useFrame((sysState) => {
     if (fanRef.current) {
-      fanRef.current.rotation.z = (state.sysTimeRef?.current ?? sysState.clock.elapsedTime) * 18;
+      fanRef.current.rotation.z = state.crankAngleRef
+        ? state.crankAngleRef.current * 1.2
+        : (state.sysTimeRef?.current ?? (rpm > 0 ? sysState.clock.elapsedTime : 0)) * (rpm / 60) * Math.PI * 2 * 1.2;
     }
   });
 
