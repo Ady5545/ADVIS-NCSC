@@ -3,8 +3,15 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { EntityRef } from '../scientific/architecture/ComponentRegistrationWrapper';
+import { EngineBlockAssembly, CrankshaftAssembly, PistonAssemblyBank, ValvetrainAssembly, CoolingSystem, LubricationSystem, ElectronicsSensors } from './MechanicalGenerator';
 import { EngineMaterial, HexBolt, GroovedPulley, getPistonStroke, CRANK_RADIUS, CRANK_OFFSETS, CYLINDER_Z, BANK_ANGLE } from './MechanicalGenerator';
 import { GlobalComponentRegistry } from '../scientific/architecture/ComponentRegistry';
+
+const EngineBlockShell = EngineBlockAssembly;
+const Crankshaft = CrankshaftAssembly;
+const CylinderAssembly = PistonAssemblyBank;
+const Valvetrain = ValvetrainAssembly;
+const Accessories = (props: any) => <group><CoolingSystem {...props} /><LubricationSystem {...props} /><ElectronicsSensors {...props} /></group>;
 
 export function ProceduralV12Engine(props: any) {
   // New hierarchical structure
