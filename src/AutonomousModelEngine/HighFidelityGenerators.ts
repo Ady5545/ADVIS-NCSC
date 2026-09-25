@@ -75,7 +75,7 @@ export class HighFidelityGenerators {
     const seatstayRight = UniversalGeometryVocabulary.createTubeBetweenPoints(seatJunction, [rearHub[0], rearHub[1], rearHub[2] + 0.22], tubeRadius * 0.55);
 
     // Bottom bracket shell & Head tube gusset
-    const bbShell = new THREE.CylinderGeometry(tubeRadius * 1.6, tubeRadius * 1.6, 0.38, 24);
+    const bbShell = new THREE.CylinderGeometry(tubeRadius * 1.6, tubeRadius * 1.6, 0.38, 40);
     bbShell.rotateX(Math.PI / 2);
     bbShell.translate(bb[0], bb[1], bb[2]);
 
@@ -100,7 +100,7 @@ export class HighFidelityGenerators {
     const forkSteerer = UniversalGeometryVocabulary.createTubeBetweenPoints(headBottom, headTop, tubeRadius * 0.75);
 
     // Front thru-axle
-    const frontAxle = new THREE.CylinderGeometry(0.02, 0.02, 0.42, 16);
+    const frontAxle = new THREE.CylinderGeometry(0.02, 0.02, 0.42, 24);
     frontAxle.rotateX(Math.PI / 2);
     frontAxle.translate(frontHub[0], frontHub[1], frontHub[2]);
 
@@ -117,12 +117,12 @@ export class HighFidelityGenerators {
     fWheelBase.translate(...frontHub);
 
     // 160mm Drilled Stainless Steel Disc Brake Rotor
-    const fRotor = new THREE.CylinderGeometry(0.32 * scale, 0.32 * scale, 0.015, 32);
+    const fRotor = new THREE.CylinderGeometry(0.32 * scale, 0.32 * scale, 0.015, 48);
     fRotor.rotateX(Math.PI / 2);
     fRotor.translate(frontHub[0], frontHub[1], frontHub[2] - 0.12);
 
     // Presta Valve Stem
-    const fValve = new THREE.CylinderGeometry(0.01, 0.01, 0.12, 12);
+    const fValve = new THREE.CylinderGeometry(0.01, 0.01, 0.12, 20);
     fValve.translate(frontHub[0], frontHub[1] + frontWheelRadius * 0.82, frontHub[2]);
 
     const fWheelGeom = UniversalGeometryVocabulary.mergeGeometries([fWheelBase, fRotor, fValve]);
@@ -138,12 +138,12 @@ export class HighFidelityGenerators {
     rWheelBase.translate(...rearHub);
 
     // Rear Disc Rotor
-    const rRotor = new THREE.CylinderGeometry(0.32 * scale, 0.32 * scale, 0.015, 32);
+    const rRotor = new THREE.CylinderGeometry(0.32 * scale, 0.32 * scale, 0.015, 48);
     rRotor.rotateX(Math.PI / 2);
     rRotor.translate(rearHub[0], rearHub[1], rearHub[2] - 0.12);
 
     // Presta Valve Stem
-    const rValve = new THREE.CylinderGeometry(0.01, 0.01, 0.12, 12);
+    const rValve = new THREE.CylinderGeometry(0.01, 0.01, 0.12, 20);
     rValve.translate(rearHub[0], rearHub[1] + rearWheelRadius * 0.82, rearHub[2]);
 
     const rWheelGeom = UniversalGeometryVocabulary.mergeGeometries([rWheelBase, rRotor, rValve]);
@@ -192,10 +192,10 @@ export class HighFidelityGenerators {
     // Rear Derailleur Body & 11T Jockey Wheels Cage
     const derailleurBody = new THREE.BoxGeometry(0.12, 0.18, 0.08);
     derailleurBody.translate(rearHub[0] + 0.08, rearHub[1] - 0.18, rearHub[2] + 0.22);
-    const jockeyTop = new THREE.CylinderGeometry(0.055, 0.055, 0.015, 16);
+    const jockeyTop = new THREE.CylinderGeometry(0.055, 0.055, 0.015, 24);
     jockeyTop.rotateX(Math.PI / 2);
     jockeyTop.translate(rearHub[0] + 0.08, rearHub[1] - 0.22, rearHub[2] + 0.22);
-    const jockeyBottom = new THREE.CylinderGeometry(0.055, 0.055, 0.015, 16);
+    const jockeyBottom = new THREE.CylinderGeometry(0.055, 0.055, 0.015, 24);
     jockeyBottom.rotateX(Math.PI / 2);
     jockeyBottom.translate(rearHub[0] + 0.06, rearHub[1] - 0.36, rearHub[2] + 0.22);
 
@@ -292,14 +292,14 @@ export class HighFidelityGenerators {
 
     // Stem with 4-bolt faceplate
     const stemTube = UniversalGeometryVocabulary.createTubeBetweenPoints(headTop, barMid, tubeRadius * 0.95);
-    const stemClamp = new THREE.CylinderGeometry(tubeRadius * 1.3, tubeRadius * 1.3, 0.12, 16);
+    const stemClamp = new THREE.CylinderGeometry(tubeRadius * 1.3, tubeRadius * 1.3, 0.12, 24);
     stemClamp.rotateZ(Math.PI / 2);
     stemClamp.translate(headTop[0], headTop[1] + 0.04, 0);
     const stemFaceplate = new THREE.BoxGeometry(0.08, 0.12, 0.14);
     stemFaceplate.translate(barMid[0] + 0.04, barMid[1], 0);
 
     // Tops of Drop Bar
-    const topBar = new THREE.CylinderGeometry(0.035, 0.035, handlebarWidth, 24);
+    const topBar = new THREE.CylinderGeometry(0.035, 0.035, handlebarWidth, 32);
     topBar.rotateX(Math.PI / 2);
     topBar.translate(barMid[0], barMid[1], 0);
 
@@ -478,10 +478,10 @@ export class HighFidelityGenerators {
       const laceWidth = 0.09 + (1 - e / (laceSteps - 1)) * 0.04;
 
       // Eyelet Grommets (Left & Right)
-      const eyeL = new THREE.TorusGeometry(0.016, 0.006, 8, 16);
+      const eyeL = new THREE.TorusGeometry(0.016, 0.006, 12, 24);
       eyeL.rotateX(Math.PI / 2);
       eyeL.translate(-laceWidth / 2, yE, zE);
-      const eyeR = new THREE.TorusGeometry(0.016, 0.006, 8, 16);
+      const eyeR = new THREE.TorusGeometry(0.016, 0.006, 12, 24);
       eyeR.rotateX(Math.PI / 2);
       eyeR.translate(laceWidth / 2, yE, zE);
 
@@ -637,11 +637,11 @@ export class HighFidelityGenerators {
 
     // 4. Brushless DC Motor & Planetary Gearbox Assembly (Internal)
     const motorGeoms: THREE.BufferGeometry[] = [];
-    const stator = new THREE.CylinderGeometry(0.35 * scale, 0.35 * scale, 0.55 * scale, 24);
+    const stator = new THREE.CylinderGeometry(0.35 * scale, 0.35 * scale, 0.55 * scale, 40);
     stator.rotateX(Math.PI / 2);
     stator.translate(0, 0.6 * scale, -0.2 * scale);
 
-    const planetaryGearset = new THREE.CylinderGeometry(0.38 * scale, 0.38 * scale, 0.4 * scale, 24);
+    const planetaryGearset = new THREE.CylinderGeometry(0.38 * scale, 0.38 * scale, 0.4 * scale, 40);
     planetaryGearset.rotateX(Math.PI / 2);
     planetaryGearset.translate(0, 0.6 * scale, 0.2 * scale);
 
@@ -659,12 +659,12 @@ export class HighFidelityGenerators {
     const trigger = UniversalGeometryVocabulary.createRoundedBox(0.18 * scale, 0.35 * scale, 0.22 * scale, 0.04 * scale);
     trigger.translate(0, 0.2 * scale, 0.15 * scale);
 
-    const fwdRevRocker = new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.7 * scale, 16);
+    const fwdRevRocker = new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.7 * scale, 24);
     fwdRevRocker.rotateZ(Math.PI / 2);
     fwdRevRocker.translate(0, 0.42 * scale, -0.05 * scale);
 
     // Base LED Worklight
-    const ledBezel = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.06 * scale, 16);
+    const ledBezel = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.06 * scale, 24);
     ledBezel.rotateX(-Math.PI / 4);
     ledBezel.translate(0, -0.85 * scale, 0.25 * scale);
 
@@ -782,15 +782,15 @@ export class HighFidelityGenerators {
     groupBody.translate(0, 0.25 * scale, depth * 0.48);
 
     // Thermo-syphon circulation neck
-    const neck = new THREE.CylinderGeometry(0.18 * scale, 0.22 * scale, 0.4 * scale, 24);
+    const neck = new THREE.CylinderGeometry(0.18 * scale, 0.22 * scale, 0.4 * scale, 40);
     neck.rotateX(Math.PI / 2);
     neck.translate(0, 0.38 * scale, depth * 0.32);
 
     // Manual Cam Lever
-    const leverCam = new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.45 * scale, 16);
+    const leverCam = new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.45 * scale, 24);
     leverCam.rotateZ(-Math.PI / 4);
     leverCam.translate(0.38 * scale, 0.35 * scale, depth * 0.45);
-    const leverKnob = new THREE.SphereGeometry(0.09 * scale, 16, 16);
+    const leverKnob = new THREE.SphereGeometry(0.09 * scale, 32, 24);
     leverKnob.translate(0.52 * scale, 0.5 * scale, depth * 0.45);
 
     groupGeoms.push(groupBody, neck, leverCam, leverKnob);
@@ -804,7 +804,7 @@ export class HighFidelityGenerators {
 
     // 3. 58mm Commercial Portafilter with Dual Spouts and Turned Walnut Handle
     const portafilterGeoms: THREE.BufferGeometry[] = [];
-    const basketRing = new THREE.CylinderGeometry(0.36 * scale, 0.34 * scale, 0.28 * scale, 32);
+    const basketRing = new THREE.CylinderGeometry(0.36 * scale, 0.34 * scale, 0.28 * scale, 48);
     basketRing.translate(0, -0.05 * scale, depth * 0.48);
 
     // Turned Ergonomic Wooden Handle
@@ -815,9 +815,9 @@ export class HighFidelityGenerators {
     );
 
     // Dual Bottom Spouts
-    const spoutL = new THREE.CylinderGeometry(0.04 * scale, 0.03 * scale, 0.16 * scale, 12);
+    const spoutL = new THREE.CylinderGeometry(0.04 * scale, 0.03 * scale, 0.16 * scale, 20);
     spoutL.translate(-0.1 * scale, -0.25 * scale, depth * 0.48);
-    const spoutR = new THREE.CylinderGeometry(0.04 * scale, 0.03 * scale, 0.16 * scale, 12);
+    const spoutR = new THREE.CylinderGeometry(0.04 * scale, 0.03 * scale, 0.16 * scale, 20);
     spoutR.translate(0.1 * scale, -0.25 * scale, depth * 0.48);
 
     portafilterGeoms.push(basketRing, handle, spoutL, spoutR);
@@ -839,7 +839,7 @@ export class HighFidelityGenerators {
     ], 0.035 * scale);
 
     // 4-Hole Steam Tip
-    const steamTip = new THREE.CylinderGeometry(0.04 * scale, 0.025 * scale, 0.08 * scale, 16);
+    const steamTip = new THREE.CylinderGeometry(0.04 * scale, 0.025 * scale, 0.08 * scale, 24);
     steamTip.translate(-width * 0.42, -0.34 * scale, depth * 0.52);
 
     // Right Hot Water Tap
@@ -1127,7 +1127,7 @@ export class HighFidelityGenerators {
     horseshoeBase.translate(0, -height / 2 + 0.18 * scale, 0);
 
     // Kohler Field Diaphragm / LED Light Port
-    const fieldLens = new THREE.CylinderGeometry(0.35 * scale, 0.38 * scale, 0.14 * scale, 24);
+    const fieldLens = new THREE.CylinderGeometry(0.35 * scale, 0.38 * scale, 0.14 * scale, 40);
     fieldLens.translate(0, -height / 2 + 0.42 * scale, 0.25 * scale);
 
     baseGeoms.push(horseshoeBase, fieldLens);
@@ -1184,7 +1184,7 @@ export class HighFidelityGenerators {
     slideCaliper.translate(-0.2 * scale, 0.08 * scale, 0.25 * scale);
 
     // Low-Position Coaxial X-Y Drop Control Knobs
-    const xyKnob = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.45 * scale, 16);
+    const xyKnob = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.45 * scale, 24);
     xyKnob.translate(0.65 * scale, -0.22 * scale, 0.25 * scale);
 
     stageGeoms.push(mainStage, slideCaliper, xyKnob);
@@ -1198,7 +1198,7 @@ export class HighFidelityGenerators {
 
     // 4. Substage Abbe Condenser N.A. 1.25 with Iris Diaphragm
     const condenserGeoms: THREE.BufferGeometry[] = [];
-    const condBody = new THREE.CylinderGeometry(0.3 * scale, 0.24 * scale, 0.35 * scale, 24);
+    const condBody = new THREE.CylinderGeometry(0.3 * scale, 0.24 * scale, 0.35 * scale, 40);
     condBody.translate(0, -0.32 * scale, 0.25 * scale);
 
     const irisLever = new THREE.BoxGeometry(0.25 * scale, 0.03 * scale, 0.03 * scale);

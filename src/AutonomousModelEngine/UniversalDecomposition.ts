@@ -70,7 +70,7 @@ export class UniversalDecomposition {
     // 2. Windings
     const windingGeoms: THREE.BufferGeometry[] = [];
     for (const xOff of [-width * 0.32, 0, width * 0.32]) {
-      const winding = new THREE.CylinderGeometry(legW * 0.95, legW * 0.95, legH * 0.82, 24);
+      const winding = new THREE.CylinderGeometry(legW * 0.95, legW * 0.95, legH * 0.82, 40);
       winding.translate(xOff, 0, 0);
       windingGeoms.push(winding);
     }
@@ -104,7 +104,7 @@ export class UniversalDecomposition {
     );
 
     // 4. Conservator Tank
-    const conservatorGeom = new THREE.CylinderGeometry(height * 0.2, height * 0.2, width * 0.8, 16);
+    const conservatorGeom = new THREE.CylinderGeometry(height * 0.2, height * 0.2, width * 0.8, 32);
     conservatorGeom.rotateZ(Math.PI / 2);
     conservatorGeom.translate(0, height * 0.75, depth * 0.6);
     
@@ -157,7 +157,7 @@ export class UniversalDecomposition {
     const meshSpecs: Record<string, ProceduralMeshSpecification> = {};
 
     // 1. Direct-Drive Permanent Magnet Motor Housing
-    const motorGeom = new THREE.CylinderGeometry(span * 0.12, span * 0.14, 0.45 * scale, 32);
+    const motorGeom = new THREE.CylinderGeometry(span * 0.12, span * 0.14, 0.45 * scale, 48);
     const motorComp: ComponentMetadata = {
       id: 'fan_motor_housing',
       name: 'Direct-Current Brushless (BLDC) Motor Housing',
@@ -188,7 +188,7 @@ export class UniversalDecomposition {
     const downrodGeoms: THREE.BufferGeometry[] = [
       UniversalGeometryVocabulary.createTubeBetweenPoints([0, 0.22 * scale, 0], [0, dropHeight, 0], 0.04 * scale),
       // Ceiling Canopy Flange
-      new THREE.CylinderGeometry(0.28 * scale, 0.12 * scale, 0.16 * scale, 24)
+      new THREE.CylinderGeometry(0.28 * scale, 0.12 * scale, 0.16 * scale, 40)
     ];
     downrodGeoms[1].translate(0, dropHeight - 0.08 * scale, 0);
 
@@ -257,7 +257,7 @@ export class UniversalDecomposition {
 
     // 4. Integrated Dimmable LED Light Fixture & Frosted Glass Bowl
     const lightGeoms: THREE.BufferGeometry[] = [];
-    const glassBowl = new THREE.CylinderGeometry(span * 0.1, span * 0.05, 0.14 * scale, 24);
+    const glassBowl = new THREE.CylinderGeometry(span * 0.1, span * 0.05, 0.14 * scale, 40);
     glassBowl.translate(0, -0.28 * scale, 0);
     lightGeoms.push(glassBowl);
 
@@ -346,13 +346,13 @@ export class UniversalDecomposition {
 
     // 2. Detachable Multi-Element Optical Lens Barrel
     const lensGeoms: THREE.BufferGeometry[] = [];
-    const mainBarrel = new THREE.CylinderGeometry(lensRadius, lensRadius * 0.9, lensLength, 32);
+    const mainBarrel = new THREE.CylinderGeometry(lensRadius, lensRadius * 0.9, lensLength, 48);
     mainBarrel.rotateX(Math.PI / 2);
     mainBarrel.translate(-bodyW * 0.05, 0, bodyD / 2 + lensLength / 2);
     lensGeoms.push(mainBarrel);
 
     // Knurled Rubber Focus & Zoom Control Rings
-    const zoomRing = new THREE.CylinderGeometry(lensRadius * 1.04, lensRadius * 1.04, lensLength * 0.25, 32);
+    const zoomRing = new THREE.CylinderGeometry(lensRadius * 1.04, lensRadius * 1.04, lensLength * 0.25, 48);
     zoomRing.rotateX(Math.PI / 2);
     zoomRing.translate(-bodyW * 0.05, 0, bodyD / 2 + lensLength * 0.35);
     lensGeoms.push(zoomRing);
@@ -384,7 +384,7 @@ export class UniversalDecomposition {
     };
 
     // 3. Multi-Coated Optical Front Element Glass
-    const frontGlass = new THREE.CylinderGeometry(lensRadius * 0.88, lensRadius * 0.88, 0.03 * scale, 32);
+    const frontGlass = new THREE.CylinderGeometry(lensRadius * 0.88, lensRadius * 0.88, 0.03 * scale, 48);
     frontGlass.rotateX(Math.PI / 2);
     frontGlass.translate(-bodyW * 0.05, 0, bodyD / 2 + lensLength);
 
@@ -416,12 +416,12 @@ export class UniversalDecomposition {
     // 4. Tactile Mode Dials, Control Wheels & Shutter Button
     const dialGeoms: THREE.BufferGeometry[] = [];
     // Mode Dial on Left Top
-    const modeDial = new THREE.CylinderGeometry(0.18 * scale, 0.18 * scale, 0.12 * scale, 20);
+    const modeDial = new THREE.CylinderGeometry(0.18 * scale, 0.18 * scale, 0.12 * scale, 32);
     modeDial.translate(-bodyW * 0.35, bodyH / 2 + 0.06 * scale, 0);
     dialGeoms.push(modeDial);
 
     // Two-Stage Shutter Button on Grip
-    const shutter = new THREE.CylinderGeometry(0.12 * scale, 0.14 * scale, 0.08 * scale, 20);
+    const shutter = new THREE.CylinderGeometry(0.12 * scale, 0.14 * scale, 0.08 * scale, 32);
     shutter.translate(bodyW * 0.38, bodyH / 2 + 0.04 * scale, bodyD * 0.28);
     dialGeoms.push(shutter);
 
@@ -509,7 +509,7 @@ export class UniversalDecomposition {
     const fuselageGeoms: THREE.BufferGeometry[] = [
       UniversalGeometryVocabulary.createRoundedBox(1.2 * scale, 0.45 * scale, 1.6 * scale, 0.12 * scale),
       // Top GPS / LiDAR Sensor Puck
-      new THREE.CylinderGeometry(0.22 * scale, 0.22 * scale, 0.14 * scale, 24)
+      new THREE.CylinderGeometry(0.22 * scale, 0.22 * scale, 0.14 * scale, 40)
     ];
     fuselageGeoms[1].translate(0, 0.3 * scale, 0);
 
@@ -641,11 +641,11 @@ export class UniversalDecomposition {
 
     // 5. 3-Axis Stabilized Gimbal & 4K Optical Sensor Payload
     const gimbalGeoms: THREE.BufferGeometry[] = [];
-    const gimbalArm = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.25 * scale, 16);
+    const gimbalArm = new THREE.CylinderGeometry(0.08 * scale, 0.08 * scale, 0.25 * scale, 24);
     gimbalArm.translate(0, -0.32 * scale, 0.5 * scale);
-    const cameraSph = new THREE.SphereGeometry(0.24 * scale, 24, 24);
+    const cameraSph = new THREE.SphereGeometry(0.24 * scale, 36, 24);
     cameraSph.translate(0, -0.48 * scale, 0.5 * scale);
-    const lensRing = new THREE.CylinderGeometry(0.12 * scale, 0.12 * scale, 0.12 * scale, 20);
+    const lensRing = new THREE.CylinderGeometry(0.12 * scale, 0.12 * scale, 0.12 * scale, 32);
     lensRing.rotateX(Math.PI / 2);
     lensRing.translate(0, -0.48 * scale, 0.68 * scale);
     gimbalGeoms.push(gimbalArm, cameraSph, lensRing);
@@ -888,7 +888,7 @@ export class UniversalDecomposition {
 
     // 2. High-Speed Input Drive Pinion Gear
     const pinionRadius = 0.45 * scale;
-    const pinionGeom = new THREE.CylinderGeometry(pinionRadius, pinionRadius, depth * 0.45, 24);
+    const pinionGeom = new THREE.CylinderGeometry(pinionRadius, pinionRadius, depth * 0.45, 40);
     pinionGeom.rotateX(Math.PI / 2);
     pinionGeom.translate(-width * 0.22, height * 0.15, 0);
     
@@ -901,7 +901,7 @@ export class UniversalDecomposition {
 
     // 3. Low-Speed Driven Bull Gear
     const bullRadius = 0.95 * scale;
-    const bullGeom = new THREE.CylinderGeometry(bullRadius, bullRadius, depth * 0.45, 36);
+    const bullGeom = new THREE.CylinderGeometry(bullRadius, bullRadius, depth * 0.45, 48);
     bullGeom.rotateX(Math.PI / 2);
     bullGeom.translate(width * 0.25, -height * 0.12, 0);
     
@@ -932,7 +932,7 @@ export class UniversalDecomposition {
     const bearingRadius = 0.25 * scale;
     // Input bearings
     for(const z of [-depth * 0.5, depth * 0.5]) {
-      const bGeom = new THREE.CylinderGeometry(bearingRadius, bearingRadius, 0.1, 24);
+      const bGeom = new THREE.CylinderGeometry(bearingRadius, bearingRadius, 0.1, 40);
       bGeom.rotateX(Math.PI/2);
       bGeom.translate(-width * 0.22, height * 0.15, z);
       bearingGeoms.push(bGeom);
@@ -940,7 +940,7 @@ export class UniversalDecomposition {
     // Output bearings
     const outBearingRadius = 0.35 * scale;
     for(const z of [-depth * 0.5, depth * 0.5]) {
-      const bGeom = new THREE.CylinderGeometry(outBearingRadius, outBearingRadius, 0.12, 32);
+      const bGeom = new THREE.CylinderGeometry(outBearingRadius, outBearingRadius, 0.12, 48);
       bGeom.rotateX(Math.PI/2);
       bGeom.translate(width * 0.25, -height * 0.12, z);
       bearingGeoms.push(bGeom);
@@ -976,7 +976,7 @@ export class UniversalDecomposition {
     };
 
     // 1. EPS Foam Liner
-    const epsGeom = new THREE.SphereGeometry(radius * 0.95, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const epsGeom = new THREE.SphereGeometry(radius * 0.95, 48, 36, 0, Math.PI * 2, 0, Math.PI * 0.55);
     addComp(
       'helmet_eps', 'EPS Foam Impact Liner', 'Multi-density expanded polystyrene energy absorbing core.',
       [0, 0, 0], [radius * 1.9, radius, radius * 1.9], [0, 0.4, 0], '#334155',
@@ -984,7 +984,7 @@ export class UniversalDecomposition {
     );
 
     // 2. Polycarbonate Outer Shell
-    const shellGeom = new THREE.SphereGeometry(radius, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.53);
+    const shellGeom = new THREE.SphereGeometry(radius, 48, 36, 0, Math.PI * 2, 0, Math.PI * 0.53);
     addComp(
       'helmet_shell', 'Polycarbonate Outer Shell', 'Aerodynamic injection molded polycarbonate shell.',
       [0, 0, 0], [radius * 2, radius * 1.05, radius * 2], [0, 0.8, 0], '#ffffff',
@@ -992,7 +992,7 @@ export class UniversalDecomposition {
     );
 
     // 3. Comfort Padding
-    const padGeom = new THREE.SphereGeometry(radius * 0.9, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.5);
+    const padGeom = new THREE.SphereGeometry(radius * 0.9, 48, 36, 0, Math.PI * 2, 0, Math.PI * 0.5);
     addComp(
       'helmet_padding', 'Microfiber Comfort Padding', 'Moisture-wicking, removable and washable interior padding.',
       [0, 0, 0], [radius * 1.8, radius * 0.9, radius * 1.8], [0, -0.4, 0], '#0f172a',

@@ -287,7 +287,7 @@ export class GeometryGenerator {
       }
     };
 
-    const shaftGeom = new THREE.CylinderGeometry(boreRadius * 0.98, boreRadius * 0.98, faceWidth * 2.2, 32);
+    const shaftGeom = new THREE.CylinderGeometry(boreRadius * 0.98, boreRadius * 0.98, faceWidth * 2.2, 48);
     shaftGeom.rotateX(Math.PI / 2);
 
     return {
@@ -683,7 +683,7 @@ export class GeometryGenerator {
     const length = Number(params.length || 2.8);
     const radius = diameter * 0.5;
 
-    const geometry = new THREE.CylinderGeometry(radius, radius, length, 36);
+    const geometry = new THREE.CylinderGeometry(radius, radius, length, 48);
     geometry.rotateZ(Math.PI / 2);
 
     const compId = 'transmission_shaft';
@@ -942,14 +942,14 @@ export class GeometryGenerator {
     const components = [voluteComp, impellerComp, shaftComp, bearingComp, suctionComp, dischargeComp];
 
     // Build geometries
-    const voluteGeom = new THREE.TorusGeometry(0.7 * scale, 0.35 * scale, 24, 48);
-    const impellerGeom = new THREE.CylinderGeometry(0.55 * scale, 0.55 * scale, 0.2 * scale, 32);
-    const shaftGeom = new THREE.CylinderGeometry(0.1 * scale, 0.1 * scale, 1.6 * scale, 24);
+    const voluteGeom = new THREE.TorusGeometry(0.7 * scale, 0.35 * scale, 32, 72);
+    const impellerGeom = new THREE.CylinderGeometry(0.55 * scale, 0.55 * scale, 0.2 * scale, 48);
+    const shaftGeom = new THREE.CylinderGeometry(0.1 * scale, 0.1 * scale, 1.6 * scale, 32);
     shaftGeom.rotateX(Math.PI / 2);
-    const bearingGeom = new THREE.TorusGeometry(0.25 * scale, 0.1 * scale, 16, 32);
-    const suctionGeom = new THREE.CylinderGeometry(0.3 * scale, 0.3 * scale, 0.35 * scale, 24);
+    const bearingGeom = new THREE.TorusGeometry(0.25 * scale, 0.1 * scale, 24, 64);
+    const suctionGeom = new THREE.CylinderGeometry(0.3 * scale, 0.3 * scale, 0.35 * scale, 40);
     suctionGeom.rotateX(Math.PI / 2);
-    const dischargeGeom = new THREE.CylinderGeometry(0.22 * scale, 0.22 * scale, 0.45 * scale, 24);
+    const dischargeGeom = new THREE.CylinderGeometry(0.22 * scale, 0.22 * scale, 0.45 * scale, 40);
 
     return {
       components,
@@ -1000,7 +1000,7 @@ export class GeometryGenerator {
       specifications: { 'Teeth': String(sunTeeth), 'Pitch Radius': `${(sunRadius * 20).toFixed(1)} mm` }
     };
     components.push(sunComp);
-    geometries['sun_gear'] = new THREE.CylinderGeometry(sunRadius, sunRadius, 0.4, 32);
+    geometries['sun_gear'] = new THREE.CylinderGeometry(sunRadius, sunRadius, 0.4, 48);
     meshSpecs['sun_gear'] = { id: 'sun_gear', name: sunComp.name, meshType: 'INVOLUTE_GEAR', parameters: { teeth: sunTeeth }, color: '#f59e0b' };
 
     // 2. Three Planet Gears
@@ -1022,7 +1022,7 @@ export class GeometryGenerator {
         specifications: { 'Teeth': String(planetTeeth), 'Orbit Angle': `${(i * 120)}°` }
       };
       components.push(pComp);
-      geometries[pid] = new THREE.CylinderGeometry(planetRadius, planetRadius, 0.4, 24);
+      geometries[pid] = new THREE.CylinderGeometry(planetRadius, planetRadius, 0.4, 40);
       meshSpecs[pid] = { id: pid, name: pComp.name, meshType: 'INVOLUTE_GEAR', parameters: { teeth: planetTeeth }, color: '#06b6d4' };
     }
 
@@ -1039,7 +1039,7 @@ export class GeometryGenerator {
       specifications: { 'Internal Teeth': String(ringTeeth), 'Ratio (Carrier Output)': `1 : ${((ringTeeth / sunTeeth) + 1).toFixed(2)}` }
     };
     components.push(ringComp);
-    geometries['ring_gear'] = new THREE.TorusGeometry(ringRadius * 1.05, 0.2, 16, 48);
+    geometries['ring_gear'] = new THREE.TorusGeometry(ringRadius * 1.05, 0.2, 24, 72);
     meshSpecs['ring_gear'] = { id: 'ring_gear', name: ringComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: { teeth: ringTeeth }, color: '#334155' };
 
     return { components, meshSpecs, geometries };
@@ -1179,7 +1179,7 @@ export class GeometryGenerator {
       const angle = (i * Math.PI * 2) / ballCount;
       const bx = Math.cos(angle) * rPitch;
       const by = Math.sin(angle) * rPitch;
-      const ball = new THREE.SphereGeometry(ballRadius, 24, 18);
+      const ball = new THREE.SphereGeometry(ballRadius, 36, 24);
       ball.translate(bx, by, 0);
       ballGeoms.push(ball);
     }
@@ -1196,7 +1196,7 @@ export class GeometryGenerator {
       const bx = Math.cos(angle) * rPitch;
       const by = Math.sin(angle) * rPitch;
       const ballId = `bearing_ball_${i + 1}`;
-      const ball = new THREE.SphereGeometry(ballRadius, 24, 18);
+      const ball = new THREE.SphereGeometry(ballRadius, 36, 24);
       ball.translate(bx, by, 0);
       
       addComp(

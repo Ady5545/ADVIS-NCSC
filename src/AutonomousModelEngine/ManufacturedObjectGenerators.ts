@@ -88,7 +88,7 @@ export class ManufacturedObjectGenerators {
       const zPos = -thickness / 2 - 0.06;
       
       // Lens Ring
-      const ringGeom = new THREE.CylinderGeometry(lensRadius * 1.1, lensRadius * 1.1, 0.06, 32);
+      const ringGeom = new THREE.CylinderGeometry(lensRadius * 1.1, lensRadius * 1.1, 0.06, 48);
       ringGeom.rotateX(Math.PI / 2);
       addComponent(
         `smartphone_lens_ring_${i}`, `Machined Lens Ring ${i + 1}`, 'Titanium lens protection ring.',
@@ -97,7 +97,7 @@ export class ManufacturedObjectGenerators {
       );
 
       // Lens Glass
-      const lensGeom = new THREE.CylinderGeometry(lensRadius, lensRadius, 0.061, 24);
+      const lensGeom = new THREE.CylinderGeometry(lensRadius, lensRadius, 0.061, 40);
       lensGeom.rotateX(Math.PI / 2);
       addComponent(
         `smartphone_lens_${i}`, `Optical Lens ${i + 1}`, 'Multi-layer coated sapphire lens.',
@@ -107,7 +107,7 @@ export class ManufacturedObjectGenerators {
     }
 
     // Camera Flash
-    const flashGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.05, 16);
+    const flashGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.05, 24);
     flashGeom.rotateX(Math.PI / 2);
     addComponent(
       'smartphone_flash', 'True Tone LED Flash', 'Dual-tone LED flash.',
@@ -116,7 +116,7 @@ export class ManufacturedObjectGenerators {
     );
 
     // LiDAR / Sensor
-    const lidarGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.05, 16);
+    const lidarGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.05, 24);
     lidarGeom.rotateX(Math.PI / 2);
     addComponent(
       'smartphone_lidar', 'LiDAR Scanner', 'Time-of-flight 3D depth sensor.',
@@ -193,13 +193,13 @@ export class ManufacturedObjectGenerators {
 
     // Speakers/Mics (Bottom)
     for (let i = 0; i < 4; i++) {
-      const micGeom = new THREE.CylinderGeometry(0.02, 0.02, 0.05, 12);
+      const micGeom = new THREE.CylinderGeometry(0.02, 0.02, 0.05, 20);
       addComponent(
         `smartphone_speaker_l_${i}`, `Speaker Grille L${i+1}`, 'Acoustic port.',
         [-0.25 - i * 0.06, -height / 2 - 0.01, 0], [0.04, 0.05, 0.04], [-0.2, -0.4, 0], '#000000',
         micGeom, { 'Type': 'Acoustic Mesh' }, 'PBR_MATTE'
       );
-      const spkGeom = new THREE.CylinderGeometry(0.02, 0.02, 0.05, 12);
+      const spkGeom = new THREE.CylinderGeometry(0.02, 0.02, 0.05, 20);
       addComponent(
         `smartphone_speaker_r_${i}`, `Speaker Grille R${i+1}`, 'Acoustic port.',
         [0.25 + i * 0.06, -height / 2 - 0.01, 0], [0.04, 0.05, 0.04], [0.2, -0.4, 0], '#000000',
@@ -261,7 +261,7 @@ export class ManufacturedObjectGenerators {
     
     // Add Hinge
     const hingeW = width * 0.7;
-    const hingeGeom = new THREE.CylinderGeometry(0.04, 0.04, hingeW, 16);
+    const hingeGeom = new THREE.CylinderGeometry(0.04, 0.04, hingeW, 24);
     hingeGeom.rotateZ(Math.PI / 2);
     components.push({
       id: 'laptop_hinge', name: 'Torsion Hinge Mechanism', description: 'Friction-tuned display clutch.',
@@ -460,7 +460,7 @@ export class ManufacturedObjectGenerators {
         position: [x, -baseThick / 2 - 0.01, z], size: [footR*2, 0.02, footR*2], explodedOffset: [x*0.5, -0.3, z*0.5],
         shape: 'cylinder', color: '#1e293b', specifications: { 'Material': 'Elastomer' }
       });
-      geometries[`laptop_foot_${i}`] = new THREE.CylinderGeometry(footR, footR, 0.02, 16);
+      geometries[`laptop_foot_${i}`] = new THREE.CylinderGeometry(footR, footR, 0.02, 24);
       meshSpecs[`laptop_foot_${i}`] = { id: `laptop_foot_${i}`, name: `Rubber Foot ${i+1}`, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#1e293b', materialType: 'PBR_MATTE' };
     }
 
@@ -587,7 +587,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Weight': '58 grams', 'Coating': 'Hydrophobic Matte Grip Coating' }
     };
     components.push(shellComp);
-    const shellGeom = new THREE.SphereGeometry(width * 0.6, 24, 24);
+    const shellGeom = new THREE.SphereGeometry(width * 0.6, 40, 32);
     shellGeom.scale(1.0, height / width, length / width);
     geometries['mouse_palm_body'] = shellGeom;
     meshSpecs['mouse_palm_body'] = { id: 'mouse_palm_body', name: shellComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#1e293b', materialType: 'PBR_METALLIC' };
@@ -621,7 +621,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Steps': '24 tactile steps per revolution', 'Encoder': 'TTC Gold Dustproof' }
     };
     components.push(wheelComp);
-    const wheelGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.12, 20);
+    const wheelGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.12, 32);
     wheelGeom.rotateZ(Math.PI / 2);
     geometries['mouse_scroll_wheel'] = wheelGeom;
     meshSpecs['mouse_scroll_wheel'] = { id: 'mouse_scroll_wheel', name: wheelComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#06b6d4', materialType: 'PBR_METALLIC' };
@@ -706,7 +706,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Seal': 'Food-Grade Platinum-Cured Silicone', 'Handle': 'Flexible Polycarbonate Loop' }
     };
     components.push(capComp);
-    geometries['bottle_cap'] = new THREE.CylinderGeometry(neckR * 1.15, neckR * 1.15, capH, 24);
+    geometries['bottle_cap'] = new THREE.CylinderGeometry(neckR * 1.15, neckR * 1.15, capH, 40);
     meshSpecs['bottle_cap'] = { id: 'bottle_cap', name: capComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: { capH }, color: '#0f172a', materialType: 'PBR_METALLIC' };
 
     return { components, meshSpecs, geometries };
@@ -776,7 +776,7 @@ export class ManufacturedObjectGenerators {
     // 4. Stand Riser Arm (Cylinder)
     const armR = 0.15;
     const armH = 1.6;
-    const armGeom = new THREE.CylinderGeometry(armR, armR, armH, 24);
+    const armGeom = new THREE.CylinderGeometry(armR, armR, armH, 40);
     addComponent(
       'monitor_stand_arm', 'Ergonomic Stand Riser', 'Gas-spring height adjustable column.',
       [0, armH/2 - 0.1, -thickness - 0.25], [armR*2, armH, armR*2], [0, -0.2, -0.7], '#475569',
@@ -872,7 +872,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Feedback': 'Sub-millimeter Haptic Pulse Engine' }
     };
     components.push(crownComp);
-    const crownGeom = new THREE.CylinderGeometry(0.14, 0.14, 0.12, 16);
+    const crownGeom = new THREE.CylinderGeometry(0.14, 0.14, 0.12, 28);
     crownGeom.rotateZ(Math.PI / 2);
     geometries['smartwatch_crown'] = crownGeom;
     meshSpecs['smartwatch_crown'] = { id: 'smartwatch_crown', name: crownComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#f97316', materialType: 'PBR_METALLIC' };
@@ -939,7 +939,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Material': 'Stainless Steel with Memory Foam Canopy' }
     };
     components.push(bandComp);
-    const bandGeom = new THREE.TorusGeometry(width * 0.45, 0.08, 12, 32, Math.PI);
+    const bandGeom = new THREE.TorusGeometry(width * 0.45, 0.08, 20, 64, Math.PI);
     bandGeom.rotateZ(-Math.PI / 2);
     geometries['headphones_headband'] = bandGeom;
     meshSpecs['headphones_headband'] = { id: 'headphones_headband', name: bandComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#475569', materialType: 'PBR_METALLIC' };
@@ -959,7 +959,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Driver': '40mm Custom Dynamic Transducer', 'THD': '< 0.1% at 1 kHz' }
     };
     components.push(cupLeftComp);
-    const cupLeftGeom = new THREE.CylinderGeometry(cupR, cupR, cupD, 24);
+    const cupLeftGeom = new THREE.CylinderGeometry(cupR, cupR, cupD, 40);
     cupLeftGeom.rotateZ(Math.PI / 2);
     geometries['headphones_earcup_left'] = cupLeftGeom;
     meshSpecs['headphones_earcup_left'] = { id: 'headphones_earcup_left', name: cupLeftComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#0284c7', materialType: 'PBR_METALLIC' };
@@ -977,7 +977,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'ANC': 'Active Noise Cancellation with Transparency Mode' }
     };
     components.push(cupRightComp);
-    const cupRightGeom = new THREE.CylinderGeometry(cupR, cupR, cupD, 24);
+    const cupRightGeom = new THREE.CylinderGeometry(cupR, cupR, cupD, 40);
     cupRightGeom.rotateZ(Math.PI / 2);
     geometries['headphones_earcup_right'] = cupRightGeom;
     meshSpecs['headphones_earcup_right'] = { id: 'headphones_earcup_right', name: cupRightComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#0284c7', materialType: 'PBR_METALLIC' };
@@ -1027,7 +1027,7 @@ export class ManufacturedObjectGenerators {
       specifications: { 'Sensors': 'Hall Effect Contactless (0% drift)', 'Sampling Rate': '1000 Hz Polling' }
     };
     components.push(stickComp);
-    geometries['controller_thumbsticks'] = new THREE.CylinderGeometry(0.3, 0.3, 0.25, 20);
+    geometries['controller_thumbsticks'] = new THREE.CylinderGeometry(0.3, 0.3, 0.25, 32);
     meshSpecs['controller_thumbsticks'] = { id: 'controller_thumbsticks', name: stickComp.name, meshType: 'CUSTOM_PRIMITIVE', parameters: {}, color: '#06b6d4', materialType: 'PBR_METALLIC' };
 
     // 3. D-Pad & Action Buttons (ABXY)
