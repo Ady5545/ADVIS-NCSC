@@ -335,13 +335,13 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Degrees of Freedom': '2 (Pan & Tilt)', 'Sensors': 'LDR', 'Actuators': 'SG90 Servo', 'Controller': 'Arduino UNO' }
     },
     components: [
-      { id: 'hm_frame', name: 'Structural Frame & Mast', description: 'Machined anodized aluminum mounting frame.', position: [0, 0, 0], size: [0.8, 1.2, 0.8], explodedOffset: [0, -0.5, 0], shape: 'cylinder', color: '#475569' },
-      { id: 'hm_panel', name: 'Photovoltaic Array', description: 'High-efficiency dual-axis solar module.', position: [0, 0.8, 0], size: [1.6, 0.08, 1.6], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#0284c7' },
-      { id: 'hm_servo_pan', name: 'Pan Azimuth Actuator', description: 'Base 360-degree continuous rotation servo.', position: [0, -0.2, 0], size: [0.3, 0.25, 0.2], explodedOffset: [-0.4, -0.2, 0], shape: 'box', color: '#2563eb' },
-      { id: 'hm_servo_tilt', name: 'Tilt Elevation Actuator', description: 'Upper altitude articulation micro servo.', position: [0, 0.5, 0], size: [0.25, 0.2, 0.2], explodedOffset: [0.4, 0.5, 0], shape: 'box', color: '#2563eb' },
-      { id: 'hm_ldr_array', name: 'Quadrant LDR Pyranometer', description: 'Cross-baffled light sensor array.', position: [0, 0.88, 0], size: [0.3, 0.15, 0.3], explodedOffset: [0, 1.0, 0], shape: 'cylinder', color: '#f59e0b' },
-      { id: 'hm_arduino', name: 'Embedded Controller Board', description: 'Arduino microcontroller running sun-tracking PID logic.', position: [0.35, 0.1, 0], size: [0.5, 0.1, 0.7], explodedOffset: [0.6, 0.1, 0], shape: 'box', color: '#044530' },
-      { id: 'hm_wiring', name: 'Silicone Wiring Harness', description: 'Flexible low-resistance cabling loom.', position: [0, 0.3, 0], size: [0.1, 0.6, 0.1], explodedOffset: [0, 0.3, 0.4], shape: 'cylinder', color: '#ef4444' }
+      { id: 'heliomotion.frame', name: 'Structural Frame & Mast', description: 'Machined anodized aluminum mounting frame.', position: [0, 0, 0], size: [0.8, 1.2, 0.8], explodedOffset: [0, -0.5, 0], shape: 'cylinder', color: '#475569' },
+      { id: 'heliomotion.panel', name: 'Photovoltaic Array', description: 'High-efficiency dual-axis solar module.', position: [0, 0.8, 0], size: [1.6, 0.08, 1.6], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#0284c7' },
+      { id: 'heliomotion.servo_pan', name: 'Pan Azimuth Actuator', description: 'Base 360-degree continuous rotation servo.', position: [0, -0.2, 0], size: [0.3, 0.25, 0.2], explodedOffset: [-0.4, -0.2, 0], shape: 'box', color: '#2563eb' },
+      { id: 'heliomotion.servo_tilt', name: 'Tilt Elevation Actuator', description: 'Upper altitude articulation micro servo.', position: [0, 0.5, 0], size: [0.25, 0.2, 0.2], explodedOffset: [0.4, 0.5, 0], shape: 'box', color: '#2563eb' },
+      { id: 'heliomotion.ldr_array', name: 'Quadrant LDR Pyranometer', description: 'Cross-baffled light sensor array.', position: [0, 0.88, 0], size: [0.3, 0.15, 0.3], explodedOffset: [0, 1.0, 0], shape: 'cylinder', color: '#f59e0b' },
+      { id: 'heliomotion.arduino', name: 'Embedded Controller Board', description: 'Arduino microcontroller running sun-tracking PID logic.', position: [0.35, 0.1, 0], size: [0.5, 0.1, 0.7], explodedOffset: [0.6, 0.1, 0], shape: 'box', color: '#044530' },
+      { id: 'heliomotion.wiring', name: 'Silicone Wiring Harness', description: 'Flexible low-resistance cabling loom.', position: [0, 0.3, 0], size: [0.1, 0.6, 0.1], explodedOffset: [0, 0.3, 0.4], shape: 'cylinder', color: '#ef4444' }
     ]
   },
 
@@ -835,7 +835,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     metadata: { displacement: '6.5 Liters', cylinderBank: '60 deg V12', valvetrain: 'DOHC 48-Valve' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
-    explodedParts: ['piston_left_bank', 'piston_right_bank', 'crankshaft', 'cylinder_head', 'intake_plenum', 'exhaust_manifold'],
+    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.cylinder_head', 'v12.intake_plenum', 'v12.exhaust_manifold'],
     educationalInformation: {
       overview: 'A V12 engine is a twelve-cylinder piston engine where two banks of six cylinders are arranged in a V configuration around a common crankshaft. Known for naturally perfect primary and secondary balance.',
       keyFeatures: [
@@ -857,37 +857,37 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       }
     },
     components: [
-      { id: 'engine_block', name: '60° V12 Cast Aluminum Block', description: 'Rigid deep-skirt engine block with high-strength casting geometry and main bearing bulkheads.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
+      { id: 'v12.engine_block', name: '60° V12 Cast Aluminum Block', description: 'Rigid deep-skirt engine block with high-strength casting geometry and main bearing bulkheads.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
         engineeringDetails: { material: 'A356-T6 Cast Aluminum', weight: '62.4 kg', tolerances: '±0.01 mm', stressThreshold: '240 MPa', specifications: { 'Cylinder Bores': '12', 'V-Angle': '60 degrees' } }
       },
-      { id: 'piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction PVD coated rings.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction PVD coated rings.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
       },
-      { id: 'piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins with full-floating wrist pins.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins with full-floating wrist pins.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
       },
-      { id: 'connecting_rods', name: 'H-Beam Titanium Connecting Rods', description: 'Forged Ti-6Al-4V titanium rods engineered for ultra-high RPM reciprocating loads.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
+      { id: 'v12.connecting_rods', name: 'H-Beam Titanium Connecting Rods', description: 'Forged Ti-6Al-4V titanium rods engineered for ultra-high RPM reciprocating loads.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
         engineeringDetails: { material: 'Ti-6Al-4V Titanium', weight: '450g each', tensileStrength: '950 MPa' }
       },
-      { id: 'crankshaft', name: '7-Bearing Forged Steel Crankshaft', description: 'Nitrided alloy steel crankshaft with micro-polished journals and dynamic counterweights.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
+      { id: 'v12.crankshaft', name: '7-Bearing Forged Steel Crankshaft', description: 'Nitrided alloy steel crankshaft with micro-polished journals and dynamic counterweights.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
         engineeringDetails: { material: '4340 Chromoly Steel', weight: '28.5 kg', surfaceTreatment: 'Plasma Nitrided (HRC 58)' }
       },
-      { id: 'valvetrain', name: 'DOHC 48-Valve Valvetrain & Camshafts', description: 'Dual overhead camshafts with hollow lightweight valves and dual valve springs.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.valvetrain', name: 'DOHC 48-Valve Valvetrain & Camshafts', description: 'Dual overhead camshafts with hollow lightweight valves and dual valve springs.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
         engineeringDetails: { material: 'Billet Steel Camshafts & Titanium Valves', weight: '14.2 kg total' }
       },
-      { id: 'intake_plenum', name: 'Dual Plenum Intake Manifold', description: 'Twin carbon fiber intake plenums with individual runners and dual drive-by-wire throttle bodies.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
+      { id: 'v12.intake_plenum', name: 'Dual Plenum Intake Manifold', description: 'Twin carbon fiber intake plenums with individual runners and dual drive-by-wire throttle bodies.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
         engineeringDetails: { material: 'Carbon Composite & Cast Aluminum', weight: '8.4 kg', airflow: '1,200 CFM @ 25 inH2O' }
       },
-      { id: 'exhaust_manifold', name: 'Equal-Length Exhaust Headers', description: 'TIG-welded stainless steel 6-into-2-into-1 tuned exhaust headers for scavenging optimization.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
+      { id: 'v12.exhaust_manifold', name: 'Equal-Length Exhaust Headers', description: 'TIG-welded stainless steel 6-into-2-into-1 tuned exhaust headers for scavenging optimization.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
         engineeringDetails: { material: '321 Stainless Steel / Inconel', weight: '11.2 kg', maxTemp: '950°C' }
       },
-      { id: 'cooling_system', name: 'Front Accessory Drive & Water Pump', description: 'High-flow centrifugal water pump, 9-blade viscous fan, alternator, and serpentine drive.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
+      { id: 'v12.cooling_system', name: 'Front Accessory Drive & Water Pump', description: 'High-flow centrifugal water pump, 9-blade viscous fan, alternator, and serpentine drive.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
         engineeringDetails: { flowRate: '140 L/min', pressureRating: '1.4 bar' }
       },
-      { id: 'lubrication_system', name: 'Dry-Sump Oil Pan & Scavenge Pump', description: 'Multi-stage dry sump oil pan maintaining continuous oil pressure under high cornering G-forces.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.lubrication_system', name: 'Dry-Sump Oil Pan & Scavenge Pump', description: 'Multi-stage dry sump oil pan maintaining continuous oil pressure under high cornering G-forces.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
         engineeringDetails: { capacity: '10.5 Liters Mobil 1 Racing 0W-40', pumpStages: '1 Pressure, 4 Scavenge' }
       },
-      { id: 'electronics_sensors', name: 'Engine Management Harness & Sensors', description: '12 direct coil-on-plug ignition modules, wiring harness, and dual Bosch ECU controllers.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
+      { id: 'v12.electronics_sensors', name: 'Engine Management Harness & Sensors', description: '12 direct coil-on-plug ignition modules, wiring harness, and dual Bosch ECU controllers.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
         engineeringDetails: { processor: 'Dual Tri-Core Automotive ECU', communication: 'CAN Bus 2.0B / FlexRay' }
       }
     ]

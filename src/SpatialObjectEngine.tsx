@@ -1270,17 +1270,17 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     crankAngleRef: crankAngleRef || null
   };
 
-  if (id === 'engine_block') return <EngineBlockAssembly {...generatorProps} />;
-  if (id === 'piston_left_bank') return <PistonAssemblyBank bank="left" {...generatorProps} />;
-  if (id === 'piston_right_bank') return <PistonAssemblyBank bank="right" {...generatorProps} />;
-  if (id === 'connecting_rods') return <ConnectingRodsAssembly {...generatorProps} />;
-  if (id === 'crankshaft') return <CrankshaftAssembly {...generatorProps} />;
-  if (id === 'valvetrain') return <ValvetrainAssembly {...generatorProps} />;
-  if (id === 'intake_plenum') return <IntakePlenum {...generatorProps} />;
-  if (id === 'exhaust_manifold') return <ExhaustManifold {...generatorProps} />;
-  if (id === 'cooling_system') return <CoolingSystem {...generatorProps} />;
-  if (id === 'lubrication_system') return <LubricationSystem {...generatorProps} />;
-  if (id === 'electronics_sensors') return <ElectronicsSensors {...generatorProps} />;
+  if (id === 'v12.engine_block') return <EngineBlockAssembly {...generatorProps} />;
+  if (id === 'v12.piston_left_bank') return <PistonAssemblyBank bank="left" {...generatorProps} />;
+  if (id === 'v12.piston_right_bank') return <PistonAssemblyBank bank="right" {...generatorProps} />;
+  if (id === 'v12.connecting_rods') return <ConnectingRodsAssembly {...generatorProps} />;
+  if (id === 'v12.crankshaft') return <CrankshaftAssembly {...generatorProps} />;
+  if (id === 'v12.valvetrain') return <ValvetrainAssembly {...generatorProps} />;
+  if (id === 'v12.intake_plenum') return <IntakePlenum {...generatorProps} />;
+  if (id === 'v12.exhaust_manifold') return <ExhaustManifold {...generatorProps} />;
+  if (id === 'v12.cooling_system') return <CoolingSystem {...generatorProps} />;
+  if (id === 'v12.lubrication_system') return <LubricationSystem {...generatorProps} />;
+  if (id === 'v12.electronics_sensors') return <ElectronicsSensors {...generatorProps} />;
 
   if (id === 'left_ventricle' || id === 'right_ventricle') {
     return (
@@ -1436,7 +1436,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
   }
 
   
-  if (id === 'hm_frame') {
+  if (id === 'heliomotion.frame') {
     return (
       <group>
         {/* Base Plate Mount */}
@@ -1477,7 +1477,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
   }
   
   // --- RESTORED HELIOMOTION PARTS ---
-  if (id === 'hm_arduino') {
+  if (id === 'heliomotion.arduino') {
     return (
       <group>
         <Box args={size}>
@@ -1503,7 +1503,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
   
-  if (id === 'hm_panel') {
+  if (id === 'heliomotion.panel') {
     return (
       <group>
         <Box args={[size[0] + 0.04, size[1], size[2] + 0.04]}>
@@ -1524,7 +1524,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
 
-  if (id === 'hm_servo_pan' || id === 'hm_servo_tilt') {
+  if (id === 'heliomotion.servo_pan' || id === 'heliomotion.servo_tilt') {
     return (
       <group>
         <Box args={[size[0], size[1], size[2]]}>
@@ -1543,7 +1543,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
 
-  if (id === 'hm_ldr_array') {
+  if (id === 'heliomotion.ldr_array') {
     return (
       <group>
         <Box args={size}>
@@ -1565,7 +1565,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
 
-  if (id === 'hm_wiring') {
+  if (id === 'heliomotion.wiring') {
     return (
       <group>
         {[
@@ -2794,38 +2794,34 @@ export function SpatialObjectEngine({
                       const scl = transform ? transform.scale : (isIsolated ? [1, 1, 1] : [0.95, 0.95, 0.95]);
                       
                       return (
-                        <group 
-                          key={comp.id} 
-                          ref={(el) => {
-                            if (el) componentRefs.current[comp.id] = el;
-                          }}
-                          position={pos}
-                          rotation={rot as [number, number, number]}
-                          scale={scl as [number, number, number]}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedComponentId(comp.id);
-                          }}
-                          onPointerOver={(e) => {
-                            e.stopPropagation();
-                            setHoveredComponentId(comp.id);
-                          }}
-                          onPointerOut={(e) => {
-                            e.stopPropagation();
-                            if (hoveredComponentId === comp.id) {
-                              setHoveredComponentId(null);
-                            }
-                          }}
-                          userData={{ 
-                            selectableId: comp.id,
-                            componentName: comp.name,
-                            description: comp.description,
-                            category: obj.category,
-                            specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
-                            explodedOffset: comp.explodedOffset,
-                            interactionEnabled: comp.interactionEnabled !== false
-                          }}
-                        >
+                        <group position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
+                            ref={(el) => {
+                              if (el) componentRefs.current[comp.id] = el;
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedComponentId(comp.id);
+                            }}
+                            onPointerOver={(e) => {
+                              e.stopPropagation();
+                              setHoveredComponentId(comp.id);
+                            }}
+                            onPointerOut={(e) => {
+                              e.stopPropagation();
+                              if (hoveredComponentId === comp.id) {
+                                setHoveredComponentId(null);
+                              }
+                            }}
+                            userData={{ 
+                              selectableId: comp.id,
+                              componentName: comp.name,
+                              description: comp.description,
+                              category: obj.category,
+                              specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
+                              explodedOffset: comp.explodedOffset,
+                              interactionEnabled: comp.interactionEnabled !== false
+                            }}
+                          >
                           <EngineeringComponentRenderer
                             comp={comp}
                             objectId={obj.id}
