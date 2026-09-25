@@ -6,6 +6,7 @@ export interface ComponentDefinition {
   type: 'assembly' | 'part' | 'geometry';
   children?: string[];
   metadata?: Record<string, any>;
+  userData?: Record<string, any>;
 }
 
 export class ComponentRegistry {
