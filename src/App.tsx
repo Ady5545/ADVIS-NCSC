@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+import { Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -1274,7 +1274,7 @@ function AppContent() {
 
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <Canvas camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
+        <Canvas shadows camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
           {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
           <EnvironmentErrorBoundary>
             <React.Suspense fallback={null}>
@@ -1287,7 +1287,7 @@ function AppContent() {
           <ambientLight intensity={0.4} color="#f8fafc" />
 
           {/* 2. Key Light: High-angle front-right directional source establishing primary form and crisp shadow separation */}
-          <directionalLight position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+          <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
 
           {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
           <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
@@ -1297,6 +1297,9 @@ function AppContent() {
 
           {/* 5. Underside Ground Bounce: Subtle lower illumination keeping oil pan and lower chassis details readable */}
           <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
+
+          {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
+          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />

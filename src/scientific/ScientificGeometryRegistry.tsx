@@ -42,7 +42,7 @@ class ScientificGeometryRegistryClass {
     this.registerGeometry('box', ({ params, materialProps }) => (
       <mesh castShadow receiveShadow>
         <boxGeometry args={[params.width || 1, params.height || 1, params.depth || 1]} />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
       </mesh>
     ));
 
@@ -54,10 +54,10 @@ class ScientificGeometryRegistryClass {
             params.radiusTop ?? 0.5,
             params.radiusBottom ?? 0.5,
             params.height ?? 1.0,
-            params.radialSegments ?? 24
+            params.radialSegments ?? 48
           ]}
         />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
       </mesh>
     ));
 
@@ -67,11 +67,11 @@ class ScientificGeometryRegistryClass {
         <sphereGeometry
           args={[
             params.radius ?? 0.5,
-            params.widthSegments ?? 24,
-            params.heightSegments ?? 16
+            params.widthSegments ?? 48,
+            params.heightSegments ?? 32
           ]}
         />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
       </mesh>
     ));
 
@@ -82,12 +82,12 @@ class ScientificGeometryRegistryClass {
           args={[
             params.radius ?? 0.5,
             params.tube ?? 0.1,
-            params.radialSegments ?? 16,
-            params.tubularSegments ?? 32,
+            params.radialSegments ?? 48,
+            params.tubularSegments ?? 64,
             params.arc ?? Math.PI * 2
           ]}
         />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
       </mesh>
     ));
 
@@ -98,10 +98,10 @@ class ScientificGeometryRegistryClass {
           args={[
             params.radius ?? 0.5,
             params.height ?? 1.0,
-            params.radialSegments ?? 24
+            params.radialSegments ?? 48
           ]}
         />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
       </mesh>
     ));
   }
@@ -115,12 +115,12 @@ class ScientificGeometryRegistryClass {
         <group>
           {/* Piston Crown & Body */}
           <mesh castShadow receiveShadow position={[0, 0, 0]}>
-            <cylinderGeometry args={[r, r, h, 32]} />
-            <meshStandardMaterial {...materialProps} />
+            <cylinderGeometry args={[r, r, h, 48]} />
+            <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
           </mesh>
           {/* Compression Rings */}
           <mesh position={[0, h * 0.3, 0]}>
-            <torusGeometry args={[r * 1.01, 0.015, 8, 32]} />
+            <torusGeometry args={[r * 1.01, 0.015, 12, 64]} />
             <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
           </mesh>
           <mesh position={[0, h * 0.2, 0]}>
@@ -129,7 +129,7 @@ class ScientificGeometryRegistryClass {
           </mesh>
           {/* Wrist Pin */}
           <mesh rotation={[0, 0, Math.PI / 2]} position={[0, -h * 0.1, 0]}>
-            <cylinderGeometry args={[0.08, 0.08, r * 1.8, 16]} />
+            <cylinderGeometry args={[0.08, 0.08, r * 1.8, 24]} />
             <meshStandardMaterial color="#f1f5f9" metalness={0.95} roughness={0.15} />
           </mesh>
         </group>
@@ -145,17 +145,17 @@ class ScientificGeometryRegistryClass {
         <group>
           {/* Valve Poppet Head */}
           <mesh castShadow receiveShadow position={[0, -stemL * 0.5, 0]}>
-            <cylinderGeometry args={[headR, stemR, 0.08, 24]} />
-            <meshStandardMaterial {...materialProps} />
+            <cylinderGeometry args={[headR, stemR, 0.08, 48]} />
+            <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
           </mesh>
           {/* Valve Stem */}
           <mesh castShadow position={[0, 0, 0]}>
-            <cylinderGeometry args={[stemR, stemR, stemL, 16]} />
-            <meshStandardMaterial {...materialProps} />
+            <cylinderGeometry args={[stemR, stemR, stemL, 24]} />
+            <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
           </mesh>
           {/* Valve Spring Retainer */}
           <mesh position={[0, stemL * 0.45, 0]}>
-            <cylinderGeometry args={[stemR * 2.2, stemR * 1.8, 0.05, 16]} />
+            <cylinderGeometry args={[stemR * 2.2, stemR * 1.8, 0.05, 24]} />
             <meshStandardMaterial color="#64748b" metalness={0.9} roughness={0.2} />
           </mesh>
         </group>
@@ -169,7 +169,7 @@ class ScientificGeometryRegistryClass {
         <group>
           {/* Threaded Base */}
           <mesh position={[0, -h * 0.35, 0]}>
-            <cylinderGeometry args={[0.06, 0.06, h * 0.3, 16]} />
+            <cylinderGeometry args={[0.06, 0.06, h * 0.3, 32]} />
             <meshStandardMaterial color="#475569" metalness={0.85} roughness={0.3} />
           </mesh>
           {/* Hex Nut Collar */}
@@ -179,12 +179,12 @@ class ScientificGeometryRegistryClass {
           </mesh>
           {/* White Alumina Ceramic Insulator */}
           <mesh position={[0, h * 0.15, 0]}>
-            <cylinderGeometry args={[0.07, 0.07, h * 0.45, 16]} />
+            <cylinderGeometry args={[0.07, 0.07, h * 0.45, 32]} />
             <meshStandardMaterial color="#f8fafc" roughness={0.1} />
           </mesh>
           {/* Terminal Stud */}
           <mesh position={[0, h * 0.42, 0]}>
-            <cylinderGeometry args={[0.025, 0.025, h * 0.12, 12]} />
+            <cylinderGeometry args={[0.025, 0.025, h * 0.12, 24]} />
             <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.2} />
           </mesh>
           {/* Spark Electrode Arc (Active Firing) */}
@@ -205,19 +205,19 @@ class ScientificGeometryRegistryClass {
         <group>
           {/* Main Center Shaft */}
           <mesh castShadow receiveShadow rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.15, 0.15, len, 24]} />
-            <meshStandardMaterial {...materialProps} />
+            <cylinderGeometry args={[0.15, 0.15, len, 32]} />
+            <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
           </mesh>
           {/* Counterweights */}
           {[-0.9, -0.3, 0.3, 0.9].map((zPos, idx) => (
             <group key={idx} position={[0, 0, zPos]}>
               <mesh position={[0, -0.25, 0]}>
                 <boxGeometry args={[0.16, 0.52, 0.2]} />
-                <meshStandardMaterial {...materialProps} />
+                <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
               </mesh>
               {/* Offset Crankpin */}
               <mesh position={[0, 0.28, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.11, 0.11, 0.24, 16]} />
+                <cylinderGeometry args={[0.11, 0.11, 0.24, 24]} />
                 <meshStandardMaterial color="#f1f5f9" metalness={0.95} roughness={0.15} />
               </mesh>
             </group>
@@ -233,13 +233,13 @@ class ScientificGeometryRegistryClass {
         return (
           <group>
             <mesh castShadow receiveShadow scale={[1, 1.2, 0.9]}>
-              <sphereGeometry args={[r, 24, 16]} />
-              <meshStandardMaterial {...materialProps} />
+              <sphereGeometry args={[r, 48, 32]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
             </mesh>
             {/* Left Ventricle Muscular Apex */}
             <mesh position={[0.15, -r * 0.4, 0.1]} scale={[0.7, 0.9, 0.7]}>
-              <coneGeometry args={[r * 0.65, r * 1.1, 16]} />
-              <meshStandardMaterial {...materialProps} />
+              <coneGeometry args={[r * 0.65, r * 1.1, 32]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
             </mesh>
           </group>
         );
@@ -247,7 +247,7 @@ class ScientificGeometryRegistryClass {
       return (
         <mesh castShadow receiveShadow>
           <sphereGeometry args={[r, 24, 16]} />
-          <meshStandardMaterial {...materialProps} />
+          <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
         </mesh>
       );
     });
@@ -258,8 +258,8 @@ class ScientificGeometryRegistryClass {
       const l = params.length ?? 1.2;
       return (
         <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[r, r, l, 20]} />
-          <meshStandardMaterial {...materialProps} />
+          <cylinderGeometry args={[r, r, l, 32]} />
+          <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
         </mesh>
       );
     });

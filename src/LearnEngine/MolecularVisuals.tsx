@@ -226,7 +226,7 @@ export function MolecularVisuals({
   }, [data, showAnnotations, isAnalytical]);
 
   return (
-    <Float floatIntensity={isAnalytical ? 0.1 : 1.2} rotationIntensity={isAnalytical ? 0.05 : 0.3} speed={isAnalytical ? 0.4 : 1.2}>
+    <Float floatIntensity={isAnalytical ? 0.06 : 0.28} rotationIntensity={isAnalytical ? 0.04 : 0.12} speed={isAnalytical ? 0.3 : 0.6}>
       <group ref={groupRef} scale={[1.2, 1.2, 1.2]}>
         {data.bonds.map((bond) => {
            const atomA = data.atoms.find(a => a.id === bond.atomA);
@@ -470,27 +470,32 @@ function HighFidelityAtom({
     >
       {/* Core Nucleus */}
       <mesh>
-        <icosahedronGeometry args={[radius * 0.28, 2]} />
-        <meshStandardMaterial 
-          color={displayColor} 
-          emissive={emissiveColor} 
-          emissiveIntensity={isHighlight ? 3.5 : 1.5} 
-          roughness={0.1} 
-          metalness={0.85} 
+        <sphereGeometry args={[radius * 0.28, 32, 20]} />
+        <meshPhysicalMaterial
+          color={displayColor}
+          emissive={emissiveColor}
+          emissiveIntensity={isHighlight ? 0.9 : 0.25}
+          roughness={0.24}
+          metalness={0.28}
+          clearcoat={0.32}
+          clearcoatRoughness={0.2}
+          envMapIntensity={1.25}
         />
       </mesh>
       
       {/* Electron Cloud Volume */}
       <mesh>
-        <sphereGeometry args={[radius, 32, 32]} />
+        <sphereGeometry args={[radius, 48, 32]} />
         <meshPhysicalMaterial 
           color={displayColor} 
           transparent 
-          opacity={isHighlight ? 0.45 : 0.18} 
-          roughness={0.1} 
-          transmission={0.88} 
-          thickness={0.5} 
-          clearcoat={1} 
+          opacity={isHighlight ? 0.38 : 0.12}
+          roughness={0.18}
+          transmission={0.72}
+          thickness={0.35}
+          clearcoat={0.65}
+          clearcoatRoughness={0.16}
+          envMapIntensity={1.1}
           depthWrite={false} 
         />
       </mesh>
@@ -502,7 +507,7 @@ function HighFidelityAtom({
           color={isSelected ? "#ffffff" : (isSecondary ? "#fef08a" : displayColor)} 
           wireframe 
           transparent 
-          opacity={isSelected ? 0.6 : (isSecondary ? 0.5 : (inSelectedGroup ? 0.35 : 0.15))} 
+          opacity={isSelected ? 0.42 : (isSecondary ? 0.36 : (inSelectedGroup ? 0.24 : 0.08))} 
           blending={THREE.AdditiveBlending} 
         />
       </mesh>
@@ -667,13 +672,15 @@ function HighFidelityBond({
       {offsets.map((offset, i) => (
         <group key={i} position={new THREE.Vector3(...offset)}>
           <mesh scale={[1, Math.max(0.01, (length - gap) / length), 1]}>
-             <cylinderGeometry args={[bondRadius, bondRadius, 1, 14]} />
+             <cylinderGeometry args={[bondRadius, bondRadius, 1, 24]} />
              <meshStandardMaterial 
                color={getBondColor(i)} 
                emissive={getEmissive()}
                emissiveIntensity={isSelected || inSelectedGroup ? 2.0 : (hovered ? 1.0 : 0)}
-               roughness={0.25} 
-               metalness={0.65} 
+               roughness={0.3}
+               metalness={0.38}
+               clearcoat={0.18}
+               clearcoatRoughness={0.18} 
                transparent={bond.type === 'aromatic' && i === 1}
                opacity={bond.type === 'aromatic' && i === 1 ? 0.6 : 1}
              />

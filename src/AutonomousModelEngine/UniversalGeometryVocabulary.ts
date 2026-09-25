@@ -11,7 +11,7 @@ export class UniversalGeometryVocabulary {
     p1: [number, number, number],
     p2: [number, number, number],
     radius: number,
-    radialSegments = 16,
+    radialSegments = 28,
     openEnded = false
   ): THREE.BufferGeometry {
     const v1 = new THREE.Vector3(...p1);
@@ -44,8 +44,8 @@ export class UniversalGeometryVocabulary {
   public static createCurvedTube(
     points: [number, number, number][],
     radius: number,
-    tubularSegments = 32,
-    radialSegments = 12,
+    tubularSegments = 48,
+    radialSegments = 16,
     closed = false
   ): THREE.BufferGeometry {
     const vectors = points.map(p => new THREE.Vector3(...p));
@@ -63,7 +63,7 @@ export class UniversalGeometryVocabulary {
     height: number,
     depth: number,
     radius = 0.05,
-    smoothness = 4
+    smoothness = 8
   ): THREE.BufferGeometry {
     const shape = new THREE.Shape();
     const w = width - radius * 2;
@@ -110,19 +110,19 @@ export class UniversalGeometryVocabulary {
 
     // 1. Pneumatic Rubber Tire (Torus with sidewall section)
     const tireSection = Math.max(0.04, tireRadius - rimRadius);
-    const tire = new THREE.TorusGeometry(rimRadius + tireSection * 0.45, tireSection * 0.65, 20, 48);
+    const tire = new THREE.TorusGeometry(rimRadius + tireSection * 0.45, tireSection * 0.65, 28, 72);
     geoms.push(tire);
 
     // 2. Double-Wall Aero Rim Profile
-    const rimOuter = new THREE.TorusGeometry(rimRadius, rimWidth * 0.4, 16, 48);
-    const rimInner = new THREE.TorusGeometry(rimRadius - 0.03, rimWidth * 0.25, 12, 48);
+    const rimOuter = new THREE.TorusGeometry(rimRadius, rimWidth * 0.4, 24, 72);
+    const rimInner = new THREE.TorusGeometry(rimRadius - 0.03, rimWidth * 0.25, 20, 64);
     geoms.push(rimOuter, rimInner);
 
     // 3. Center Hub Cylinder with Flanges & Axle
-    const hubBody = new THREE.CylinderGeometry(hubRadius, hubRadius, rimWidth * 1.8, 20);
+    const hubBody = new THREE.CylinderGeometry(hubRadius, hubRadius, rimWidth * 1.8, 32);
     hubBody.rotateX(Math.PI / 2);
     
-    const flangeL = new THREE.CylinderGeometry(hubRadius * 1.4, hubRadius * 1.4, 0.02, 20);
+    const flangeL = new THREE.CylinderGeometry(hubRadius * 1.4, hubRadius * 1.4, 0.02, 32);
     flangeL.rotateX(Math.PI / 2);
     flangeL.translate(0, 0, -rimWidth * 0.8);
 
@@ -130,7 +130,7 @@ export class UniversalGeometryVocabulary {
     flangeR.rotateX(Math.PI / 2);
     flangeR.translate(0, 0, rimWidth * 0.8);
 
-    const axle = new THREE.CylinderGeometry(hubRadius * 0.35, hubRadius * 0.35, rimWidth * 2.6, 12);
+    const axle = new THREE.CylinderGeometry(hubRadius * 0.35, hubRadius * 0.35, rimWidth * 2.6, 20);
     axle.rotateX(Math.PI / 2);
 
     geoms.push(hubBody, flangeL, flangeR, axle);
@@ -477,7 +477,7 @@ export class UniversalGeometryVocabulary {
     geoms.push(hat);
 
     // Cross-drilled aesthetic vent rings
-    const ventRing = new THREE.RingGeometry(innerRadius * 1.05, outerRadius * 0.95, 32, 2);
+    const ventRing = new THREE.RingGeometry(innerRadius * 1.05, outerRadius * 0.95, 64, 3);
     ventRing.rotateX(-Math.PI / 2);
     ventRing.translate(0, thickness / 2, 0);
     geoms.push(ventRing);
@@ -566,7 +566,7 @@ export class UniversalGeometryVocabulary {
     radius: number,
     height: number,
     chamfer: number = 0.05,
-    radialSegments: number = 32
+    radialSegments: number = 48
   ): THREE.BufferGeometry {
     const r = Math.max(0.01, radius);
     const h = Math.max(0.01, height);
@@ -642,8 +642,8 @@ export class UniversalGeometryVocabulary {
     const soleGeom = new THREE.ExtrudeGeometry(shape, {
       depth: soleThickness,
       bevelEnabled: true,
-      bevelSegments: 3,
-      steps: 1,
+      bevelSegments: 5,
+      steps: 2,
       bevelSize: 0.015,
       bevelThickness: 0.015
     });

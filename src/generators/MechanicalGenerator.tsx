@@ -68,6 +68,10 @@ export function EngineMaterial({
 
   let r = 0.48, m = 0.74, c = baseColor || '#94a3b8';
   let cc = 0.0, cr = 0.0;
+  let anisotropy = 0.0;
+  let transmission = 0.0;
+  let thickness = 0.0;
+  let sheen = 0.0;
 
   switch (materialType) {
     case 'CAST_ALUMINUM': 
@@ -76,15 +80,15 @@ export function EngineMaterial({
       break;
     case 'HONED_LINER':
       // Micro-polished ductile iron with cross-hatch hone appearance
-      r = 0.24; m = 0.92; c = baseColor || '#64748b'; cc = 0.35; cr = 0.08;
+      r = 0.22; m = 0.92; c = baseColor || '#64748b'; cc = 0.42; cr = 0.08; anisotropy = 0.28;
       break;
     case 'MACHINED_BILLET':
       // CNC machined high-sheen billet aluminum
-      r = 0.22; m = 0.88; c = baseColor || '#e2e8f0'; cc = 0.50; cr = 0.08;
+      r = 0.20; m = 0.88; c = baseColor || '#e2e8f0'; cc = 0.56; cr = 0.07; anisotropy = 0.24;
       break;
     case 'FORGED_STEEL': 
       // Steel/iron parts (crankshaft, rods, liners, bolts): metalness ~0.92, roughness ~0.26, clearcoat 0.35
-      r = 0.26; m = 0.92; c = baseColor || '#94a3b8'; cc = 0.35; cr = 0.10; 
+      r = 0.25; m = 0.92; c = baseColor || '#94a3b8'; cc = 0.40; cr = 0.09; anisotropy = 0.20; 
       break;
     case 'CAST_IRON': 
       // Ductile nodular cast iron
@@ -92,11 +96,11 @@ export function EngineMaterial({
       break;
     case 'TITANIUM': 
       // Ti-6Al-4V aerospace titanium
-      r = 0.28; m = 0.92; c = baseColor || '#a1a1aa'; cc = 0.30; cr = 0.12;
+      r = 0.27; m = 0.92; c = baseColor || '#a1a1aa'; cc = 0.34; cr = 0.11; anisotropy = 0.16;
       break;
     case 'EXHAUST_STEEL': 
       // Distinct heat-cycled straw-bronze metallic finish
-      r = 0.28; m = 0.90; c = baseColor || '#94a3b8'; cc = 0.40; cr = 0.12; 
+      r = 0.27; m = 0.90; c = baseColor || '#94a3b8'; cc = 0.44; cr = 0.10; anisotropy = 0.18; 
       break;
     case 'WRINKLE_RED': 
       // Valve covers: proper clearcoat (~0.45) so painted red reads as coated metal, not flat matte
@@ -112,11 +116,11 @@ export function EngineMaterial({
       break;
     case 'RUBBER': 
       // Rubber/elastomer parts: roughness ~0.86, zero metalness
-      r = 0.86; m = 0.0; c = baseColor || '#18181b'; cc = 0.0; cr = 0.0;
+      r = 0.84; m = 0.0; c = baseColor || '#18181b'; cc = 0.0; cr = 0.0; sheen = 0.20;
       break;
     case 'PLASTIC': 
       // Heat-resistant nylon PA66 composite
-      r = 0.42; m = 0.12; c = baseColor || '#27272a'; cc = 0.10; cr = 0.20;
+      r = 0.40; m = 0.12; c = baseColor || '#27272a'; cc = 0.12; cr = 0.18; sheen = 0.08;
       break;
     case 'COPPER': 
       // Thermal copper gaskets & locknuts
@@ -146,12 +150,15 @@ export function EngineMaterial({
       transparent={opacity < 1}
       opacity={opacity}
       emissive={isCylinderFocused ? "#06b6d4" : (isSelected ? "#0284c7" : (isHovered ? "#0ea5e9" : "#000000"))}
-      emissiveIntensity={isCylinderFocused ? 0.85 : (isSelected ? 0.6 : (isHovered ? 0.25 : 0))}
+      emissiveIntensity={isCylinderFocused ? 0.5 : (isSelected ? 0.28 : (isHovered ? 0.1 : 0))}
       wireframe={isSelected}
-      envMapIntensity={1.25}
-      sheen={isCylinderFocused ? 1.0 : 0}
+      envMapIntensity={1.5}
+      anisotropy={anisotropy}
+      transmission={transmission}
+      thickness={thickness}
+      sheen={isCylinderFocused ? Math.max(0.5, sheen) : sheen}
       sheenColor={isCylinderFocused ? new THREE.Color("#38bdf8") : undefined}
-      sheenRoughness={isCylinderFocused ? 0.12 : undefined}
+      sheenRoughness={isCylinderFocused ? 0.12 : 0.42}
     />
   );
 }

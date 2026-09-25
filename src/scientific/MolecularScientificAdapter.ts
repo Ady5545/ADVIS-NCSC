@@ -101,15 +101,15 @@ export function moleculeToScientificModel(
         type: 'sphere',
         params: {
           radius: elProps.size * 0.45,
-          widthSegments: 24,
-          heightSegments: 16
+          widthSegments: 48,
+          heightSegments: 32
         },
         material: {
           color: elProps.color,
           metalness: elProps.metalness,
           roughness: elProps.roughness,
           emissive: elProps.color,
-          emissiveIntensity: 0.15
+          emissiveIntensity: 0.05
         },
         transform: {
           position: [atom.position.x, atom.position.y, atom.position.z],
