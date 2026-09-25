@@ -41,7 +41,7 @@ function getV12Transform(path: string): { position: [number, number, number], ro
   return null;
 }
 
-export const EntityRef: React.FC<Props> = ({ id, name, type, children }) => {
+export const EntityRef: React.FC<Props> = ({ id, name, type, children, position, rotation, scale }) => {
   const groupRef = useRef<THREE.Group>(null);
   const parentId = useContext(EntityParentContext);
 
