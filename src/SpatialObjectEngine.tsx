@@ -5,7 +5,7 @@ import { EngineKinematicsBus } from './scientific/EngineKinematicsBus';
 import { V12VisualOverlays } from './generators/V12VisualOverlays';
 import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Line, Sphere, Box, Cylinder, Torus, Html } from '@react-three/drei';
+import { Line, Sphere, Box, RoundedBox, Cylinder, Torus, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelRegistry } from './AutonomousModelEngine';
 import { calculateAutoFitScale } from './autoFitViewport';
@@ -657,37 +657,53 @@ const QuantumCloudPoints = () => {
     let trans = transparent;
     let cc = 0.0;
     let cr = 0.0;
+    let transmission = 0.0;
+    let thickness = 0.0;
+    let ior = 1.45;
+    let anisotropy = 0.0;
+    let sheen = 0.0;
 
     const mType = (materialType || '').toUpperCase();
     if (mType.includes('METALLIC') || mType.includes('STEEL') || mType.includes('ALUMINUM')) {
-      m = 0.85;
-      r = 0.3;
+      m = 0.86;
+      r = 0.27;
+      anisotropy = 0.18;
+      cc = 0.12;
+      cr = 0.14;
     } else if (mType.includes('CHROME')) {
       m = 0.98;
       r = 0.08;
       cc = 0.9;
     } else if (mType.includes('TITANIUM')) {
       m = 0.88;
-      r = 0.35;
+      r = 0.30;
+      anisotropy = 0.16;
     } else if (mType.includes('CARBON')) {
-      m = 0.4;
-      r = 0.45;
-      cc = 0.8;
-      cr = 0.1;
+      m = 0.34;
+      r = 0.34;
+      cc = 0.82;
+      cr = 0.10;
+      anisotropy = 0.12;
     } else if (mType.includes('RUBBER')) {
       m = 0.02;
-      r = 0.92;
+      r = 0.90;
+      sheen = 0.20;
     } else if (mType.includes('LEATHER')) {
       m = 0.05;
-      r = 0.65;
+      r = 0.58;
+      sheen = 0.18;
     } else if (mType.includes('GLASS') || mType.includes('SAPPHIRE') || mType.includes('OPTICAL')) {
-      m = 0.1;
-      r = 0.05;
+      m = 0.08;
+      r = 0.045;
       trans = true;
-      op = Math.min(op, 0.35);
+      transmission = 0.88;
+      thickness = 0.12;
+      ior = 1.46;
+      op = Math.min(op, 0.82);
     } else if (mType.includes('MATTE') || mType.includes('PLASTIC')) {
       m = 0.1;
-      r = 0.6;
+      r = 0.56;
+      sheen = 0.08;
     } else if (mType.includes('COPPER') || mType.includes('BRASS') || mType.includes('GOLD')) {
       m = 0.92;
       r = 0.25;
@@ -697,13 +713,20 @@ const QuantumCloudPoints = () => {
       <meshPhysicalMaterial
         color={color || '#334155'}
         emissive={isSelected ? "#0284c7" : (isHovered ? "#06b6d4" : "#000000")}
-        emissiveIntensity={isSelected ? 0.4 : (isHovered ? 0.2 : 0)}
+        emissiveIntensity={isSelected ? 0.18 : (isHovered ? 0.07 : 0)}
         metalness={m}
         roughness={r}
         clearcoat={cc}
         clearcoatRoughness={cr}
         transparent={trans || op < 1.0}
         opacity={op}
+        transmission={transmission}
+        thickness={thickness}
+        ior={ior}
+        anisotropy={anisotropy}
+        sheen={sheen}
+        sheenRoughness={0.42}
+        envMapIntensity={1.4}
         polygonOffset
         polygonOffsetFactor={1}
         polygonOffsetUnits={1}
@@ -773,6 +796,8 @@ function EngineeringComponentRenderer({
   }
 
   const baseColor = color || '#475569';
+  const materialType = (comp as any).materialType || comp.specifications?.['Material'] || (comp as any).engineeringDetails?.material;
+  const edgeRadius = Math.max(0.006, Math.min(size[0], size[1], size[2]) * 0.08);
 
 
   // 1. PCB and Microcontroller Board Base
@@ -1593,7 +1618,7 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
       <group>
         <mesh geometry={cachedGeom}>
           {hasVertexColors ? (
-            <meshStandardMaterial vertexColors roughness={0.35} metalness={0.2} wireframe={blueprintEnabled} />
+            <meshPhysicalMaterial vertexColors roughness={0.28} metalness={0.25} clearcoat={0.18} clearcoatRoughness={0.16} envMapIntensity={1.35} wireframe={blueprintEnabled} />
           ) : (
             <TechMaterial color={baseColor} roughness={0.4} metalness={0.7} isHovered={isHovered} isSelected={isSelected} materialType={matType} />
           )}
@@ -1612,9 +1637,9 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     <group>
       {shape === 'box' && (
         <group>
-          <Box args={size}>
-            <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
-          </Box>
+          <RoundedBox args={size} radius={edgeRadius} smoothness={6}>
+            <TechMaterial color={baseColor} isHovered={isHovered} isSelected={isSelected} materialType={materialType} />
+          </RoundedBox>
           <Box args={[size[0]*1.02, size[1]*1.02, size[2]*1.02]}>
             <HolographicMaterial baseColor="#22d3ee" isHovered={isHovered} isSelected={isSelected} wireframe={true} opacity={0.15} pulsate={true} />
           </Box>
@@ -1622,28 +1647,28 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
       )}
       {shape === 'sphere' && (
         <group>
-          <Sphere args={[size[0] / 2, 32, 32]}>
-            <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
+          <Sphere args={[size[0] / 2, 48, 32]}>
+            <TechMaterial color={baseColor} isHovered={isHovered} isSelected={isSelected} materialType={materialType} />
           </Sphere>
-          <Sphere args={[(size[0] / 2) * 1.02, 16, 16]}>
+          <Sphere args={[(size[0] / 2) * 1.02, 24, 16]}>
             <HolographicMaterial baseColor="#22d3ee" isHovered={isHovered} isSelected={isSelected} wireframe={true} opacity={0.15} pulsate={true} />
           </Sphere>
         </group>
       )}
       {shape === 'cylinder' && (
         <group>
-          <Cylinder args={[size[0] / 2, size[1] / 2, size[2], 32]}>
-            <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
+          <Cylinder args={[size[0] / 2, size[1] / 2, size[2], 48]}>
+            <TechMaterial color={baseColor} isHovered={isHovered} isSelected={isSelected} materialType={materialType} />
           </Cylinder>
-          <Cylinder args={[(size[0] / 2) * 1.02, (size[1] / 2) * 1.02, size[2] * 1.02, 16]}>
+          <Cylinder args={[(size[0] / 2) * 1.02, (size[1] / 2) * 1.02, size[2] * 1.02, 24]}>
             <HolographicMaterial baseColor="#22d3ee" isHovered={isHovered} isSelected={isSelected} wireframe={true} opacity={0.15} pulsate={true} />
           </Cylinder>
         </group>
       )}
       {shape === 'torus' && (
         <group>
-          <Torus args={[size[0] / 2, size[1] / 6, 16, 48]}>
-            <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
+          <Torus args={[size[0] / 2, size[1] / 6, 24, 72]}>
+            <TechMaterial color={baseColor} isHovered={isHovered} isSelected={isSelected} materialType={materialType} />
           </Torus>
           <Torus args={[(size[0] / 2) * 1.02, (size[1] / 6) * 1.02, 8, 24]}>
             <HolographicMaterial baseColor="#22d3ee" isHovered={isHovered} isSelected={isSelected} wireframe={true} opacity={0.15} pulsate={true} />
