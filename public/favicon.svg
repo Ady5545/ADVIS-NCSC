@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title>ADVIS</title>
+  <desc>Holographic scientific core icon</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.55" stop-color="#07182a"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="core" cx="38%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#eaffff"/>
+      <stop offset="0.18" stop-color="#67e8f9"/>
+      <stop offset="0.48" stop-color="#22d3ee"/>
+      <stop offset="0.78" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#312e81" stop-opacity="0.15"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5f3fc"/>
+      <stop offset="0.5" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="clip"><rect x="2" y="2" width="60" height="60" rx="16"/></clipPath>
+  </defs>
+
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)" stroke="#164e63" stroke-width="1.5"/>
+  <g clip-path="url(#clip)">
+    <circle cx="32" cy="32" r="23" fill="#22d3ee" opacity=".07" filter="url(#softGlow)"/>
+    <circle cx="32" cy="32" r="18.8" fill="none" stroke="url(#ring)" stroke-opacity=".3" stroke-width="1" stroke-dasharray="1 2.5"/>
+    <ellipse cx="32" cy="32" rx="24" ry="9.5" fill="none" stroke="#67e8f9" stroke-opacity=".42" stroke-width="1.1" transform="rotate(-28 32 32)"/>
+    <ellipse cx="32" cy="32" rx="24" ry="9.5" fill="none" stroke="#818cf8" stroke-opacity=".26" stroke-width="1" transform="rotate(32 32 32)"/>
+    <circle cx="32" cy="32" r="13.6" fill="none" stroke="#22d3ee" stroke-opacity=".46" stroke-width=".8" stroke-dasharray="3 2"/>
+    <circle cx="32" cy="32" r="10.2" fill="url(#core)" filter="url(#glow)"/>
+    <path d="M32 20.6 42 42.6h-4.6l-2.2-5H28.6l-2.2 5H22l10-22Zm0 7.1-2.2 5.8h4.4L32 27.7Z" fill="#ecfeff"/>
+    <circle cx="32" cy="32" r="3.1" fill="#fff" opacity=".9" filter="url(#glow)"/>
+
+    <g fill="#a5f3fc" opacity=".72">
+      <circle cx="17" cy="23" r=".9"/><circle cx="47" cy="22" r=".7"/>
+      <circle cx="14" cy="39" r=".55"/><circle cx="50" cy="41" r=".85"/>
+      <circle cx="24" cy="13" r=".5"/><circle cx="41" cy="14" r=".6"/>
+      <circle cx="22" cy="50" r=".65"/><circle cx="43" cy="49" r=".45"/>
+    </g>
+
+    <path d="M9 11h9M9 11v9M55 11h-9M55 11v9M9 53h9M9 53v-9M55 53h-9M55 53v-9"
+          fill="none" stroke="#22d3ee" stroke-opacity=".55" stroke-width="1.2"/>
+    <path d="M8 31h7M49 31h7M31 8v7M31 49v7"
+          stroke="#60a5fa" stroke-opacity=".36" stroke-width=".8"/>
+  </g>
+</svg>
