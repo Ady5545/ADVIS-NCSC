@@ -9,8 +9,8 @@ if (import.meta.env.DEV && !started) {
     const studio = studioModule.default;
     const extension = (extensionModule as any).extension ?? (extensionModule as any).default;
     if (!extension) return;
-    studio.extend(extension);
     studio.initialize();
+    studio.extend(extension);
   }).catch((error) => {
     console.warn('Theatre.js Studio could not initialize:', error);
   });
