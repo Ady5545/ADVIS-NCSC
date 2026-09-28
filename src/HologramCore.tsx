@@ -312,6 +312,11 @@ export function HologramCore({
     const authoredRings = theatre.ringSpread * (1 + curBass * 0.18);
     const authoredSpeed = Math.max(0.08, theatre.ringSpeed * stateSpeed);
     const technicalOpacity = THREE.MathUtils.clamp(theatre.technicalOpacity + activity * 0.08, 0, 1);
+    const gridControl = THREE.MathUtils.clamp(theatre.gridOpacity + activity * 0.05, 0, 1.2);
+    const radialControl = THREE.MathUtils.clamp(theatre.radialIntensity + curTreble * 0.12, 0, 1.5);
+    const arcControl = THREE.MathUtils.clamp(theatre.arcIntensity + activity * 0.08, 0, 1.5);
+    const microControl = THREE.MathUtils.clamp(theatre.microEnergy + voice * 0.18 + curTreble * 0.16, 0, 1.5);
+    const depthControl = THREE.MathUtils.clamp(theatre.depthActivity + activity * 0.08, 0, 1);
 
     bootProgressRef.current = THREE.MathUtils.damp(bootProgressRef.current, systemState === 'BOOTING' ? 0 : 1, 4.5, delta);
     const boot = bootProgressRef.current;
@@ -333,7 +338,7 @@ export function HologramCore({
 
     if (nucleusGlowRef.current) {
       nucleusGlowRef.current.scale.setScalar((1.36 + curBass * 0.42 + theatre.halo * 0.22) * collapse);
-      materials.coreGlow.opacity = Math.min(0.58, (0.11 + activity * 0.08 + voice * 0.18 + theatre.halo * 0.1) * hologramIntensity) * opacityFactor;
+      materials.coreGlow.opacity = Math.min(0.62, (0.1 + activity * 0.09 + voice * 0.18 + theatre.halo * 0.1 + depthControl * 0.04) * hologramIntensity) * opacityFactor;
     }
 
     if (innerShellRef.current) {
@@ -377,7 +382,7 @@ export function HologramCore({
       gridRef.current.rotation.y = -time * 0.065 * authoredSpeed;
       gridRef.current.rotation.z = time * 0.025 * authoredSpeed;
       gridRef.current.scale.setScalar((0.95 + theatre.ringSpread * 0.09 + curBass * 0.05) * collapse);
-      materials.grid.opacity = (0.06 + technicalOpacity * 0.22 + curTreble * 0.08) * opacityFactor;
+      materials.grid.opacity = (0.025 + gridControl * 0.34 + curTreble * 0.08) * opacityFactor;
     }
 
     if (radialRef.current) {
@@ -385,7 +390,7 @@ export function HologramCore({
       radialRef.current.rotation.y += delta * 0.075 * authoredSpeed;
       radialRef.current.rotation.z += delta * 0.02;
       radialRef.current.scale.setScalar((0.92 + theatre.ringSpread * 0.08) * collapse);
-      materials.radial.opacity = (0.08 + theatre.filamentIntensity * 0.45 + curTreble * 0.22) * opacityFactor;
+      materials.radial.opacity = (0.04 + radialControl * 0.52 + curTreble * 0.22) * opacityFactor;
     }
 
     if (arcRef.current) {
@@ -393,7 +398,7 @@ export function HologramCore({
       arcRef.current.rotation.y -= delta * 0.11 * authoredSpeed;
       arcRef.current.rotation.z += delta * 0.018 * (1 + curBass);
       arcRef.current.scale.setScalar((0.94 + theatre.ringSpread * 0.1 + activity * 0.035) * collapse);
-      materials.arc.opacity = (0.16 + technicalOpacity * 0.5 + curTreble * 0.25 + voice * 0.08) * opacityFactor;
+      materials.arc.opacity = (0.08 + arcControl * 0.62 + curTreble * 0.25 + voice * 0.08) * opacityFactor;
     }
 
     for (let i = 0; i < waveformRefs.current.length; i++) {
@@ -448,8 +453,8 @@ export function HologramCore({
       microParticlesRef.current.rotation.z += delta * 0.055;
       microParticlesRef.current.scale.setScalar((1.02 + curBass * 0.13) * collapse);
       const mat = microParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.2 + theatre.particleEnergy * 0.46 + voice * 0.12 + curTreble * 0.16) * opacityFactor;
-      mat.size = 0.009 + curTreble * 0.018 + voice * 0.006;
+      mat.opacity = (0.18 + theatre.particleEnergy * 0.4 + microControl * 0.16 + voice * 0.12 + curTreble * 0.16) * opacityFactor;
+      mat.size = 0.008 + microControl * 0.004 + curTreble * 0.018 + voice * 0.006;
     }
 
     pulseRefs.current.forEach((pulseRef, index) => {
