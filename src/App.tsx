@@ -1387,8 +1387,9 @@ function AppContent() {
             />
             <Noise opacity={0.012} />
           </EffectComposer>
+          </TheatreSceneProvider>
         </Canvas>
-    </div>
+      </div>
 
     {/* Molecular Builder HUD Layer */}
     <MolecularBuilderHUD 
