@@ -110,57 +110,37 @@ const moleculeTracks = {
   ]),
 };
 
-const withTracks = (name: string, object: string, trackData: Record<string, ReturnType<typeof track>>, trackIdByPropPath: Record<string, string>) => ({
-  staticOverrides: { byObject: {} },
-  sequence: {
-    subUnitsPerUnit: 30,
-    length: 8,
-    type: 'PositionalSequence',
-    tracksByObject: {
-      [object]: {
-        trackData,
-        trackIdByPropPath,
+function withTracks(name: string, object: string, tracks: Record<string, ReturnType<typeof track>>) {
+  const trackData: Record<string, ReturnType<typeof track>> = {};
+  const trackIdByPropPath: Record<string, string> = {};
+
+  for (const [prop, definition] of Object.entries(tracks)) {
+    const id = `advis-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${prop}`;
+    trackData[id] = definition;
+    trackIdByPropPath[JSON.stringify([prop])] = id;
+  }
+
+  return {
+    staticOverrides: { byObject: {} },
+    sequence: {
+      subUnitsPerUnit: 30,
+      length: 8,
+      type: 'PositionalSequence',
+      tracksByObject: {
+        [object]: {
+          trackData,
+          trackIdByPropPath,
+        },
       },
     },
-  },
-});
+  };
+}
 
 export const advisTheatreState = {
   sheetsById: {
-    'ADVIS Orb': withTracks('ADVIS Orb', 'Orb Presentation', orbTracks, {
-      '["coreScale"]': 'coreScale',
-      '["shellScale"]': 'shellScale',
-      '["ringSpread"]': 'ringSpread',
-      '["ringSpeed"]': 'ringSpeed',
-      '["halo"]': 'halo',
-      '["filamentIntensity"]': 'filamentIntensity',
-      '["particleEnergy"]': 'particleEnergy',
-      '["breathing"]': 'breathing',
-      '["technicalOpacity"]': 'technicalOpacity',
-      '["gridOpacity"]': 'gridOpacity',
-      '["radialIntensity"]': 'radialIntensity',
-      '["arcIntensity"]': 'arcIntensity',
-      '["microEnergy"]': 'microEnergy',
-      '["depthActivity"]': 'depthActivity',
-      '["circuitOpacity"]': 'circuitOpacity',
-      '["scanSpeed"]': 'scanSpeed',
-    }),
-    'V12 Presentation': withTracks('V12 Presentation', 'V12 Presentation', v12Tracks, {
-      '["cameraRadius"]': 'cameraRadius',
-      '["cameraTheta"]': 'cameraTheta',
-      '["cameraPhi"]': 'cameraPhi',
-      '["explodedFactor"]': 'explodedFactor',
-      '["highlightIntensity"]': 'highlightIntensity',
-      '["focusCylinder"]': 'focusCylinder',
-    }),
-    'Molecule Presentation': withTracks('Molecule Presentation', 'Molecule Presentation', moleculeTracks, {
-      '["cameraDistance"]': 'cameraDistance',
-      '["rotationY"]': 'rotationY',
-      '["rotationX"]': 'rotationX',
-      '["annotationOpacity"]': 'annotationOpacity',
-      '["presentationScale"]': 'presentationScale',
-      '["highlightIntensity"]': 'highlightIntensity',
-    }),
+    'ADVIS Orb': withTracks('ADVIS Orb', 'Orb Presentation', orbTracks),
+    'V12 Presentation': withTracks('V12 Presentation', 'V12 Presentation', v12Tracks),
+    'Molecule Presentation': withTracks('Molecule Presentation', 'Molecule Presentation', moleculeTracks),
   },
   definitionVersion: '0.5.0',
   revisionHistory: ['advis-theatre-deep-detail-orb-2026-09-28'],
