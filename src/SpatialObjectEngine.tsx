@@ -9,6 +9,7 @@ import { Line, Sphere, Box, RoundedBox, Cylinder, Torus, Html } from '@react-thr
 import * as THREE from 'three';
 import { ModelRegistry } from './AutonomousModelEngine';
 import { calculateAutoFitScale } from './autoFitViewport';
+import { v12PresentationFrame } from './theatre/TheatreV12Bridge';
 
 class GLTFErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: any) { super(props); this.state = { hasError: false }; }
@@ -1886,6 +1887,27 @@ export function SpatialObjectEngine({
   isMagnifierFocusedRef.current = isMagnifierFocused;
   const focusedCylinderRef = useRef(focusedCylinder);
   focusedCylinderRef.current = focusedCylinder;
+  const explodedFactorRef = useRef(explodedFactor);
+  explodedFactorRef.current = explodedFactor;
+
+  // Render-time Theatre adapter: presentation-only transforms never enter React state.
+  useFrame(() => {
+    const theatreFactor = v12PresentationFrame.active
+      ? THREE.MathUtils.clamp(v12PresentationFrame.values.explodedFactor, 0, 1)
+      : THREE.MathUtils.clamp(explodedFactorRef.current || 0, 0, 1);
+
+    Object.entries(componentRefs.current).forEach(([id, object]) => {
+      const base = object.userData.__advisBasePosition as [number, number, number] | undefined;
+      const offset = object.userData.explodedOffset as [number, number, number] | undefined;
+      if (!base || !offset) return;
+
+      object.position.set(
+        base[0] + offset[0] * theatreFactor,
+        base[1] + offset[1] * theatreFactor,
+        base[2] + offset[2] * theatreFactor
+      );
+    });
+  });
 
   // Listen for manual crank angle scrubbing from V12 Controller
   useEffect(() => {
@@ -2844,6 +2866,7 @@ export function SpatialObjectEngine({
                               category: obj.category,
                               specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
                               explodedOffset: comp.explodedOffset,
+                              __advisBasePosition: basePos,
                               interactionEnabled: comp.interactionEnabled !== false
                             }}
                           >
