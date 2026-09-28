@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { advisOrbObject, advisOrbSheet, type OrbPresentationValues } from './TheatreRuntime';
 
-export function useTheatreOrbPresentation() {
+export function useTheatreOrbPresentation(enabled = true) {
   const valuesRef = useRef<OrbPresentationValues>(advisOrbObject.value);
 
   useEffect(() => {
+    if (!enabled) {
+      advisOrbSheet.sequence.pause();
+      return;
+    }
+
     const unsubscribe = advisOrbObject.onValuesChange((values) => {
       valuesRef.current = values as OrbPresentationValues;
     });
@@ -20,7 +25,7 @@ export function useTheatreOrbPresentation() {
       void playback.catch(() => undefined);
       unsubscribe();
     };
-  }, []);
+  }, [enabled]);
 
   return valuesRef;
 }
