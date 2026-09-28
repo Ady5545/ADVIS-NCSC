@@ -115,6 +115,41 @@ function createRadialDataGeometry(): Float32Array {
   return new Float32Array(points);
 }
 
+function createSurfaceCircuitGeometry(): Float32Array {
+  const points: number[] = [];
+  const random = deterministicRandom(0xC1RC7);
+  const traces = 150;
+
+  for (let i = 0; i < traces; i++) {
+    const theta = random() * TAU;
+    const phi = Math.acos(2 * random() - 1);
+    const radius = 1.82 + random() * 0.16;
+
+    const normal = new THREE.Vector3(
+      Math.sin(phi) * Math.cos(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.sin(theta)
+    ).normalize();
+
+    const tangent = new THREE.Vector3(-normal.z, 0.18, normal.x).normalize();
+    const bitangent = new THREE.Vector3().crossVectors(normal, tangent).normalize();
+
+    const start = normal.clone().multiplyScalar(radius)
+      .addScaledVector(tangent, (random() - 0.5) * 0.34)
+      .addScaledVector(bitangent, (random() - 0.5) * 0.22);
+    const middle = start.clone()
+      .addScaledVector(tangent, THREE.MathUtils.lerp(0.035, 0.14, random()))
+      .addScaledVector(bitangent, (random() - 0.5) * 0.08);
+    const end = middle.clone()
+      .addScaledVector(bitangent, THREE.MathUtils.lerp(0.035, 0.12, random()));
+
+    points.push(start.x, start.y, start.z, middle.x, middle.y, middle.z);
+    points.push(middle.x, middle.y, middle.z, end.x, end.y, end.z);
+  }
+
+  return new Float32Array(points);
+}
+
 function createArcNetwork(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xA71F);
@@ -169,6 +204,8 @@ export function HologramCore({
   const gridRef = useRef<THREE.LineSegments>(null);
   const radialRef = useRef<THREE.LineSegments>(null);
   const arcRef = useRef<THREE.LineSegments>(null);
+  const circuitRef = useRef<THREE.LineSegments>(null);
+  const arcOrbitRef = useRef<THREE.Group>(null);
   const outerParticlesRef = useRef<THREE.Points>(null);
   const midParticlesRef = useRef<THREE.Points>(null);
   const innerParticlesRef = useRef<THREE.Points>(null);
@@ -185,6 +222,7 @@ export function HologramCore({
   const sphereGrid = useMemo(() => createSphereGrid(), []);
   const radialData = useMemo(() => createRadialDataGeometry(), []);
   const arcNetwork = useMemo(() => createArcNetwork(), []);
+  const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const outerParticles = useMemo(() => createParticleCloud(1050, 2.75, 4.65, 0xAD15A5, 0.62), []);
   const midParticles = useMemo(() => createParticleCloud(720, 2.15, 3.55, 0x71F3C1, 0.48), []);
   const innerParticles = useMemo(() => createParticleCloud(300, 1.15, 2.35, 0xA11CE5, 0.72), []);
@@ -224,6 +262,7 @@ export function HologramCore({
     grid: new THREE.LineBasicMaterial({ color: '#39d6ff', transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }),
     radial: new THREE.LineBasicMaterial({ color: '#73eaff', transparent: true, opacity: 0.36, blending: THREE.AdditiveBlending, depthWrite: false }),
     arc: new THREE.LineBasicMaterial({ color: '#bcf6ff', transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#9defff', transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
     ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#129dff', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
     wave: [
       new THREE.LineBasicMaterial({ color: '#f1ffff', transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -250,6 +289,7 @@ export function HologramCore({
     materials.grid.color.copy(base.clone().lerp(colors.technical, 0.45));
     materials.radial.color.copy(base.clone().lerp(colors.technical, 0.35));
     materials.arc.color.copy(colors.technical);
+    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.55));
     materials.ring.forEach((m) => m.color.copy(base));
     materials.wave[1].color.copy(base);
     materials.wave[2].color.copy(base.clone().multiplyScalar(0.85));
@@ -317,6 +357,8 @@ export function HologramCore({
     const arcControl = THREE.MathUtils.clamp(theatre.arcIntensity + activity * 0.08, 0, 1.5);
     const microControl = THREE.MathUtils.clamp(theatre.microEnergy + voice * 0.18 + curTreble * 0.16, 0, 1.5);
     const depthControl = THREE.MathUtils.clamp(theatre.depthActivity + activity * 0.08, 0, 1);
+    const circuitControl = THREE.MathUtils.clamp(theatre.circuitOpacity + depthControl * 0.1, 0, 1.4);
+    const scanSpeed = Math.max(0.08, theatre.scanSpeed * (0.7 + authoredSpeed * 0.45));
 
     bootProgressRef.current = THREE.MathUtils.damp(bootProgressRef.current, systemState === 'BOOTING' ? 0 : 1, 4.5, delta);
     const boot = bootProgressRef.current;
@@ -399,6 +441,23 @@ export function HologramCore({
       arcRef.current.rotation.z += delta * 0.018 * (1 + curBass);
       arcRef.current.scale.setScalar((0.94 + theatre.ringSpread * 0.1 + activity * 0.035) * collapse);
       materials.arc.opacity = (0.08 + arcControl * 0.62 + curTreble * 0.25 + voice * 0.08) * opacityFactor;
+    }
+
+    if (circuitRef.current) {
+      circuitRef.current.rotation.x -= delta * 0.11 * scanSpeed;
+      circuitRef.current.rotation.y += delta * 0.08 * scanSpeed;
+      circuitRef.current.rotation.z += delta * 0.025;
+      circuitRef.current.scale.setScalar((0.99 + depthControl * 0.06) * collapse);
+      materials.circuit.opacity = (0.05 + circuitControl * 0.3 + curTreble * 0.2) * opacityFactor;
+    }
+
+    if (arcOrbitRef.current) {
+      arcOrbitRef.current.rotation.y += delta * 0.18 * scanSpeed;
+      arcOrbitRef.current.rotation.x -= delta * 0.045 * scanSpeed;
+      arcOrbitRef.current.children.forEach((child, index) => {
+        child.rotation.z += delta * scanSpeed * (index % 2 === 0 ? 0.26 : -0.2);
+        child.scale.setScalar((0.96 + theatre.ringSpread * 0.06 + activity * 0.03) * collapse);
+      });
     }
 
     for (let i = 0; i < waveformRefs.current.length; i++) {
@@ -509,6 +568,30 @@ export function HologramCore({
         </bufferGeometry>
         <primitive object={materials.arc} attach="material" />
       </lineSegments>
+
+      {/* 5b — ultra-fine surface circuit traces visible at close range */}
+      <lineSegments ref={circuitRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[surfaceCircuit, 3]} />
+        </bufferGeometry>
+        <primitive object={materials.circuit} attach="material" />
+      </lineSegments>
+
+      {/* 5c — independently oriented arc fragments */}
+      <group ref={arcOrbitRef}>
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+          <Torus
+            key={index}
+            args={[2.25 + (index % 4) * 0.22, 0.006 + (index % 2) * 0.002, 8, 64, Math.PI * (0.28 + (index % 3) * 0.08)]}
+            rotation={[
+              index * 0.31,
+              (index % 4) * 0.44,
+              index * 0.17
+            ]}
+            material={materials.ring[index % materials.ring.length]}
+          />
+        ))}
+      </group>
 
       {/* 6 — three orthogonal data wavefields */}
       {[0, 1, 2].map((index) => (
