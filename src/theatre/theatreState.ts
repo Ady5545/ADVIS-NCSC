@@ -142,6 +142,6 @@ export const advisTheatreState = {
     'V12 Presentation': withTracks('V12 Presentation', 'V12 Presentation', v12Tracks),
     'Molecule Presentation': withTracks('Molecule Presentation', 'Molecule Presentation', moleculeTracks),
   },
-  definitionVersion: '0.5.0',
+  definitionVersion: '0.4.0',
   revisionHistory: ['advis-theatre-deep-detail-orb-2026-09-28'],
 } as const;
