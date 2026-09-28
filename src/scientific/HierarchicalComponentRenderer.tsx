@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ScientificComponent, ComponentGeometry, KinematicBinding } from './ScientificSchema';
 import { ScientificGeometryRegistry } from './ScientificGeometryRegistry';
+import { v12PresentationFrame } from '../theatre/TheatreV12Bridge';
 
 interface HierarchicalComponentRendererProps {
   component: ScientificComponent;
@@ -50,9 +51,12 @@ export function HierarchicalComponentRenderer({
 
     // 1. Calculate base position + exploded offset
     const exOff = compGeom.explodedOffset || [0, 0, 0];
-    const curX = baseTransform.position[0] + exOff[0] * explosionFactor;
-    const curY = baseTransform.position[1] + exOff[1] * explosionFactor;
-    const curZ = baseTransform.position[2] + exOff[2] * explosionFactor;
+    const presentationExplosion = v12PresentationFrame.active
+      ? THREE.MathUtils.clamp(v12PresentationFrame.values.explodedFactor, 0, 1)
+      : explosionFactor;
+    const curX = baseTransform.position[0] + exOff[0] * presentationExplosion;
+    const curY = baseTransform.position[1] + exOff[1] * presentationExplosion;
+    const curZ = baseTransform.position[2] + exOff[2] * presentationExplosion;
 
     // 2. Apply kinematic bindings if present
     const kb = component.kinematicBinding;
