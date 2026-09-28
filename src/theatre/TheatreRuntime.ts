@@ -22,6 +22,8 @@ export const advisOrbObject = advisOrbSheet.object('Orb Presentation', {
   microEnergy: types.number(0.5, { range: [0, 1.5] }),
   shellDrift: types.number(0.5, { range: [0, 1] }),
   depthActivity: types.number(0.5, { range: [0, 1] }),
+  circuitOpacity: types.number(0.65, { range: [0, 1.4] }),
+  scanSpeed: types.number(0.7, { range: [0, 2] }),
 });
 
 export const advisV12Sheet = advisTheatreProject.sheet('V12 Presentation');
