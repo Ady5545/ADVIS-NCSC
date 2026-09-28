@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { easing } from 'maath';
 import { MoleculeData, AtomData, BondData, FunctionalGroupData, MOLECULE_REGISTRY } from './MolecularEngine';
 import { getAtomProps } from './ChemistryPrimitives';
+import { onTheatreEvent } from '../theatre/TheatreEventBus';
 
 interface MolecularVisualsProps {
   entityName?: string;
@@ -45,6 +46,21 @@ export function MolecularVisuals({
   }, [moleculeData, entityName]);
 
   const groupRef = useRef<THREE.Group>(null);
+  const theatrePresentationRef = useRef({
+    active: false,
+    cameraDistance: 6,
+    rotationY: 0,
+    rotationX: 0,
+    annotationOpacity: 1,
+    presentationScale: 1,
+    highlightIntensity: 0.35
+  });
+
+  React.useEffect(() => {
+    return onTheatreEvent<Partial<typeof theatrePresentationRef.current>>('advis-theatre-molecule', (detail) => {
+      Object.assign(theatrePresentationRef.current, detail);
+    });
+  }, []);
   
   const [internalSelectedAtom, setInternalSelectedAtom] = useState<AtomData | null>(null);
   const [internalSecondaryAtom, setInternalSecondaryAtom] = useState<AtomData | null>(null);
@@ -64,7 +80,18 @@ export function MolecularVisuals({
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
-    
+
+    const theatre = theatrePresentationRef.current;
+    if (theatre.active) {
+      // Theatre owns presentation choreography only; MolecularEngine remains authoritative.
+      groupRef.current.rotation.y = theatre.rotationY;
+      groupRef.current.rotation.x = theatre.rotationX;
+      const presentationScale = THREE.MathUtils.clamp(theatre.presentationScale, 0.5, 1.5);
+      groupRef.current.scale.setScalar(1.2 * presentationScale);
+      return;
+    }
+
+    groupRef.current.scale.setScalar(1.2);
     if (mode === 'DYNAMIC') {
       groupRef.current.rotation.y += delta * 0.2;
       groupRef.current.rotation.x += delta * 0.1;
@@ -673,7 +700,7 @@ function HighFidelityBond({
         <group key={i} position={new THREE.Vector3(...offset)}>
           <mesh scale={[1, Math.max(0.01, (length - gap) / length), 1]}>
              <cylinderGeometry args={[bondRadius, bondRadius, 1, 24]} />
-             <meshStandardMaterial 
+             <meshPhysicalMaterial 
                color={getBondColor(i)} 
                emissive={getEmissive()}
                emissiveIntensity={isSelected || inSelectedGroup ? 2.0 : (hovered ? 1.0 : 0)}
