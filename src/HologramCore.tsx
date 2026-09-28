@@ -117,7 +117,7 @@ function createRadialDataGeometry(): Float32Array {
 
 function createSurfaceCircuitGeometry(): Float32Array {
   const points: number[] = [];
-  const random = deterministicRandom(0xC1RC7);
+  const random = deterministicRandom(0xC1AC7);
   const traces = 150;
 
   for (let i = 0; i < traces; i++) {
