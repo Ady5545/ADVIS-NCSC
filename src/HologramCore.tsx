@@ -113,7 +113,7 @@ export function HologramCore({
   isSpatial = false
 }: HologramProps) {
   const gestureState = useGestureEngine();
-  const theatrePresentationRef = useTheatreOrbPresentation();
+  const theatrePresentationRef = useTheatreOrbPresentation(!isSpatial);
 
   const groupRef = useRef<THREE.Group>(null);
   const nucleusRef = useRef<THREE.Mesh>(null);
@@ -133,6 +133,7 @@ export function HologramCore({
   const smoothedTrebleRef = useRef(0);
   const eventPulseRef = useRef(0);
   const previousStateRef = useRef<SystemState>(systemState);
+  const bootProgressRef = useRef(systemState === 'BOOTING' ? 0 : 1);
 
   const orbitalArcPositions = useMemo(() => createOrbitalArcGeometry(), []);
   const filamentPositions = useMemo(() => createFilamentGeometry(), []);
@@ -213,13 +214,13 @@ export function HologramCore({
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }),
-    ring: new THREE.MeshBasicMaterial({
+    rings: ringConfigs.map((ring) => new THREE.MeshBasicMaterial({
       color: '#008cff',
       transparent: true,
-      opacity: 0.4,
+      opacity: ring.opacity,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-    }),
+    })),
     arc: new THREE.LineBasicMaterial({
       color: '#7ae9ff',
       transparent: true,
@@ -287,7 +288,7 @@ export function HologramCore({
     materials.shellA.color.copy(accent);
     materials.shellB.color.copy(base.clone().lerp(new THREE.Color('#d9ffff'), 0.4));
     materials.halo.color.copy(base);
-    materials.ring.color.copy(base);
+    materials.rings.forEach((material) => material.color.copy(base));
     materials.arc.color.copy(colors.technical);
     materials.filament.color.copy(base.clone().lerp(colors.technical, 0.35));
     materials.wave2.color.copy(base);
@@ -393,9 +394,9 @@ export function HologramCore({
     const gestureScale = Math.max(0.001, gestureState.scale.current);
     const proximity = Math.max(0, 1 - Math.sqrt(state.pointer.x * state.pointer.x + state.pointer.y * state.pointer.y) * 0.72);
     const proximityBoost = 1 + proximity * 0.22;
-    const bootProgress = systemState === 'BOOTING'
-      ? THREE.MathUtils.damp(1, 0, 3.8, delta)
-      : 1;
+    const bootTarget = systemState === 'BOOTING' ? 0 : 1;
+    bootProgressRef.current = THREE.MathUtils.damp(bootProgressRef.current, bootTarget, 3.8, delta);
+    const bootProgress = bootProgressRef.current;
 
     if (groupRef.current) {
       groupRef.current.position.set(gestureState.pos.x, gestureState.pos.y, 0);
@@ -457,7 +458,7 @@ export function HologramCore({
         child.rotation.z += delta * ringSpeed * (index % 2 === 0 ? 0.24 : -0.18);
         child.rotation.x += delta * ringSpeed * (index % 3 === 0 ? 0.035 : -0.02);
         const baseOpacity = ringConfigs[index].opacity;
-        materials.ring.opacity = Math.min(0.8, baseOpacity + curBass * 0.28 + voiceResponse * 0.16) * opacityFactor;
+        materials.rings[index].opacity = Math.min(0.8, baseOpacity + curBass * 0.28 + voiceResponse * 0.16) * opacityFactor;
       });
     }
 
@@ -555,7 +556,7 @@ export function HologramCore({
             key={index}
             args={[ring.radius, ring.tube, 8, 72]}
             rotation={ring.rotation}
-            material={materials.ring}
+            material={materials.rings[index]}
           />
         ))}
       </group>
