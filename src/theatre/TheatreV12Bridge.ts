@@ -49,6 +49,8 @@ export async function startV12CinematicPresentation(): Promise<boolean> {
 
 export function stopV12CinematicPresentation(): void {
   active = false;
+  v12PresentationFrame.active = false;
+  v12PresentationFrame.values = advisV12Object.value as V12PresentationValues;
   advisV12Sheet.sequence.pause();
   emitTheatreEvent('advis-theatre-v12', { active: false, ...advisV12Object.value });
 }
