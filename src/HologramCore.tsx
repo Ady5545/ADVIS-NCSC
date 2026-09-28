@@ -191,7 +191,7 @@ export function HologramCore({
   isSpatial = false
 }: HologramProps) {
   const gestureState = useGestureEngine();
-  const theatrePresentationRef = useTheatreOrbPresentation(!isSpatial);
+  const theatrePresentationRef = useTheatreOrbPresentation(!isSpatial, systemState);
 
   const groupRef = useRef<THREE.Group>(null);
   const nucleusRef = useRef<THREE.Mesh>(null);
