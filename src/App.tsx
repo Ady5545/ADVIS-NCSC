@@ -30,6 +30,8 @@ import { V12EngineController } from './components/v12/V12EngineController';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
+import { TheatreSceneProvider } from './theatre/TheatreSceneProvider';
+import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -282,7 +284,9 @@ function AppContent() {
   };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
+    stopAllTheatrePresentations();
     setSpatialMode(newMode);
+
     if (newMode === 'INSPECTION') {
       setIsExploded(false);
       setIsPresentationMode(false);
@@ -299,6 +303,16 @@ function AppContent() {
       setIsExploded(false);
       setIsPresentationMode(true);
       setPresentationStep(0);
+
+      const isV12Demo = Array.isArray(currentSpatialObject)
+        ? currentSpatialObject.includes('v12_engine')
+        : currentSpatialObject === 'v12_engine';
+
+      if (isV12Demo) {
+        void playV12Presentation();
+      } else if (sessionMolecule.isSessionActive && !!sessionMolecule.molecule) {
+        void playMoleculePresentation();
+      }
     }
   };
   
@@ -351,6 +365,7 @@ function AppContent() {
         }
       } else if (currentGesture === 'CLAP') {
         // Primary reset gesture: CLAP - resets the spatial environment intentionally
+        stopAllTheatrePresentations();
         setSelectedComponentId(null);
         setHoveredComponentId(null);
         setIsExploded(false);
@@ -1275,6 +1290,7 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas shadows camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
+          <TheatreSceneProvider>
           {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
           <EnvironmentErrorBoundary>
             <React.Suspense fallback={null}>
@@ -1371,8 +1387,9 @@ function AppContent() {
             />
             <Noise opacity={0.012} />
           </EffectComposer>
+          </TheatreSceneProvider>
         </Canvas>
-    </div>
+      </div>
 
     {/* Molecular Builder HUD Layer */}
     <MolecularBuilderHUD 

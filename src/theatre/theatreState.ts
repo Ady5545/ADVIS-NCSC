@@ -1,0 +1,245 @@
+export const advisTheatreState = {
+  sheetsById: {
+    'ADVIS Orb': {
+      staticOverrides: { byObject: {} },
+      sequence: {
+        subUnitsPerUnit: 30,
+        length: 8,
+        type: 'PositionalSequence',
+        tracksByObject: {
+          'Orb Presentation': {
+            trackData: {
+              orbCore: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["coreScale"]',
+                keyframes: [
+                  { id: 'orb-core-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.42 },
+                  { id: 'orb-core-1', position: 0.85, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                  { id: 'orb-core-2', position: 2.6, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.04 },
+                  { id: 'orb-core-3', position: 5.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.97 },
+                  { id: 'orb-core-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                ],
+              },
+              orbShell: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["shellScale"]',
+                keyframes: [
+                  { id: 'orb-shell-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.25 },
+                  { id: 'orb-shell-1', position: 1.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.92 },
+                  { id: 'orb-shell-2', position: 3.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.02 },
+                  { id: 'orb-shell-3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                ],
+              },
+              orbRings: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["ringSpread"]',
+                keyframes: [
+                  { id: 'orb-rings-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.2 },
+                  { id: 'orb-rings-1', position: 1.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                  { id: 'orb-rings-2', position: 3.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.08 },
+                  { id: 'orb-rings-3', position: 6.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.96 },
+                  { id: 'orb-rings-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                ],
+              },
+              orbSpeed: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["ringSpeed"]',
+                keyframes: [
+                  { id: 'orb-speed-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.25 },
+                  { id: 'orb-speed-1', position: 1.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.75 },
+                  { id: 'orb-speed-2', position: 3.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.05 },
+                  { id: 'orb-speed-3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.6 },
+                ],
+              },
+              orbHalo: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["halo"]',
+                keyframes: [
+                  { id: 'orb-halo-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.15 },
+                  { id: 'orb-halo-1', position: 0.9, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.9 },
+                  { id: 'orb-halo-2', position: 2.7, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.72 },
+                  { id: 'orb-halo-3', position: 5.8, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.0 },
+                  { id: 'orb-halo-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.82 },
+                ],
+              },
+              orbFilaments: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["filamentIntensity"]',
+                keyframes: [
+                  { id: 'orb-fil-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.02 },
+                  { id: 'orb-fil-1', position: 1.3, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+                  { id: 'orb-fil-2', position: 3.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.3 },
+                  { id: 'orb-fil-3', position: 5.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.7 },
+                  { id: 'orb-fil-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.45 },
+                ],
+              },
+              orbParticles: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["particleEnergy"]',
+                keyframes: [
+                  { id: 'orb-p-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.05 },
+                  { id: 'orb-p-1', position: 1.1, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.8 },
+                  { id: 'orb-p-2', position: 4.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.35 },
+                  { id: 'orb-p-3', position: 6.3, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.72 },
+                  { id: 'orb-p-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+                ],
+              },
+              orbBreath: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["breathing"]',
+                keyframes: [
+                  { id: 'orb-b-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                  { id: 'orb-b-1', position: 1.8, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                  { id: 'orb-b-2', position: 4.3, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.15 },
+                  { id: 'orb-b-3', position: 6.7, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.85 },
+                  { id: 'orb-b-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.5 },
+                ],
+              },
+              orbTechnical: {
+                type: 'BasicKeyframedTrack',
+                __debugName: 'Orb Presentation:["technicalOpacity"]',
+                keyframes: [
+                  { id: 'orb-t-0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                  { id: 'orb-t-1', position: 1.4, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.85 },
+                  { id: 'orb-t-2', position: 3.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+                  { id: 'orb-t-3', position: 6.4, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.95 },
+                  { id: 'orb-t-4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.65 },
+                ],
+              },
+            },
+            trackIdByPropPath: {
+              '["coreScale"]': 'orbCore',
+              '["shellScale"]': 'orbShell',
+              '["ringSpread"]': 'orbRings',
+              '["ringSpeed"]': 'orbSpeed',
+              '["halo"]': 'orbHalo',
+              '["filamentIntensity"]': 'orbFilaments',
+              '["particleEnergy"]': 'orbParticles',
+              '["breathing"]': 'orbBreath',
+              '["technicalOpacity"]': 'orbTechnical',
+            },
+          },
+        },
+      },
+    },
+    'V12 Presentation': {
+      staticOverrides: { byObject: {} },
+      sequence: {
+        subUnitsPerUnit: 30,
+        length: 8,
+        type: 'PositionalSequence',
+        tracksByObject: {
+          'V12 Presentation': {
+            trackData: {
+              cameraRadius: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-r0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 9.8 },
+                { id: 'v12-r1', position: 2.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 8.2 },
+                { id: 'v12-r2', position: 5.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 6.2 },
+                { id: 'v12-r3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 9.8 },
+              ]},
+              cameraTheta: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-t0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+                { id: 'v12-t1', position: 2.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.45 },
+                { id: 'v12-t2', position: 5.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 2.25 },
+                { id: 'v12-t3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+              ]},
+              cameraPhi: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-p0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.05 },
+                { id: 'v12-p1', position: 2.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.95 },
+                { id: 'v12-p2', position: 5.0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.22 },
+                { id: 'v12-p3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1.05 },
+              ]},
+              explodedFactor: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-e0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                { id: 'v12-e1', position: 3.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                { id: 'v12-e2', position: 4.6, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'v12-e3', position: 6.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'v12-e4', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0 },
+              ]},
+              highlightIntensity: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-h0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.2 },
+                { id: 'v12-h1', position: 3.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'v12-h2', position: 5.4, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.35 },
+                { id: 'v12-h3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.7 },
+              ]},
+              focusCylinder: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'v12-c0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'v12-c1', position: 3.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'v12-c2', position: 5.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 6 },
+                { id: 'v12-c3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1 },
+              ]},
+            },
+            trackIdByPropPath: {
+              '["cameraRadius"]': 'cameraRadius',
+              '["cameraTheta"]': 'cameraTheta',
+              '["cameraPhi"]': 'cameraPhi',
+              '["explodedFactor"]': 'explodedFactor',
+              '["highlightIntensity"]': 'highlightIntensity',
+              '["focusCylinder"]': 'focusCylinder',
+            },
+          },
+        },
+      },
+    },
+    'Molecule Presentation': {
+      staticOverrides: { byObject: {} },
+      sequence: {
+        subUnitsPerUnit: 30,
+        length: 8,
+        type: 'PositionalSequence',
+        tracksByObject: {
+          'Molecule Presentation': {
+            trackData: {
+              cameraDistance: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-d0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 6 },
+                { id: 'mol-d1', position: 2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 4.2 },
+                { id: 'mol-d2', position: 5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 3.5 },
+                { id: 'mol-d3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 6 },
+              ]},
+              rotationY: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-y0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                { id: 'mol-y1', position: 2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.3 },
+                { id: 'mol-y2', position: 5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 2.7 },
+                { id: 'mol-y3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 4.0 },
+              ]},
+              rotationX: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-x0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                { id: 'mol-x1', position: 2.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.15 },
+                { id: 'mol-x2', position: 5.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: -0.1 },
+                { id: 'mol-x3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0 },
+              ]},
+              annotationOpacity: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-a0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0 },
+                { id: 'mol-a1', position: 1.8, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'mol-a2', position: 6, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'mol-a3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.55 },
+              ]},
+              presentationScale: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-s0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.72 },
+                { id: 'mol-s1', position: 1.2, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'mol-s2', position: 4.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1.08 },
+                { id: 'mol-s3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 1 },
+              ]},
+              highlightIntensity: { type: 'BasicKeyframedTrack', keyframes: [
+                { id: 'mol-h0', position: 0, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.2 },
+                { id: 'mol-h1', position: 2.4, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 1 },
+                { id: 'mol-h2', position: 5.5, connectedRight: true, handles: [0.5, 1, 0.5, 0], value: 0.65 },
+                { id: 'mol-h3', position: 8, connectedRight: false, handles: [0.5, 1, 0.5, 0], value: 0.35 },
+              ]},
+            },
+            trackIdByPropPath: {
+              '["cameraDistance"]': 'cameraDistance',
+              '["rotationY"]': 'rotationY',
+              '["rotationX"]': 'rotationX',
+              '["annotationOpacity"]': 'annotationOpacity',
+              '["presentationScale"]': 'presentationScale',
+              '["highlightIntensity"]': 'highlightIntensity',
+            },
+          },
+        },
+      },
+    },
+  },
+  definitionVersion: '0.4.0',
+  revisionHistory: ['advis-theatre-seed-2026-09-28'],
+} as const;
