@@ -22,3 +22,7 @@ The production state is seeded in theatreState.ts. During development, Theatre S
 ## Performance rule
 
 Do not stream Theatre values into React state on every frame. Render-time systems use mutable refs or direct Three.js objects. Theatre remains outside scientific calculations and high-frequency interaction state.
+
+## Validation
+
+Pull requests are validated by the repository Actions workflow with dependency installation, TypeScript checking, and a production Vite build. GitHub Pages deployment remains restricted to pushes on main.
