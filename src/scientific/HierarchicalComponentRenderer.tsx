@@ -128,12 +128,22 @@ export function HierarchicalComponentRenderer({
       transparent = true;
     }
 
+    const metalness = base.metalness ?? 0.8;
+    const roughness = base.roughness ?? 0.3;
+    const polished = Math.max(0, Math.min(1, 1 - roughness));
+
     return {
       color,
       emissive,
       emissiveIntensity,
-      metalness: base.metalness ?? 0.8,
-      roughness: base.roughness ?? 0.3,
+      metalness,
+      roughness,
+      clearcoat: Math.min(1, 0.18 + polished * 0.62),
+      clearcoatRoughness: Math.max(0.035, roughness * 0.32),
+      reflectivity: Math.min(1, 0.55 + metalness * 0.35),
+      envMapIntensity: 1.55 + metalness * 0.5,
+      sheen: Math.max(0, 0.05 + (1 - metalness) * 0.12),
+      sheenRoughness: Math.max(0.12, roughness),
       opacity,
       transparent,
       wireframe: base.wireframe ?? false
@@ -159,7 +169,7 @@ export function HierarchicalComponentRenderer({
     return (
       <mesh castShadow receiveShadow>
         <boxGeometry args={[0.5, 0.5, 0.5]} />
-        <meshStandardMaterial {...materialProps} />
+        <meshPhysicalMaterial {...materialProps} />
       </mesh>
     );
   };
