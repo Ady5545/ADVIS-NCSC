@@ -78,6 +78,16 @@ function RealisticGLTFModel({
       clone.traverse((child: any) => {
         if (child.isMesh && child.material) {
           child.material = child.material.clone();
+          child.material.flatShading = false;
+          if ('envMapIntensity' in child.material) child.material.envMapIntensity = Math.max(child.material.envMapIntensity ?? 1, 1.6);
+          if ('clearcoat' in child.material) {
+            child.material.clearcoat = Math.max(child.material.clearcoat ?? 0, 0.18);
+            child.material.clearcoatRoughness = Math.min(child.material.clearcoatRoughness ?? 0.2, 0.22);
+          }
+          if ('roughness' in child.material && typeof child.material.roughness === 'number') {
+            child.material.roughness = THREE.MathUtils.clamp(child.material.roughness, 0.08, 0.9);
+          }
+          child.material.needsUpdate = true;
           originalMaterialsRef.current.set(child.material, {
             transparent: child.material.transparent,
             opacity: child.material.opacity,
@@ -132,7 +142,7 @@ function RealisticGLTFModel({
   }
 
   // Tiny ambient floating particles around the object
-  const particlesCount = 100;
+  const particlesCount = 260;
   const positions = useMemo(() => {
     const pos = new Float32Array(particlesCount * 3);
     for(let i=0; i<particlesCount; i++) {

@@ -1289,12 +1289,19 @@ function AppContent() {
 
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <Canvas shadows camera={{ position: [0, 0, 15], fov: 45 }} eventSource={containerRef as any} eventPrefix="client">
+        <Canvas
+          shadows
+          dpr={[1, 1.85]}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          camera={{ position: [0, 0, 15], fov: 45 }}
+          eventSource={containerRef as any}
+          eventPrefix="client"
+        >
           <TheatreSceneProvider>
           {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
           <EnvironmentErrorBoundary>
             <React.Suspense fallback={null}>
-              <Environment preset="studio" environmentIntensity={0.35} background={false} />
+              <Environment preset="studio" environmentIntensity={0.48} background={false} />
             </React.Suspense>
           </EnvironmentErrorBoundary>
 
@@ -1377,7 +1384,7 @@ function AppContent() {
             <Bloom 
               luminanceThreshold={0.85} 
               mipmapBlur 
-              intensity={0.1 * hologramIntensity} 
+              intensity={0.16 * hologramIntensity} 
             />
             <ChromaticAberration 
                

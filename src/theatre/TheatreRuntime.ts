@@ -16,6 +16,14 @@ export const advisOrbObject = advisOrbSheet.object('Orb Presentation', {
   particleEnergy: types.number(0.55, { range: [0, 1.5] }),
   breathing: types.number(0.5, { range: [0, 1] }),
   technicalOpacity: types.number(0.65, { range: [0, 1] }),
+  gridOpacity: types.number(0.65, { range: [0, 1.2] }),
+  radialIntensity: types.number(0.65, { range: [0, 1.5] }),
+  arcIntensity: types.number(0.65, { range: [0, 1.5] }),
+  microEnergy: types.number(0.5, { range: [0, 1.5] }),
+  shellDrift: types.number(0.5, { range: [0, 1] }),
+  depthActivity: types.number(0.5, { range: [0, 1] }),
+  circuitOpacity: types.number(0.65, { range: [0, 1.4] }),
+  scanSpeed: types.number(0.7, { range: [0, 2] }),
 });
 
 export const advisV12Sheet = advisTheatreProject.sheet('V12 Presentation');

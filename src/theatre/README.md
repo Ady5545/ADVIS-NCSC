@@ -26,3 +26,7 @@ Do not stream Theatre values into React state on every frame. Render-time system
 ## Validation
 
 Pull requests are validated by the repository Actions workflow with dependency installation, TypeScript checking, and a production Vite build. GitHub Pages deployment remains restricted to pushes on main.
+
+## Deep-detail pass
+
+The orb now uses multi-scale particles, a spherical technical lattice, radial filaments, surface circuit traces, and independently authored orbital fragments.
