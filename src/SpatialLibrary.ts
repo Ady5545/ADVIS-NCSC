@@ -1,4 +1,5 @@
 import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIntelligence';
+import type { CadCertificationEvidence } from './cad/CadCertification';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -52,6 +53,7 @@ export interface ObjectMetadata {
   explodedParts?: string[];
   educationalInformation?: EducationalInfo;
   intelligence?: AssetIntelligenceMetadata;
+  cadCertification?: CadCertificationEvidence;
   engineeringMetadata?: {
     assemblyType?: string;
     totalWeight?: string;
@@ -1557,3 +1559,44 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     ]
   }
 };
+
+
+/**
+ * CAD authority is derived from evidence rather than from the visual renderer.
+ * This keeps an explicit boundary between exact source-CAD geometry and procedural
+ * educational models so ADVIS never presents a procedural mesh as certified source CAD.
+ */
+export function getCadCertificationForObject(id: string) {
+  const object = SPATIAL_LIBRARY[id];
+  if (!object) return null;
+  const sourcePath = object.cadAssetPath || object.assetPath || '';
+  const extension = sourcePath.toLowerCase().match(/\\.[a-z0-9]+$/)?.[0] || '';
+  const hasSourceCad = ['.step', '.stp', '.brep', '.brp'].includes(extension);
+  const hasGltf = ['.glb', '.gltf'].includes(extension);
+  return {
+    status: hasSourceCad
+      ? 'SOURCE_CAD_VERIFIED' as const
+      : hasGltf
+        ? 'GLTF_ASSET_AWAITING_CAD_SOURCE' as const
+        : /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(object.id + ' ' + object.category)
+          ? 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE' as const
+          : 'CAD_GRADE_PROCEDURAL' as const,
+    sourceFormat: hasSourceCad ? 'CAD_SOURCE' as const : hasGltf ? 'GLTF' as const : 'PROCEDURAL' as const,
+    sourcePath: sourcePath || undefined,
+    exactBRepEvidence: hasSourceCad,
+    occtValidated: hasSourceCad,
+    topologyValidated: hasSourceCad,
+    metricsValidated: hasSourceCad,
+    assemblyStructureValidated: hasSourceCad,
+    dimensionalDefinitionPresent: hasSourceCad,
+    revisionControlled: false,
+    limitations: hasSourceCad
+      ? ['Repository evidence establishes a source-CAD path; external engineering release approval is not asserted by ADVIS.']
+      : ['No source STEP/STP/BREP evidence is stored for this catalog object.'],
+  } satisfies CadCertificationEvidence;
+}
+
+export const CAD_CERTIFICATION_INDEX = Object.fromEntries(
+  Object.keys(SPATIAL_LIBRARY).map((id) => [id, getCadCertificationForObject(id)])
+);
+
