@@ -74,6 +74,84 @@ function SpringPack({ state, position, focused = false }: { state: V12Industrial
   );
 }
 
+function ValveSpring({
+  state,
+  position,
+  focused,
+}: {
+  state: V12IndustrialCutawayProps;
+  position: [number, number, number];
+  focused: boolean;
+}) {
+  return (
+    <SpringPack
+      state={state}
+      position={position}
+      focused={focused}
+    />
+  );
+}
+
+function Camshaft({
+  state,
+  side,
+  lateral,
+  y,
+  camOffset,
+}: {
+  state: V12IndustrialCutawayProps;
+  side: Side;
+  lateral: number;
+  y: number;
+  camOffset: number;
+}) {
+  const sign = side === 'left' ? -1 : 1;
+
+  return (
+    <group position={[sign * lateral, y, 0]}>
+      <Cylinder
+        args={[0.048, 0.048, 3.16, 30]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
+        <Steel state={state} color="#c3cbd2" materialType="FORGED_STEEL" />
+      </Cylinder>
+
+      {CYLINDER_Z.map((z, i) => (
+        <group key={i} position={[0, 0, z]}>
+          {[-0.052, 0.052].map((zOffset, lobe) => (
+            <RoundedBox
+              key={lobe}
+              args={[0.11, 0.085, 0.14]}
+              radius={0.018}
+              smoothness={3}
+              position={[
+                0.032 * Math.cos(camOffset + i * 0.19 + lobe),
+                0.022 * Math.sin(camOffset + i * 0.23 + lobe),
+                zOffset,
+              ]}
+              rotation={[0, camOffset + i * 0.20 + lobe * 0.38, 0]}
+            >
+              <Steel
+                state={state}
+                color="#69737d"
+                materialType="MACHINED_BILLET"
+              />
+            </RoundedBox>
+          ))}
+
+          <Torus args={[0.060, 0.010, 10, 32]}>
+            <Steel
+              state={state}
+              color="#d4dae0"
+              materialType="CHROME"
+            />
+          </Torus>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 function ValveTrainBank({
   state,
   side,
@@ -81,57 +159,74 @@ function ValveTrainBank({
   state: V12IndustrialCutawayProps;
   side: Side;
 }) {
-  const s = side === 'left' ? -1 : 1;
-  const bankAngle = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
-  const focused = typeof state.focusedCylinder === 'number' ? state.focusedCylinder : 1;
+  const sign = side === 'left' ? -1 : 1;
+  const angle = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
+  const focusedCylinder = state.focusedCylinder ?? 0;
 
   return (
-    <group rotation={[0, 0, bankAngle]} position={[s * 0.24, 0.86, 0]}>
-      <RoundedBox args={[0.58, 0.28, 3.18]} radius={0.05} smoothness={5} position={[0, 0.08, 0]}>
-        <Steel state={state} color="#2d353e" materialType="CAST_ALUMINUM" />
-      </RoundedBox>
+    <group position={[sign * 0.46, 0.93, 0]} rotation={[0, 0, angle]}>
+      {/* Split cylinder-head castings: no single giant top cover. */}
+      {CYLINDER_Z.map((z, i) => {
+        const cylinderNumber = side === 'left' ? i + 1 : i + 7;
+        const focused = focusedCylinder === cylinderNumber;
 
-      {[0.30, -0.30].map((x, camIndex) => (
-        <group key={camIndex} position={[x, 0.28, 0]}>
-          <Cylinder args={[0.057, 0.057, 3.12, 32]} rotation={[Math.PI / 2, 0, 0]}>
-            <Steel state={state} color="#d5dbe1" materialType="FORGED_STEEL" />
-          </Cylinder>
+        return (
+          <group key={i} position={[0, 0, z]}>
+            <RoundedBox
+              args={[0.62, 0.14, 0.40]}
+              radius={0.045}
+              smoothness={6}
+            >
+              <Steel
+                state={state}
+                color={focused ? '#586673' : '#4a555f'}
+                materialType="CAST_ALUMINUM"
+              />
+            </RoundedBox>
 
-          {CYLINDER_Z.map((z, i) => (
-            <group key={i} position={[0, 0, z]}>
-              {[-0.055, 0.055].map((zOff, lobe) => (
-                <RoundedBox
-                  key={lobe}
-                  args={[0.10, 0.075, 0.13]}
-                  radius={0.018}
-                  smoothness={3}
-                  position={[0, 0, zOff]}
-                  rotation={[0, (i + camIndex + lobe) * 0.30, 0]}
-                >
-                  <Steel
-                    state={state}
-                    color="#6f7882"
-                    materialType="MACHINED_BILLET"
-                  />
-                </RoundedBox>
-              ))}
-            </group>
-          ))}
-        </group>
-      ))}
+            {/* Four visible valve springs. */}
+            {[-0.145, -0.048, 0.048, 0.145].map((x, valveIndex) => (
+              <ValveSpring
+                key={valveIndex}
+                state={state}
+                focused={focused}
+                position={[x, 0.16, 0]}
+              />
+            ))}
 
-      {CYLINDER_Z.map((z, i) => (
-        <group key={i} position={[0, 0.03, z]}>
-          <SpringPack state={state} focused={focused === (side === 'left' ? i + 1 : i + 7)} position={[-0.13, -0.07, 0]} />
-          <SpringPack state={state} focused={focused === (side === 'left' ? i + 1 : i + 7)} position={[0.13, -0.07, 0]} />
-          <Cylinder args={[0.018, 0.018, 0.22, 16]} position={[-0.13, -0.17, 0]}>
-            <Steel state={state} color="#edf1f5" materialType="TITANIUM" />
-          </Cylinder>
-          <Cylinder args={[0.018, 0.018, 0.22, 16]} position={[0.13, -0.17, 0]}>
-            <Steel state={state} color="#edf1f5" materialType="TITANIUM" />
-          </Cylinder>
-        </group>
-      ))}
+            {/* Plug well / coil body. */}
+            <Cylinder args={[0.038, 0.038, 0.15, 18]} position={[0, 0.25, 0.04]}>
+              <Steel state={state} color="#cdd4da" materialType="CHROME" />
+            </Cylinder>
+
+            {[-0.24, 0.24].map((x) => (
+              <HexBolt
+                key={x}
+                position={[x, 0.085, 0.13]}
+                radius={0.012}
+                height={0.013}
+                state={state}
+              />
+            ))}
+          </group>
+        );
+      })}
+
+      {/* Exposed DOHC hardware. */}
+      <Camshaft
+        state={state}
+        side={side}
+        lateral={0.18}
+        y={0.36}
+        camOffset={side === 'left' ? 0.10 : 0.74}
+      />
+      <Camshaft
+        state={state}
+        side={side}
+        lateral={0.02}
+        y={0.36}
+        camOffset={side === 'left' ? 1.05 : 1.68}
+      />
     </group>
   );
 }
@@ -174,7 +269,7 @@ function PistonAndRod({
   });
 
   return (
-    <group ref={assemblyRef} position={[s * 0.30, 0.38, CYLINDER_Z[index]]} rotation={[0, 0, bankAngle]}>
+    <group ref={assemblyRef} position={[s * 0.37, 0.43, CYLINDER_Z[index]]} rotation={[0, 0, bankAngle]}>
       <group position={[0, 0.27, 0]}>
         <Cylinder args={[0.215, 0.208, 0.23, 40]}>
           <Steel state={state} color={focused ? '#e6f8ff' : '#b8c0c8'} materialType="MACHINED_BILLET" />
@@ -308,53 +403,60 @@ function CrankAssembly({ state }: { state: V12IndustrialCutawayProps }) {
 
 function TimingDrive({ state }: { state: V12IndustrialCutawayProps }) {
   const chainRef = useRef<THREE.Group>(null);
-  const sprockets = [0.26, 0.43];
+
   const links = useMemo(() => {
-    const out: [number, number][] = [];
-    const total = 44;
+    const points: Array<[number, number, number]> = [];
+    const total = 64;
     for (let i = 0; i < total; i++) {
       const t = (i / total) * Math.PI * 2;
-      const x = 0.34 * Math.cos(t);
-      const y = 0.68 * Math.sin(t);
-      out.push([x, y]);
+      const x = 0.42 * Math.cos(t);
+      const y = 0.72 * Math.sin(t);
+      points.push([x, y, t]);
     }
-    return out;
+    return points;
   }, []);
 
   useFrame(({ clock }) => {
     if (chainRef.current) {
-      chainRef.current.rotation.z = clock.elapsedTime * 0.15;
+      chainRef.current.rotation.z = clock.elapsedTime * 0.16;
     }
   });
 
   return (
-    <group position={[0, 0.62, 1.74]} ref={chainRef}>
-      {sprockets.map((r, i) => (
-        <group key={i} position={[0, i === 0 ? -0.20 : 0.20, 0]}>
-          <Cylinder args={[r, r, 0.08, 48]} rotation={[Math.PI / 2, 0, 0]}>
-            <Steel state={state} color="#4f5862" materialType="FORGED_STEEL" />
-          </Cylinder>
-          {Array.from({ length: 32 }).map((_, tooth) => {
-            const a = (tooth / 32) * Math.PI * 2;
-            return (
-              <Box key={tooth} args={[0.028, 0.075, 0.022]} position={[Math.cos(a) * (r + 0.020), Math.sin(a) * (r + 0.020), 0]} rotation={[0, 0, a]}>
-                <Steel state={state} color="#aeb7bf" materialType="FORGED_STEEL" />
-              </Box>
-            );
-          })}
-        </group>
+    <group position={[0, 0.62, 1.82]} ref={chainRef}>
+      {/* Three visible sprockets: crank + two cam drives. */}
+      <Cylinder args={[0.23, 0.23, 0.09, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.22, 0]}>
+        <Steel state={state} color="#4b5660" materialType="FORGED_STEEL" />
+      </Cylinder>
+
+      {[-0.22, 0.22].map((x) => (
+        <Cylinder key={x} args={[0.28, 0.28, 0.09, 48]} rotation={[Math.PI / 2, 0, 0]} position={[x, 0.42, 0]}>
+          <Steel state={state} color="#56616c" materialType="FORGED_STEEL" />
+        </Cylinder>
       ))}
-      {links.map(([x, y], i) => (
-        <group key={i} position={[x, y, 0.055]}>
-          <Box args={[0.026, 0.052, 0.016]} rotation={[0, 0, i * 0.18]}>
-            <Steel state={state} color="#727b85" materialType="FORGED_STEEL" />
+
+      {links.map(([x, y, rotation], i) => (
+        <group key={i} position={[x, y, 0.06]} rotation={[0, 0, rotation]}>
+          <Box args={[0.030, 0.052, 0.016]}>
+            <Steel state={state} color="#7b858e" materialType="FORGED_STEEL" />
           </Box>
         </group>
       ))}
-      <RoundedBox args={[1.12, 1.58, 0.04]} radius={0.05} smoothness={4} position={[0, 0, -0.045]}>
-        <Steel state={state} color="#303943" materialType="CAST_ALUMINUM" />
+
+      {/* Thin timing-rail braces instead of a solid cover. */}
+      <RoundedBox args={[0.78, 0.06, 0.05]} radius={0.018} smoothness={3} position={[0, 0.10, -0.05]}>
+        <Steel state={state} color="#303842" materialType="CAST_ALUMINUM" />
       </RoundedBox>
-      <FastenerField state={state} x={-0.46} y={0} zStart={1.22} count={5} spacing={-0.30} />
+
+      {[-0.34, 0.34].map((x) => (
+        <HexBolt
+          key={x}
+          position={[x, -0.02, 0.08]}
+          radius={0.014}
+          height={0.014}
+          state={state}
+        />
+      ))}
     </group>
   );
 }
@@ -443,7 +545,7 @@ export function V12IndustrialCutaway(state: V12IndustrialCutawayProps) {
   const localAngle = angleRef?.current ?? 0;
 
   return (
-    <group rotation={[0.10, -0.32, 0.03]}>
+    <group rotation={[0.20, -0.54, 0.06]}>
       {/* Open deep-skirt crankcase: the section is intentionally removed on the viewing side. */}
       <RoundedBox args={[1.22, 0.12, 3.38]} radius={0.04} smoothness={5} position={[0, -0.28, 0]}>
         <Steel state={state} color="#343d46" materialType="CAST_ALUMINUM" />
@@ -480,7 +582,7 @@ export function V12IndustrialCutaway(state: V12IndustrialCutawayProps) {
       <CrankAssembly state={state} />
 
       {/* Dry-sump oil pan / lower structural section */}
-      <RoundedBox args={[1.28, 0.28, 3.44]} position={[0, -0.56, 0]} radius={0.07} smoothness={6}>
+      <RoundedBox args={[1.12, 0.18, 3.34]} position={[0, -0.67, 0]} radius={0.07} smoothness={6}>
         <Steel state={state} color="#252c34" materialType="CAST_ALUMINUM" />
       </RoundedBox>
       {[-0.48, -0.24, 0, 0.24, 0.48].map((x) => (
@@ -495,7 +597,7 @@ export function V12IndustrialCutaway(state: V12IndustrialCutawayProps) {
       <FrontAccessories state={state} />
 
       {/* Machined front and rear flange details */}
-      <RoundedBox args={[1.02, 1.08, 0.07]} position={[0, 0.08, 1.72]} radius={0.04} smoothness={4}>
+      <RoundedBox args={[0.82, 0.72, 0.045]} position={[0, 0.04, 1.73]} radius={0.04} smoothness={4}>
         <Steel state={state} color="#46515f" materialType="CAST_ALUMINUM" />
       </RoundedBox>
       <RoundedBox args={[1.05, 1.05, 0.065]} position={[0, 0.02, -1.72]} radius={0.04} smoothness={4}>
