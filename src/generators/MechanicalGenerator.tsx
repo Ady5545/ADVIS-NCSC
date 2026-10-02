@@ -151,7 +151,10 @@ export function EngineMaterial({
       opacity={opacity}
       emissive={isCylinderFocused ? "#06b6d4" : (isSelected ? "#0284c7" : (isHovered ? "#0ea5e9" : "#000000"))}
       emissiveIntensity={isCylinderFocused ? 0.5 : (isSelected ? 0.28 : (isHovered ? 0.1 : 0))}
-      wireframe={isSelected}
+      // Selection is communicated by a restrained emissive lift. Do not enable wireframe
+      // on the PBR surface: doing so turns dense mechanical assemblies into a dark mesh
+      // and makes the selected component look like the entire model has gone black.
+      wireframe={false}
       envMapIntensity={1.5}
       anisotropy={anisotropy}
       transmission={transmission}
