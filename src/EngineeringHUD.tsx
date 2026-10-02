@@ -3,6 +3,7 @@ import { Cpu, Activity, Shield, Layers, Radio, Zap, X, Terminal, Compass, Eye, B
 import { EngineeringInspector } from './EngineeringInspector';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { resolveObjectFidelity } from './cad/GeometryFidelity';
 
 interface EngineeringHUDProps {
   onClose: () => void;
@@ -65,6 +66,7 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
   const objectKey = Array.isArray(activeObject) ? activeObject[0] : activeObject;
   const objectMeta = objectKey ? SPATIAL_LIBRARY[objectKey] : null;
   const components = objectMeta?.components || [];
+  const fidelity = objectMeta ? resolveObjectFidelity(objectMeta) : null;
 
   const filteredComponents = components.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -203,7 +205,9 @@ export const EngineeringHUD: React.FC<EngineeringHUDProps> = ({
                             }`}
                           >
                             <span className="truncate">↳ {comp.name}</span>
-                            <span className="text-[9px] text-cyan-400/60">CAD</span>
+                            <span className={`text-[9px] ${resolveObjectFidelity(objectMeta!).authority === 'CAD_BREP' ? 'text-emerald-300' : 'text-cyan-400/60'}`}>
+                              {resolveObjectFidelity(objectMeta!).authority === 'CAD_BREP' ? 'B-REP' : resolveObjectFidelity(objectMeta!).authority === 'GLTF_ASSET' ? 'GLB' : 'PROC'}
+                            </span>
                           </button>
                         );
                       })}

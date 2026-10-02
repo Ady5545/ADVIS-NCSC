@@ -115,6 +115,39 @@ function createRadialDataGeometry(): Float32Array {
   return new Float32Array(points);
 }
 
+function createEnergyFilamentGeometry(): Float32Array {
+  const points: number[] = [];
+  const random = deterministicRandom(0xF17A6);
+  const filaments = 240;
+
+  for (let i = 0; i < filaments; i++) {
+    const theta = random() * TAU;
+    const phi = Math.acos(2 * random() - 1);
+    const inner = 1.0 + random() * 0.55;
+    const outer = 2.15 + random() * 2.0;
+    const wobble = (random() - 0.5) * 0.22;
+    const direction = new THREE.Vector3(
+      Math.sin(phi) * Math.cos(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.sin(theta)
+    ).normalize();
+
+    const tangent = new THREE.Vector3(-direction.z, 0.25, direction.x).normalize();
+    const start = direction.clone().multiplyScalar(inner);
+    const end = direction.clone().multiplyScalar(outer);
+
+    const p1 = start.clone().addScaledVector(tangent, wobble);
+    const p2 = start.clone().lerp(end, 0.45).addScaledVector(tangent, wobble * 1.8);
+    const p3 = end.clone().addScaledVector(tangent, wobble * 0.3);
+
+    points.push(start.x, start.y, start.z, p1.x, p1.y, p1.z);
+    points.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    points.push(p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+  }
+
+  return new Float32Array(points);
+}
+
 function createSurfaceCircuitGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xC1AC7);
@@ -205,6 +238,7 @@ export function HologramCore({
   const radialRef = useRef<THREE.LineSegments>(null);
   const arcRef = useRef<THREE.LineSegments>(null);
   const circuitRef = useRef<THREE.LineSegments>(null);
+  const filamentRef = useRef<THREE.LineSegments>(null);
   const arcOrbitRef = useRef<THREE.Group>(null);
   const outerParticlesRef = useRef<THREE.Points>(null);
   const midParticlesRef = useRef<THREE.Points>(null);
@@ -223,10 +257,11 @@ export function HologramCore({
   const radialData = useMemo(() => createRadialDataGeometry(), []);
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(1050, 2.75, 4.65, 0xAD15A5, 0.62), []);
-  const midParticles = useMemo(() => createParticleCloud(720, 2.15, 3.55, 0x71F3C1, 0.48), []);
-  const innerParticles = useMemo(() => createParticleCloud(300, 1.15, 2.35, 0xA11CE5, 0.72), []);
-  const microParticles = useMemo(() => createParticleCloud(520, 0.88, 1.7, 0xEFA71A, 0.35), []);
+  const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
+  const outerParticles = useMemo(() => createParticleCloud(1600, 2.7, 4.8, 0xFF8A00, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(1100, 2.05, 3.7, 0xFFB020, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(520, 1.05, 2.4, 0xFF6A00, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(900, 0.78, 1.75, 0xFFF0C4, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -240,62 +275,66 @@ export function HologramCore({
   }, []);
 
   const ringConfigs = useMemo(() => [
-    { radius: 2.0, tube: 0.007, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.62 },
-    { radius: 2.18, tube: 0.009, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.34 },
-    { radius: 2.38, tube: 0.007, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.5 },
-    { radius: 2.6, tube: 0.008, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.34 },
-    { radius: 2.84, tube: 0.006, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.44 },
-    { radius: 3.08, tube: 0.005, rotation: [0.78, 0.46, -0.92] as [number, number, number], opacity: 0.24 },
+    { radius: 1.94, tube: 0.010, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.72 },
+    { radius: 2.10, tube: 0.012, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.46 },
+    { radius: 2.30, tube: 0.008, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.62 },
+    { radius: 2.52, tube: 0.010, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.50 },
+    { radius: 2.78, tube: 0.008, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.56 },
+    { radius: 3.02, tube: 0.007, rotation: [0.78, 0.46, -0.92] as [number, number, number], opacity: 0.34 },
+    { radius: 3.30, tube: 0.006, rotation: [1.12, -0.28, 0.32] as [number, number, number], opacity: 0.28 },
+    { radius: 3.56, tube: 0.005, rotation: [-0.72, 0.44, 1.04] as [number, number, number], opacity: 0.22 },
   ], []);
 
   const colors = useMemo(() => ({
-    core: new THREE.Color('#ecffff'),
-    technical: new THREE.Color('#67dcff'),
+    core: new THREE.Color('#fff7df'),
+    technical: new THREE.Color('#ffb329'),
+    plasma: new THREE.Color('#ff6a00'),
+    hot: new THREE.Color('#fff1c2'),
   }), []);
 
   const materials = useMemo(() => ({
-    core: new THREE.MeshBasicMaterial({ color: '#ecffff', transparent: true, opacity: 0.96, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#7de9ff', transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#1bbaff', transparent: true, opacity: 0.28, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#4ddfff', transparent: true, opacity: 0.16, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#008cff', transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#39d6ff', transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#73eaff', transparent: true, opacity: 0.36, blending: THREE.AdditiveBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#bcf6ff', transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#9defff', transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
-    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#129dff', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
+    core: new THREE.MeshBasicMaterial({ color: '#fffaf0', transparent: true, opacity: 0.98, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#ff9d18', transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#ffb52e', transparent: true, opacity: 0.34, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#ff5b00', transparent: true, opacity: 0.23, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#ff6a00', transparent: true, opacity: 0.085, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#ffa51f', transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#ffbd45', transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#ffe7a7', transparent: true, opacity: 0.74, blending: THREE.AdditiveBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#ffc64a', transparent: true, opacity: 0.54, blending: THREE.AdditiveBlending, depthWrite: false }),
+    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#ff9412', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#f1ffff', transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#37c2ff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#1186ff', transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#fff5d6', transparent: true, opacity: 0.82, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#ffb52e', transparent: true, opacity: 0.64, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#ff6a00', transparent: true, opacity: 0.54, blending: THREE.AdditiveBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#c8fbff', transparent: true, opacity: 0.7, size: 0.028, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#78e9ff', transparent: true, opacity: 0.54, size: 0.022, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#4ddcff', transparent: true, opacity: 0.68, size: 0.018, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#eaffff', transparent: true, opacity: 0.82, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#bfffff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    particles: new THREE.PointsMaterial({ color: '#ffe7a7', transparent: true, opacity: 0.76, size: 0.030, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#ffc04b', transparent: true, opacity: 0.62, size: 0.024, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#ff8a00', transparent: true, opacity: 0.74, size: 0.019, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#fff6d7', transparent: true, opacity: 0.9, size: 0.015, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#ffd98a', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
   }), [ringConfigs]);
 
   useEffect(() => {
-    const base = new THREE.Color(themeColor);
-    if (systemState === 'ANALYZING') base.set('#8b5cf6');
+    const base = new THREE.Color('#ff8a00');
+    if (systemState === 'ANALYZING') base.set('#ff6b16');
     if (systemState === 'ERROR') base.set('#ff174e');
-    if (systemState === 'SEARCHING') base.set('#147dff');
-    if (systemState === 'LISTENING') base.set('#00d9ff');
-    if (systemState === 'SPEAKING') base.set('#2de7ff');
+    if (systemState === 'SEARCHING') base.set('#ff9d18');
+    if (systemState === 'LISTENING') base.set('#ffad23');
+    if (systemState === 'SPEAKING') base.set('#ffbf4a');
 
-    materials.coreGlow.color.copy(base.clone().lerp(colors.core, 0.28));
+    materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.2));
     materials.halo.color.copy(base);
-    materials.grid.color.copy(base.clone().lerp(colors.technical, 0.45));
-    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.35));
-    materials.arc.color.copy(colors.technical);
-    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.55));
+    materials.grid.color.copy(base.clone().lerp(colors.technical, 0.35));
+    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.25));
+    materials.arc.color.copy(colors.hot);
+    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.35));
     materials.ring.forEach((m) => m.color.copy(base));
     materials.wave[1].color.copy(base);
-    materials.wave[2].color.copy(base.clone().multiplyScalar(0.85));
-    materials.innerParticles.color.copy(base.clone().lerp(colors.core, 0.2));
+    materials.wave[2].color.copy(base.clone().lerp(colors.plasma, 0.45));
+    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.25));
     materials.midParticles.color.copy(base.clone().lerp(colors.technical, 0.15));
-    materials.microParticles.color.copy(colors.core);
+    materials.microParticles.color.copy(colors.hot);
   }, [systemState, themeColor, materials, colors]);
 
   useEffect(() => () => {
@@ -443,6 +482,13 @@ export function HologramCore({
       materials.arc.opacity = (0.08 + arcControl * 0.62 + curTreble * 0.25 + voice * 0.08) * opacityFactor;
     }
 
+    if (filamentRef.current) {
+      filamentRef.current.rotation.y -= delta * 0.10 * scanSpeed;
+      filamentRef.current.rotation.z += delta * 0.018;
+      filamentRef.current.scale.setScalar((0.96 + activity * 0.05) * collapse);
+      materials.radial.opacity = (0.07 + radialControl * 0.58 + curTreble * 0.28) * opacityFactor;
+    }
+
     if (circuitRef.current) {
       circuitRef.current.rotation.x -= delta * 0.11 * scanSpeed;
       circuitRef.current.rotation.y += delta * 0.08 * scanSpeed;
@@ -567,6 +613,14 @@ export function HologramCore({
           <bufferAttribute attach="attributes-position" args={[arcNetwork, 3]} />
         </bufferGeometry>
         <primitive object={materials.arc} attach="material" />
+      </lineSegments>
+
+      {/* 5a — dense white-hot energy filaments surrounding the field */}
+      <lineSegments ref={filamentRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[energyFilaments, 3]} />
+        </bufferGeometry>
+        <primitive object={materials.radial} attach="material" />
       </lineSegments>
 
       {/* 5b — ultra-fine surface circuit traces visible at close range */}

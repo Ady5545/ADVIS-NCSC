@@ -153,10 +153,49 @@ function RotorMagnetRing({
   );
 }
 
+function BearingStack({
+  radius = 0.11,
+  innerRadius = 0.055,
+  depth = 0.09,
+  y = 0,
+  state,
+}: {
+  radius?: number;
+  innerRadius?: number;
+  depth?: number;
+  y?: number;
+  state: AdvancedEngineeringModelProps;
+}) {
+  return (
+    <group position={[0, y, 0]}>
+      <Torus args={[radius - innerRadius, Math.max(0.014, (radius - innerRadius) * 0.32), 14, 48]}>
+        <DetailMaterial {...state} baseColor="#9ca3af" metalness={0.94} roughness={0.18} />
+      </Torus>
+      <Torus args={[innerRadius + 0.012, 0.012, 10, 40]}>
+        <DetailMaterial {...state} baseColor="#1f2937" metalness={0.78} roughness={0.26} />
+      </Torus>
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const race = (radius + innerRadius) * 0.5;
+        return (
+          <Cylinder
+            key={i}
+            args={[0.008, 0.008, depth * 0.68, 8]}
+            position={[Math.cos(a) * race, 0, Math.sin(a) * race]}
+            rotation={[Math.PI / 2, 0, a]}
+          >
+            <DetailMaterial {...state} baseColor="#e5e7eb" metalness={0.98} roughness={0.13} />
+          </Cylinder>
+        );
+      })}
+    </group>
+  );
+}
+
 export function PMSMMotorAssembly(state: AdvancedEngineeringModelProps) {
   return (
     <group rotation={[Math.PI / 2, 0, 0]}>
-      <Cylinder args={[0.54, 0.54, 0.86, 64]}>
+      <Cylinder args={[0.54, 0.54, 0.86, 64, 1, true]}>
         <DetailMaterial {...state} baseColor="#374151" metalness={0.86} roughness={0.29} clearcoat={0.22} />
       </Cylinder>
 
@@ -170,9 +209,15 @@ export function PMSMMotorAssembly(state: AdvancedEngineeringModelProps) {
         </Torus>
       ))}
 
+      <Torus args={[0.50, 0.045, 16, 64]} position={[0, 0.43, 0]}>
+        <DetailMaterial {...state} baseColor="#1f2937" metalness={0.82} roughness={0.28} />
+      </Torus>
       <Cylinder args={[0.48, 0.48, 0.08, 48]} position={[0, 0.47, 0]}>
         <DetailMaterial {...state} baseColor="#1f2937" metalness={0.8} roughness={0.34} />
       </Cylinder>
+      <Torus args={[0.50, 0.045, 16, 64]} position={[0, -0.43, 0]}>
+        <DetailMaterial {...state} baseColor="#1f2937" metalness={0.82} roughness={0.28} />
+      </Torus>
       <Cylinder args={[0.48, 0.48, 0.08, 48]} position={[0, -0.47, 0]}>
         <DetailMaterial {...state} baseColor="#1f2937" metalness={0.8} roughness={0.34} />
       </Cylinder>
@@ -196,6 +241,8 @@ export function PMSMMotorAssembly(state: AdvancedEngineeringModelProps) {
         <DetailMaterial {...state} baseColor="#475569" metalness={0.88} roughness={0.24} />
       </Cylinder>
       <RotorMagnetRing count={12} radius={0.335} y={0} state={state} />
+      <BearingStack radius={0.12} innerRadius={0.06} depth={0.10} y={0.39} state={state} />
+      <BearingStack radius={0.12} innerRadius={0.06} depth={0.10} y={-0.39} state={state} />
 
       <Cylinder args={[0.075, 0.075, 1.18, 32]}>
         <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.12} clearcoat={0.4} />
@@ -280,7 +327,7 @@ export function PlanetaryGearsetAssembly(state: AdvancedEngineeringModelProps) {
 export function JetEngineCoreAssembly(state: AdvancedEngineeringModelProps) {
   return (
     <group rotation={[Math.PI / 2, 0, 0]}>
-      <Cylinder args={[0.66, 0.60, 2.25, 64]}>
+      <Cylinder args={[0.66, 0.60, 2.25, 64, 1, true]}>
         <DetailMaterial {...state} baseColor="#475569" metalness={0.9} roughness={0.28} clearcoat={0.2} />
       </Cylinder>
 
@@ -346,6 +393,12 @@ export function JetEngineCoreAssembly(state: AdvancedEngineeringModelProps) {
       <Cylinder args={[0.11, 0.11, 2.55, 24]}>
         <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.12} clearcoat={0.42} />
       </Cylinder>
+      <BearingStack radius={0.16} innerRadius={0.075} depth={0.12} y={1.05} state={state} />
+      <BearingStack radius={0.16} innerRadius={0.075} depth={0.12} y={-1.02} state={state} />
+      {/* Central shaft and bearings remain visible because the outer casing is open-ended. */}
+      <Cylinder args={[0.11, 0.11, 2.55, 24]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.12} clearcoat={0.42} />
+      </Cylinder>
 
       <Torus args={[0.57, 0.025, 10, 72]} position={[0, 0.02, 0]}>
         <DetailMaterial {...state} baseColor="#22d3ee" metalness={0.22} roughness={0.32} />
@@ -368,6 +421,10 @@ export function HydraulicPumpAssembly(state: AdvancedEngineeringModelProps) {
       <Cylinder args={[0.10, 0.10, 0.46, 24]} position={[0, 0, 0.68]}>
         <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.97} roughness={0.15} />
       </Cylinder>
+      <Torus args={[0.27, 0.055, 18, 64]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.46]}>
+        <DetailMaterial {...state} baseColor="#111827" metalness={0.55} roughness={0.28} />
+      </Torus>
+      <BearingStack radius={0.14} innerRadius={0.065} depth={0.10} y={0.40} state={state} />
 
       <Torus args={[0.22, 0.05, 16, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.10]}>
         <DetailMaterial {...state} baseColor="#b45309" metalness={0.86} roughness={0.28} />
@@ -471,7 +528,10 @@ export function DifferentialAssembly(state: AdvancedEngineeringModelProps) {
         <DetailMaterial {...state} baseColor="#4b5563" metalness={0.94} roughness={0.24} clearcoat={0.24} />
       </Torus>
       <GearTeeth count={36} radius={0.74} toothLength={0.11} toothWidth={0.055} y={0} state={state} />
-      <Cylinder args={[0.53, 0.53, 0.54, 48]} rotation={[Math.PI / 2, 0, 0]}>
+      <Torus args={[0.53, 0.10, 24, 96]} rotation={[Math.PI / 2, 0, 0]}>
+        <DetailMaterial {...state} baseColor="#374151" metalness={0.84} roughness={0.34} />
+      </Torus>
+      <Cylinder args={[0.42, 0.42, 0.26, 48]} rotation={[Math.PI / 2, 0, 0]}>
         <DetailMaterial {...state} baseColor="#374151" metalness={0.84} roughness={0.34} />
       </Cylinder>
       <Cylinder args={[0.13, 0.13, 1.85, 28]} rotation={[0, 0, Math.PI / 2]}>
@@ -501,6 +561,7 @@ export function GearboxAssembly(state: AdvancedEngineeringModelProps) {
   return (
     <group>
       <RoundedBox args={[1.12, 0.92, 1.70]} radius={0.16} smoothness={6}>
+
         <DetailMaterial {...state} baseColor="#475569" metalness={0.88} roughness={0.32} clearcoat={0.16} />
       </RoundedBox>
       {[0.58, 0.26, -0.08, -0.42].map((z, stage) => (
@@ -519,6 +580,13 @@ export function GearboxAssembly(state: AdvancedEngineeringModelProps) {
       <Cylinder args={[0.055, 0.055, 1.55, 24]} position={[0.18, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
         <DetailMaterial {...state} baseColor="#c4b454" metalness={0.8} roughness={0.30} />
       </Cylinder>
+      <Torus args={[0.27, 0.035, 14, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.80]}>
+        <DetailMaterial {...state} baseColor="#111827" metalness={0.45} roughness={0.35} />
+      </Torus>
+      <Torus args={[0.23, 0.028, 14, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.80]}>
+        <DetailMaterial {...state} baseColor="#111827" metalness={0.45} roughness={0.35} />
+      </Torus>
+      <BearingStack radius={0.13} innerRadius={0.06} depth={0.10} y={0} state={state} />
       <RadialBoltCircle count={8} radius={0.50} y={0.45} state={state} />
       <RadialBoltCircle count={8} radius={0.50} y={-0.45} state={state} />
     </group>

@@ -8,6 +8,7 @@ export interface ComponentMetadata {
   explodedOffset: [number, number, number];
   shape: 'box' | 'sphere' | 'cylinder' | 'torus' | 'custom';
   color?: string;
+  cadAssetPath?: string;
   assetPath?: string;
   assetScale?: number;
   rotation?: [number, number, number];
@@ -43,6 +44,8 @@ export interface ObjectMetadata {
   category: string;
   description: string;
   metadata?: Record<string, any>;
+  geometryAuthority?: string;
+  cadAssetPath?: string;
   components: ComponentMetadata[];
   defaultScale: number;
   animations?: string[];

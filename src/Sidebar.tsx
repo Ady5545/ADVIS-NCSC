@@ -1,11 +1,13 @@
 import React from 'react';
-import { Home, Atom, Cpu, GitCompare, PlayCircle, GraduationCap, Hand, Activity, Settings2 } from 'lucide-react';
+import { Home, Atom, Cpu, GitCompare, PlayCircle, GraduationCap, Hand, Activity, Settings2, Cuboid, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const menuItems = [
   { id: 'home', icon: Home, label: 'SPATIAL WORKSPACE' },
   { id: 'molecules', icon: Atom, label: 'MOLECULAR LIBRARY' },
   { id: 'engineering', icon: Cpu, label: 'ENGINEERING CATALOG' },
+  { id: 'cad-lab', icon: Cuboid, label: 'CAD REFERENCE LAB' },
+  { id: 'innovation-lab', icon: Lightbulb, label: 'INNOVATION LAB' },
   { id: 'compare', icon: GitCompare, label: 'COMPARATOR' },
   { id: 'demonstration', icon: PlayCircle, label: 'DEMONSTRATIONS' },
   { id: 'lessons', icon: GraduationCap, label: 'INTERACTIVE LESSONS' },
