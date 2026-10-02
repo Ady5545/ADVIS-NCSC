@@ -152,6 +152,7 @@ function PistonAndRod({
   const cylinderNumber = side === 'left' ? index + 1 : index + 7;
   const focused = state.focusedCylinder === cylinderNumber;
   const phaseOffset = CRANK_OFFSETS[index] + (side === 'right' ? Math.PI : 0);
+  const phase = crankAngle + phaseOffset;
   const assemblyRef = useRef<THREE.Group>(null);
 
   useFrame((frameState) => {
@@ -236,7 +237,7 @@ function CylinderBank({
 
       {CYLINDER_Z.map((z, i) => (
         <group key={i}>
-          <Cylinder args={[0.225, 0.225, 0.72, 48]} position={[0, 0.20, z]} openEnded>
+          <Cylinder args={[0.225, 0.225, 0.72, 48, 1, true]} position={[0, 0.20, z]}>
             <Steel state={state} color="#424b54" materialType="HONED_LINER" />
           </Cylinder>
           <Torus args={[0.225, 0.018, 12, 48]} position={[0, 0.565, z]}>
