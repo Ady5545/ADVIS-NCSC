@@ -285,55 +285,51 @@ export function HologramCore({
     { radius: 3.56, tube: 0.005, rotation: [-0.72, 0.44, 1.04] as [number, number, number], opacity: 0.22 },
   ], []);
 
+  // JARVIS-inspired blue-white spatial core: cool blue only, with a white-hot center.
   const colors = useMemo(() => ({
-    core: new THREE.Color('#fff7df'),
-    technical: new THREE.Color('#ffb329'),
-    plasma: new THREE.Color('#ff6a00'),
-    hot: new THREE.Color('#fff1c2'),
+    core: new THREE.Color('#eafcff'),
+    technical: new THREE.Color('#48d7ff'),
+    plasma: new THREE.Color('#1677ff'),
+    hot: new THREE.Color('#f4fdff'),
   }), []);
 
   const materials = useMemo(() => ({
-    core: new THREE.MeshBasicMaterial({ color: '#fffaf0', transparent: true, opacity: 0.98, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#ff9d18', transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#ffb52e', transparent: true, opacity: 0.34, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#ff5b00', transparent: true, opacity: 0.23, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#ff6a00', transparent: true, opacity: 0.085, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#ffa51f', transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#ffbd45', transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#ffe7a7', transparent: true, opacity: 0.74, blending: THREE.AdditiveBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#ffc64a', transparent: true, opacity: 0.54, blending: THREE.AdditiveBlending, depthWrite: false }),
-    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#ff9412', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
+    core: new THREE.MeshBasicMaterial({ color: '#f2fdff', transparent: true, opacity: 0.99, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#2ac5ff', transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#58dcff', transparent: true, opacity: 0.35, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#2b75ff', transparent: true, opacity: 0.25, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#168fff', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#43dcff', transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#66e3ff', transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#dcfbff', transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#4fd7ff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
+    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#1db8ff', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#fff5d6', transparent: true, opacity: 0.82, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#ffb52e', transparent: true, opacity: 0.64, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#ff6a00', transparent: true, opacity: 0.54, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#f1fdff', transparent: true, opacity: 0.84, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#46d7ff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#237dff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#ffe7a7', transparent: true, opacity: 0.76, size: 0.030, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#ffc04b', transparent: true, opacity: 0.62, size: 0.024, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#ff8a00', transparent: true, opacity: 0.74, size: 0.019, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#fff6d7', transparent: true, opacity: 0.9, size: 0.015, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#ffd98a', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    particles: new THREE.PointsMaterial({ color: '#dff9ff', transparent: true, opacity: 0.78, size: 0.030, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#6edfff', transparent: true, opacity: 0.64, size: 0.024, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#269cff', transparent: true, opacity: 0.76, size: 0.019, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#f1fdff', transparent: true, opacity: 0.92, size: 0.015, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#8ceaff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
   }), [ringConfigs]);
 
   useEffect(() => {
-    const base = new THREE.Color('#ff8a00');
-    if (systemState === 'ANALYZING') base.set('#ff6b16');
-    if (systemState === 'ERROR') base.set('#ff174e');
-    if (systemState === 'SEARCHING') base.set('#ff9d18');
-    if (systemState === 'LISTENING') base.set('#ffad23');
-    if (systemState === 'SPEAKING') base.set('#ffbf4a');
-
-    materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.2));
-    materials.halo.color.copy(base);
+    // Keep the orb chromatically blue in every operating state; state changes affect motion/intensity elsewhere.
+    const base = colors.technical.clone();
+    materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.42));
+    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.22));
     materials.grid.color.copy(base.clone().lerp(colors.technical, 0.35));
-    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.25));
+    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.18));
     materials.arc.color.copy(colors.hot);
-    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.35));
-    materials.ring.forEach((m) => m.color.copy(base));
+    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.22));
+    materials.ring.forEach((m, index) => m.color.copy(base.clone().lerp(colors.plasma, index / (materials.ring.length * 1.8))));
     materials.wave[1].color.copy(base);
-    materials.wave[2].color.copy(base.clone().lerp(colors.plasma, 0.45));
-    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.25));
-    materials.midParticles.color.copy(base.clone().lerp(colors.technical, 0.15));
+    materials.wave[2].color.copy(colors.plasma);
+    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.35));
+    materials.midParticles.color.copy(base.clone().lerp(colors.technical, 0.18));
     materials.microParticles.color.copy(colors.hot);
   }, [systemState, themeColor, materials, colors]);
 

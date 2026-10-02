@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { Box, Cylinder, RoundedBox, Torus } from '@react-three/drei';
+import { renderCutawayEngineeringModel } from './EngineeringCutawayModels';
 export interface AdvancedEngineeringModelProps {
   isHovered?: boolean;
   isSelected?: boolean;
@@ -704,6 +705,9 @@ export function renderAdvancedEngineeringModel(
   id: string,
   state: AdvancedEngineeringModelProps,
 ): React.ReactNode | null {
+  const cutaway = renderCutawayEngineeringModel(id, state);
+  if (cutaway) return cutaway;
+
   if (id === 'pmsm.stator_rotor') return <PMSMMotorAssembly {...state} />;
   if (id === 'planetary.gearset') return <PlanetaryGearsetAssembly {...state} />;
   if (id === 'jetengine.core') return <JetEngineCoreAssembly {...state} />;
