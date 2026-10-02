@@ -1,6 +1,6 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
-import { V12IndustrialCutaway } from './generators/V12IndustrialCutaway';
+import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
@@ -871,7 +871,7 @@ function EngineeringComponentRenderer({
   if (objectId === 'v12_engine') {
     if (id === 'v12.engine_block') {
       return (
-        <V12IndustrialCutaway
+        <V12UltimateCutaway
           isHovered={isHovered}
           isSelected={isSelected}
           xrayEnabled={xrayEnabled}
