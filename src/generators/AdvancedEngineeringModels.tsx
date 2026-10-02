@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { Box, Cylinder, RoundedBox, Sphere, Torus } from '@react-three/drei';
-import type { HolographicMaterialProps } from './MechanicalGenerator';
-
 export interface AdvancedEngineeringModelProps {
   isHovered?: boolean;
   isSelected?: boolean;
