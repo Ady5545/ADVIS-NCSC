@@ -30,6 +30,7 @@ import { V12EngineController } from './components/v12/V12EngineController';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
+import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
