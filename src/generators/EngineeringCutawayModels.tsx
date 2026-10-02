@@ -625,12 +625,12 @@ export function renderCutawayEngineeringModel(id: string, state: AdvancedEnginee
     case 'planetary.gearset': return <PlanetaryDetailed {...state} />;
     case 'jetengine.core': return <JetEngineDetailed {...state} />;
     case 'hydraulic_pump.core': return <HydraulicPumpDetailed {...state} />;
-    case 'turbo_comp': return <TurbochargerDetailed {...state} turbine={false} />;
-    case 'turbo_turb': return <TurbochargerDetailed {...state} turbine />;
+    case 'turbo_comp': return TurbochargerDetailed(state, false);
+    case 'turbo_turb': return TurbochargerDetailed(state, true);
     case 'diff_ring': return <DifferentialDetailed {...state} />;
     case 'gear_shaft': return <GearboxDetailed {...state} />;
-    case 'brake_rotor': return <BrakeDetailed {...state} />;
-    case 'brake_caliper': return <BrakeDetailed {...state} caliper />;
+    case 'brake_rotor': return BrakeDetailed(state, false);
+    case 'brake_caliper': return BrakeDetailed(state, true);
     case 'susp_spring': return <StrutDetailed {...state} />;
     case 'steering_rack': return <SteeringRackDetailed {...state} />;
     default: return null;
