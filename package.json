@@ -11,8 +11,6 @@
   },
   "keywords": [
     "browser",
-    "electron",
-    "advis",
     "assistant"
   ],
   "author": "Stark Industries",
@@ -30,6 +28,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
     "clsx": "^2.1.1",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
     "concurrently": "^10.0.3",
     "dotenv": "^17.2.3",
     "esbuild": "^0.28.1",
@@ -46,12 +45,9 @@
     "three": "^0.185.1",
     "typescript": "^7.0.2",
     "vite": "^6.4.3",
-    "@theatre/core": "^0.7.2",
-    "@theatre/r3f": "^0.7.2",
     "occt-wasm": "^4.3.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "@theatre/studio": "^0.7.2"
+    "@vitejs/plugin-react": "^4.2.1"
   }
 }
