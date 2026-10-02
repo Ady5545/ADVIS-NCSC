@@ -156,6 +156,130 @@ function Camshaft({
   );
 }
 
+function ValveCover({
+  state,
+  side,
+}: {
+  state: V12UltimateProps;
+  side: Side;
+}) {
+  const sign = side === 'left' ? -1 : 1;
+  const angle = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
+
+  return (
+    <group position={[sign * 0.49, 1.03, 0]} rotation={[0, 0, angle]}>
+      <RoundedBox
+        args={[0.34, 0.20, 3.24]}
+        radius={0.055}
+        smoothness={7}
+      >
+        <M state={state} color="#1b2127" type="CAST_ALUMINUM" />
+      </RoundedBox>
+
+      <RoundedBox
+        args={[0.025, 0.18, 3.14]}
+        radius={0.006}
+        smoothness={3}
+        position={[sign * 0.17, 0.02, 0]}
+      >
+        <M state={state} color={C.red} type="WRINKLE_RED" />
+      </RoundedBox>
+
+      {CYLINDER_Z.map((z, i) => (
+        <React.Fragment key={i}>
+          <Cylinder
+            args={[0.025, 0.025, 0.025, 20]}
+            position={[0, 0.12, z]}
+          >
+            <M state={state} color="#aeb7bf" type="CHROME" />
+          </Cylinder>
+          <Torus args={[0.055, 0.008, 10, 32]} rotation={[Math.PI / 2, 0, 0]} position={[sign * 0.08, 0.12, z]}>
+            <M state={state} color="#4d5660" type="FORGED_STEEL" />
+          </Torus>
+        </React.Fragment>
+      ))}
+
+      {/* Individual ignition coil bodies. */}
+      {CYLINDER_Z.map((z, i) => (
+        <group key={i} position={[sign * 0.03, 0.20, z]}>
+          <Cylinder args={[0.032, 0.032, 0.16, 18]}>
+            <M state={state} color="#2e3740" type="PLASTIC" />
+          </Cylinder>
+          <Cylinder args={[0.014, 0.014, 0.07, 16]} position={[0, 0.10, 0]}>
+            <M state={state} color="#c7cdd2" type="CHROME" />
+          </Cylinder>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function FlywheelEnd({
+  state,
+}: {
+  state: V12UltimateProps;
+}) {
+  return (
+    <group position={[0, -0.01, -1.80]}>
+      <Cylinder
+        args={[0.58, 0.58, 0.13, 72]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
+        <M state={state} color="#30373e" type="FORGED_STEEL" />
+      </Cylinder>
+      <Cylinder
+        args={[0.36, 0.36, 0.16, 64]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
+        <M state={state} color="#aab2b9" type="MACHINED_BILLET" />
+      </Cylinder>
+      {Array.from({ length: 48 }).map((_, i) => {
+        const a = (i / 48) * Math.PI * 2;
+        return (
+          <Box
+            key={i}
+            args={[0.030, 0.075, 0.060]}
+            position={[
+              Math.cos(a) * 0.54,
+              Math.sin(a) * 0.54,
+              0.07,
+            ]}
+            rotation={[0, -a, 0]}
+          >
+            <M state={state} color="#7f8992" type="FORGED_STEEL" />
+          </Box>
+        );
+      })}
+      <Torus args={[0.49, 0.028, 14, 72]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#c4cbd1" type="CHROME" />
+      </Torus>
+      <BoltRing state={state} count={10} radius={0.27} z={0.10} xScale={1} yScale={1} boltRadius={0.013} />
+    </group>
+  );
+}
+
+function MainCapBolts({
+  state,
+}: {
+  state: V12UltimateProps;
+}) {
+  return (
+    <>
+      {[-1.53, -1.02, -0.51, 0, 0.51, 1.02, 1.53].flatMap((z) =>
+        [-0.22, 0.22].map((x) => (
+          <HexBolt
+            key={x + ':' + z}
+            position={[x, -0.20, z]}
+            radius={0.013}
+            height={0.013}
+            state={state}
+          />
+        ))
+      )}
+    </>
+  );
+}
+
 function HeadBank({
   state,
   side,
@@ -294,7 +418,25 @@ function Bank({
 
   return (
     <group position={[sign * 0.37, 0.28, 0]} rotation={[0, 0, angle]}>
-      {/* Rails instead of a solid side wall. */}
+      {/* Machined outer shoulder gives the banks a real cast-engine silhouette. */}
+      <RoundedBox
+        args={[0.10, 0.34, 3.28]}
+        radius={0.03}
+        smoothness={4}
+        position={[0.40, 0.23, 0]}
+      >
+        <M state={state} color="#3d4852" type="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox
+        args={[0.10, 0.34, 3.28]}
+        radius={0.03}
+        smoothness={4}
+        position={[-0.40, 0.23, 0]}
+      >
+        <M state={state} color="#3d4852" type="CAST_ALUMINUM" />
+      </RoundedBox>
+
+            {/* Rails instead of a solid side wall. */}
       <RoundedBox args={[0.84, 0.10, 3.30]} radius={0.035} smoothness={5} position={[0, 0.50, 0]}>
         <M state={state} color={C.block} type="CAST_ALUMINUM" />
       </RoundedBox>
@@ -621,7 +763,7 @@ function Fasteners({
 
 export function V12UltimateCutaway(state: V12UltimateProps) {
   return (
-    <group rotation={[0.14, -0.56, 0.03]}>
+    <group rotation={[0.13, -1.02, 0.04]}>
       {/* Open crankcase framing: keep the viewing side clear. */}
       <RoundedBox args={[1.16, 0.12, 3.42]} radius={0.04} smoothness={5} position={[0, -0.24, 0]}>
         <M state={state} color={C.block} type="CAST_ALUMINUM" />
@@ -654,11 +796,16 @@ export function V12UltimateCutaway(state: V12UltimateProps) {
       <Accessories state={state} />
       <OilPan state={state} />
 
-      {/* Front flange and fasteners. */}
-      <RoundedBox args={[0.86, 0.76, 0.055]} radius={0.035} smoothness={4} position={[0, 0.02, 1.72]}>
+      {/* Compact machined front flange: details without blocking the crankshaft. */}
+      <RoundedBox args={[0.46, 0.54, 0.050]} radius={0.03} smoothness={4} position={[0, 0.02, 1.72]}>
         <M state={state} color="#46515f" type="CAST_ALUMINUM" />
       </RoundedBox>
-      <BoltRing state={state} count={12} radius={0.37} z={1.76} xScale={1.05} yScale={0.76} />
+      <BoltRing state={state} count={10} radius={0.23} z={1.75} xScale={1} yScale={0.82} boltRadius={0.012} />
+
+      <ValveCover state={state} side="left" />
+      <ValveCover state={state} side="right" />
+      <FlywheelEnd state={state} />
+      <MainCapBolts state={state} />
 
       {/* Small casting ribs. */}
       {[-1.18, -0.70, -0.22, 0.26, 0.74, 1.22].map((z) => (
