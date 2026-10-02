@@ -487,8 +487,8 @@ export function V12IndustrialCutaway(state: V12IndustrialCutawayProps) {
           <Steel state={state} color="#4c5660" materialType="CAST_ALUMINUM" />
         </Box>
       ))}
-      <FastenerField state={state} x={-0.55} y=-0.43 zStart={-1.42} count={7} spacing={0.47} radius={0.015} />
-      <FastenerField state={state} x={0.55} y=-0.43 zStart={-1.42} count={7} spacing={0.47} radius={0.015} />
+      <FastenerField state={state} x={-0.55} y={-0.43} zStart={-1.42} count={7} spacing={0.47} radius={0.015} />
+      <FastenerField state={state} x={0.55} y={-0.43} zStart={-1.42} count={7} spacing={0.47} radius={0.015} />
 
       <TimingDrive state={state} />
       <FrontAccessories state={state} />
