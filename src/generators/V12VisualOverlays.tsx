@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { CYLINDER_Z } from './MechanicalGenerator';
 import { useEngineTelemetry, V12_CYLINDER_OFFSETS, V12_BANK_MAP } from '../scientific/EngineKinematicsBus';
 
 interface V12VisualOverlaysProps {
@@ -28,30 +29,23 @@ export function V12VisualOverlays({
     for (let c = 1; c <= 12; c++) {
       const isBank1 = c <= 6;
       const indexInBank = isBank1 ? (c - 1) : (c - 7);
-      const zPos = -1.6 + indexInBank * 0.64;
-
-      if (isBank1) {
-        // Left Bank: tilted by +30° around Z
-        const xPos = -0.45;
-        const yPos = 0.55;
-        locs[c] = { pos: [xPos, yPos, zPos], rot: [0, 0, bankAngle], bank: 'L' };
-      } else {
-        // Right Bank: tilted by -30° around Z
-        const xPos = 0.45;
-        const yPos = 0.55;
-        locs[c] = { pos: [xPos, yPos, zPos], rot: [0, 0, -bankAngle], bank: 'R' };
-      }
+      const zPos = CYLINDER_Z[indexInBank] + (isBank1 ? -0.05 : 0.05);
+      // Point just above the piston crown, along the tilted bore axis (matches V12UltimateCutaway)
+      const axisY = 0.95;
+      const xPos = (isBank1 ? -1 : 1) * Math.sin(bankAngle) * axisY;
+      const yPos = Math.cos(bankAngle) * axisY;
+      locs[c] = { pos: [xPos, yPos, zPos], rot: [0, 0, isBank1 ? bankAngle : -bankAngle], bank: isBank1 ? 'L' : 'R' };
     }
     return locs;
   }, []);
 
   return (
-    <group name="v12_visual_overlays">
+    <group name="v12_visual_overlays" rotation={[0.13, -1.02, 0.04]} position={[0, -0.35, 0]}>
       {/* 1. CHARGE FLOW & COMBUSTION FLAME OVERLAYS */}
       {chargeFlowEnabled && (
         <group ref={flameGroupRef}>
           {/* Intake Airflow Streamlines entering dual carbon plenums in valley */}
-          <group position={[0, 1.25, 0]}>
+          <group position={[0, 1.58, 0]}>
             {[-1.2, -0.6, 0.0, 0.6, 1.2].map((z, idx) => (
               <mesh key={`streamline-l-${idx}`} position={[-0.32, 0, z]} rotation={[0, 0, 0.3]}>
                 <cylinderGeometry args={[0.015, 0.015, 0.4, 8]} />
