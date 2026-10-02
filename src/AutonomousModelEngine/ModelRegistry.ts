@@ -10,6 +10,26 @@ export class ModelRegistry {
   private static records: Map<string, AutonomousModelRecord> = new Map();
   private static geometries: Map<string, THREE.BufferGeometry> = new Map();
   private static lastModelId: string | null = null;
+  private static lazyBuilders: Map<string, () => Record<string, THREE.BufferGeometry>> = new Map();
+  private static lazyBuilt: Set<string> = new Set();
+
+  /**
+   * Registers a geometry builder for a canonical model id without running it yet. The build
+   * runs once, on first access from getGeometry/getGeometries/ensureBuilt — so heavy precision
+   * models (dense organic meshes, spline tubes) cost nothing at app startup and only pay their
+   * build time the first time a user actually opens that model.
+   */
+  public static registerLazyGeometries(modelId: string, builder: () => Record<string, THREE.BufferGeometry>): void {
+    this.lazyBuilders.set(modelId, builder);
+  }
+
+  private static ensureBuilt(modelId: string): void {
+    if (this.lazyBuilt.has(modelId)) return;
+    const builder = this.lazyBuilders.get(modelId);
+    if (!builder) return;
+    this.lazyBuilt.add(modelId);
+    this.registerGeometries(modelId, builder());
+  }
 
   /**
    * Registers a newly constructed autonomous model record.
@@ -31,6 +51,19 @@ export class ModelRegistry {
 
     // Register into SPATIAL_LIBRARY in-memory so spatial views, inspectors, and HUD can resolve it seamlessly
     SPATIAL_LIBRARY[record.id] = record.spatialObject;
+  }
+
+  /**
+   * Registers precision-built BufferGeometries for a canonical SPATIAL_LIBRARY id, independent
+   * of the AI-construction pipeline, so the render path finds them the instant an object is
+   * selected — whether that selection came from the assistant, the sidebar, or a comparator.
+   * Safe to call multiple times (e.g. module hot-reload); later calls simply overwrite.
+   */
+  public static registerGeometries(modelId: string, geometries: Record<string, THREE.BufferGeometry>): void {
+    for (const [compId, geom] of Object.entries(geometries)) {
+      this.geometries.set(`${modelId}:${compId}`, geom);
+      this.geometries.set(compId, geom);
+    }
   }
 
   /**
@@ -58,6 +91,7 @@ export class ModelRegistry {
    * Retrieves a cached BufferGeometry for a component.
    */
   public static getGeometry(modelId: string, compId: string): THREE.BufferGeometry | undefined {
+    this.ensureBuilt(modelId);
     return this.geometries.get(`${modelId}:${compId}`) || this.geometries.get(compId);
   }
 
@@ -65,6 +99,7 @@ export class ModelRegistry {
    * Retrieves all cached BufferGeometries for a model.
    */
   public static getGeometries(modelId: string): Record<string, THREE.BufferGeometry> {
+    this.ensureBuilt(modelId);
     const rec = this.records.get(modelId);
     const result: Record<string, THREE.BufferGeometry> = {};
     if (!rec) return result;

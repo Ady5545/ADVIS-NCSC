@@ -1,5 +1,6 @@
 import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIntelligence';
 import type { CadCertificationEvidence } from './cad/CadCertification';
+import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -1219,32 +1220,29 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       }
     },
     metadata: { heartRate: '72 BPM', cardiacOutput: '5.0 L/min', chambers: '4 Chambers' },
-    animations: ['cardiacPulsation', 'valveCycle', 'explodedView'],
-    explodedParts: ['left_ventricle', 'right_ventricle', 'aorta', 'pulmonary_artery', 'vena_cava'],
+    animations: ['cardiacPulsation', 'valveCycle', 'explodedView', 'conductionSweep'],
+    explodedParts: ['left_ventricle', 'right_ventricle', 'left_atrium', 'right_atrium', 'aorta', 'pulmonary_artery', 'vena_cava', 'pulmonary_veins', 'coronary_arteries', 'heart_valves', 'conduction_system'],
     educationalInformation: {
-      overview: 'The human heart is a hollow muscular organ located in the middle mediastinum. It continuously pumps blood through the circulatory system via rhythmic contractions.',
+      overview: 'The human heart is a fist-sized, four-chambered muscular pump in the middle mediastinum. Two atria receive blood, two ventricles expel it, and a specialised electrical system drives roughly 100,000 coordinated beats a day.',
       keyFeatures: [
-        'Four Chambers: Right/Left Atria and Right/Left Ventricles',
-        'Atrioventricular & Semilunar Valves preventing backflow',
-        'Sinoatrial (SA) Node - Natural Cardiac Pacemaker',
-        'Dual Coronary Artery System providing myocardial oxygen'
+        'Four Chambers: Right/Left Atria and Right/Left Ventricles, separated by the interatrial and interventricular septa',
+        'Four Valves: Tricuspid, Mitral, Pulmonary and Aortic — all one-way, timed by pressure, not nerves',
+        'Conduction System: SA node → atria → AV node (0.1 s delay) → Bundle of His → Purkinje fibres',
+        'Dual Coronary Circulation: Left (LAD + Circumflex) and Right coronary arteries supply the myocardium itself',
+        'Pulmonary vs Systemic Circuits: right heart drives the lungs at low pressure, left heart drives the body at high pressure'
       ],
-      workingPrinciple: 'Rhythmic electrical impulses originate at the SA node, spreading across atrial muscle to contract atria (Diastole), then through the AV node down bundle branches to trigger ventricular pumping (Systole).',
-      applications: ['Medical Student Cardiology Training', 'Patient Surgical Counseling', 'Biomedical Engineering'],
+      workingPrinciple: 'Rhythmic electrical impulses originate at the SA node, sweep across the atria causing them to contract (atrial systole), pause briefly at the AV node, then race down the bundle branches and Purkinje fibres so both ventricles contract together (ventricular systole), closing the AV valves (S1) and opening the semilunar valves to eject blood; as ventricular pressure falls below arterial pressure the semilunar valves snap shut (S2) and the cycle resets.',
+      applications: ['Medical & nursing student cardiology training', 'Patient and surgical counselling', 'Biomedical engineering & device design', 'ECG/conduction-system teaching'],
       specifications: {
-        'Average Weight': '300 grams',
-        'Pumping Rate': '60-100 Beats Per Minute',
-        'Daily Blood Volume': '7,200 Liters (1,900 gallons)',
-        'Systolic Pressure': '120 mmHg'
+        'Average Weight': '250–350 grams',
+        'Pumping Rate': '60–100 Beats Per Minute',
+        'Cardiac Output': '~5 L/min at rest',
+        'Daily Blood Volume': '~7,200 Liters (1,900 gallons)',
+        'Systolic / Diastolic Pressure (LV)': '120 / 0–8 mmHg',
+        'Total Beats Per Day': '~100,000'
       }
     },
-    components: [
-      { id: 'left_ventricle', name: 'Left Ventricle Chamber', description: 'Thick muscular wall pumping oxygenated blood into high-pressure systemic circulation.', position: [0, -0.2, 0.1], size: [0.7, 0.8, 0.7], explodedOffset: [-0.6, -0.4, 0.3], shape: 'sphere', color: '#be123c' },
-      { id: 'right_ventricle', name: 'Right Ventricle Chamber', description: 'Pumps deoxygenated return blood through pulmonary valve into lungs.', position: [0.3, -0.1, 0.2], size: [0.6, 0.7, 0.6], explodedOffset: [0.6, -0.4, 0.3], shape: 'sphere', color: '#9f1239' },
-      { id: 'aorta', name: 'Ascending Aortic Arch', description: 'Main arterial trunk distributing oxygen-rich blood throughout entire body.', position: [0.1, 0.7, -0.1], size: [0.35, 0.8, 0.35], explodedOffset: [0, 0.9, -0.3], shape: 'cylinder', color: '#f43f5e' },
-      { id: 'pulmonary_artery', name: 'Pulmonary Trunk Artery', description: 'Carries deoxygenated blood from right ventricle to left and right lungs.', position: [-0.2, 0.6, 0.2], size: [0.3, 0.7, 0.3], explodedOffset: [-0.5, 0.8, 0.4], shape: 'cylinder', color: '#1d4ed8' },
-      { id: 'vena_cava', name: 'Superior Vena Cava', description: 'Large vein delivering deoxygenated blood from upper body into right atrium.', position: [0.4, 0.6, -0.2], size: [0.25, 0.7, 0.25], explodedOffset: [0.6, 0.7, -0.4], shape: 'cylinder', color: '#2563eb' }
-    ]
+    components: HEART_COMPONENTS
   },
 
   human_brain: {

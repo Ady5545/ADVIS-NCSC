@@ -16,6 +16,7 @@ import { ModelRegistry } from './ModelRegistry';
 import { ModelProvenanceEngine } from './ModelProvenance';
 import { RenderIntegrityGuard } from './RenderIntegrityGuard';
 import { ModelFidelity, FidelityEvaluationReport } from './ModelFidelity';
+import './precision/bootstrap';
 
 export interface BuildResult {
   record: AutonomousModelRecord;

@@ -1407,36 +1407,6 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
   if (id === 'v12.lubrication_system') return <LubricationSystem {...generatorProps} />;
   if (id === 'v12.electronics_sensors') return <ElectronicsSensors {...generatorProps} />;
 
-  if (id === 'left_ventricle' || id === 'right_ventricle') {
-    return (
-      <group>
-        <Sphere args={[size[0] / 2, 32, 32]}>
-          <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
-        </Sphere>
-        {[...Array(4)].map((_, i) => (
-          <mesh key={`cv-${i}`} position={[(i - 1.5) * 0.08, (i % 2 === 0 ? 0.1 : -0.1), size[0]/2 + 0.01]} rotation={[0, 0, (i - 1.5) * 0.3]}>
-            <cylinderGeometry args={[0.015, 0.008, 0.35, 8]} />
-            <HolographicMaterial baseColor="#f43f5e" isHovered={isHovered} isSelected={isSelected} />
-          </mesh>
-        ))}
-      </group>
-    );
-  }
-
-  if (id === 'aorta' || id === 'pulmonary_artery' || id === 'vena_cava') {
-    return (
-      <group>
-        <Cylinder args={[size[0] / 2, size[0] / 2, size[1], 24]}>
-          <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
-        </Cylinder>
-        <mesh position={[0, size[1]/2 + 0.08, 0.08]} rotation={[0.4, 0, 0.3]}>
-          <cylinderGeometry args={[size[0]/3, size[0]/3, 0.2, 16]} />
-          <HolographicMaterial baseColor={baseColor} isHovered={isHovered} isSelected={isSelected} />
-        </mesh>
-      </group>
-    );
-  }
-
   // 9. Brake Disc & Caliper
   if (id === 'brake_rotor') {
     return (
@@ -1714,11 +1684,35 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
   if (cachedGeom) {
     const hasVertexColors = Boolean(cachedGeom.attributes.color);
     const matType = (comp as any).materialType || comp.specifications?.['Material'] || (comp as any).engineeringDetails?.material;
+    // Precision-authored components (ProceduralToolkit.merge) stash their intended PBR response
+    // (tissue sheen, vessel gloss, glowing conduction fibers…) on geometry.userData.pbr so one
+    // generic "metallic engineering part" material doesn't get slapped on an organic model.
+    const pbr = (cachedGeom.userData as any)?.pbr as
+      | { roughness: number; metalness: number; clearcoat?: number; clearcoatRoughness?: number; sheen?: number; emissive?: string; emissiveIntensity?: number }
+      | undefined;
+    const pbrSide = (cachedGeom.userData as any)?.doubleSided ? THREE.DoubleSide : THREE.FrontSide;
     return (
       <group>
         <mesh geometry={cachedGeom}>
           {hasVertexColors ? (
-            <meshPhysicalMaterial vertexColors roughness={0.28} metalness={0.25} clearcoat={0.18} clearcoatRoughness={0.16} envMapIntensity={1.35} wireframe={blueprintEnabled} />
+            pbr ? (
+              <meshPhysicalMaterial
+                vertexColors
+                roughness={pbr.roughness}
+                metalness={pbr.metalness}
+                clearcoat={pbr.clearcoat ?? 0}
+                clearcoatRoughness={pbr.clearcoatRoughness ?? 0.3}
+                sheen={pbr.sheen ?? 0}
+                sheenRoughness={0.6}
+                emissive={pbr.emissive ?? '#000000'}
+                emissiveIntensity={pbr.emissiveIntensity ?? 0}
+                envMapIntensity={1.2}
+                wireframe={blueprintEnabled}
+                side={pbrSide}
+              />
+            ) : (
+              <meshPhysicalMaterial vertexColors roughness={0.28} metalness={0.25} clearcoat={0.18} clearcoatRoughness={0.16} envMapIntensity={1.35} wireframe={blueprintEnabled} />
+            )
           ) : (
             <TechMaterial color={baseColor} roughness={0.4} metalness={0.7} isHovered={isHovered} isSelected={isSelected} materialType={matType} />
           )}
