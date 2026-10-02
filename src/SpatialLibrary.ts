@@ -1073,6 +1073,126 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     ]
   },
 
+  pmsm_motor: {
+    id: 'pmsm_motor',
+    name: 'Permanent-Magnet Synchronous Motor',
+    path: 'procedural/electrical/pmsm',
+    assetPath: 'procedural/electrical/pmsm',
+    modelStatus: 'AVAILABLE',
+    category: 'Mechanical Engineering',
+    description: 'A radial-flux permanent-magnet synchronous motor showing the stator, rotor, magnet ring, shaft, bearings, cooling ribs, and terminal housing as a serviceable assembly.',
+    defaultScale: 1.1,
+    educationalInformation: {
+      overview: 'Interactive cutaway-style motor assembly for studying electromagnetic torque production, rotating magnetic fields, thermal management, and mechanical power transfer.',
+      keyFeatures: [
+        'Laminated stator body and winding region',
+        'Permanent-magnet rotor assembly',
+        'Central drive shaft and bearing interfaces',
+        'Cooled cylindrical housing and service terminal'
+      ],
+      workingPrinciple: 'Three-phase stator excitation creates a rotating magnetic field that synchronizes with the permanent-magnet rotor, producing electromagnetic torque on the shaft.',
+      applications: ['Electric Vehicles', 'Robotics', 'Industrial Motion Control'],
+      specifications: {
+        'Machine Type': 'Radial-flux permanent-magnet synchronous motor',
+        'Primary Subsystems': 'Stator, rotor, magnets, shaft, housing, bearings',
+        'Inspection Focus': 'Electromagnetic and mechanical power path'
+      }
+    },
+    components: [
+      { id: 'pmsm.stator_rotor', name: 'Stator, Rotor & Housing Assembly', description: 'High-detail motor body with cooling ribs, stator slot region, permanent magnets, shaft, end plates, and service terminal housing.', position: [0, 0, 0], size: [1.1, 1.1, 1.3], explodedOffset: [0, 0.65, 0], shape: 'cylinder', color: '#374151', engineeringDetails: { material: 'Electrical steel, copper, permanent-magnet rotor, aluminum/steel housing' } }
+    ]
+  },
+
+  planetary_gearset: {
+    id: 'planetary_gearset',
+    name: 'Planetary Gearset',
+    path: 'procedural/transmission/planetary',
+    assetPath: 'procedural/transmission/planetary',
+    modelStatus: 'AVAILABLE',
+    category: 'Mechanical Engineering',
+    description: 'A detailed planetary transmission element with ring gear, sun gear, three planet gears, carrier plates, and planet pins.',
+    defaultScale: 1.2,
+    educationalInformation: {
+      overview: 'Interactive gear-train model for studying coaxial power transmission, speed relationships, torque multiplication, and differential motion.',
+      keyFeatures: [
+        'Internal ring gear and external sun gear',
+        'Three equally spaced planet gears',
+        'Planet carrier and support pins',
+        'Layered retaining plates for assembly inspection'
+      ],
+      workingPrinciple: 'A planetary gearset distributes torque among multiple meshing gears. Holding, driving, or coupling the sun, ring, or carrier changes the resulting speed and torque relationship.',
+      applications: ['Automatic Transmissions', 'Robotics', 'Industrial Gearboxes'],
+      specifications: {
+        'Architecture': 'Sun, planet, ring and carrier',
+        'Planet Count': '3',
+        'Primary Behavior': 'Coaxial multi-ratio torque transmission'
+      }
+    },
+    components: [
+      { id: 'planetary.gearset', name: 'Complete Planetary Gearset', description: 'Ring gear, sun gear, three planet gears, carrier ring, support pins, and retaining plates arranged on one coaxial centerline.', position: [0, 0, 0], size: [1.6, 0.7, 1.6], explodedOffset: [0, 0.6, 0], shape: 'torus', color: '#4b5563', engineeringDetails: { material: 'Hardened alloy-steel gearset with bronze-colored carrier hardware' } }
+    ]
+  },
+
+  jet_engine_core: {
+    id: 'jet_engine_core',
+    name: 'Axial-Flow Jet Engine Core',
+    path: 'procedural/aerospace/jet_engine_core',
+    assetPath: 'procedural/aerospace/jet_engine_core',
+    modelStatus: 'AVAILABLE',
+    category: 'Mechanical Engineering',
+    description: 'A sectional axial-flow engine core emphasizing compressor stages, combustor region, turbine stages, shaft line, and casing interfaces.',
+    defaultScale: 0.95,
+    educationalInformation: {
+      overview: 'High-detail educational engine core showing the continuous gas path from compressor through combustor and turbine sections.',
+      keyFeatures: [
+        'Multi-stage axial compressor region',
+        'Annular combustor representation',
+        'Multi-stage turbine region',
+        'Central shaft and outer pressure casing'
+      ],
+      workingPrinciple: 'Incoming air is compressed through rotating and stationary stages, mixed with fuel for combustion, and expanded through turbines that extract shaft work to drive the compressor.',
+      applications: ['Aerospace Engineering', 'Gas Turbine Education', 'Thermodynamic Cycle Demonstration'],
+      specifications: {
+        'Architecture': 'Axial-flow compressor / combustor / turbine',
+        'Primary Sections': 'Compression, combustion, expansion',
+        'Inspection Focus': 'Continuous gas path and shaft line'
+      }
+    },
+    components: [
+      { id: 'jetengine.core', name: 'Jet Engine Core Assembly', description: 'Layered axial-flow core with compressor rotors, combustor region, turbine stages, casing, and center shaft.', position: [0, 0, 0], size: [1.4, 2.5, 1.4], explodedOffset: [0, 0.7, 0], shape: 'cylinder', color: '#475569', engineeringDetails: { material: 'Nickel-based high-temperature alloy and stainless-steel style casing surfaces' } }
+    ]
+  },
+
+  hydraulic_pump: {
+    id: 'hydraulic_pump',
+    name: 'Hydraulic Pump Assembly',
+    path: 'procedural/fluid/hydraulic_pump',
+    assetPath: 'procedural/fluid/hydraulic_pump',
+    modelStatus: 'AVAILABLE',
+    category: 'Mechanical Engineering',
+    description: 'A detailed compact hydraulic pump visualization with housing, shaft, internal pumping elements, service ports, retaining hardware, and case ribs.',
+    defaultScale: 1.25,
+    educationalInformation: {
+      overview: 'Service-oriented pump model for exploring mechanical drive input, fluid inlet and outlet paths, housing structure, and internal pumping hardware.',
+      keyFeatures: [
+        'Machined pump housing',
+        'Driven shaft and coupling interface',
+        'Internal pumping-element region',
+        'Service ports, fasteners, and case reinforcement'
+      ],
+      workingPrinciple: 'Mechanical shaft rotation moves an internal pumping element that draws hydraulic fluid through the inlet and delivers pressurized fluid through the outlet.',
+      applications: ['Mobile Hydraulics', 'Industrial Power Units', 'Fluid Power Training'],
+      specifications: {
+        'Primary Sections': 'Housing, shaft, pumping element, inlet and outlet',
+        'Inspection Focus': 'Mechanical drive and fluid path',
+        'Model Type': 'Procedural engineering visualization'
+      }
+    },
+    components: [
+      { id: 'hydraulic_pump.core', name: 'Hydraulic Pump Core Assembly', description: 'Detailed housing, shaft, pumping-element rings, inlet/outlet ports, fasteners, and case ribs.', position: [0, 0, 0], size: [1.2, 0.9, 1.0], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#4b5563', engineeringDetails: { material: 'Machined steel/aluminum-style housing with bronze pumping-element surfaces' } }
+    ]
+  },
+
   // Human Anatomy Library
   human_heart: {
     id: 'human_heart',
