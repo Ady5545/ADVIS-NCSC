@@ -47,7 +47,8 @@
     "typescript": "^7.0.2",
     "vite": "^6.4.3",
     "@theatre/core": "^0.7.2",
-    "@theatre/r3f": "^0.7.2"
+    "@theatre/r3f": "^0.7.2",
+    "occt-wasm": "^3.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
