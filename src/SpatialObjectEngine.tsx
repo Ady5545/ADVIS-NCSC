@@ -1,5 +1,6 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
+import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
 import { EngineKinematicsBus } from './scientific/EngineKinematicsBus';
@@ -755,6 +756,8 @@ function EngineeringComponentRenderer({
   xrayEnabled,
   blueprintEnabled,
   isHighlighted,
+  lodTier,
+  isMagnifierFocused,
   v12Rpm,
   v12Direction,
   sysTimeRef,
@@ -768,13 +771,31 @@ function EngineeringComponentRenderer({
   xrayEnabled?: boolean;
   blueprintEnabled?: boolean;
   isHighlighted?: boolean;
+  lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
+  isMagnifierFocused?: boolean;
   v12Rpm?: number;
   v12Direction?: number;
   sysTimeRef?: React.MutableRefObject<number> | null;
   focusedCylinder?: number;
   crankAngleRef?: React.MutableRefObject<number> | null;
 }) {
-  const { id, shape, size, color, assetPath, assetScale } = comp;
+  const { id, shape, size, color, assetPath, assetScale, cadAssetPath } = comp;
+
+  if (cadAssetPath) {
+    return (
+      <CadAssetRenderer
+        url={cadAssetPath}
+        scale={assetScale || 1}
+        xrayEnabled={xrayEnabled}
+        blueprintEnabled={blueprintEnabled}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        isHighlighted={isHighlighted}
+        lodTier={lodTier || 'HIGH'}
+        magnifier={Boolean(isMagnifierFocused)}
+      />
+    );
+  }
   
   if (assetPath) {
     const isLargeModel = assetPath.includes('heliomotion');
@@ -2899,6 +2920,8 @@ export function SpatialObjectEngine({
                             isHighlighted={isHighlighted}
                             v12Rpm={v12RpmRef.current}
                             v12Direction={v12DirectionRef.current}
+                            lodTier={lodTier}
+                            isMagnifierFocused={isMagnifierFocused}
                             sysTimeRef={sysTimeRef}
                             focusedCylinder={focusedCylinderRef.current}
                             crankAngleRef={kinematicAngleRef}
