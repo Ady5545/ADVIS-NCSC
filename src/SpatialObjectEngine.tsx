@@ -1,4 +1,5 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
+import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
 import { EngineKinematicsBus } from './scientific/EngineKinematicsBus';
@@ -1293,6 +1294,14 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     );
   }
 
+
+  const advancedModel = renderAdvancedEngineeringModel(id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (advancedModel) return advancedModel;
 
   const generatorProps = {
     isHovered,
