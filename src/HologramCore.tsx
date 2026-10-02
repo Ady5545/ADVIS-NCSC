@@ -117,32 +117,47 @@ function createRadialDataGeometry(): Float32Array {
 
 function createEnergyFilamentGeometry(): Float32Array {
   const points: number[] = [];
-  const random = deterministicRandom(0xF17A6);
-  const filaments = 240;
+  const random = deterministicRandom(0xB17E5);
+  const filaments = 420;
 
   for (let i = 0; i < filaments; i++) {
     const theta = random() * TAU;
     const phi = Math.acos(2 * random() - 1);
-    const inner = 1.0 + random() * 0.55;
-    const outer = 2.15 + random() * 2.0;
-    const wobble = (random() - 0.5) * 0.22;
+    const inner = 0.86 + random() * 0.52;
+    const outer = 2.25 + random() * 2.35;
+
     const direction = new THREE.Vector3(
       Math.sin(phi) * Math.cos(theta),
       Math.cos(phi),
       Math.sin(phi) * Math.sin(theta)
     ).normalize();
 
-    const tangent = new THREE.Vector3(-direction.z, 0.25, direction.x).normalize();
+    const tangent = new THREE.Vector3(-direction.z, 0.22, direction.x).normalize();
+    const bitangent = new THREE.Vector3().crossVectors(direction, tangent).normalize();
+    const wobbleA = (random() - 0.5) * 0.20;
+    const wobbleB = (random() - 0.5) * 0.34;
+    const wobbleC = (random() - 0.5) * 0.18;
+
     const start = direction.clone().multiplyScalar(inner);
     const end = direction.clone().multiplyScalar(outer);
-
-    const p1 = start.clone().addScaledVector(tangent, wobble);
-    const p2 = start.clone().lerp(end, 0.45).addScaledVector(tangent, wobble * 1.8);
-    const p3 = end.clone().addScaledVector(tangent, wobble * 0.3);
+    const p1 = start.clone().lerp(end, 0.20)
+      .addScaledVector(tangent, wobbleA)
+      .addScaledVector(bitangent, wobbleB * 0.40);
+    const p2 = start.clone().lerp(end, 0.43)
+      .addScaledVector(tangent, wobbleB)
+      .addScaledVector(bitangent, wobbleC);
+    const p3 = start.clone().lerp(end, 0.68)
+      .addScaledVector(tangent, -wobbleA * 1.55)
+      .addScaledVector(bitangent, wobbleB * 0.75);
+    const p4 = end.clone()
+      .addScaledVector(tangent, wobbleC)
+      .addScaledVector(bitangent, -wobbleA * 0.55);
 
     points.push(start.x, start.y, start.z, p1.x, p1.y, p1.z);
     points.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
     points.push(p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+    points.push(p3.x, p3.y, p3.z, p4.x, p4.y, p4.z);
+    points.push(p4.x, p4.y, p4.z, end.x, end.y, end.z);
   }
 
   return new Float32Array(points);
@@ -258,10 +273,10 @@ export function HologramCore({
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(1600, 2.7, 4.8, 0xFF8A00, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(1100, 2.05, 3.7, 0xFFB020, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(520, 1.05, 2.4, 0xFF6A00, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(900, 0.78, 1.75, 0xFFF0C4, 0.30), []);
+  const outerParticles = useMemo(() => createParticleCloud(2200, 2.7, 5.0, 0x48D7FF, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(1500, 2.05, 3.9, 0x1677FF, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(760, 1.02, 2.45, 0x2AC5FF, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(1200, 0.74, 1.82, 0xF2FDFF, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
