@@ -449,6 +449,70 @@ function ExhaustBank({
   );
 }
 
+function Crankshaft({
+  state,
+}: {
+  state: V12UltimateProps;
+}) {
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    const rpm = typeof state.v12Rpm === 'number' ? state.v12Rpm : 600;
+    const angle =
+      state.crankAngleRef?.current ??
+      clock.elapsedTime * (rpm / 60) * Math.PI * 2;
+    if (ref.current) {
+      ref.current.rotation.z = angle * (state.v12Direction === -1 ? -1 : 1);
+    }
+  });
+
+  return (
+    <group ref={ref}>
+      <Cylinder args={[0.070, 0.070, 3.50, 36]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#9ba6af" type="FORGED_STEEL" />
+      </Cylinder>
+
+      {[-1.53, -1.02, -0.51, 0, 0.51, 1.02, 1.53].map((z) => (
+        <group key={z} position={[0, 0, z]}>
+          <Cylinder args={[0.118, 0.118, 0.10, 36]} rotation={[Math.PI / 2, 0, 0]}>
+            <M state={state} color="#c7ced4" type="MACHINED_BILLET" />
+          </Cylinder>
+          <Torus args={[0.117, 0.020, 10, 38]} rotation={[Math.PI / 2, 0, 0]}>
+            <M state={state} color="#58636d" type="FORGED_STEEL" />
+          </Torus>
+        </group>
+      ))}
+
+      {CYLINDER_Z.map((z, i) => {
+        const phase = CRANK_OFFSETS[i];
+        const px = Math.sin(phase) * 0.18;
+        const py = Math.cos(phase) * 0.18;
+        return (
+          <group key={i} position={[0, 0, z]}>
+            {[-0.085, 0.085].map((offset) => (
+              <Cylinder
+                key={offset}
+                args={[0.265, 0.265, 0.055, 40]}
+                position={[px * 0.45, py * 0.45, offset]}
+                rotation={[Math.PI / 2, 0, phase]}
+              >
+                <M state={state} color="#56616a" type="FORGED_STEEL" />
+              </Cylinder>
+            ))}
+            <Cylinder
+              args={[0.066, 0.066, 0.20, 28]}
+              rotation={[Math.PI / 2, 0, 0]}
+              position={[px, py, 0]}
+            >
+              <M state={state} color="#d8dfe4" type="CHROME" />
+            </Cylinder>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function MainBearingStructure({
   state,
 }: {
@@ -627,7 +691,7 @@ function OilPan({
   );
 }
 
-export function V12UltimateCutaway(state: V12UltimateProps) {
+export function V12RealisticCutaway(state: V12UltimateProps) {
   return (
     <group rotation={[0.10, -1.10, 0.035]}>
       {/* Deep central crankcase: continuous structure behind the cutaway banks. */}
