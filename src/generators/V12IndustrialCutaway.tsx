@@ -74,6 +74,84 @@ function SpringPack({ state, position, focused = false }: { state: V12Industrial
   );
 }
 
+function ValveSpring({
+  state,
+  position,
+  focused,
+}: {
+  state: V12IndustrialCutawayProps;
+  position: [number, number, number];
+  focused: boolean;
+}) {
+  return (
+    <SpringPack
+      state={state}
+      position={position}
+      focused={focused}
+    />
+  );
+}
+
+function Camshaft({
+  state,
+  side,
+  lateral,
+  y,
+  camOffset,
+}: {
+  state: V12IndustrialCutawayProps;
+  side: Side;
+  lateral: number;
+  y: number;
+  camOffset: number;
+}) {
+  const sign = side === 'left' ? -1 : 1;
+
+  return (
+    <group position={[sign * lateral, y, 0]}>
+      <Cylinder
+        args={[0.048, 0.048, 3.16, 30]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
+        <Steel state={state} color="#c3cbd2" materialType="FORGED_STEEL" />
+      </Cylinder>
+
+      {CYLINDER_Z.map((z, i) => (
+        <group key={i} position={[0, 0, z]}>
+          {[-0.052, 0.052].map((zOffset, lobe) => (
+            <RoundedBox
+              key={lobe}
+              args={[0.11, 0.085, 0.14]}
+              radius={0.018}
+              smoothness={3}
+              position={[
+                0.032 * Math.cos(camOffset + i * 0.19 + lobe),
+                0.022 * Math.sin(camOffset + i * 0.23 + lobe),
+                zOffset,
+              ]}
+              rotation={[0, camOffset + i * 0.20 + lobe * 0.38, 0]}
+            >
+              <Steel
+                state={state}
+                color="#69737d"
+                materialType="MACHINED_BILLET"
+              />
+            </RoundedBox>
+          ))}
+
+          <Torus args={[0.060, 0.010, 10, 32]}>
+            <Steel
+              state={state}
+              color="#d4dae0"
+              materialType="CHROME"
+            />
+          </Torus>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 function ValveTrainBank({
   state,
   side,
