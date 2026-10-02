@@ -425,8 +425,6 @@ export function HydraulicPumpAssembly(state: AdvancedEngineeringModelProps) {
         <DetailMaterial {...state} baseColor="#111827" metalness={0.55} roughness={0.28} />
       </Torus>
       <BearingStack radius={0.14} innerRadius={0.065} depth={0.10} y={0.40} state={state} />
-        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.97} roughness={0.15} />
-      </Cylinder>
 
       <Torus args={[0.22, 0.05, 16, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.10]}>
         <DetailMaterial {...state} baseColor="#b45309" metalness={0.86} roughness={0.28} />
@@ -589,8 +587,6 @@ export function GearboxAssembly(state: AdvancedEngineeringModelProps) {
         <DetailMaterial {...state} baseColor="#111827" metalness={0.45} roughness={0.35} />
       </Torus>
       <BearingStack radius={0.13} innerRadius={0.06} depth={0.10} y={0} state={state} />
-        <DetailMaterial {...state} baseColor="#c4b454" metalness={0.8} roughness={0.30} />
-      </Cylinder>
       <RadialBoltCircle count={8} radius={0.50} y={0.45} state={state} />
       <RadialBoltCircle count={8} radius={0.50} y={-0.45} state={state} />
     </group>
