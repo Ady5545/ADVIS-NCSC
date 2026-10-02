@@ -241,7 +241,7 @@ function HeadBank({
             ))}
 
             <Cylinder args={[0.031, 0.031, 0.14, 18]} position={[0, 0.27, -0.02]}>
-              <M state={state} color=C.chrome type="CHROME" />
+              <M state={state} color={C.chrome} type="CHROME" />
             </Cylinder>
           </group>
         );
@@ -538,7 +538,7 @@ function CoolingAndAccessories({
           <M state={state} color="#242a30" type="RUBBER" />
         </Torus>
         <Cylinder args={[0.11, 0.11, 0.15, 8]} rotation={[Math.PI / 2, 0, 0]}>
-          <M state={state} color=C.chrome type="CHROME" />
+          <M state={state} color={C.chrome} type="CHROME" />
         </Cylinder>
       </group>
 
