@@ -55,6 +55,7 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'metadata' | 'components' | 'limits' | 'maintenance' | 'tools'>('metadata');
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
+  const [componentSearch, setComponentSearch] = useState('');
 
   const selectedComponentId = externalSelectedId !== undefined ? externalSelectedId : internalSelectedId;
   const setSelectedComponentId = (id: string | null) => {
@@ -69,6 +70,13 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
   const objectMeta = objectKey ? SPATIAL_LIBRARY[objectKey] : null;
   const engMeta = objectMeta?.engineeringMetadata;
   const components = objectMeta?.components || [];
+  const normalizedComponentSearch = componentSearch.trim().toLowerCase();
+  const filteredComponents = normalizedComponentSearch
+    ? components.filter((component) =>
+        [component.name, component.id, component.category || '', component.description]
+          .some((value) => value.toLowerCase().includes(normalizedComponentSearch))
+      )
+    : components;
 
   const selectedComp = components.find(c => c.id === selectedComponentId) || components[0];
 
@@ -357,12 +365,20 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
             {/* Hierarchical Component Tree */}
             <div className="bg-slate-900/60 border border-cyan-500/20 p-3 rounded-xl space-y-3 flex flex-col">
               <div className="text-[10px] text-cyan-400/60 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-cyan-400" /> Component Hierarchy ({components.length})
+                <Layers className="w-3.5 h-3.5 text-cyan-400" /> Component Hierarchy ({filteredComponents.length}/{components.length})
               </div>
+              <input
+                type="search"
+                value={componentSearch}
+                onChange={(e) => setComponentSearch(e.target.value)}
+                placeholder="Find component by name, ID, or category…"
+                aria-label="Search engineering components"
+                className="w-full bg-slate-950/80 border border-cyan-500/30 focus:border-cyan-400 rounded-lg px-3 py-2 text-xs text-cyan-100 placeholder:text-cyan-500/40 outline-none"
+              />
               <div className="space-y-3 overflow-y-auto max-h-64 pr-1">
                 <div className="space-y-1">
                   <div className="text-[9px] text-cyan-400/70 uppercase tracking-wider font-semibold px-1">▼ Mechanical & Subsystem Tree</div>
-                  {components.map((comp) => {
+                  {filteredComponents.map((comp) => {
                     const isSelected = selectedComp?.id === comp.id;
                     return (
                       <button
@@ -375,6 +391,11 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
                       </button>
                     );
                   })}
+                  {filteredComponents.length === 0 && (
+                    <div className="px-3 py-5 text-center text-[11px] text-cyan-400/60 border border-dashed border-cyan-500/20 rounded-lg">
+                      No components match “{componentSearch.trim()}”. Try a different name or ID.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -496,7 +517,10 @@ export const EngineeringInspector: React.FC<EngineeringInspectorProps> = ({
                         if (!onUpdateComponentTransform) return;
                         const next = { ...currentTransform };
                         const nextArr = [...next[type]] as [number, number, number];
-                        nextArr[axisIdx] = val;
+                        const safeValue = Number.isFinite(val)
+                          ? (type === 'scale' ? Math.min(5, Math.max(0.1, val)) : val)
+                          : (type === 'scale' ? 1 : 0);
+                        nextArr[axisIdx] = safeValue;
                         next[type] = nextArr;
                         onUpdateComponentTransform(selectedComp.id, next);
                       };
