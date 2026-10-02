@@ -30,8 +30,6 @@ import { V12EngineController } from './components/v12/V12EngineController';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
-import { TheatreSceneProvider } from './theatre/TheatreSceneProvider';
-import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -284,7 +282,6 @@ function AppContent() {
   };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
-    stopAllTheatrePresentations();
     setSpatialMode(newMode);
 
     if (newMode === 'INSPECTION') {
@@ -309,9 +306,9 @@ function AppContent() {
         : currentSpatialObject === 'v12_engine';
 
       if (isV12Demo) {
-        void playV12Presentation();
+
       } else if (sessionMolecule.isSessionActive && !!sessionMolecule.molecule) {
-        void playMoleculePresentation();
+
       }
     }
   };
@@ -1297,7 +1294,6 @@ function AppContent() {
           eventSource={containerRef as any}
           eventPrefix="client"
         >
-          <TheatreSceneProvider>
           {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
           <EnvironmentErrorBoundary>
             <React.Suspense fallback={null}>
@@ -1394,7 +1390,6 @@ function AppContent() {
             />
             <Noise opacity={0.012} />
           </EffectComposer>
-          </TheatreSceneProvider>
         </Canvas>
       </div>
 
