@@ -1581,7 +1581,11 @@ export function getCadCertificationForObject(id: string) {
         : /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(object.id + ' ' + object.category)
           ? 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE' as const
           : 'CAD_GRADE_PROCEDURAL' as const,
-    sourceFormat: hasSourceCad ? 'CAD_SOURCE' as const : hasGltf ? 'GLTF' as const : 'PROCEDURAL' as const,
+    sourceFormat: hasSourceCad
+      ? (extension === '.brep' || extension === '.brp' ? 'BREP' : extension === '.stp' ? 'STP' : 'STEP') as const
+      : hasGltf
+        ? 'GLTF' as const
+        : 'PROCEDURAL' as const,
     sourcePath: sourcePath || undefined,
     exactBRepEvidence: hasSourceCad,
     occtValidated: hasSourceCad,
