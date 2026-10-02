@@ -623,7 +623,7 @@ export function HologramCore({
         <primitive object={materials.radial} attach="material" />
       </lineSegments>
 
-      {/* 5b — ultra-fine surface circuit traces visible at close range */>
+      {/* 5b — ultra-fine surface circuit traces visible at close range */}
       <lineSegments ref={circuitRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[surfaceCircuit, 3]} />
