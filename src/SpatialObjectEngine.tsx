@@ -409,49 +409,142 @@ function ElectronCloud() {
 
 function HydrogenAtom() {
   const group = useRef<THREE.Group>(null);
+
+  const electronCloud = useMemo(() => {
+    const points: number[] = [];
+    for (let i = 0; i < 2600; i++) {
+      const u = Math.max(1e-6, Math.random());
+      const radius = Math.min(2.5, Math.sqrt(-2 * Math.log(u)) * 0.7);
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      points.push(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.sin(phi) * Math.sin(theta),
+        radius * Math.cos(phi),
+      );
+    }
+    return new Float32Array(points);
+  }, []);
+
   useFrame(({ clock }) => {
     if (group.current) {
-      group.current.rotation.y = clock.getElapsedTime() * 0.5;
+      group.current.rotation.y = clock.getElapsedTime() * 0.08;
+      group.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.18) * 0.06;
     }
   });
+
   return (
     <group ref={group}>
-      <Sphere args={[0.2, 16, 16]} position={[0,0,0]}>
-        <meshBasicMaterial color="#ef4444" transparent opacity={0.9} />
+      {/* Conceptual 1s probability-density volume: translucent shells + sampled density. */}
+      <Sphere args={[1.75, 48, 48]}>
+        <meshBasicMaterial color="#06b6d4" transparent opacity={0.025} depthWrite={false} />
       </Sphere>
-      <Torus args={[2, 0.01, 16, 100]} rotation={[Math.PI/2, 0, 0]}>
-        <meshBasicMaterial color="#06b6d4" transparent opacity={0.3} blending={THREE.AdditiveBlending} />
+      <points>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[electronCloud, 3]} />
+        </bufferGeometry>
+        <pointsMaterial size={0.026} color="#22d3ee" transparent opacity={0.32} depthWrite={false} />
+      </points>
+
+      {/* Proton is deliberately modeled as a structure, not an opaque red ball. */}
+      <group>
+        <Sphere args={[0.24, 32, 32]}>
+          <meshStandardMaterial color="#b91c1c" metalness={0.1} roughness={0.5} />
+        </Sphere>
+        {[0, 1, 2].map((i) => {
+          const a = (i / 3) * Math.PI * 2;
+          return (
+            <Sphere
+              key={i}
+              args={[0.075, 20, 20]}
+              position={[Math.cos(a) * 0.12, Math.sin(a) * 0.12, (i - 1) * 0.035]}
+            >
+              <meshBasicMaterial color="#fca5a5" />
+            </Sphere>
+          );
+        })}
+        <Torus args={[0.31, 0.008, 12, 64]} rotation={[Math.PI / 2, 0.2, 0]}>
+          <meshBasicMaterial color="#f59e0b" transparent opacity={0.5} />
+        </Torus>
+        <Torus args={[0.34, 0.006, 12, 64]} rotation={[0.2, Math.PI / 2, 0]}>
+          <meshBasicMaterial color="#f59e0b" transparent opacity={0.35} />
+        </Torus>
+      </group>
+
+      {/* Reference rings are visualization aids—not literal planetary electron orbits. */}
+      <Torus args={[1.0, 0.007, 12, 96]} rotation={[Math.PI / 2, 0, 0]}>
+        <meshBasicMaterial color="#38bdf8" transparent opacity={0.18} />
       </Torus>
-      <Torus args={[2, 0.01, 16, 100]} rotation={[0, Math.PI/2, 0]}>
-        <meshBasicMaterial color="#06b6d4" transparent opacity={0.3} blending={THREE.AdditiveBlending} />
+      <Torus args={[1.5, 0.006, 12, 96]} rotation={[0, Math.PI / 2, 0]}>
+        <meshBasicMaterial color="#38bdf8" transparent opacity={0.12} />
       </Torus>
-      <Sphere args={[0.08, 16, 16]} position={[2,0,0]}>
-        <meshBasicMaterial color="#22d3ee" transparent opacity={1} />
-      </Sphere>
+
+      <Html distanceFactor={8} position={[1.6, 1.15, 0]} center zIndexRange={[60, 0]}>
+        <div className="px-2 py-1 rounded bg-slate-950/85 border border-cyan-400/40 text-cyan-200 text-[9px] font-mono pointer-events-none">
+          1s probability density • conceptual scale
+        </div>
+      </Html>
     </group>
   );
 }
 
 function AtomicNucleus() {
+  const nucleons = useMemo(() => {
+    const points = [];
+    for (let i = 0; i < 12; i++) {
+      const isProton = i % 2 === 0;
+      const radius = 0.52;
+      const theta = ((i * 137.5) % 360) * (Math.PI / 180);
+      const phi = Math.acos(1 - ((i + 0.5) / 12) * 2);
+      const r = 0.15 + ((i * 0.071) % 0.7) * radius;
+      points.push({
+        isProton,
+        position: [
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.sin(phi) * Math.sin(theta),
+          r * Math.cos(phi),
+        ] as [number, number, number],
+      });
+    }
+    return points;
+  }, []);
+
   return (
     <group>
-      {/* 6 Protons, 6 Neutrons for Carbon-12 approximate clump */}
-      {[...Array(12)].map((_, i) => {
-        const isProton = i % 2 === 0;
-        const radius = 0.5;
-        const theta = Math.random() * 2 * Math.PI;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const r = Math.cbrt(Math.random()) * radius;
-        return (
-          <Sphere key={i} args={[0.18, 16, 16]} position={[
-            r * Math.sin(phi) * Math.cos(theta),
-            r * Math.sin(phi) * Math.sin(theta),
-            r * Math.cos(phi)
-          ]}>
-            <meshBasicMaterial color={isProton ? "#ef4444" : "#94a3b8"} transparent opacity={0.9} />
+      {nucleons.map((nucleon, i) => (
+        <group key={i} position={nucleon.position}>
+          <Sphere args={[0.18, 24, 24]}>
+            <meshStandardMaterial
+              color={nucleon.isProton ? "#dc2626" : "#64748b"}
+              roughness={0.55}
+              metalness={0.08}
+            />
           </Sphere>
-        );
-      })}
+          {/* Internal nucleon markers communicate substructure without implying literal scale. */}
+          {[0, 1, 2].map((j) => {
+            const a = (j / 3) * Math.PI * 2;
+            return (
+              <Sphere
+                key={j}
+                args={[0.04, 12, 12]}
+                position={[Math.cos(a) * 0.07, Math.sin(a) * 0.07, 0.025 * (j - 1)]}
+              >
+                <meshBasicMaterial color={nucleon.isProton ? "#fecaca" : "#cbd5e1"} />
+              </Sphere>
+            );
+          })}
+        </group>
+      ))}
+
+      <Sphere args={[0.72, 32, 32]}>
+        <meshBasicMaterial color="#f59e0b" transparent opacity={0.035} depthWrite={false} />
+      </Sphere>
+
+      <Html distanceFactor={8} position={[1.0, 0.95, 0]} center zIndexRange={[60, 0]}>
+        <div className="px-2 py-1 rounded bg-slate-950/85 border border-amber-400/40 text-amber-200 text-[9px] font-mono pointer-events-none">
+          Carbon-12 nucleons • conceptual scale
+        </div>
+      </Html>
     </group>
   );
 }
