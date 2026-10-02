@@ -399,6 +399,227 @@ export function HydraulicPumpAssembly(state: AdvancedEngineeringModelProps) {
   );
 }
 
+
+export function TurbochargerAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group rotation={[0, 0, Math.PI / 2]}>
+      <group position={[-0.38, 0, 0]}>
+        <Torus args={[0.36, 0.14, 28, 72]}>
+          <DetailMaterial {...state} baseColor="#6b7280" metalness={0.88} roughness={0.28} clearcoat={0.18} />
+        </Torus>
+        <Cylinder args={[0.18, 0.22, 0.28, 48]} position={[0.02, 0, 0]}>
+          <DetailMaterial {...state} baseColor="#9ca3af" metalness={0.92} roughness={0.22} />
+        </Cylinder>
+        <Cylinder args={[0.12, 0.12, 0.32, 32]} position={[0, 0, 0.18]}>
+          <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.96} roughness={0.14} />
+        </Cylinder>
+        {Array.from({ length: 24 }).map((_, i) => {
+          const a = (i / 24) * Math.PI * 2;
+          return (
+            <Box key={`comp-blade-${i}`} args={[0.025, 0.045, 0.22]} position={[Math.cos(a) * 0.23, Math.sin(a) * 0.23, 0.11]} rotation={[0.35, 0, -a]}>
+              <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.95} roughness={0.18} />
+            </Box>
+          );
+        })}
+      </group>
+      <group position={[0.38, 0, 0]}>
+        <Torus args={[0.36, 0.15, 28, 72]}>
+          <DetailMaterial {...state} baseColor="#44403c" metalness={0.82} roughness={0.42} />
+        </Torus>
+        <Cylinder args={[0.19, 0.19, 0.30, 48]} position={[0, 0, 0]}>
+          <DetailMaterial {...state} baseColor="#57534e" metalness={0.88} roughness={0.34} />
+        </Cylinder>
+        <Cylinder args={[0.115, 0.115, 0.32, 32]} position={[0, 0, 0.18]}>
+          <DetailMaterial {...state} baseColor="#a8a29e" metalness={0.95} roughness={0.20} />
+        </Cylinder>
+        {Array.from({ length: 20 }).map((_, i) => {
+          const a = (i / 20) * Math.PI * 2;
+          return (
+            <Box key={`turbine-blade-${i}`} args={[0.022, 0.05, 0.20]} position={[Math.cos(a) * 0.22, Math.sin(a) * 0.22, 0.11]} rotation={[-0.28, 0, -a]}>
+              <DetailMaterial {...state} baseColor="#78716c" metalness={0.94} roughness={0.26} />
+            </Box>
+          );
+        })}
+        <Box args={[0.18, 0.18, 0.22]} position={[0.30, -0.05, 0]}>
+          <DetailMaterial {...state} baseColor="#1f2937" metalness={0.22} roughness={0.58} />
+        </Box>
+        <Cylinder args={[0.035, 0.035, 0.28, 16]} position={[0.30, -0.18, 0]}>
+          <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.96} roughness={0.16} />
+        </Cylinder>
+      </group>
+      <Cylinder args={[0.07, 0.07, 1.10, 28]}>
+        <DetailMaterial {...state} baseColor="#cbd5e1" metalness={0.98} roughness={0.12} />
+      </Cylinder>
+    </group>
+  );
+}
+
+export function DifferentialAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group>
+      <Torus args={[0.72, 0.10, 24, 96]} rotation={[Math.PI / 2, 0, 0]}>
+        <DetailMaterial {...state} baseColor="#4b5563" metalness={0.94} roughness={0.24} clearcoat={0.24} />
+      </Torus>
+      <GearTeeth count={36} radius={0.74} toothLength={0.11} toothWidth={0.055} y={0} state={state} />
+      <Cylinder args={[0.53, 0.53, 0.54, 48]} rotation={[Math.PI / 2, 0, 0]}>
+        <DetailMaterial {...state} baseColor="#374151" metalness={0.84} roughness={0.34} />
+      </Cylinder>
+      <Cylinder args={[0.13, 0.13, 1.85, 28]} rotation={[0, 0, Math.PI / 2]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.14} />
+      </Cylinder>
+      <Torus args={[0.34, 0.05, 16, 64]} rotation={[Math.PI / 2, 0, 0]}>
+        <DetailMaterial {...state} baseColor="#b45309" metalness={0.84} roughness={0.28} />
+      </Torus>
+      {Array.from({ length: 4 }).map((_, i) => {
+        const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+        return (
+          <group key={`spider-${i}`} position={[Math.cos(a) * 0.27, 0, Math.sin(a) * 0.27]}>
+            <Cylinder args={[0.13, 0.13, 0.22, 24]} rotation={[Math.PI / 2, 0, 0]}>
+              <DetailMaterial {...state} baseColor="#9ca3af" metalness={0.92} roughness={0.22} />
+            </Cylinder>
+            <GearTeeth count={16} radius={0.15} toothLength={0.06} toothWidth={0.038} y={0} state={state} color="#cbd5e1" />
+          </group>
+        );
+      })}
+      <RadialBoltCircle count={12} radius={0.60} y={0.28} state={state} size={0.028} />
+      <RadialBoltCircle count={12} radius={0.60} y={-0.28} state={state} size={0.028} />
+    </group>
+  );
+}
+
+export function GearboxAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group>
+      <RoundedBox args={[1.12, 0.92, 1.70]} radius={0.16} smoothness={6}>
+        <DetailMaterial {...state} baseColor="#475569" metalness={0.88} roughness={0.32} clearcoat={0.16} />
+      </RoundedBox>
+      {[0.58, 0.26, -0.08, -0.42].map((z, stage) => (
+        <group key={`gear-stage-${stage}`} position={[0, 0, z]}>
+          <Cylinder args={[0.22 - stage * 0.018, 0.22 - stage * 0.018, 0.18, 36]} rotation={[0, Math.PI / 2, 0]}>
+            <DetailMaterial {...state} baseColor="#9ca3af" metalness={0.94} roughness={0.22} />
+          </Cylinder>
+          <GearTeeth count={24 - stage * 2} radius={0.25 - stage * 0.016} toothLength={0.075} toothWidth={0.045} y={0} state={state} />
+        </group>
+      ))}
+      <Cylinder args={[0.07, 0.07, 1.80, 24]} rotation={[0, 0, Math.PI / 2]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.12} />
+      </Cylinder>
+      <Cylinder args={[0.055, 0.055, 1.55, 24]} position={[0.18, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <DetailMaterial {...state} baseColor="#c4b454" metalness={0.8} roughness={0.30} />
+      </Cylinder>
+      <RadialBoltCircle count={8} radius={0.50} y={0.45} state={state} />
+      <RadialBoltCircle count={8} radius={0.50} y={-0.45} state={state} />
+    </group>
+  );
+}
+
+export function BrakeRotorAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group rotation={[Math.PI / 2, 0, 0]}>
+      <Torus args={[0.68, 0.10, 28, 96]}>
+        <DetailMaterial {...state} baseColor="#27272a" metalness={0.72} roughness={0.31} />
+      </Torus>
+      <Cylinder args={[0.55, 0.55, 0.10, 64]}>
+        <DetailMaterial {...state} baseColor="#3f3f46" metalness={0.80} roughness={0.30} />
+      </Cylinder>
+      <Cylinder args={[0.20, 0.20, 0.14, 48]}>
+        <DetailMaterial {...state} baseColor="#64748b" metalness={0.92} roughness={0.22} />
+      </Cylinder>
+      {Array.from({ length: 28 }).map((_, i) => {
+        const a = (i / 28) * Math.PI * 2;
+        return (
+          <Box key={`vane-${i}`} args={[0.035, 0.12, 0.34]} position={[Math.cos(a) * 0.43, 0, Math.sin(a) * 0.43]} rotation={[0, -a, 0.18]}>
+            <DetailMaterial {...state} baseColor="#71717a" metalness={0.86} roughness={0.27} />
+          </Box>
+        );
+      })}
+      {Array.from({ length: 16 }).map((_, i) => {
+        const a = (i / 16) * Math.PI * 2;
+        return (
+          <Cylinder key={`drill-${i}`} args={[0.024, 0.024, 0.04, 12]} position={[Math.cos(a) * 0.50, 0, Math.sin(a) * 0.50]}>
+            <DetailMaterial {...state} baseColor="#111827" metalness={0.15} roughness={0.72} />
+          </Cylinder>
+        );
+      })}
+      <RadialBoltCircle count={5} radius={0.15} y={0.08} state={state} size={0.018} />
+    </group>
+  );
+}
+
+export function BrakeCaliperAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group>
+      <RoundedBox args={[0.34, 0.56, 0.24]} radius={0.07} smoothness={5}>
+        <DetailMaterial {...state} baseColor="#b91c1c" metalness={0.35} roughness={0.36} clearcoat={0.40} />
+      </RoundedBox>
+      {[[-0.13, 0.10],[-0.13,-0.10],[0.13,0.10],[0.13,-0.10]].map(([x,z],i)=>(
+        <Cylinder key={`piston-${i}`} args={[0.045,0.045,0.025,20]} position={[x,0.18,z]} rotation={[Math.PI/2,0,0]}>
+          <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.95} roughness={0.16} />
+        </Cylinder>
+      ))}
+      <Box args={[0.43,0.05,0.26]} position={[0,-0.30,0]}>
+        <DetailMaterial {...state} baseColor="#111827" metalness={0.10} roughness={0.70} />
+      </Box>
+      <RadialBoltCircle count={4} radius={0.20} y={0.31} state={state} size={0.018} />
+    </group>
+  );
+}
+
+export function StrutAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group>
+      <Cylinder args={[0.16, 0.16, 1.75, 40]} position={[0, 0.1, 0]}>
+        <DetailMaterial {...state} baseColor="#475569" metalness={0.88} roughness={0.30} />
+      </Cylinder>
+      {Array.from({ length: 28 }).map((_, i) => (
+        <Torus key={`spring-${i}`} args={[0.30 - i * 0.001, 0.026, 12, 48]} position={[0, 0.75 - i * 0.055, 0]}>
+          <DetailMaterial {...state} baseColor="#dc2626" metalness={0.36} roughness={0.42} clearcoat={0.32} />
+        </Torus>
+      ))}
+      <Cylinder args={[0.08, 0.08, 0.32, 24]} position={[0, 1.07, 0]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.96} roughness={0.16} />
+      </Cylinder>
+      <Box args={[0.78, 0.08, 0.16]} position={[0, -0.88, 0]}>
+        <DetailMaterial {...state} baseColor="#374151" metalness={0.86} roughness={0.32} />
+      </Box>
+      <Cylinder args={[0.05,0.05,0.18,20]} position={[-0.35,-0.88,0]} rotation={[0,0,Math.PI/2]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.96} roughness={0.16}/>
+      </Cylinder>
+      <Cylinder args={[0.05,0.05,0.18,20]} position={[0.35,-0.88,0]} rotation={[0,0,Math.PI/2]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.96} roughness={0.16}/>
+      </Cylinder>
+    </group>
+  );
+}
+
+export function SteeringRackAssembly(state: AdvancedEngineeringModelProps) {
+  return (
+    <group>
+      <Box args={[2.10,0.16,0.18]} position={[0,0,0]}>
+        <DetailMaterial {...state} baseColor="#6b7280" metalness={0.92} roughness={0.28}/>
+      </Box>
+      {Array.from({ length: 34 }).map((_, i)=>(
+        <Box key={`rack-tooth-${i}`} args={[0.04,0.06,0.20]} position={[-0.78+i*0.047,0.11,0]}>
+          <DetailMaterial {...state} baseColor="#cbd5e1" metalness={0.96} roughness={0.18}/>
+        </Box>
+      ))}
+      <Cylinder args={[0.11,0.11,0.42,28]} position={[0.35,0.23,0]} rotation={[0,0,Math.PI/2]}>
+        <DetailMaterial {...state} baseColor="#4b5563" metalness={0.90} roughness={0.27}/>
+      </Cylinder>
+      <Cylinder args={[0.045,0.045,0.48,24]} position={[0.35,0.46,0]} rotation={[Math.PI/2,0,0]}>
+        <DetailMaterial {...state} baseColor="#d1d5db" metalness={0.98} roughness={0.14}/>
+      </Cylinder>
+      <Torus args={[0.08,0.025,12,36]} position={[-0.90,-0.01,0]} rotation={[0,Math.PI/2,0]}>
+        <DetailMaterial {...state} baseColor="#18181b" metalness={0.05} roughness={0.82}/>
+      </Torus>
+      <Torus args={[0.08,0.025,12,36]} position={[0.90,-0.01,0]} rotation={[0,Math.PI/2,0]}>
+        <DetailMaterial {...state} baseColor="#18181b" metalness={0.05} roughness={0.82}/>
+      </Torus>
+      <RadialBoltCircle count={6} radius={0.10} y={0.22} state={state} size={0.016}/>
+    </group>
+  );
+}
+
 export function renderAdvancedEngineeringModel(
   id: string,
   state: AdvancedEngineeringModelProps,
@@ -407,5 +628,12 @@ export function renderAdvancedEngineeringModel(
   if (id === 'planetary.gearset') return <PlanetaryGearsetAssembly {...state} />;
   if (id === 'jetengine.core') return <JetEngineCoreAssembly {...state} />;
   if (id === 'hydraulic_pump.core') return <HydraulicPumpAssembly {...state} />;
+  if (id === 'turbo_comp' || id === 'turbo_turb') return <TurbochargerAssembly {...state} />;
+  if (id === 'diff_ring') return <DifferentialAssembly {...state} />;
+  if (id === 'gear_shaft') return <GearboxAssembly {...state} />;
+  if (id === 'brake_rotor') return <BrakeRotorAssembly {...state} />;
+  if (id === 'brake_caliper') return <BrakeCaliperAssembly {...state} />;
+  if (id === 'susp_spring') return <StrutAssembly {...state} />;
+  if (id === 'steering_rack') return <SteeringRackAssembly {...state} />;
   return null;
 }
