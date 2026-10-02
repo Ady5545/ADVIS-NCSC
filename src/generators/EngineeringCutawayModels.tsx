@@ -234,6 +234,228 @@ function Bearing({ state, radius = 0.11, y = 0 }: { state: AdvancedEngineeringMo
   );
 }
 
+function IndustrialDetailPass({ id, state }: { id: string; state: AdvancedEngineeringModelProps }) {
+  const bolts = (count: number, radius: number, y: number, keyPrefix: string) => (
+    <>
+      {Array.from({ length: count }).map((_, i) => {
+        const a = (i / count) * Math.PI * 2;
+        return (
+          <Cylinder key={keyPrefix + i} args={[0.012, 0.012, 0.035, 10]} position={[Math.cos(a) * radius, y, Math.sin(a) * radius]}>
+            <Metal state={state} color="#e5e7eb" metalness={0.98} roughness={0.10} />
+          </Cylinder>
+        );
+      })}
+    </>
+  );
+
+  if (id === 'pmsm.stator_rotor') {
+    return (
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        {Array.from({ length: 36 }).map((_, i) => {
+          const a = (i / 36) * Math.PI * 2;
+          return (
+            <group key={i} rotation={[0, a, 0]}>
+              <Box args={[0.022, 0.11, 0.31]} position={[0.445, 0, 0]}>
+                <Metal state={state} color="#4b5563" metalness={0.88} roughness={0.26} />
+              </Box>
+              <Torus args={[0.46, 0.012, 8, 24, Math.PI * 0.72]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.18, 0]}>
+                <Metal state={state} color="#d98913" metalness={0.92} roughness={0.20} />
+              </Torus>
+            </group>
+          );
+        })}
+        {bolts(12, 0.49, 0.48, 'pmsm-b-')}
+        {bolts(12, 0.49, -0.48, 'pmsm-r-')}
+        <Torus args={[0.32, 0.018, 12, 72]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.22]}>
+          <Metal state={state} color="#111827" metalness={0.70} roughness={0.28} />
+        </Torus>
+      </group>
+    );
+  }
+
+  if (id === 'planetary.gearset') {
+    return (
+      <group rotation={[0, Math.PI / 2, 0]}>
+        {bolts(16, 0.66, 0.30, 'planet-front-')}
+        {bolts(16, 0.66, -0.30, 'planet-rear-')}
+        {Array.from({ length: 6 }).map((_, i) => {
+          const a = (i / 6) * Math.PI * 2;
+          return (
+            <Box key={i} args={[0.06, 0.05, 0.52]} position={[Math.cos(a) * 0.30, 0.24, Math.sin(a) * 0.30]} rotation={[0, -a, 0]}>
+              <Metal state={state} color="#65717d" metalness={0.92} roughness={0.22} />
+            </Box>
+          );
+        })}
+      </group>
+    );
+  }
+
+  if (id === 'jetengine.core') {
+    return (
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        {[0.66, 0.34, 0.02].map((y, stage) => (
+          <group key={'jet-stator-' + stage} position={[0, y, 0]}>
+            {Array.from({ length: 32 }).map((_, i) => {
+              const a = (i / 32) * Math.PI * 2;
+              return (
+                <Box key={i} args={[0.018, 0.16, 0.11]} position={[Math.cos(a) * 0.31, 0, Math.sin(a) * 0.31]} rotation={[0.12, -a, 0.25]}>
+                  <Metal state={state} color="#aeb7c0" metalness={0.95} roughness={0.18} />
+                </Box>
+              );
+            })}
+          </group>
+        ))}
+        <Torus args={[0.40, 0.018, 12, 72]} position={[0, -1.25, 0]}>
+          <Metal state={state} color="#9aa3ab" metalness={0.96} roughness={0.18} />
+        </Torus>
+        <ConeGeometryPlaceholder state={state} />
+      </group>
+    );
+  }
+
+  if (id === 'hydraulic_pump.core') {
+    return (
+      <group>
+        {[-0.36, 0.36].map((x, i) => (
+          <group key={i} position={[x, 0, 0]}>
+            <Cylinder args={[0.065, 0.065, 0.56, 24]} rotation={[0, 0, Math.PI / 2]}>
+              <Metal state={state} color="#cbd5e1" metalness={0.98} roughness={0.12} />
+            </Cylinder>
+            <Torus args={[0.09, 0.014, 10, 32]} rotation={[Math.PI / 2, 0, 0]}>
+              <Metal state={state} color="#9b6b32" metalness={0.86} roughness={0.24} />
+            </Torus>
+          </group>
+        ))}
+        {bolts(10, 0.44, 0.46, 'pump-detail-')}
+      </group>
+    );
+  }
+
+  if (id === 'turbo_comp' || id === 'turbo_turb') {
+    const turbine = id === 'turbo_turb';
+    return (
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        <Torus args={[0.31, 0.018, 12, 64]} rotation={[Math.PI / 2, 0, 0]}>
+          <Metal state={state} color="#313941" metalness={0.88} roughness={0.22} />
+        </Torus>
+        {Array.from({ length: 12 }).map((_, i) => {
+          const a = (i / 12) * Math.PI * 2;
+          return (
+            <group key={i} rotation={[0, a, 0]}>
+              <Box args={[0.018, 0.08, 0.18]} position={[0.34, 0, 0]}>
+                <Metal state={state} color={turbine ? '#6f6862' : '#d8dee4'} metalness={0.94} roughness={0.18} />
+              </Box>
+            </group>
+          );
+        })}
+        {bolts(8, 0.40, 0.18, 'turbo-detail-')}
+      </group>
+    );
+  }
+
+  if (id === 'diff_ring') {
+    return (
+      <group>
+        {bolts(14, 0.63, 0.20, 'diff-front-')}
+        {[-1, 1].map((side) => (
+          <group key={side} position={[side * 0.88, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <Torus args={[0.13, 0.018, 12, 40]}>
+              <Metal state={state} color="#6b7280" metalness={0.90} roughness={0.22} />
+            </Torus>
+            {Array.from({ length: 8 }).map((_, i) => {
+              const a = (i / 8) * Math.PI * 2;
+              return <Box key={i} args={[0.018, 0.04, 0.09]} position={[Math.cos(a) * 0.14, 0, Math.sin(a) * 0.14]} rotation={[0, -a, 0]}><Metal state={state} color="#aeb6be" metalness={0.95} roughness={0.16} /></Box>;
+            })}
+          </group>
+        ))}
+      </group>
+    );
+  }
+
+  if (id === 'gear_shaft') {
+    return (
+      <group>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Torus key={i} args={[0.13 + i * 0.012, 0.012, 10, 42]} position={[0, 0, 0.64 - i * 0.18]}>
+            <Metal state={state} color="#68737e" metalness={0.88} roughness={0.22} />
+          </Torus>
+        ))}
+        {bolts(12, 0.53, 0.52, 'gearbox-top-')}
+        {bolts(12, 0.53, -0.52, 'gearbox-bottom-')}
+      </group>
+    );
+  }
+
+  if (id === 'brake_rotor') {
+    return (
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        {Array.from({ length: 36 }).map((_, i) => {
+          const a = (i / 36) * Math.PI * 2;
+          return (
+            <Box key={i} args={[0.014, 0.055, 0.24]} position={[Math.cos(a) * 0.58, 0, Math.sin(a) * 0.58]} rotation={[0, -a, 0.28]}>
+              <Metal state={state} color="#8e969e" metalness={0.88} roughness={0.25} />
+            </Box>
+          );
+        })}
+      </group>
+    );
+  }
+
+  if (id === 'brake_caliper') {
+    return (
+      <group>
+        <Box args={[0.32, 0.06, 0.42]} position={[0, 0.10, 0]}>
+          <Metal state={state} color="#20252c" metalness={0.12} roughness={0.66} />
+        </Box>
+        {bolts(4, 0.20, 0.34, 'caliper-detail-')}
+      </group>
+    );
+  }
+
+  if (id === 'susp_spring') {
+    return (
+      <group>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Torus key={i} args={[0.235 + i * 0.002, 0.010, 8, 36]} position={[0, 0.74 - i * 0.105, 0]}>
+            <Metal state={state} color="#d1d5db" metalness={0.96} roughness={0.16} />
+          </Torus>
+        ))}
+        {bolts(6, 0.34, -0.84, 'strut-detail-')}
+      </group>
+    );
+  }
+
+  if (id === 'steering_rack') {
+    return (
+      <group>
+        {[-1, 1].map((side) => (
+          <group key={side} position={[side * 0.86, 0, 0]}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Torus key={i} args={[0.065 + i * 0.004, 0.010, 8, 24]} rotation={[0, Math.PI / 2, 0]} position={[side * i * 0.035, 0, 0]}>
+                <Metal state={state} color="#1f2937" metalness={0.16} roughness={0.76} />
+              </Torus>
+            ))}
+            <Cylinder args={[0.026, 0.026, 0.30, 16]} rotation={[0, 0, Math.PI / 2]} position={[side * 0.16, 0, 0]}>
+              <Metal state={state} color="#d1d5db" metalness={0.97} roughness={0.12} />
+            </Cylinder>
+          </group>
+        ))}
+      </group>
+    );
+  }
+
+  return null;
+}
+
+function ConeGeometryPlaceholder({ state }: { state: AdvancedEngineeringModelProps }) {
+  return (
+    <mesh position={[0, -1.36, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <coneGeometry args={[0.18, 0.35, 48, 1, true]} />
+      <Metal state={state} color="#d1d5db" metalness={0.97} roughness={0.13} />
+    </mesh>
+  );
+}
+
 function PMSEDetailed(state: AdvancedEngineeringModelProps) {
   return (
     <group rotation={[Math.PI / 2, 0, 0]}>
@@ -620,19 +842,26 @@ function SteeringRackDetailed(state: AdvancedEngineeringModelProps) {
 }
 
 export function renderCutawayEngineeringModel(id: string, state: AdvancedEngineeringModelProps): React.ReactNode | null {
+  let model: React.ReactNode | null = null;
   switch (id) {
-    case 'pmsm.stator_rotor': return <PMSEDetailed {...state} />;
-    case 'planetary.gearset': return <PlanetaryDetailed {...state} />;
-    case 'jetengine.core': return <JetEngineDetailed {...state} />;
-    case 'hydraulic_pump.core': return <HydraulicPumpDetailed {...state} />;
-    case 'turbo_comp': return TurbochargerDetailed(state, false);
-    case 'turbo_turb': return TurbochargerDetailed(state, true);
-    case 'diff_ring': return <DifferentialDetailed {...state} />;
-    case 'gear_shaft': return <GearboxDetailed {...state} />;
-    case 'brake_rotor': return BrakeDetailed(state, false);
-    case 'brake_caliper': return BrakeDetailed(state, true);
-    case 'susp_spring': return <StrutDetailed {...state} />;
-    case 'steering_rack': return <SteeringRackDetailed {...state} />;
+    case 'pmsm.stator_rotor': model = <PMSEDetailed {...state} />; break;
+    case 'planetary.gearset': model = <PlanetaryDetailed {...state} />; break;
+    case 'jetengine.core': model = <JetEngineDetailed {...state} />; break;
+    case 'hydraulic_pump.core': model = <HydraulicPumpDetailed {...state} />; break;
+    case 'turbo_comp': model = TurbochargerDetailed(state, false); break;
+    case 'turbo_turb': model = TurbochargerDetailed(state, true); break;
+    case 'diff_ring': model = <DifferentialDetailed {...state} />; break;
+    case 'gear_shaft': model = <GearboxDetailed {...state} />; break;
+    case 'brake_rotor': model = BrakeDetailed(state, false); break;
+    case 'brake_caliper': model = BrakeDetailed(state, true); break;
+    case 'susp_spring': model = <StrutDetailed {...state} />; break;
+    case 'steering_rack': model = <SteeringRackDetailed {...state} />; break;
     default: return null;
   }
+  return (
+    <>
+      {model}
+      <IndustrialDetailPass id={id} state={state} />
+    </>
+  );
 }
