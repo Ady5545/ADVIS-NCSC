@@ -39,7 +39,7 @@ export function CADLab() {
           IMPORT CAD
           <input
             type="file"
-            accept=".step,.stp,.brep,.brp,.iges,.igs"
+            accept=".step,.stp,.brep,.brp"
             className="hidden"
             onChange={(event) => load(event.target.files?.[0])}
           />
