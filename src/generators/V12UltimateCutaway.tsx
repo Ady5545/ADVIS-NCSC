@@ -570,7 +570,7 @@ function RingedPulley({
         </Torus>
       ))}
       <Cylinder args={[radius * 0.30, radius * 0.30, 0.14, 6]} rotation={[Math.PI / 2, 0, 0]}>
-        <M state={state} color=C.chrome type="CHROME" />
+        <M state={state} color={C.chrome} type="CHROME" />
       </Cylinder>
     </group>
   );
