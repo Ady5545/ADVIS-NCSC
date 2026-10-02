@@ -449,6 +449,73 @@ function ExhaustBank({
   );
 }
 
+function MainBearingStructure({
+  state,
+}: {
+  state: V12UltimateProps;
+}) {
+  return (
+    <group position={[0, -0.26, 0]}>
+      {[-1.53, -1.02, -0.51, 0, 0.51, 1.02, 1.53].map((z) => (
+        <group key={z} position={[0, 0, z]}>
+          <RoundedBox args={[0.66, 0.12, 0.20]} radius={0.028} smoothness={4}>
+            <M state={state} color="#3b454e" type="FORGED_STEEL" />
+          </RoundedBox>
+          <HexBolt position={[-0.21, 0.075, 0]} radius={0.013} height={0.013} state={state} />
+          <HexBolt position={[0.21, 0.075, 0]} radius={0.013} height={0.013} state={state} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function TimingDrive({
+  state,
+}: {
+  state: V12UltimateProps;
+}) {
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (ref.current) ref.current.rotation.z = clock.elapsedTime * 0.14;
+  });
+
+  const links = useMemo(
+    () =>
+      Array.from({ length: 62 }).map((_, i) => {
+        const t = (i / 62) * Math.PI * 2;
+        return [0.34 * Math.cos(t), 0.56 * Math.sin(t), t] as [number, number, number];
+      }),
+    []
+  );
+
+  return (
+    <group ref={ref} position={[0, 0.58, 1.80]}>
+      <Cylinder args={[0.20, 0.20, 0.09, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.18, 0]}>
+        <M state={state} color="#4f5a64" type="FORGED_STEEL" />
+      </Cylinder>
+      {[-0.20, 0.20].map((x) => (
+        <Cylinder key={x} args={[0.25, 0.25, 0.09, 48]} rotation={[Math.PI / 2, 0, 0]} position={[x, 0.36, 0]}>
+          <M state={state} color="#56616b" type="FORGED_STEEL" />
+        </Cylinder>
+      ))}
+      {links.map(([x, y, a], i) => (
+        <group key={i} position={[x, y, 0.07]} rotation={[0, 0, a]}>
+          <Box args={[0.028, 0.048, 0.014]}>
+            <M state={state} color="#747e87" type="FORGED_STEEL" />
+          </Box>
+          <Cylinder args={[0.007, 0.007, 0.020, 10]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.008]}>
+            <M state={state} color="#c7cdd2" type="CHROME" />
+          </Cylinder>
+        </group>
+      ))}
+      <RoundedBox args={[0.09, 0.82, 0.045]} radius={0.016} smoothness={3} position={[0, 0.10, -0.04]}>
+        <M state={state} color="#2c343c" type="CAST_ALUMINUM" />
+      </RoundedBox>
+    </group>
+  );
+}
+
 function CoolingAndAccessories({
   state,
 }: {
