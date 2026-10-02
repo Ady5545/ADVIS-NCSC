@@ -27,6 +27,9 @@ import { HandTrackingData } from './useHandTracking';
 import { LearningSession } from './LearnEngine/LearnTypes';
 import { ScientificComparator } from './ScientificComparator';
 import { DemonstrationMode } from './DemonstrationMode';
+import { CADLab } from './cad/CADLab';
+import { ParametricInnovationLab } from './cad/ParametricInnovationLab';
+
 
 export function ViewModal({ 
   currentView, 
@@ -439,6 +442,16 @@ export function ViewModal({
           </div>
         );
       }
+
+      case 'cad-lab':
+        return (
+          <CADLab />
+        );
+
+      case 'innovation-lab':
+        return (
+          <ParametricInnovationLab />
+        );
 
       case 'compare':
         return (
