@@ -151,13 +151,26 @@ function PistonAndRod({
   const bankAngle = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
   const cylinderNumber = side === 'left' ? index + 1 : index + 7;
   const focused = state.focusedCylinder === cylinderNumber;
-  const phase = crankAngle + CRANK_OFFSETS[index] + (side === 'right' ? Math.PI : 0);
-  const stroke = 0.31 * Math.cos(phase);
-  const pistonY = 0.27 + stroke;
+  const phaseOffset = CRANK_OFFSETS[index] + (side === 'right' ? Math.PI : 0);
+  const assemblyRef = useRef<THREE.Group>(null);
+
+  useFrame((frameState) => {
+    if (!assemblyRef.current) return;
+    const angle = state.crankAngleRef?.current ?? (frameState.clock.elapsedTime * ((state.v12Rpm ?? 600) / 60) * Math.PI * 2);
+    const phase = angle + phaseOffset;
+    const stroke = 0.31 * Math.cos(phase);
+    const pistonY = 0.27 + stroke;
+    const crankX = Math.sin(phase) * CRANK_RADIUS;
+    const crankY = Math.cos(phase) * CRANK_RADIUS;
+    const rodAngle = Math.atan2(crankX, Math.max(0.05, pistonY - crankY));
+    assemblyRef.current.children[0]?.position.set(0, pistonY, 0);
+    assemblyRef.current.children[1]?.rotation.z = -rodAngle * 0.36;
+    assemblyRef.current.children[1]?.position.set(crankX * 0.18, (pistonY + crankY) * 0.42, 0);
+  });
 
   return (
-    <group position={[s * 0.30, 0.38, CYLINDER_Z[index]]} rotation={[0, 0, bankAngle]}>
-      <group position={[0, pistonY, 0]}>
+    <group ref={assemblyRef} position={[s * 0.30, 0.38, CYLINDER_Z[index]]} rotation={[0, 0, bankAngle]}>
+      <group position={[0, 0.27, 0]}>
         <Cylinder args={[0.215, 0.208, 0.23, 40]}>
           <Steel state={state} color={focused ? '#e6f8ff' : '#b8c0c8'} materialType="MACHINED_BILLET" />
         </Cylinder>
@@ -206,8 +219,15 @@ function CylinderBank({
 
   return (
     <group position={[s * 0.22, 0.28, 0]} rotation={[0, 0, bankAngle]}>
-      <RoundedBox args={[0.66, 0.30, 3.18]} radius={0.055} smoothness={5}>
+      {/* Open cutaway bank shell: deck + outer rails leave the cylinders and valvetrain visibly exposed. */}
+      <RoundedBox args={[0.82, 0.10, 3.22]} radius={0.035} smoothness={4} position={[0, 0.48, 0]}>
         <Steel state={state} color="#555f69" materialType="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox args={[0.10, 0.36, 3.22]} radius={0.035} smoothness={4} position={[-0.31, 0.24, 0]}>
+        <Steel state={state} color="#49545f" materialType="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox args={[0.10, 0.36, 3.22]} radius={0.035} smoothness={4} position={[0.31, 0.24, 0]}>
+        <Steel state={state} color="#49545f" materialType="CAST_ALUMINUM" />
       </RoundedBox>
 
       {CYLINDER_Z.map((z, i) => (
@@ -419,9 +439,18 @@ export function V12IndustrialCutaway(state: V12IndustrialCutawayProps) {
 
   return (
     <group rotation={[0.10, -0.32, 0.03]}>
-      {/* Main deep-skirt crankcase */}
-      <RoundedBox args={[1.20, 0.78, 3.34]} radius={0.09} smoothness={7}>
+      {/* Open deep-skirt crankcase: the section is intentionally removed on the viewing side. */}
+      <RoundedBox args={[1.22, 0.12, 3.38]} radius={0.04} smoothness={5} position={[0, -0.28, 0]}>
         <Steel state={state} color="#343d46" materialType="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox args={[0.12, 0.55, 3.38]} radius={0.04} smoothness={5} position={[-0.55, -0.02, 0]}>
+        <Steel state={state} color="#343d46" materialType="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox args={[0.12, 0.55, 3.38]} radius={0.04} smoothness={5} position={[0.55, -0.02, 0]}>
+        <Steel state={state} color="#343d46" materialType="CAST_ALUMINUM" />
+      </RoundedBox>
+      <RoundedBox args={[1.05, 0.10, 0.12]} radius={0.03} smoothness={4} position={[0, 0.27, -1.64]}>
+        <Steel state={state} color="#444f59" materialType="CAST_ALUMINUM" />
       </RoundedBox>
 
       {/* Red cutaway planes/edges: an intentional sectioned-CAD visual language */}
