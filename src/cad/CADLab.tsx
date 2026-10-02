@@ -8,19 +8,28 @@ export function CADLab() {
   const [model, setModel] = useState<CadModelData | null>(null);
   const [progress, setProgress] = useState<CadImportProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [linearDeflection, setLinearDeflection] = useState(0.05);
+  const [sectionEnabled, setSectionEnabled] = useState(false);
+  const [sectionOffset, setSectionOffset] = useState(0);
 
-  const load = useCallback(async (file?: File) => {
+  const load = useCallback(async (file?: File, deflection = linearDeflection) => {
     if (!file) return;
     setError(null);
     setModel(null);
     try {
-      const data = await importCadFile(file, setProgress);
+      const data = await importCadFile(file, setProgress, { linearDeflection: deflection, angularDeflection: 0.22 });
       setModel(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'CAD import failed.');
       setProgress(null);
     }
-  }, []);
+  }, [linearDeflection]);
+
+  const reloadAtAccuracy = () => {
+    const fileName = model?.name;
+    if (!fileName || !model) return;
+    setError('Resolution controls are applied when the source CAD file is imported again; the source file is intentionally not retained by this viewer.');
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -62,7 +71,66 @@ export function CADLab() {
 
       {model && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3 flex-1 min-h-0">
-          <CadModelCanvas model={model} />
+          <div className="flex flex-col gap-3 min-h-0">
+            <CadModelCanvas
+              model={model}
+              sectionEnabled={sectionEnabled}
+              sectionOffset={sectionOffset}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-[10px]">
+              <div className="rounded-lg border border-cyan-500/15 bg-slate-950/80 p-2">
+                <div className="text-cyan-400/55 uppercase">Surface accuracy</div>
+                <div className="text-cyan-100 font-bold mt-1">{linearDeflection.toFixed(2)} mm</div>
+                <input
+                  aria-label="CAD surface accuracy"
+                  type="range"
+                  min="0.01"
+                  max="0.15"
+                  step="0.01"
+                  value={linearDeflection}
+                  onChange={(event) => setLinearDeflection(Number(event.target.value))}
+                  className="w-full accent-cyan-400 mt-1"
+                />
+                <button
+                  type="button"
+                  onClick={reloadAtAccuracy}
+                  className="mt-2 w-full rounded border border-cyan-500/30 bg-cyan-500/10 py-1 text-cyan-200"
+                >
+                  APPLY TO NEXT IMPORT
+                </button>
+              </div>
+              <label className="rounded-lg border border-amber-500/20 bg-slate-950/80 p-2 cursor-pointer">
+                <div className="flex items-center justify-between text-amber-200 uppercase">
+                  <span>Section plane</span>
+                  <input
+                    type="checkbox"
+                    checked={sectionEnabled}
+                    onChange={(event) => setSectionEnabled(event.target.checked)}
+                  />
+                </div>
+                <div className="text-amber-200/60 mt-2">Move the cut through the imported mesh to inspect enclosed regions.</div>
+                <input
+                  type="range"
+                  min="-2"
+                  max="2"
+                  step="0.01"
+                  value={sectionOffset}
+                  onChange={(event) => setSectionOffset(Number(event.target.value))}
+                  className="w-full accent-amber-400 mt-2"
+                  disabled={!sectionEnabled}
+                />
+              </label>
+              <div className="rounded-lg border border-emerald-500/15 bg-slate-950/80 p-2">
+                <div className="text-emerald-300/70 uppercase">Mesh generated</div>
+                <div className="text-emerald-100 font-bold mt-1">
+                  {model.mesh.vertexCount ?? Math.round(model.mesh.positions.length / 3)} vertices
+                </div>
+                <div className="text-emerald-100/70 mt-0.5">
+                  {model.mesh.triangleCount ?? Math.round(model.mesh.indices.length / 3)} triangles
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="rounded-xl border border-cyan-500/20 bg-slate-950/75 p-4 font-mono space-y-3">
             <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs">
               <CheckCircle2 size={14} />
@@ -79,6 +147,10 @@ export function CADLab() {
             </div>
             <div className="text-xs text-cyan-200">
               {model.bounds ? model.bounds.size.map((v) => v.toFixed(2)).join(' × ') + ' mm' : 'Unavailable'}
+            </div>
+            <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider">Inspection depth</div>
+            <div className="text-xs text-cyan-200">
+              {sectionEnabled ? 'SECTION PLANE ACTIVE' : 'EXTERIOR / ASSEMBLY VIEW'}
             </div>
             <div className="pt-2 border-t border-cyan-500/10 text-[10px] leading-relaxed text-cyan-400/65">
               The display mesh is tessellated from exact CAD/B-rep geometry; changing tessellation density only changes presentation resolution, not the source topology.
