@@ -1,6 +1,7 @@
 import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIntelligence';
 import type { CadCertificationEvidence } from './cad/CadCertification';
 import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
+import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -1255,25 +1256,23 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     description: 'The central control organ of the nervous system, containing 86 billion neurons responsible for cognition, memory, emotion, and motor control.',
     defaultScale: 1.8,
     metadata: { neurons: '86 Billion', powerConsumption: '20 Watts', weight: '1.4 kg' },
+    animations: ['explodedView'],
+    explodedParts: ['frontal_lobe', 'parietal_lobe', 'temporal_lobe', 'occipital_lobe', 'cerebellum', 'brainstem', 'corpus_callosum', 'limbic_system', 'ventricular_system', 'cerebral_arteries'],
     educationalInformation: {
-      overview: 'The human brain is protected inside the cranium and divided into cerebrum, cerebellum, and brainstem.',
+      overview: 'The human brain is a ~1.4 kg organ protected inside the cranium, made of four paired cerebral lobes, the cerebellum and the brainstem, all bridged by the corpus callosum and fed by a redundant arterial supply.',
       keyFeatures: [
-        'Cerebral Cortex (Frontal, Parietal, Occipital, Temporal Lobes)',
-        'Cerebellum (Motor Control & Balance)',
-        'Brainstem (Pons & Medulla Oblongata - Autonomic Control)',
-        'Corpus Callosum bridging left and right hemispheres'
+        'Four Lobes per hemisphere: Frontal (planning/movement/speech), Parietal (touch & spatial sense), Temporal (hearing, language, memory), Occipital (vision)',
+        'Cerebellum: under 10% of brain volume but over half of all its neurons — fine motor control & balance',
+        'Brainstem (Midbrain, Pons, Medulla): autonomic survival control — damage to the medulla is rapidly fatal',
+        'Corpus Callosum: ~200 million axons bridging the two hemispheres',
+        'Limbic System: hippocampus (memory), amygdala (emotion), thalamus (sensory relay), hypothalamus (hormones & homeostasis)',
+        'Circle of Willis: redundant arterial loop that keeps blood flowing even if one vessel is blocked'
       ],
-      workingPrinciple: 'Neurons transmit electro-chemical action potentials across synaptic gaps via neurotransmitters, forming complex neural circuits.',
-      applications: ['Neuroscience Research', 'Medical Neurology Diagnostics', 'Cognitive Science'],
-      specifications: { 'Neurons': '86 Billion', 'Synapses': '100 Trillion', 'Weight': '1.4 kg (3 lbs)' }
+      workingPrinciple: 'Roughly 86 billion neurons communicate via ~100 trillion synapses, passing electro-chemical action potentials through neurotransmitter release; specialised cortical regions handle distinct functions while white-matter tracts (like the corpus callosum) and deep relay structures (the thalamus) bind them into one coordinated system.',
+      applications: ['Neuroscience & neurology education', 'Medical diagnostics counselling', 'Cognitive science', 'Neurosurgical planning reference'],
+      specifications: { 'Neurons': '~86 Billion', 'Synapses': '~100 Trillion', 'Weight': '1.4 kg (3 lbs)', 'Resting oxygen use': '~20% of total body oxygen', 'CSF volume': '~150 mL' }
     },
-    components: [
-      { id: 'frontal_lobe', name: 'Frontal Lobe (Cerebrum)', description: 'Controls executive function, decision making, motor planning, and speech production.', position: [0, 0.3, 0.4], size: [0.8, 0.6, 0.7], explodedOffset: [0, 0.6, 0.6], shape: 'sphere', color: '#0284c7' },
-      { id: 'parietal_lobe', name: 'Parietal Lobe', description: 'Processes sensory information including touch, spatial orientation, and navigation.', position: [0, 0.4, -0.3], size: [0.8, 0.5, 0.6], explodedOffset: [0, 0.7, -0.5], shape: 'sphere', color: '#0d9488' },
-      { id: 'temporal_lobe', name: 'Temporal Lobe', description: 'Houses auditory cortex, memory processing (hippocampus), and language comprehension.', position: [0.4, -0.1, 0], size: [0.5, 0.4, 0.6], explodedOffset: [0.7, -0.2, 0], shape: 'sphere', color: '#d97706' },
-      { id: 'cerebellum', name: 'Cerebellum ("Little Brain")', description: 'Coordinates voluntary motor movements, posture, balance, and fine motor learning.', position: [0, -0.4, -0.5], size: [0.7, 0.4, 0.5], explodedOffset: [0, -0.6, -0.7], shape: 'sphere', color: '#7c3aed' },
-      { id: 'brainstem', name: 'Brainstem (Pons & Medulla)', description: 'Regulates critical cardiac, respiratory, and autonomic survival reflexes.', position: [0, -0.6, -0.1], size: [0.25, 0.6, 0.25], explodedOffset: [0, -0.9, 0], shape: 'cylinder', color: '#dc2626' }
-    ]
+    components: BRAIN_COMPONENTS
   },
 
   human_lungs: {
