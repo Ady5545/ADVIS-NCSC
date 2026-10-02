@@ -163,9 +163,13 @@ function PistonAndRod({
     const crankX = Math.sin(phase) * CRANK_RADIUS;
     const crankY = Math.cos(phase) * CRANK_RADIUS;
     const rodAngle = Math.atan2(crankX, Math.max(0.05, pistonY - crankY));
-    assemblyRef.current.children[0]?.position.set(0, pistonY, 0);
-    assemblyRef.current.children[1]?.rotation.z = -rodAngle * 0.36;
-    assemblyRef.current.children[1]?.position.set(crankX * 0.18, (pistonY + crankY) * 0.42, 0);
+    const pistonGroup = assemblyRef.current.children[0] as THREE.Group | undefined;
+    const rodGroup = assemblyRef.current.children[1] as THREE.Group | undefined;
+    if (pistonGroup) pistonGroup.position.set(0, pistonY, 0);
+    if (rodGroup) {
+      rodGroup.rotation.z = -rodAngle * 0.36;
+      rodGroup.position.set(crankX * 0.18, (pistonY + crankY) * 0.42, 0);
+    }
   });
 
   return (
