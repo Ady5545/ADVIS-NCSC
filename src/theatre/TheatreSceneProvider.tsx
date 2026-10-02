@@ -1,7 +1,8 @@
 import React from 'react';
-import { SheetProvider } from '@theatre/r3f';
-import { advisOrbSheet } from './TheatreRuntime';
 
 export function TheatreSceneProvider({ children }: { children: React.ReactNode }) {
-  return <SheetProvider sheet={advisOrbSheet}>{children}</SheetProvider>;
+  // Theatre's runtime project/sequence controllers operate independently from the
+  // optional R3F provider. Keeping this wrapper as a pass-through also lets the
+  // production build avoid the obsolete @theatre/r3f peer dependency on Fiber 8.
+  return <>{children}</>;
 }
