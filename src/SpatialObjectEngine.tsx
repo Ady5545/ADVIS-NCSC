@@ -1,5 +1,6 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
+import { V12IndustrialCutaway } from './generators/V12IndustrialCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
@@ -310,62 +311,6 @@ interface SpatialObjectEngineProps {
   vectorsEnabled?: boolean;
 }
 
-
-// 3D Spatial Orientation Gizmo Cube & Axis Triad
-function SpatialOrientationGizmo({ rotationY }: { rotationY: number }) {
-  const degY = Math.round(((rotationY * 180 / Math.PI) % 360 + 360) % 360);
-
-  return (
-    <Html position={[3.6, 2.4, 0]} center zIndexRange={[200, 0]}>
-      <div className="bg-slate-950/90 border border-cyan-500/40 p-2.5 rounded-xl text-[9px] font-mono text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)] backdrop-blur-md flex flex-col items-center gap-1.5 pointer-events-none select-none min-w-[120px]">
-        <div className="flex items-center gap-1 text-[8px] font-bold text-cyan-400 uppercase tracking-widest border-b border-cyan-500/30 pb-1 w-full justify-between">
-          <span>ORIENTATION GIZMO</span>
-          <span className="text-emerald-400 font-bold">{degY}°</span>
-        </div>
-
-        {/* 3D Orientation Cube container */}
-        <div className="w-16 h-16 my-1 flex items-center justify-center [perspective:400px]">
-          <div 
-            className="relative w-10 h-10 transition-transform duration-75 [transform-style:preserve-3d]"
-            style={{ transform: `rotateX(-25deg) rotateY(${degY}deg)` }}
-          >
-            {/* FRONT face */}
-            <div className="absolute inset-0 bg-cyan-950/80 border border-cyan-400/80 text-cyan-200 text-[7px] font-bold flex items-center justify-center [transform:translateZ(20px)] shadow-[0_0_8px_rgba(34,211,238,0.3)]">
-              FRONT
-            </div>
-            {/* BACK face */}
-            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateY(180deg)_translateZ(20px)]">
-              BACK
-            </div>
-            {/* RIGHT face */}
-            <div className="absolute inset-0 bg-cyan-900/80 border border-cyan-400/80 text-cyan-200 text-[7px] font-bold flex items-center justify-center [transform:rotateY(90deg)_translateZ(20px)]">
-              RIGHT
-            </div>
-            {/* LEFT face */}
-            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateY(-90deg)_translateZ(20px)]">
-              LEFT
-            </div>
-            {/* TOP face */}
-            <div className="absolute inset-0 bg-emerald-950/80 border border-emerald-400/80 text-emerald-200 text-[7px] font-bold flex items-center justify-center [transform:rotateX(90deg)_translateZ(20px)]">
-              TOP
-            </div>
-            {/* BOTTOM face */}
-            <div className="absolute inset-0 bg-slate-900/80 border border-cyan-600/50 text-cyan-400/60 text-[7px] font-bold flex items-center justify-center [transform:rotateX(-90deg)_translateZ(20px)]">
-              BTM
-            </div>
-          </div>
-        </div>
-
-        {/* 3D Axes Triad (RGB = XYZ) */}
-        <div className="flex items-center gap-2 text-[8px] text-cyan-400/90 pt-1 border-t border-cyan-500/20 w-full justify-around font-bold">
-          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> X</span>
-          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Y</span>
-          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Z</span>
-        </div>
-      </div>
-    </Html>
-  );
-}
 
 // Procedural Renderers
 function ElectronCloud() {
@@ -919,6 +864,27 @@ function EngineeringComponentRenderer({
         </React.Suspense>
       </GLTFErrorBoundary>
     );
+  }
+
+  // The V12 is rendered as one cohesive industrial cutaway assembly so its internal
+  // geometry remains spatially connected instead of appearing as separate primitive blocks.
+  if (objectId === 'v12_engine') {
+    if (id === 'v12.engine_block') {
+      return (
+        <V12IndustrialCutaway
+          isHovered={isHovered}
+          isSelected={isSelected}
+          xrayEnabled={xrayEnabled}
+          blueprintEnabled={blueprintEnabled}
+          v12Rpm={v12Rpm}
+          v12Direction={v12Direction}
+          focusedCylinder={focusedCylinder}
+          crankAngleRef={crankAngleRef}
+          sysTimeRef={sysTimeRef}
+        />
+      );
+    }
+    return null;
   }
 
   const baseColor = color || '#475569';
@@ -3083,9 +3049,6 @@ export function SpatialObjectEngine({
         hoverHitPointRef={hoverHitPointRef} 
         pointerRayPosRef={pointerRayPosRef} 
       />
-
-      {/* 3D SPATIAL ORIENTATION GIZMO COMPASS */}
-      <SpatialOrientationGizmo rotationY={idleRotationRef.current} />
 
       <gridHelper args={[8, 8, '#06b6d4', '#0891b2']} position={[0, -0.5, 0]} material-transparent={true} material-opacity={0.12} />
     </group>
