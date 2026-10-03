@@ -3,6 +3,7 @@ import type { CadCertificationEvidence } from './cad/CadCertification';
 import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
 import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
 import { LUNGS_COMPONENTS } from './AutonomousModelEngine/precision/LungsModel';
+import { EYE_COMPONENTS } from './AutonomousModelEngine/precision/EyeModel';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -1313,18 +1314,23 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Anatomy',
     description: 'A sensory organ that focuses incoming light rays onto photosensitive retinal cells to produce vision.',
     defaultScale: 3.0,
+    animations: ['pupilReflex', 'explodedView'],
+    explodedParts: ['sclera', 'cornea', 'iris_pupil', 'crystalline_lens', 'vitreous_body', 'retina_choroid', 'retinal_vessels', 'optic_nerve'],
     educationalInformation: {
-      overview: 'Complex optical organ capturing light patterns and transducing them into optic nerve nerve impulses.',
-      keyFeatures: ['Transparent Cornea & Iris Aperture', 'Flexible Crystalline Lens', 'Light-Sensitive Retina (Rods & Cones)', 'Optic Nerve Cable'],
-      workingPrinciple: 'Cornea and lens refract light onto the retina, where 120 million rod and cone photoreceptors generate nerve signals.',
-      applications: ['Ophthalmology & Optometry Education'],
-      specifications: { 'Photoreceptors': '126 Million', 'Focal Length': '17 mm', 'Resolution Equivalent': '576 Megapixels' }
+      overview: 'A roughly 24 mm optical globe: a tough white sclera wraps a transparent refracting front end (cornea + iris + lens) and a vitreous-filled chamber, lined at the back by the light-sensing retina and drained by the optic nerve.',
+      keyFeatures: [
+        'Cornea: avascular, provides ~2/3 of total focusing power — more than the lens',
+        'Iris & Pupil: muscular diaphragm controlling light entry (2–8 mm pupil range)',
+        'Crystalline Lens: the adjustable ~1/3 of focusing power (accommodation)',
+        'Retina & Choroid: ~120M rods (brightness/peripheral) + ~6M cones (colour/central), fed by the choroid',
+        'Retinal Vessels: the one place in the body where blood vessels are directly visible (ophthalmoscopy)',
+        'Optic Nerve: ~1.2 million axons exiting at the optic disc — the eye\'s physiological blind spot'
+      ],
+      workingPrinciple: 'Light is refracted first and most strongly by the curved cornea, fine-tuned by the shape-adjustable lens (accommodation via the ciliary muscle), and focused onto the retina, where rods and cones transduce it into electrical signals carried by roughly 1.2 million ganglion-cell axons bundled into the optic nerve toward the brain.',
+      applications: ['Ophthalmology & optometry education', 'Patient counselling (e.g. cataracts, retinal detachment)', 'Vision science & optics teaching'],
+      specifications: { 'Photoreceptors': '~126 Million (120M rods + 6M cones)', 'Corneal refractive power': '~43 dioptres', 'Lens refractive power': '~17–20 dioptres (adjustable)', 'Axial length': '~24 mm' }
     },
-    components: [
-      { id: 'eye_cornea', name: 'Cornea & Clear Lens', description: 'Transparent front dome providing 2/3 of eye optical refractive power.', position: [0, 0, 0.4], size: [0.4, 0.4, 0.2], explodedOffset: [0, 0, 0.8], shape: 'sphere', color: '#38bdf8' },
-      { id: 'eye_retina', name: 'Retinal Layer Shell', description: 'Inner sensory lining containing rods (brightness) and cones (color).', position: [0, 0, -0.2], size: [0.85, 0.85, 0.85], explodedOffset: [0, 0, -0.6], shape: 'sphere', color: '#d97706' },
-      { id: 'optic_nerve', name: 'Optic Nerve Cable', description: 'Bundle of 1 million ganglion nerve fibers carrying visual signals to brain.', position: [0, 0, -0.8], size: [0.15, 0.15, 0.6], explodedOffset: [0, 0, -1.2], shape: 'cylinder', color: '#f8fafc' }
-    ]
+    components: EYE_COMPONENTS
   },
 
   human_skeleton: {
