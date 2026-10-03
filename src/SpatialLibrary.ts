@@ -4,6 +4,7 @@ import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
 import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
 import { LUNGS_COMPONENTS } from './AutonomousModelEngine/precision/LungsModel';
 import { EYE_COMPONENTS } from './AutonomousModelEngine/precision/EyeModel';
+import { SKELETON_COMPONENTS } from './AutonomousModelEngine/precision/SkeletonModel';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -1342,18 +1343,22 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Anatomy',
     description: 'The internal rigid bone framework protecting organs and anchoring skeletal muscles for movement.',
     defaultScale: 0.5,
+    animations: ['explodedView'],
+    explodedParts: ['skull', 'vertebral_column', 'ribcage', 'pelvis', 'upper_limb_bones', 'lower_limb_bones'],
     educationalInformation: {
-      overview: 'Adult human skeleton consisting of 206 bones divided into axial and appendicular divisions.',
-      keyFeatures: ['Cranium Skull Dome', 'Vertebral Spine Column (33 Vertebrae)', 'Thoracic Ribcage Shield', 'Pelvic Girdle & Limb Bones'],
-      workingPrinciple: 'Bones act as rigid levers pivoted at joints, pulled by skeletal muscles to produce biomechanical locomotion.',
-      applications: ['Orthopedics', 'Anatomical Education', 'Physical Therapy'],
-      specifications: { 'Total Bones': '206', 'Main Composition': 'Calcium Phosphate Matrix' }
+      overview: 'The adult human skeleton has 206 bones. This model shows a representative, anatomically-shaped subset — skull, a real S-curved vertebral column, ribcage, pelvis and representative limb long bones — rather than a generic rigid frame.',
+      keyFeatures: [
+        'Skull: 8 fused cranial bones + mandible, the only mobile skull bone',
+        'Vertebral Column: a genuine double-S curve — cervical lordosis, thoracic kyphosis, lumbar lordosis — not a straight rod',
+        'Ribcage: 12 pairs — 7 true, 3 false, 2 floating — swept from the thoracic spine to the sternum',
+        'Pelvis: fused ilium/ischium/pubis forming a basin that transfers load to the legs',
+        'Long bones (humerus/radius/ulna, femur/tibia/fibula): real bulbous-epiphysis, narrow-shaft silhouette, not uniform cylinders'
+      ],
+      workingPrinciple: 'Bones act as rigid levers pivoted at joints, pulled by skeletal muscles to produce movement; the spine\'s natural curves act as a spring, distributing and absorbing load far more efficiently than a straight column would.',
+      applications: ['Orthopaedics & anatomy education', 'Physical therapy & rehabilitation training', 'Biomechanics'],
+      specifications: { 'Total bones (full body)': '206', 'Vertebrae': '33 (24 free + 9 fused in sacrum/coccyx)', 'Rib pairs': '12 (7 true, 3 false, 2 floating)', 'Main composition': 'Calcium phosphate (hydroxyapatite) matrix' }
     },
-    components: [
-      { id: 'skel_skull', name: 'Cranium & Facial Skeleton', description: 'Protective skull dome enclosing brain and sensory organs.', position: [0, 1.6, 0], size: [0.4, 0.45, 0.4], explodedOffset: [0, 0.8, 0], shape: 'sphere', color: '#f8fafc' },
-      { id: 'skel_spine', name: 'Vertebral Spine Column', description: 'Flexible axial support column with intervertebral shock discs.', position: [0, 0.6, 0], size: [0.2, 1.4, 0.2], explodedOffset: [-0.5, 0, 0], shape: 'cylinder', color: '#e2e8f0' },
-      { id: 'skel_ribs', name: 'Thoracic Ribcage', description: '12 pairs of curved ribs shielding heart and lungs.', position: [0, 0.8, 0], size: [0.6, 0.7, 0.5], explodedOffset: [0, 0, 0.6], shape: 'box', color: '#cbd5e1' }
-    ]
+    components: SKELETON_COMPONENTS
   },
 
   // Quantum Mechanics & Physics
