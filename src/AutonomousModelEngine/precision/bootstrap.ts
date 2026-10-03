@@ -8,6 +8,7 @@
 import { ModelRegistry } from '../ModelRegistry';
 import { buildHeartGeometries } from './HeartModel';
 import { buildBrainGeometries } from './BrainModel';
+import { buildLungsGeometries } from './LungsModel';
 
 let registered = false;
 
@@ -16,6 +17,7 @@ export function registerPrecisionModels(): void {
   registered = true;
   ModelRegistry.registerLazyGeometries('human_heart', buildHeartGeometries);
   ModelRegistry.registerLazyGeometries('human_brain', buildBrainGeometries);
+  ModelRegistry.registerLazyGeometries('human_lungs', buildLungsGeometries);
 }
 
 registerPrecisionModels();

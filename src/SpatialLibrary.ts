@@ -2,6 +2,7 @@ import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIn
 import type { CadCertificationEvidence } from './cad/CadCertification';
 import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
 import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
+import { LUNGS_COMPONENTS } from './AutonomousModelEngine/precision/LungsModel';
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -1284,23 +1285,23 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     category: 'Anatomy',
     description: 'Primary respiratory organs facilitating gas exchange between inhaled atmospheric air and the circulatory bloodstream.',
     defaultScale: 1.5,
+    animations: ['breathingCycle', 'explodedView'],
+    explodedParts: ['right_lung', 'left_lung', 'trachea', 'bronchial_tree', 'pulmonary_vessels_lung', 'alveolar_tissue'],
     educationalInformation: {
-      overview: 'Spongy, air-filled organs on either side of the chest containing 300 million alveoli for gas diffusion.',
+      overview: 'Spongy, air-filled organs on either side of the chest built around a branching airway tree — trachea down to ~300 million alveoli — alongside a completely separate low-pressure blood vessel tree for gas exchange.',
       keyFeatures: [
-        'Right Lung (3 Lobes: Superior, Middle, Inferior)',
-        'Left Lung (2 Lobes with Cardiac Notch)',
-        'Trachea Airway branching into Primary Bronchi',
-        'Microscopic Alveolar Gas Exchange Network'
+        'Right Lung (3 Lobes: Superior, Middle, Inferior) — larger, shorter, pushed up by the liver',
+        'Left Lung (2 Lobes) — smaller, with a cardiac notch for the heart\'s apex',
+        'Trachea: ~11 cm windpipe held open by 16–20 C-shaped cartilage rings',
+        'Bronchial Tree: ~23 generations of branching from trachea to alveoli',
+        'Pulmonary Arteries & Veins: the only vessels where arteries carry deoxygenated blood',
+        'Alveolar tissue: ~300 million alveoli, ~70 m² of gas-exchange surface'
       ],
-      workingPrinciple: 'Diaphragm contracts downward, expanding thoracic cavity and pulling air into alveoli where oxygen diffuses into capillaries while carbon dioxide escapes.',
-      applications: ['Pulmonology Training', 'Respiratory Therapy Education'],
-      specifications: { 'Alveoli Count': '300 Million', 'Surface Area': '70 sq meters', 'Vital Capacity': '4.8 Liters' }
+      workingPrinciple: 'The diaphragm contracts and flattens, expanding the thoracic cavity and dropping intrapleural pressure; air flows down the pressure gradient through the branching bronchial tree into the alveoli, where oxygen diffuses across a membrane less than a micron thick into the pulmonary capillaries while carbon dioxide diffuses the other way, to be exhaled as the diaphragm relaxes.',
+      applications: ['Pulmonology & respiratory therapy education', 'Anaesthesia and critical-care training', 'Patient counselling (e.g. COPD, pneumonia)'],
+      specifications: { 'Alveoli Count': '~300 Million', 'Surface Area': '~70 m² (roughly a tennis court)', 'Vital Capacity': '~4.8 Liters', 'Airway generations': '~23', 'Breaths per minute (rest)': '12–20' }
     },
-    components: [
-      { id: 'right_lung', name: 'Right Lung (3 Lobes)', description: 'Larger lung divided into Superior, Middle, and Inferior lobes.', position: [0.4, 0, 0], size: [0.6, 1.2, 0.6], explodedOffset: [0.7, 0, 0], shape: 'sphere', color: '#f43f5e' },
-      { id: 'left_lung', name: 'Left Lung (2 Lobes)', description: 'Features cardiac notch accommodating the heart apex.', position: [-0.4, 0, 0], size: [0.55, 1.15, 0.55], explodedOffset: [-0.7, 0, 0], shape: 'sphere', color: '#f43f5e' },
-      { id: 'trachea', name: 'Trachea & Bronchial Tree', description: 'Cartilaginous windpipe dividing into left and right primary bronchi.', position: [0, 0.4, 0], size: [0.2, 0.8, 0.2], explodedOffset: [0, 0.8, 0], shape: 'cylinder', color: '#38bdf8' }
-    ]
+    components: LUNGS_COMPONENTS
   },
 
   human_eye: {
