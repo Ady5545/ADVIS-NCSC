@@ -1,6 +1,7 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
 import { renderPremiumEngineeringDetail, renderPremiumWholeModel } from './generators/PremiumEngineeringDetails';
+import { renderPremiumElectronicsWholeModel } from './generators/PremiumElectronicsDetails';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -896,6 +897,16 @@ function EngineeringComponentRenderer({
     blueprintEnabled
   });
   if (premiumWhole) return premiumWhole;
+
+  // Premium electronics board parts (Arduino, etc.) — one real detail function per
+  // individually-selectable/explodable component, not a single collapsed mega-block.
+  const premiumElectronics = renderPremiumElectronicsWholeModel(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (premiumElectronics) return premiumElectronics;
 
   // Higher-detail precision layer for the non-V12 hero mechanical assemblies.
   const premiumDetail = renderPremiumEngineeringDetail(id, {

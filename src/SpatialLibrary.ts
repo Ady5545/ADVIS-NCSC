@@ -181,11 +181,17 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Microcontroller': 'ATmega328P', 'Operating Voltage': '5V', 'Clock Speed': '16 MHz' }
     },
     components: [
-      { id: 'uno_pcb', name: 'PCB Substrate', description: 'FR4 copper-clad substrate board.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#044530' },
-      { id: 'uno_atmega', name: 'ATmega328P MCU', description: '8-bit AVR RISC microcontroller.', position: [0.1, 0.05, 0.2], size: [0.3, 0.08, 0.8], explodedOffset: [0, 0.5, 0], shape: 'box', color: '#1e293b' },
-      { id: 'uno_usb', name: 'USB-B Connector', description: 'USB programming and serial interface port.', position: [-0.35, 0.12, -0.45], size: [0.3, 0.25, 0.35], explodedOffset: [-0.4, 0.2, 0], shape: 'box', color: '#94a3b8' },
-      { id: 'uno_dc', name: 'DC Barrel Jack', description: 'External power input socket (7-12V).', position: [-0.35, 0.12, 0.45], size: [0.3, 0.25, 0.35], explodedOffset: [-0.4, 0, 0.2], shape: 'box', color: '#0f172a' },
-      { id: 'uno_headers', name: 'Pin Headers', description: 'Digital and analog I/O female header rows.', position: [0.4, 0.1, 0], size: [0.1, 0.2, 1.2], explodedOffset: [0.4, 0.2, 0], shape: 'box', color: '#0f172a' }
+      { id: 'uno_pcb', name: 'PCB Substrate', description: 'Six-layer FR4 copper-clad substrate board carrying every other component.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#044530' },
+      { id: 'uno_atmega', name: 'ATmega328P MCU (DIP-28)', description: '8-bit AVR RISC microcontroller — the board\'s brain. Runs at 16 MHz, 32 KB flash, 2 KB SRAM.', position: [0.08, 0.06, 0.22], size: [0.14, 0.07, 0.34], explodedOffset: [0, 0.55, 0], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_crystal', name: '16 MHz Crystal Oscillator', description: 'Ceramic resonator providing the precise clock signal the ATmega328P times every instruction against.', position: [0.22, 0.05, 0.42], size: [0.07, 0.07, 0.05], explodedOffset: [0.3, 0.4, 0.3], shape: 'cylinder', color: '#c6c9ce' },
+      { id: 'uno_regulator', name: 'Voltage Regulator (TO-220)', description: 'Steps external 7–12V DC input down to a clean regulated 5V for the board\'s logic.', position: [-0.28, 0.08, 0.55], size: [0.1, 0.12, 0.02], explodedOffset: [-0.3, 0.4, 0.4], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_usb', name: 'USB-B Connector', description: 'USB programming and serial interface port — also supplies 5V power from a host computer.', position: [-0.35, 0.12, -0.6], size: [0.3, 0.25, 0.3], explodedOffset: [-0.5, 0.2, -0.4], shape: 'box', color: '#94a3b8' },
+      { id: 'uno_dc', name: 'DC Barrel Jack', description: 'External power input socket accepting 7–12V DC, feeding the onboard voltage regulator.', position: [-0.35, 0.12, 0.6], size: [0.26, 0.24, 0.3], explodedOffset: [-0.5, 0, 0.5], shape: 'box', color: '#0f172a' },
+      { id: 'uno_reset', name: 'Reset Button', description: 'Momentary pushbutton that restarts the running sketch from the beginning.', position: [-0.1, 0.04, -0.55], size: [0.08, 0.04, 0.08], explodedOffset: [-0.15, 0.3, -0.7], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_leds', name: 'Status LEDs (Power/TX/RX/L)', description: 'Four indicator LEDs: power-on (green), serial TX/RX activity (orange), and the user-programmable pin-13 LED (red).', position: [0.08, 0.03, -0.3], size: [0.4, 0.02, 0.06], explodedOffset: [0.1, 0.35, -0.5], shape: 'box', color: '#4ade80' },
+      { id: 'uno_icsp', name: 'ICSP Header (2x3)', description: 'In-Circuit Serial Programming header — lets external programmers flash the bootloader directly.', position: [0.1, 0.05, 0.02], size: [0.22, 0.03, 0.12], explodedOffset: [0.15, 0.3, 0.1], shape: 'box', color: '#0f172a' },
+      { id: 'uno_headers', name: 'Digital & Power I/O Headers', description: 'Female header rows breaking out the digital I/O, power and analog pins for shields and jumper wires.', position: [0.4, 0.1, 0], size: [0.1, 0.2, 1.2], explodedOffset: [0.5, 0.2, 0], shape: 'box', color: '#0f172a' },
+      { id: 'uno_passives', name: 'Passive Components', description: 'Scattered ceramic/electrolytic capacitors and resistors for decoupling, filtering and current-limiting around the board.', position: [0.0, 0.03, 0.4], size: [0.4, 0.06, 0.2], explodedOffset: [0.2, 0.15, 0.6], shape: 'box', color: '#d99a3a' },
     ]
   },
 
