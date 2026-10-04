@@ -604,7 +604,7 @@ function StepperPremium({ state }: { state: State }) {
       <Cylinder args={[0.055,0.055,1.28,24]}>
         <Pbr state={state} color="#dce2e7" metalness={0.99} roughness={0.10}/>
       </Cylinder>
-      <Bolts state={state} count={4} radius={0.47} y=0.59 size={0.018}/>
+      <Bolts state={state} count={4} radius={0.47} y={0.59} size={0.018}/>
     </group>
   );
 }
