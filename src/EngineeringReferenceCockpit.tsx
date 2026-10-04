@@ -11,6 +11,8 @@ export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
+  componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
+  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
   onSelectComponent?: (id: string | null) => void;
   explodedFactor?: number;
   onUpdateExplodedFactor?: (factor: number) => void;
