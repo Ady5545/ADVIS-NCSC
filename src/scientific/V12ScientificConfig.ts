@@ -42,10 +42,10 @@ export const V12_CAMERA_PRESETS: CameraPreset[] = [
     name: 'Hero 3/4',
     subtitle: 'Isometric Overview',
     description: '3/4 isometric perspective showcasing cylinder banks, carbon intake, and exhaust geometry.',
-    theta: 0.68,
-    phi: 1.12,
-    radius: 13.5,
-    target: [0, -0.2, 0]
+    theta: 0.82,
+    phi: 1.08,
+    radius: 10.8,
+    target: [0, -0.18, 0]
   },
   {
     id: 'FRONT',
