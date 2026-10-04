@@ -20,7 +20,7 @@ import { MediaPipeAdapter } from './MediaPipeAdapter';
 import { GestureProvider, GestureFrameUpdater, useGestureEngine } from './GestureContext';
 import { SpatialObjectEngine, SpatialMode } from './SpatialObjectEngine';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
-import { EngineeringHUD } from './EngineeringHUD';
+import { EngineeringReferenceCockpit } from './EngineeringReferenceCockpit';
 import { ScientificHUD } from './ScientificHUD';
 import { ScientificLaunchpad } from './ScientificLaunchpad';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -1246,12 +1246,7 @@ function AppContent() {
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
-      {/* TEMPORARY DIAGNOSTIC MARKER REQUIRED BY USER REQUEST */}
-      <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, background: '#00ff00', color: '#000000', padding: '8px 16px', fontWeight: 'bold', fontSize: '16px', fontFamily: 'monospace', borderBottomRightRadius: '8px', boxShadow: '0 0 10px rgba(0,255,0,0.8)' }}>
-        ADVIS R3F DIAGNOSTIC - STATE: {systemState}
-      </div>
-
-      <div ref={containerRef} className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans selection:bg-cyan-500/30">
+      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f5f6] text-slate-900 selection:bg-rose-500/20' : 'bg-black text-white selection:bg-cyan-500/30'}`}>
       
       {/* Action Preview Overlay */}
       {actionPreview && (
@@ -1270,7 +1265,7 @@ function AppContent() {
         }}
       />
       
-      <Background systemState={systemState} themeColor={themeColor} />
+      {!isEngineeringMode && <Background systemState={systemState} themeColor={themeColor} />}
       
       
       {/* Learn Engine Layer */}
@@ -1323,7 +1318,18 @@ function AppContent() {
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
-          <HologramCore systemState={systemState} audioLevel={audioLevel} bass={bass} treble={treble} hologramIntensity={hologramIntensity} themeColor={themeColor} isSpatial={isSpatial} />
+          <color attach="background" args={[isEngineeringMode ? '#f4f5f6' : '#020617']} />
+          {!isEngineeringMode && (
+            <HologramCore
+              systemState={systemState}
+              audioLevel={audioLevel}
+              bass={bass}
+              treble={treble}
+              hologramIntensity={hologramIntensity}
+              themeColor={themeColor}
+              isSpatial={isSpatial}
+            />
+          )}
         
           <React.Suspense fallback={null}>
             {activeLearningSession && activeLearningSession.steps && activeLearningSession.steps[activeLearningSession.currentStepIndex] && (
@@ -1378,18 +1384,15 @@ function AppContent() {
           </React.Suspense>
           
           <EffectComposer>
-            <Bloom 
-              luminanceThreshold={0.85} 
-              mipmapBlur 
-              intensity={0.16 * hologramIntensity} 
+            <Bloom
+              luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
+              mipmapBlur
+              intensity={(isEngineeringMode ? 0.035 : 0.16) * hologramIntensity}
             />
-            <ChromaticAberration 
-               
-              offset={new THREE.Vector2(0.0005, 0.0005)} 
-              
-              
-            />
-            <Noise opacity={0.012} />
+            {!isEngineeringMode && (
+              <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
+            )}
+            <Noise opacity={isEngineeringMode ? 0.004 : 0.012} />
           </EffectComposer>
         </Canvas>
       </div>
@@ -1702,9 +1705,9 @@ function AppContent() {
       </div>
     )}
 
-    {/* Engineering Mode HUD Overlay (Phase 1A & 1D) */}
+    {/* Engineering Mode: reference-inspired study cockpit */}
     {isEngineeringMode && (
-      <EngineeringHUD 
+      <EngineeringReferenceCockpit 
         onClose={() => setIsEngineeringMode(false)} 
         activeObject={currentSpatialObject} 
         selectedComponentId={selectedComponentId}
