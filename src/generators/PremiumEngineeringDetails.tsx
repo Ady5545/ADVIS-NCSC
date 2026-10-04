@@ -501,7 +501,7 @@ function V8Premium({ state }: { state: State }) {
         <Pbr state={state} color="#9ca7b0" metalness={0.98} roughness={0.11}/>
       </Cylinder>
       <HeadRail state={state}/>
-      <Bolts state={state} count={14} radius={0.56} y=-0.34/>
+      <Bolts state={state} count={14} radius={0.56} y={-0.34}/>
     </group>
   );
 }
@@ -524,7 +524,7 @@ function RotaryPremium({ state }: { state: State }) {
       <Torus args={[0.16,0.028,12,44]} rotation={[Math.PI/2,0,0]}>
         <Pbr state={state} color="#b27e2d" metalness={0.84} roughness={0.23}/>
       </Torus>
-      <Bolts state={state} count={10} radius={0.48} y=0.26/>
+      <Bolts state={state} count={10} radius={0.48} y={0.26}/>
     </group>
   );
 }
@@ -552,7 +552,7 @@ function TeslaPremium({ state }: { state: State }) {
       <RoundedBox args={[0.70,0.18,0.72]} radius={0.07} smoothness={5} position={[0,0.52,0]}>
         <Pbr state={state} color="#25303a" metalness={0.42} roughness={0.34}/>
       </RoundedBox>
-      <Bolts state={state} count={12} radius={0.58} y=0.46/>
+      <Bolts state={state} count={12} radius={0.58} y={0.46}/>
     </group>
   );
 }
@@ -580,7 +580,7 @@ function BLDCPrecision({ state }: { state: State }) {
       <Cylinder args={[0.075,0.075,1.22,28]}>
         <Pbr state={state} color="#d7dde2" metalness={0.99} roughness={0.10}/>
       </Cylinder>
-      <Bolts state={state} count={12} radius={0.48} y=0.23/>
+      <Bolts state={state} count={12} radius={0.48} y={0.23}/>
     </group>
   );
 }
