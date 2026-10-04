@@ -17,6 +17,7 @@ import { ModelProvenanceEngine } from './ModelProvenance';
 import { RenderIntegrityGuard } from './RenderIntegrityGuard';
 import { ModelFidelity, FidelityEvaluationReport } from './ModelFidelity';
 import './precision/bootstrap';
+import { resolveCanonicalQuery } from './CanonicalResolver';
 
 export interface BuildResult {
   record: AutonomousModelRecord;
@@ -33,58 +34,11 @@ export class ModelBuilder {
    * Resolves query to an existing pre-authored high-fidelity canonical library asset if available.
    */
   public static resolveCanonicalLibraryObject(query: string): ObjectMetadata | null {
-    const q = query.toLowerCase().trim();
-
-    if (q.includes('v12') || q.includes('v-12') || (q.includes('12 cylinder') && q.includes('engine')) || q === 'v12 engine' || q === 'engine') {
-      return SPATIAL_LIBRARY['v12_engine'] || null;
-    }
-    if (q.includes('arduino') || q.includes('uno r3') || q === 'uno') {
-      return SPATIAL_LIBRARY['arduino_uno'] || null;
-    }
-    if (q.includes('esp32') || q.includes('esp-32') || q.includes('esp wroom')) {
-      return SPATIAL_LIBRARY['esp32'] || null;
-    }
-    if (q.includes('sg90') || (q.includes('servo') && !q.includes('brushless'))) {
-      return SPATIAL_LIBRARY['servo_motor'] || SPATIAL_LIBRARY['sg90_servo'] || null;
-    }
-    if (q.includes('heliomotion') || q.includes('solar tracker')) {
-      return SPATIAL_LIBRARY['heliomotion'] || SPATIAL_LIBRARY['solar_tracker'] || null;
-    }
-    if (q.includes('human heart') || q === 'heart' || q.includes('heart anatomy')) {
-      return SPATIAL_LIBRARY['human_heart'] || null;
-    }
-    if (q.includes('human brain') || q === 'brain' || q.includes('brain anatomy')) {
-      return SPATIAL_LIBRARY['human_brain'] || null;
-    }
-    if (q.includes('human lungs') || q === 'lungs' || q.includes('respiratory lungs')) {
-      return SPATIAL_LIBRARY['human_lungs'] || null;
-    }
-    if (q.includes('turbocharger') || q === 'turbo') {
-      return SPATIAL_LIBRARY['turbocharger'] || null;
-    }
-    if (q.includes('differential') || q.includes('lsd') || q.includes('limited slip')) {
-      return SPATIAL_LIBRARY['differential'] || null;
-    }
-    if (q.includes('suspension') || q.includes('macpherson') || q.includes('strut')) {
-      return SPATIAL_LIBRARY['suspension'] || null;
-    }
-    if (q.includes('brake disc') || q.includes('brake rotor') || q.includes('carbon ceramic brake')) {
-      return SPATIAL_LIBRARY['brake_disc'] || null;
-    }
-    if (q.includes('steering') || q.includes('rack and pinion')) {
-      return SPATIAL_LIBRARY['steering_assembly'] || null;
-    }
-    if (q.includes('stepper motor') || q === 'stepper') {
-      return SPATIAL_LIBRARY['stepper_motor'] || null;
-    }
-    if (q.includes('brushless') || q.includes('bldc')) {
-      return SPATIAL_LIBRARY['brushless_motor'] || null;
-    }
-    if (q.includes('breadboard')) {
-      return SPATIAL_LIBRARY['breadboard'] || null;
-    }
-
-    return null;
+    // Delegates to CanonicalResolver.ts, which covers every SPATIAL_LIBRARY id (not a partial
+    // subset) and falls back to fuzzy token-overlap matching so a recognisable query always
+    // reaches a real canonical model instead of silently falling through to a blank AI-generated
+    // placeholder. See that file for the full keyword map and the fuzzy-match rationale.
+    return resolveCanonicalQuery(query);
   }
 
   /**
