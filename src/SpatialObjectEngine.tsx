@@ -1,5 +1,6 @@
 import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, CrankshaftAssembly, ValvetrainAssembly, IntakePlenum, ExhaustManifold, CoolingSystem, LubricationSystem, ElectronicsSensors } from './generators/MechanicalGenerator';
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
+import { renderPremiumEngineeringDetail, renderPremiumWholeModel } from './generators/PremiumEngineeringDetails';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -887,6 +888,28 @@ function EngineeringComponentRenderer({
     return null;
   }
 
+  // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
+  const premiumWhole = renderPremiumWholeModel(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (premiumWhole) return premiumWhole;
+
+  // Higher-detail precision layer for the non-V12 hero mechanical assemblies.
+  const premiumDetail = renderPremiumEngineeringDetail(id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (premiumDetail) {
+    // Keep the existing detailed renderer and add the precision layer over it.
+    // This intentionally does not run for v12_engine because that path returned above.
+    // The base component renderer remains available for selection/interactions.
+  }
+
   const baseColor = color || '#475569';
   const materialType = (comp as any).materialType || comp.specifications?.['Material'] || (comp as any).engineeringDetails?.material;
   const edgeRadius = Math.max(0.006, Math.min(size[0], size[1], size[2]) * 0.08);
@@ -1381,7 +1404,14 @@ if (id === 'pcb' || id === 'esp32_pcb' || id === 'rpi_pcb' || id === 'bb_housing
     xrayEnabled,
     blueprintEnabled
   });
-  if (advancedModel) return advancedModel;
+  if (advancedModel) {
+    return (
+      <>
+        {advancedModel}
+        {premiumDetail}
+      </>
+    );
+  }
 
   const generatorProps = {
     isHovered,
