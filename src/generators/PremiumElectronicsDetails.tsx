@@ -393,6 +393,94 @@ function Esp32Passives({ state }: { state: State }) {
   );
 }
 
+// ----------------------------- Raspberry Pi 4 Model B --------------------------------------
+
+function RpiPcb({ state }: { state: State }) {
+  return (
+    <RoundedBox args={[2.5, 0.07, 1.8]} radius={0.04} smoothness={3}>
+      <Pbr state={state} color="#0e5c33" metalness={0.15} roughness={0.5} />
+    </RoundedBox>
+  );
+}
+
+function RpiCpu({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[0.6, 0.06, 0.6]}>
+        <Pbr state={state} color="#1c1c1e" metalness={0.1} roughness={0.5} />
+      </Box>
+      <RoundedBox args={[0.55, 0.05, 0.55]} radius={0.01} smoothness={2} position={[0, 0.055, 0]}>
+        <Pbr state={state} color="#c7cad1" metalness={0.8} roughness={0.2} />
+      </RoundedBox>
+    </group>
+  );
+}
+
+function RpiRam({ state }: { state: State }) {
+  return (
+    <Box args={[0.5, 0.06, 0.5]}>
+      <Pbr state={state} color="#161a22" metalness={0.1} roughness={0.5} />
+    </Box>
+  );
+}
+
+function RpiUsb3({ state }: { state: State }) {
+  return (
+    <group>
+      {[0.12, -0.12].map((z, i) => (
+        <group key={i} position={[0, 0, z]}>
+          <Box args={[0.55, 0.42, 0.22]}>
+            <Pbr state={state} color="#8a94a6" metalness={0.75} roughness={0.3} />
+          </Box>
+          <Box args={[0.42, 0.26, 0.12]} position={[0, 0, -0.14]}>
+            <Pbr state={state} color="#1d4ed8" metalness={0.3} roughness={0.4} />
+          </Box>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function RpiEth({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[0.68, 0.48, 0.48]}>
+        <Pbr state={state} color="#9aa0a8" metalness={0.65} roughness={0.35} />
+      </Box>
+      <Box args={[0.5, 0.36, 0.16]} position={[0, 0, -0.18]}>
+        <Pbr state={state} color="#2a2a2e" metalness={0.2} roughness={0.5} />
+      </Box>
+      <Box args={[0.06, 0.06, 0.02]} position={[0.25, 0.16, -0.24]}>
+        <Pbr state={state} color="#4ade80" metalness={0} roughness={0.2} emissive="#4ade80" emissiveIntensity={0.7} />
+      </Box>
+    </group>
+  );
+}
+
+function RpiGpio({ state }: { state: State }) {
+  return <HeaderRow state={state} count={20} position={[0, 0, 0]} rot={Math.PI / 2} />;
+}
+
+function RpiHdmi({ state }: { state: State }) {
+  return (
+    <group>
+      {[0.14, -0.14].map((x, i) => (
+        <Box key={i} args={[0.2, 0.15, 0.18]} position={[x, 0, 0]}>
+          <Pbr state={state} color="#1c1c1e" metalness={0.2} roughness={0.45} />
+        </Box>
+      ))}
+    </group>
+  );
+}
+
+function RpiUsbC({ state }: { state: State }) {
+  return (
+    <RoundedBox args={[0.22, 0.09, 0.1]} radius={0.03} smoothness={2}>
+      <Pbr state={state} color="#9aa0a8" metalness={0.75} roughness={0.3} />
+    </RoundedBox>
+  );
+}
+
 export function renderPremiumElectronicsWholeModel(objectId: string, componentId: string, state: State): React.ReactNode | null {
   if (objectId === 'arduino_uno') {
     switch (componentId) {
@@ -421,6 +509,19 @@ export function renderPremiumElectronicsWholeModel(objectId: string, componentId
       case 'esp32_led': return <Esp32Led state={state} />;
       case 'esp32_headers': return <Esp32Headers state={state} />;
       case 'esp32_passives': return <Esp32Passives state={state} />;
+      default: return null;
+    }
+  }
+  if (objectId === 'raspberry_pi') {
+    switch (componentId) {
+      case 'rpi_pcb': return <RpiPcb state={state} />;
+      case 'rpi_cpu': return <RpiCpu state={state} />;
+      case 'rpi_ram': return <RpiRam state={state} />;
+      case 'rpi_usb3': return <RpiUsb3 state={state} />;
+      case 'rpi_eth': return <RpiEth state={state} />;
+      case 'rpi_gpio': return <RpiGpio state={state} />;
+      case 'rpi_hdmi': return <RpiHdmi state={state} />;
+      case 'rpi_usbc': return <RpiUsbC state={state} />;
       default: return null;
     }
   }

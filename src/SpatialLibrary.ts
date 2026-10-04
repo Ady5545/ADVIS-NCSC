@@ -585,13 +585,17 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         'Power': '5V DC via USB-C'
       }
     },
+    animations: ['explodedView'],
+    explodedParts: ['rpi_pcb', 'rpi_cpu', 'rpi_ram', 'rpi_usb3', 'rpi_eth', 'rpi_gpio', 'rpi_hdmi', 'rpi_usbc'],
     components: [
-      { id: 'rpi_pcb', name: 'Green FR4 Base PCB', description: '6-layer high-density PCB with embedded ground planes and thermal vias.', position: [0, -0.05, 0], size: [2.5, 0.08, 1.8], explodedOffset: [0, -0.6, 0], shape: 'box', color: '#15803d' },
-      { id: 'rpi_cpu', name: 'BCM2711 Quad-Core CPU', description: 'Broadcom 64-bit ARM Cortex-A72 CPU with aluminum heat spreader lid.', position: [-0.3, 0.1, 0.1], size: [0.6, 0.12, 0.6], explodedOffset: [0, 0.8, 0], shape: 'box', color: '#cbd5e1' },
-      { id: 'rpi_ram', name: '4GB LPDDR4 RAM Chip', description: 'High-speed system memory chip providing 3200 MT/s bandwidth.', position: [0.3, 0.1, 0.1], size: [0.5, 0.08, 0.5], explodedOffset: [0.3, 0.7, 0.3], shape: 'box', color: '#1e293b' },
-      { id: 'rpi_usb3', name: 'Dual USB 3.0 Ports (Blue)', description: 'SuperSpeed USB ports providing up to 5 Gbps data throughput.', position: [1.1, 0.3, -0.4], size: [0.6, 0.45, 0.5], explodedOffset: [0.8, 0.4, -0.4], shape: 'box', color: '#0284c7' },
-      { id: 'rpi_eth', name: 'Gigabit Ethernet Jack', description: 'RJ-45 Ethernet port supporting 10/100/1000 Mbps networking with PoE support.', position: [1.1, 0.35, 0.4], size: [0.7, 0.5, 0.5], explodedOffset: [0.8, 0.4, 0.4], shape: 'box', color: '#94a3b8' },
-      { id: 'rpi_gpio', name: '40-Pin GPIO Header', description: '40-pin male expansion header providing I2C, SPI, UART, and 3.3V/5V power.', position: [-0.2, 0.2, -0.75], size: [2.0, 0.25, 0.18], explodedOffset: [0, 0.7, -0.6], shape: 'box', color: '#0f172a' }
+      { id: 'rpi_pcb', name: 'Green FR4 Base PCB', description: '6-layer high-density PCB with embedded ground planes and thermal vias.', position: [0, -0.05, 0], size: [2.5, 0.08, 1.8], explodedOffset: [0, -0.7, 0], shape: 'box', color: '#15803d' },
+      { id: 'rpi_cpu', name: 'BCM2711 Quad-Core CPU', description: 'Broadcom 64-bit ARM Cortex-A72 CPU with aluminum heat spreader lid.', position: [-0.3, 0.1, 0.1], size: [0.6, 0.12, 0.6], explodedOffset: [0, 0.9, 0], shape: 'box', color: '#cbd5e1' },
+      { id: 'rpi_ram', name: '4GB LPDDR4 RAM Chip', description: 'High-speed system memory chip providing 3200 MT/s bandwidth, stacked on the underside of the board opposite the CPU.', position: [0.3, 0.1, 0.1], size: [0.5, 0.08, 0.5], explodedOffset: [0.3, 0.75, 0.3], shape: 'box', color: '#1e293b' },
+      { id: 'rpi_usb3', name: 'Dual USB 3.0 Ports (Blue)', description: 'SuperSpeed USB ports providing up to 5 Gbps data throughput — the blue plastic tongue is the visual tell versus USB 2.0.', position: [1.1, 0.3, -0.4], size: [0.6, 0.45, 0.5], explodedOffset: [0.9, 0.45, -0.5], shape: 'box', color: '#0284c7' },
+      { id: 'rpi_eth', name: 'Gigabit Ethernet Jack', description: 'RJ-45 Ethernet port supporting 10/100/1000 Mbps networking with PoE support via an add-on HAT.', position: [1.1, 0.35, 0.4], size: [0.7, 0.5, 0.5], explodedOffset: [0.9, 0.45, 0.5], shape: 'box', color: '#94a3b8' },
+      { id: 'rpi_gpio', name: '40-Pin GPIO Header', description: '40-pin (2x20) male expansion header providing I2C, SPI, UART, and 3.3V/5V power for HATs and breadboard jumpers.', position: [-0.2, 0.2, -0.75], size: [2.0, 0.25, 0.18], explodedOffset: [0, 0.8, -0.7], shape: 'box', color: '#0f172a' },
+      { id: 'rpi_hdmi', name: 'Dual Micro-HDMI Ports', description: 'Two micro-HDMI outputs supporting independent dual 4K60 displays — a first for the Pi 4.', position: [0.75, 0.15, -0.75], size: [0.5, 0.18, 0.2], explodedOffset: [0.5, 0.6, -0.75], shape: 'box', color: '#1c1c1e' },
+      { id: 'rpi_usbc', name: 'USB-C Power Input', description: 'USB-C connector supplying 5V power — the Pi 4 was the first to need a proper 5V/3A supply via USB-C instead of micro-USB.', position: [-0.9, 0.15, -0.75], size: [0.22, 0.1, 0.12], explodedOffset: [-0.5, 0.6, -0.75], shape: 'box', color: '#94a3b8' },
     ]
   },
 
