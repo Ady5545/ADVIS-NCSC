@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, ChevronDown, Maximize2, Play, Ruler, Sparkles, X, Layers3 } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveObjectFidelity } from './cad/GeometryFidelity';
@@ -97,6 +97,12 @@ export function EngineeringReferenceCockpit({
     setActivePreset(preset.id);
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
   };
+
+  useEffect(() => {
+    const preset = V12_CAMERA_PRESETS.find((entry) => entry.id === 'HERO');
+    if (!preset) return;
+    window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
+  }, [objectKey]);
 
   const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'SECTION' : 'SOLID';
 
