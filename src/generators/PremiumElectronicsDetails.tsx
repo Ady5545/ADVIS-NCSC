@@ -268,20 +268,161 @@ function ArduinoPassives({ state }: { state: State }) {
   );
 }
 
+// ----------------------------- ESP32 Development Board -----------------------------------
+
+function Esp32Pcb({ state }: { state: State }) {
+  return (
+    <RoundedBox args={[0.6, 0.045, 1.2]} radius={0.012} smoothness={3}>
+      <Pbr state={state} color="#0e0e10" metalness={0.15} roughness={0.5} />
+    </RoundedBox>
+  );
+}
+
+/** The WROOM module: a small daughter PCB with a stamped-steel RF shield can on top,
+ * including the characteristic vent-hole grid and castellated edge pads. */
+function Esp32Module({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[0.44, 0.012, 0.52]} position={[0, -0.034, 0]}>
+        <Pbr state={state} color="#0a3d2b" metalness={0.15} roughness={0.55} />
+      </Box>
+      <RoundedBox args={[0.42, 0.055, 0.5]} radius={0.004} smoothness={2}>
+        <Pbr state={state} color="#9aa0a8" metalness={0.65} roughness={0.35} />
+      </RoundedBox>
+      {Array.from({ length: 5 }).map((_, row) =>
+        Array.from({ length: 6 }).map((_, col) => (
+          <Cylinder key={`${row}-${col}`} args={[0.012, 0.012, 0.004, 8]} position={[-0.16 + col * 0.064, 0.028, -0.18 + row * 0.09]}>
+            <Pbr state={state} color="#7a7f87" metalness={0.5} roughness={0.5} />
+          </Cylinder>
+        ))
+      )}
+      {/* Castellated edge pads along the front/back edges */}
+      {Array.from({ length: 9 }).map((_, i) => [1, -1].map((side) => (
+        <Box key={`${side}-${i}`} args={[0.02, 0.05, 0.012]} position={[-0.18 + i * 0.045, -0.005, side * 0.26]}>
+          <Pbr state={state} color="#d4d8de" metalness={0.85} roughness={0.25} />
+        </Box>
+      )))}
+    </group>
+  );
+}
+
+function Esp32Usb({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[0.2, 0.08, 0.14]}>
+        <Pbr state={state} color="#9aa0a8" metalness={0.75} roughness={0.3} />
+      </Box>
+      <Box args={[0.12, 0.045, 0.02]} position={[0, 0, -0.07]}>
+        <Pbr state={state} color="#2a2a2e" metalness={0.3} roughness={0.5} />
+      </Box>
+    </group>
+  );
+}
+
+/** A small SOIC-style surface-mount chip: flat body, short gull-wing leads on two sides. */
+function SoicChip({ state, width, length, color = '#1c1c1e' }: { state: State; width: number; length: number; color?: string }) {
+  const pins = 6;
+  return (
+    <group>
+      <Box args={[width, 0.018, length]}>
+        <Pbr state={state} color={color} metalness={0.1} roughness={0.5} />
+      </Box>
+      {Array.from({ length: pins }).map((_, i) => [1, -1].map((side) => (
+        <Box key={`${side}-${i}`} args={[0.012, 0.006, 0.01]} position={[side * (width / 2 + 0.006), -0.006, -length / 2 + (length / (pins - 1)) * i]}>
+          <Pbr state={state} color="#c7cad1" metalness={0.85} roughness={0.25} />
+        </Box>
+      )))}
+    </group>
+  );
+}
+
+function Esp32UartChip({ state }: { state: State }) {
+  return <SoicChip state={state} width={0.06} length={0.08} />;
+}
+
+function Esp32Regulator({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[0.045, 0.02, 0.07]}>
+        <Pbr state={state} color="#1c1c1e" metalness={0.15} roughness={0.5} />
+      </Box>
+      <Box args={[0.04, 0.012, 0.01]} position={[0, -0.016, -0.02]}>
+        <Pbr state={state} color="#c7cad1" metalness={0.85} roughness={0.25} />
+      </Box>
+    </group>
+  );
+}
+
+function Esp32Buttons({ state }: { state: State }) {
+  return (
+    <group>
+      {[-0.08, 0.08].map((x, i) => (
+        <group key={i} position={[x, 0, 0]}>
+          <Box args={[0.07, 0.03, 0.05]}>
+            <Pbr state={state} color="#1c1c1e" metalness={0.15} roughness={0.5} />
+          </Box>
+          <Cylinder args={[0.016, 0.016, 0.012, 16]} position={[0, 0.02, 0]}>
+            <Pbr state={state} color="#2a2a2e" metalness={0.1} roughness={0.4} />
+          </Cylinder>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function Esp32Led({ state }: { state: State }) {
+  return <LED state={state} position={[0, 0, 0]} color="#4ade80" />;
+}
+
+function Esp32Headers({ state }: { state: State }) {
+  return (
+    <group>
+      <HeaderRow state={state} count={19} position={[0, 0, 0]} rot={Math.PI / 2} />
+    </group>
+  );
+}
+
+function Esp32Passives({ state }: { state: State }) {
+  return (
+    <group>
+      <CeramicCap state={state} position={[-0.08, 0, 0]} />
+      <CeramicCap state={state} position={[-0.02, 0, 0]} />
+      <ResistorTH state={state} position={[0.08, -0.01, 0]} rot={Math.PI / 2} />
+      <ResistorTH state={state} position={[0.14, -0.01, 0]} rot={Math.PI / 2} />
+    </group>
+  );
+}
+
 export function renderPremiumElectronicsWholeModel(objectId: string, componentId: string, state: State): React.ReactNode | null {
-  if (objectId !== 'arduino_uno') return null;
-  switch (componentId) {
-    case 'uno_pcb': return <ArduinoPcb state={state} />;
-    case 'uno_atmega': return <ArduinoAtmega state={state} />;
-    case 'uno_crystal': return <ArduinoCrystal state={state} />;
-    case 'uno_regulator': return <ArduinoRegulator state={state} />;
-    case 'uno_usb': return <ArduinoUsb state={state} />;
-    case 'uno_dc': return <ArduinoDcJack state={state} />;
-    case 'uno_reset': return <ArduinoReset state={state} />;
-    case 'uno_leds': return <ArduinoLeds state={state} />;
-    case 'uno_icsp': return <ArduinoIcsp state={state} />;
-    case 'uno_headers': return <ArduinoHeaders state={state} />;
-    case 'uno_passives': return <ArduinoPassives state={state} />;
-    default: return null;
+  if (objectId === 'arduino_uno') {
+    switch (componentId) {
+      case 'uno_pcb': return <ArduinoPcb state={state} />;
+      case 'uno_atmega': return <ArduinoAtmega state={state} />;
+      case 'uno_crystal': return <ArduinoCrystal state={state} />;
+      case 'uno_regulator': return <ArduinoRegulator state={state} />;
+      case 'uno_usb': return <ArduinoUsb state={state} />;
+      case 'uno_dc': return <ArduinoDcJack state={state} />;
+      case 'uno_reset': return <ArduinoReset state={state} />;
+      case 'uno_leds': return <ArduinoLeds state={state} />;
+      case 'uno_icsp': return <ArduinoIcsp state={state} />;
+      case 'uno_headers': return <ArduinoHeaders state={state} />;
+      case 'uno_passives': return <ArduinoPassives state={state} />;
+      default: return null;
+    }
   }
+  if (objectId === 'esp32') {
+    switch (componentId) {
+      case 'esp32_pcb': return <Esp32Pcb state={state} />;
+      case 'esp32_module': return <Esp32Module state={state} />;
+      case 'esp32_usb': return <Esp32Usb state={state} />;
+      case 'esp32_uart_chip': return <Esp32UartChip state={state} />;
+      case 'esp32_regulator': return <Esp32Regulator state={state} />;
+      case 'esp32_buttons': return <Esp32Buttons state={state} />;
+      case 'esp32_led': return <Esp32Led state={state} />;
+      case 'esp32_headers': return <Esp32Headers state={state} />;
+      case 'esp32_passives': return <Esp32Passives state={state} />;
+      default: return null;
+    }
+  }
+  return null;
 }

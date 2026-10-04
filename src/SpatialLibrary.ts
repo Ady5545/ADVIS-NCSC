@@ -211,11 +211,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['IoT', 'Smart Home', 'Wearables'],
       specifications: { 'Microcontroller': 'ESP32', 'Operating Voltage': '3.3V', 'Clock Speed': '240 MHz' }
     },
+    animations: ['explodedView'],
+    explodedParts: ['esp32_pcb', 'esp32_module', 'esp32_usb', 'esp32_uart_chip', 'esp32_regulator', 'esp32_buttons', 'esp32_led', 'esp32_headers', 'esp32_passives'],
     components: [
-      { id: 'esp32_pcb', name: 'ESP32 PCB', description: 'Matte black system board.', position: [0, 0, 0], size: [0.6, 0.05, 1.2], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#111111' },
-      { id: 'esp32_module', name: 'ESP-WROOM-32 Shield', description: 'RF shielding can with dual-core Tensilica MCU.', position: [0, 0.05, 0.1], size: [0.45, 0.06, 0.5], explodedOffset: [0, 0.4, 0], shape: 'box', color: '#cbd5e1' },
-      { id: 'esp32_usb', name: 'Micro-USB Port', description: 'UART and power interface.', position: [0, 0.05, -0.55], size: [0.2, 0.08, 0.15], explodedOffset: [0, 0.2, -0.3], shape: 'box', color: '#94a3b8' },
-      { id: 'esp32_headers', name: 'Pin Headers', description: '30-pin dual inline header strip.', position: [0, 0.05, 0], size: [0.55, 0.15, 1.1], explodedOffset: [0, 0.3, 0], shape: 'box', color: '#1f2937' }
+      { id: 'esp32_pcb', name: 'ESP32 PCB', description: 'Matte black system board carrying the WROOM-32 module and all supporting circuitry.', position: [0, 0, 0], size: [0.6, 0.05, 1.2], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#111111' },
+      { id: 'esp32_module', name: 'ESP-WROOM-32 Module', description: 'A metal RF-shielded can soldered onto its own small substrate, containing the dual-core Tensilica LX6 MCU, flash memory, and WiFi/Bluetooth radio.', position: [0, 0.05, 0.1], size: [0.45, 0.08, 0.5], explodedOffset: [0, 0.5, 0.1], shape: 'box', color: '#cbd5e1' },
+      { id: 'esp32_usb', name: 'Micro-USB Port', description: 'Power and UART programming interface — flashes firmware and provides 5V input.', position: [0, 0.05, -0.55], size: [0.2, 0.08, 0.15], explodedOffset: [0, 0.3, -0.45], shape: 'box', color: '#94a3b8' },
+      { id: 'esp32_uart_chip', name: 'USB-to-UART Bridge Chip', description: 'A small surface-mount chip (e.g. CP2102) that translates USB signals from your computer into the serial UART the ESP32 actually speaks.', position: [0.15, 0.04, -0.4], size: [0.1, 0.02, 0.08], explodedOffset: [0.25, 0.25, -0.35], shape: 'box', color: '#1c1c1e' },
+      { id: 'esp32_regulator', name: 'AMS1117 Voltage Regulator', description: 'SOT-223 package regulator stepping the 5V USB supply down to the 3.3V the ESP32 logic requires.', position: [-0.18, 0.04, -0.4], size: [0.06, 0.02, 0.08], explodedOffset: [-0.25, 0.25, -0.35], shape: 'box', color: '#1c1c1e' },
+      { id: 'esp32_buttons', name: 'BOOT & EN Buttons', description: 'Two tactile buttons: EN resets the chip, BOOT held at power-up puts it into firmware-flashing mode.', position: [0.2, 0.04, 0.5], size: [0.16, 0.04, 0.06], explodedOffset: [0.3, 0.3, 0.6], shape: 'box', color: '#1c1c1e' },
+      { id: 'esp32_led', name: 'Power/Status LED', description: 'Onboard indicator LED confirming the board is powered.', position: [-0.2, 0.04, 0.5], size: [0.03, 0.03, 0.03], explodedOffset: [-0.3, 0.3, 0.6], shape: 'box', color: '#4ade80' },
+      { id: 'esp32_headers', name: 'Dual 19-Pin Headers', description: 'Two rows of 19 pins each (38 total) breaking out GPIO, power, and communication buses along both long edges.', position: [0, 0.05, 0], size: [0.55, 0.15, 1.1], explodedOffset: [0.6, 0.3, 0], shape: 'box', color: '#1f2937' },
+      { id: 'esp32_passives', name: 'Passive Components', description: 'Decoupling capacitors and pull-up/pull-down resistors scattered around the module and UART bridge.', position: [0, 0.03, -0.15], size: [0.3, 0.04, 0.15], explodedOffset: [-0.5, 0.15, -0.1], shape: 'box', color: '#d99a3a' },
     ]
   },
 
