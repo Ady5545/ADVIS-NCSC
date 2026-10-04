@@ -807,9 +807,13 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Obstacle Avoidance Robots', 'Liquid Level Gauge', 'Parking Distance Sensors'],
       specifications: { 'Frequency': '40 kHz', 'Range': '2cm - 400cm', 'Measuring Angle': '15 degrees' }
     },
+    animations: ['explodedView'],
+    explodedParts: ['us_pcb', 'us_trans', 'us_recv', 'us_header'],
     components: [
+      { id: 'us_pcb', name: 'HC-SR04 Control PCB', description: 'Blue PCB carrying the timing/trigger circuit that both transducers mount on — without it the two "eyes" have nothing to sit on.', position: [0, -0.1, 0.2], size: [0.95, 0.05, 0.5], explodedOffset: [0, -0.5, 0.3], shape: 'box', color: '#1d4ed8' },
       { id: 'us_trans', name: 'Ultrasonic Transmitter Horn (T)', description: 'Piezoelectric transducer converting electrical pulses into 40 kHz acoustic sound waves.', position: [-0.4, 0.1, 0.2], size: [0.45, 0.4, 0.45], explodedOffset: [-0.4, 0.6, 0.4], shape: 'cylinder', color: '#cbd5e1' },
-      { id: 'us_recv', name: 'Ultrasonic Receiver Horn (R)', description: 'Piezoelectric sensor detecting reflected ultrasonic echo bursts.', position: [0.4, 0.1, 0.2], size: [0.45, 0.4, 0.45], explodedOffset: [0.4, 0.6, 0.4], shape: 'cylinder', color: '#cbd5e1' }
+      { id: 'us_recv', name: 'Ultrasonic Receiver Horn (R)', description: 'Piezoelectric sensor detecting reflected ultrasonic echo bursts, timed against the transmit pulse to compute distance.', position: [0.4, 0.1, 0.2], size: [0.45, 0.4, 0.45], explodedOffset: [0.4, 0.6, 0.4], shape: 'cylinder', color: '#cbd5e1' },
+      { id: 'us_header', name: '4-Pin Header (VCC/Trig/Echo/GND)', description: 'The four connections the module exposes: power, trigger pulse in, echo pulse out, and ground.', position: [0, -0.1, -0.1], size: [0.3, 0.1, 0.1], explodedOffset: [0, -0.5, -0.4], shape: 'box', color: '#0f172a' },
     ]
   },
 
@@ -835,8 +839,15 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['System Status Monitors', 'Digital Thermometers', 'User Interface Displays'],
       specifications: { 'Display Format': '16 x 2', 'Character Size': '2.95 x 5.55 mm', 'Operating Voltage': '5V' }
     },
+    animations: ['explodedView'],
+    explodedParts: ['lcd_pcb', 'lcd_backlight', 'lcd_glass', 'lcd_frame', 'lcd_header', 'lcd_pot'],
     components: [
-      { id: 'lcd_glass', name: '16x2 Glass LCD Panel', description: 'Dual glass substrate sandwich containing liquid crystal matrix and polarizers.', position: [0, 0.1, 0], size: [1.8, 0.1, 0.8], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#06b6d4' }
+      { id: 'lcd_pcb', name: 'Driver PCB', description: 'Carries the HD44780 (or compatible) controller chip that turns incoming bytes into pixel patterns.', position: [0, -0.08, 0], size: [1.85, 0.03, 0.85], explodedOffset: [0, -0.6, 0], shape: 'box', color: '#15803d' },
+      { id: 'lcd_backlight', name: 'LED Backlight Panel', description: 'An even blue or green LED panel behind the glass that lights up the characters — without it the display is unreadable in the dark.', position: [0, -0.02, 0], size: [1.6, 0.03, 0.6], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#1e3a8a' },
+      { id: 'lcd_glass', name: '16x2 Glass LCD Panel', description: 'Dual glass substrate sandwich containing the liquid crystal matrix and polarizers — 16 characters per row, 2 rows, each character a 5x8 dot matrix.', position: [0, 0.1, 0], size: [1.8, 0.1, 0.8], explodedOffset: [0, 0.6, 0], shape: 'box', color: '#06b6d4' },
+      { id: 'lcd_frame', name: 'Plastic Bezel Frame', description: 'Mounting frame with corner screw holes that clamps the glass and backlight to the PCB.', position: [0, 0.14, 0], size: [1.9, 0.04, 0.9], explodedOffset: [0, 1.0, 0], shape: 'box', color: '#f1f5f9' },
+      { id: 'lcd_header', name: '16-Pin Header', description: 'Connects data lines, power, ground and contrast control — the standard HD44780 pinout every 16x2 LCD shares.', position: [0, -0.08, -0.46], size: [1.6, 0.08, 0.08], explodedOffset: [0, -0.9, -0.6], shape: 'box', color: '#0f172a' },
+      { id: 'lcd_pot', name: 'Contrast Potentiometer', description: 'A small trimmer potentiometer adjusting the LCD\'s contrast voltage — new users often miss this and think the screen is "broken" when it\'s just blank.', position: [-0.75, -0.06, 0], size: [0.15, 0.1, 0.15], explodedOffset: [-0.9, -0.5, 0], shape: 'cylinder', color: '#1c1c1e' },
     ]
   },
 

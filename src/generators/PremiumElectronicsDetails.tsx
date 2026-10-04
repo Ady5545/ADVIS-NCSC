@@ -481,6 +481,100 @@ function RpiUsbC({ state }: { state: State }) {
   );
 }
 
+// ----------------------------- HC-SR04 Ultrasonic Sensor -----------------------------------
+
+function UsPcb({ state }: { state: State }) {
+  return (
+    <RoundedBox args={[0.95, 0.045, 0.5]} radius={0.015} smoothness={2}>
+      <Pbr state={state} color="#1d4ed8" metalness={0.2} roughness={0.5} />
+    </RoundedBox>
+  );
+}
+
+function UsHorn({ state }: { state: State }) {
+  return (
+    <group>
+      <Cylinder args={[0.21, 0.21, 0.35, 24]}>
+        <Pbr state={state} color="#c7cad1" metalness={0.75} roughness={0.3} />
+      </Cylinder>
+      <Cylinder args={[0.165, 0.165, 0.01, 24]} position={[0, 0.18, 0]}>
+        <Pbr state={state} color="#e4e7ec" metalness={0.7} roughness={0.25} />
+      </Cylinder>
+      {/* concentric ribs of the transducer membrane */}
+      {[0.06, 0.1, 0.14].map((r, i) => (
+        <Torus key={i} args={[r, 0.004, 6, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.185, 0]}>
+          <Pbr state={state} color="#9aa0a8" metalness={0.6} roughness={0.35} />
+        </Torus>
+      ))}
+    </group>
+  );
+}
+
+function UsHeader({ state }: { state: State }) {
+  return <HeaderRow state={state} count={4} position={[0, 0, 0]} rot={Math.PI / 2} />;
+}
+
+// ----------------------------- 16x2 LCD Display ---------------------------------------------
+
+function LcdPcb({ state }: { state: State }) {
+  return (
+    <Box args={[1.85, 0.03, 0.85]}>
+      <Pbr state={state} color="#0e5c33" metalness={0.15} roughness={0.5} />
+    </Box>
+  );
+}
+
+function LcdBacklight({ state }: { state: State }) {
+  return (
+    <Box args={[1.6, 0.03, 0.6]}>
+      <Pbr state={state} color="#1e3a8a" metalness={0.1} roughness={0.3} emissive="#3b82f6" emissiveIntensity={0.4} />
+    </Box>
+  );
+}
+
+/** The 16x2 character grid: a faint lit dot-matrix pattern, not just a flat cyan slab. */
+function LcdGlass({ state }: { state: State }) {
+  return (
+    <group>
+      <Box args={[1.8, 0.08, 0.8]}>
+        <Pbr state={state} color="#0891b2" metalness={0.1} roughness={0.15} />
+      </Box>
+      {Array.from({ length: 2 }).map((_, row) =>
+        Array.from({ length: 16 }).map((_, col) => (
+          <Box key={`${row}-${col}`} args={[0.07, 0.01, 0.2]} position={[-0.8 + col * 0.1, 0.045, row === 0 ? -0.16 : 0.16]}>
+            <Pbr state={state} color="#083344" metalness={0} roughness={0.4} />
+          </Box>
+        ))
+      )}
+    </group>
+  );
+}
+
+function LcdFrame({ state }: { state: State }) {
+  return (
+    <RoundedBox args={[1.9, 0.04, 0.9]} radius={0.02} smoothness={2}>
+      <Pbr state={state} color="#f1f5f9" metalness={0.1} roughness={0.5} />
+    </RoundedBox>
+  );
+}
+
+function LcdHeader({ state }: { state: State }) {
+  return <HeaderRow state={state} count={16} position={[0, 0, 0]} />;
+}
+
+function LcdPot({ state }: { state: State }) {
+  return (
+    <group>
+      <Cylinder args={[0.075, 0.075, 0.1, 16]}>
+        <Pbr state={state} color="#1c1c1e" metalness={0.15} roughness={0.5} />
+      </Cylinder>
+      <Box args={[0.09, 0.015, 0.02]} position={[0, 0.058, 0]}>
+        <Pbr state={state} color="#f1f5f9" metalness={0.1} roughness={0.5} />
+      </Box>
+    </group>
+  );
+}
+
 export function renderPremiumElectronicsWholeModel(objectId: string, componentId: string, state: State): React.ReactNode | null {
   if (objectId === 'arduino_uno') {
     switch (componentId) {
@@ -522,6 +616,26 @@ export function renderPremiumElectronicsWholeModel(objectId: string, componentId
       case 'rpi_gpio': return <RpiGpio state={state} />;
       case 'rpi_hdmi': return <RpiHdmi state={state} />;
       case 'rpi_usbc': return <RpiUsbC state={state} />;
+      default: return null;
+    }
+  }
+  if (objectId === 'ultrasonic_sensor') {
+    switch (componentId) {
+      case 'us_pcb': return <UsPcb state={state} />;
+      case 'us_trans': return <UsHorn state={state} />;
+      case 'us_recv': return <UsHorn state={state} />;
+      case 'us_header': return <UsHeader state={state} />;
+      default: return null;
+    }
+  }
+  if (objectId === 'lcd_display') {
+    switch (componentId) {
+      case 'lcd_pcb': return <LcdPcb state={state} />;
+      case 'lcd_backlight': return <LcdBacklight state={state} />;
+      case 'lcd_glass': return <LcdGlass state={state} />;
+      case 'lcd_frame': return <LcdFrame state={state} />;
+      case 'lcd_header': return <LcdHeader state={state} />;
+      case 'lcd_pot': return <LcdPot state={state} />;
       default: return null;
     }
   }
