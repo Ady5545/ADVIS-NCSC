@@ -952,8 +952,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Compact Passenger Cars', 'Sport Motorcycles', 'Hybrid Electric Vehicles'],
       specifications: { 'Displacement': '2.0L', 'Cylinders': '4 In-line', 'Valves': '16 Valves (4 per cylinder)' }
     },
+    animations: ['explodedView', 'pistonCycle'],
+    explodedParts: ['i4_block', 'i4_crankshaft', 'i4_pistons', 'i4_head', 'i4_valve_cover', 'i4_camshafts', 'i4_intake', 'i4_exhaust', 'i4_timing_cover', 'i4_oil_pan'],
     components: [
-      { id: 'i4_block', name: 'Cast Aluminum Cylinder Block', description: 'Rigid engine block housing cylinder bores and cooling jackets.', position: [0, 0, 0], size: [0.7, 0.8, 1.6], explodedOffset: [0, -0.5, 0], shape: 'box', color: '#475569' }
+      { id: 'i4_block', name: 'Cast Aluminum Cylinder Block', description: 'Rigid engine block housing all 4 cylinder bores in a single upright bank, plus the cooling jackets around them.', position: [0, 0, 0], size: [0.7, 0.8, 1.6], explodedOffset: [0, -0.9, 0], shape: 'custom', color: '#475569' },
+      { id: 'i4_crankshaft', name: 'Flat-Plane Crankshaft', description: 'A 4-throw crank with pins at 180 degrees, giving the inline-4 its characteristic even-firing, free-revving feel (vs. a V8\'s cross-plane crank).', position: [0, -0.05, 0], size: [0.12, 0.12, 1.85], explodedOffset: [0, -1.3, 0], shape: 'custom', color: '#9aa4b0' },
+      { id: 'i4_pistons', name: 'Piston & Rod Set', description: 'All 4 pistons and connecting rods — 1 & 4 move together, opposite 2 & 3, completing two power strokes per crank revolution.', position: [0, 0.45, 0], size: [0.5, 0.75, 1.8], explodedOffset: [0, 0.4, 0], shape: 'custom', color: '#c7cdd6' },
+      { id: 'i4_head', name: 'DOHC Cylinder Head', description: 'Carries 16 valves (4 per cylinder) actuated by two overhead camshafts, plus the spark plugs.', position: [0, 0.58, 0], size: [0.56, 0.24, 1.78], explodedOffset: [0, 0.8, 0], shape: 'custom', color: '#525a66' },
+      { id: 'i4_valve_cover', name: 'Valve Cover', description: 'The ribbed cap sealing the DOHC valvetrain and camshafts from the outside.', position: [0, 0.68, 0], size: [0.5, 0.16, 1.74], explodedOffset: [0, 1.2, 0], shape: 'custom', color: '#9ca3ae' },
+      { id: 'i4_camshafts', name: 'Dual Overhead Camshafts', description: 'Two camshafts — one for intake, one for exhaust — the defining DOHC feature that lets each valve be timed independently for better high-RPM breathing.', position: [0, 0.6, 0], size: [0.2, 0.1, 1.8], explodedOffset: [0, 1.5, 0.4], shape: 'custom', color: '#38bdf8' },
+      { id: 'i4_intake', name: 'Intake Manifold', description: 'Routes incoming air/fuel charge from the throttle body down into all 4 cylinders.', position: [-0.4, 0.5, 0], size: [0.3, 0.2, 1.4], explodedOffset: [-1.1, 1.0, 0], shape: 'custom', color: '#6b7280' },
+      { id: 'i4_exhaust', name: 'Exhaust Manifold', description: 'Collects spent gases from all 4 exhaust ports into a single downpipe.', position: [0.45, 0.2, 0], size: [0.3, 0.4, 1.5], explodedOffset: [1.1, -0.6, 0], shape: 'custom', color: '#4b4f56' },
+      { id: 'i4_timing_cover', name: 'Timing Cover & Belt Drive', description: 'Seals the timing chain/belt connecting crankshaft rotation to both camshafts in correct phase.', position: [0, 0, -0.96], size: [0.5, 0.56, 0.12], explodedOffset: [0, 0.3, -1.9], shape: 'custom', color: '#4a515c' },
+      { id: 'i4_oil_pan', name: 'Oil Pan', description: 'The sump holding the engine\'s oil reserve, bolted to the bottom of the block.', position: [0, -0.38, 0], size: [0.5, 0.3, 1.6], explodedOffset: [0, -2.0, 0], shape: 'custom', color: '#23262b' },
     ]
   },
 

@@ -3,6 +3,7 @@ import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineering
 import { renderPremiumEngineeringDetail, renderPremiumWholeModel } from './generators/PremiumEngineeringDetails';
 import { renderPremiumElectronicsWholeModel } from './generators/PremiumElectronicsDetails';
 import { renderV8PrecisionComponent } from './generators/V8Precision';
+import { renderI4PrecisionComponent } from './generators/Inline4Precision';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -902,6 +903,14 @@ function EngineeringComponentRenderer({
     blueprintEnabled
   });
   if (v8Precision) return v8Precision;
+
+  const i4Precision = renderI4PrecisionComponent(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (i4Precision) return i4Precision;
 
   // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
   const premiumWhole = renderPremiumWholeModel(objectId, id, {
