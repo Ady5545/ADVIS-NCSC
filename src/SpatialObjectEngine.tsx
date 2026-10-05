@@ -2,6 +2,7 @@ import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, Cranks
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
 import { renderPremiumEngineeringDetail, renderPremiumWholeModel } from './generators/PremiumEngineeringDetails';
 import { renderPremiumElectronicsWholeModel } from './generators/PremiumElectronicsDetails';
+import { renderV8PrecisionComponent } from './generators/V8Precision';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -888,6 +889,19 @@ function EngineeringComponentRenderer({
     }
     return null;
   }
+
+  // Real multi-component V8 (15 genuine parts: block, crankshaft, per-bank pistons/heads/
+  // valve covers, camshaft, intake, per-bank exhaust headers, timing cover, oil pan,
+  // accessory drive). Checked BEFORE renderPremiumWholeModel below, which still has a
+  // 'v8_engine'+'v8_block' case from the older single-collapsed-block pass -- this hook
+  // must win that race or the old crude block silently shadows every one of these parts.
+  const v8Precision = renderV8PrecisionComponent(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (v8Precision) return v8Precision;
 
   // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
   const premiumWhole = renderPremiumWholeModel(objectId, id, {
