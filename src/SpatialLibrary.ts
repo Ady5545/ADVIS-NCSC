@@ -1026,9 +1026,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Downsized Efficient Engines', 'High-Performance Sports Cars', 'Diesel Heavy Trucks'],
       specifications: { 'Max Spin Speed': '180,000 RPM', 'Boost Pressure': '1.5 bar (21.7 psi)' }
     },
+    animations: ['explodedView', 'spoolUp'],
+    explodedParts: ['turbo_comp', 'turbo_comp_wheel', 'turbo_turb', 'turbo_turb_wheel', 'turbo_center', 'turbo_shaft', 'turbo_wastegate'],
     components: [
-      { id: 'turbo_comp', name: 'Aluminum Compressor Housing', description: 'Snailshell volute housing compressing incoming ambient air.', position: [-0.3, 0, 0], size: [0.6, 0.6, 0.5], explodedOffset: [-0.6, 0, 0], shape: 'sphere', color: '#e2e8f0' },
-      { id: 'turbo_turb', name: 'Cast-Iron Turbine Housing', description: 'High-temperature housing directing hot exhaust gas onto turbine wheel.', position: [0.3, 0, 0], size: [0.6, 0.6, 0.5], explodedOffset: [0.6, 0, 0], shape: 'sphere', color: '#78350f' }
+      { id: 'turbo_comp', name: 'Aluminum Compressor Housing', description: 'Snail-shell volute housing that collects and pressurizes the air thrown off the compressor wheel before it heads to the engine.', position: [-0.3, 0, 0], size: [0.6, 0.6, 0.5], explodedOffset: [-0.9, 0, 0], shape: 'custom', color: '#e2e8f0' },
+      { id: 'turbo_comp_wheel', name: 'Compressor Impeller Wheel', description: 'The actual spinning part that compresses intake air — curved aluminum blades spinning up to 180,000 RPM. This was missing from the model entirely before; only its housing existed.', position: [-0.3, 0, 0], size: [0.35, 0.3, 0.35], explodedOffset: [-0.6, 0.4, 0], shape: 'custom', color: '#c7cdd6' },
+      { id: 'turbo_turb', name: 'Cast-Iron Turbine Housing', description: 'High-temperature housing directing hot exhaust gas onto the turbine wheel — cast iron rather than aluminum since it must survive exhaust heat.', position: [0.3, 0, 0], size: [0.6, 0.6, 0.5], explodedOffset: [0.9, 0, 0], shape: 'custom', color: '#78350f' },
+      { id: 'turbo_turb_wheel', name: 'Exhaust Turbine Wheel', description: 'Spun directly by exhaust gas velocity — mechanically identical in principle to the compressor wheel but driven by hot gas instead of driving cold air.', position: [0.3, 0, 0], size: [0.35, 0.3, 0.35], explodedOffset: [0.6, 0.4, 0], shape: 'custom', color: '#8a8f99' },
+      { id: 'turbo_center', name: 'Center Housing & Bearings', description: 'Water/oil-cooled hub connecting the two wheels, containing the bearings that let the shared shaft spin at extreme RPM without seizing.', position: [0, 0, 0], size: [0.3, 0.3, 0.34], explodedOffset: [0, -0.6, 0], shape: 'custom', color: '#4a4f58' },
+      { id: 'turbo_shaft', name: 'Connecting Shaft', description: 'The single shaft joining the compressor and turbine wheels — whatever RPM the exhaust spins the turbine at, the compressor spins at exactly the same speed.', position: [0, 0, 0], size: [0.05, 0.05, 0.55], explodedOffset: [0, -0.9, 0], shape: 'custom', color: '#d4d8de' },
+      { id: 'turbo_wastegate', name: 'Wastegate Actuator', description: 'A pneumatic valve that bypasses excess exhaust around the turbine once target boost pressure is reached, preventing over-spinning and over-boosting.', position: [0.15, -0.25, 0.1], size: [0.12, 0.2, 0.08], explodedOffset: [0.5, -0.9, 0.4], shape: 'custom', color: '#9aa0a8' },
     ]
   },
 
