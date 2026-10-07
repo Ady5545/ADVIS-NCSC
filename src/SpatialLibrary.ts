@@ -1116,8 +1116,17 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Front Suspension on 80%+ of Passenger Cars'],
       specifications: { 'Spring Rate': '35 N/mm', 'Damping Coefficient': '1200 N·s/m' }
     },
+    animations: ['explodedView', 'compressionTravel'],
+    explodedParts: ['susp_spring', 'susp_strut_body', 'susp_piston_rod', 'susp_top_mount', 'susp_spring_seats', 'susp_control_arm', 'susp_ball_joint', 'susp_knuckle'],
     components: [
-      { id: 'susp_spring', name: 'Helical Steel Coil Spring', description: 'High-tensile spring steel absorbing road impact forces.', position: [0, 0.2, 0], size: [0.5, 0.8, 0.5], explodedOffset: [0, 0.6, 0], shape: 'cylinder', color: '#dc2626' }
+      { id: 'susp_spring', name: 'Helical Steel Coil Spring', description: 'High-tensile spring steel wound into a genuine helical coil (not a solid cylinder) that compresses to absorb road impact forces.', position: [0, 0.2, 0], size: [0.5, 0.8, 0.5], explodedOffset: [0, 0.9, 0.5], shape: 'custom', color: '#dc2626' },
+      { id: 'susp_strut_body', name: 'Strut Body (Damper Tube)', description: 'The outer hydraulic cylinder the spring wraps around — contains the twin-tube gas damper that dissipates the spring\'s stored energy as heat.', position: [0, 0.1, 0], size: [0.14, 0.6, 0.14], explodedOffset: [0, -0.4, -0.5], shape: 'custom', color: '#9aa0a8' },
+      { id: 'susp_piston_rod', name: 'Damper Piston Rod', description: 'Slides in and out of the strut body as the wheel moves, pushing hydraulic fluid through valved orifices to control damping force.', position: [0, 0.35, 0], size: [0.05, 0.5, 0.05], explodedOffset: [0, 1.4, 0], shape: 'custom', color: '#e2e6ea' },
+      { id: 'susp_top_mount', name: 'Top Mount & Bearing', description: 'Bolts the strut to the car body while letting it rotate with the steering — this bearing is why the whole strut (not just the wheel) turns when you steer.', position: [0, 0.65, 0], size: [0.26, 0.14, 0.26], explodedOffset: [0, 2.0, 0], shape: 'custom', color: '#1c1c1e' },
+      { id: 'susp_spring_seats', name: 'Upper & Lower Spring Seats', description: 'Isolator pads the coil spring sits between, preventing metal-on-metal noise and vibration transfer into the chassis.', position: [0, 0.2, 0], size: [0.36, 0.6, 0.36], explodedOffset: [0, 0.4, 1.1], shape: 'custom', color: '#2a2e34' },
+      { id: 'susp_control_arm', name: 'Lower Control Arm (A-Arm)', description: 'Forged steel arm pivoting on the subframe, locating the wheel\'s fore-aft and lateral position while letting it move up and down.', position: [0, -0.4, 0], size: [0.5, 0.05, 0.4], explodedOffset: [0, -1.3, 0.4], shape: 'custom', color: '#5a5f68' },
+      { id: 'susp_ball_joint', name: 'Lower Ball Joint', description: 'Allows the knuckle to pivot relative to the control arm in multiple axes — necessary since the wheel both steers and moves vertically.', position: [-0.35, -0.4, 0.05], size: [0.1, 0.1, 0.1], explodedOffset: [-0.8, -1.6, 0.3], shape: 'custom', color: '#e2e6ea' },
+      { id: 'susp_knuckle', name: 'Steering Knuckle (Hub Carrier)', description: 'Connects the strut, control arm, and wheel hub into one assembly — the part the actual wheel bolts to.', position: [-0.32, -0.1, 0], size: [0.14, 0.4, 0.14], explodedOffset: [-1.1, -0.2, 0], shape: 'custom', color: '#4b4f56' },
     ]
   },
 

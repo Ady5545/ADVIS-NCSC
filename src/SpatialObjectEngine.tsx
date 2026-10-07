@@ -7,6 +7,7 @@ import { renderI4PrecisionComponent } from './generators/Inline4Precision';
 import { renderTurboPrecisionComponent } from './generators/TurboPrecision';
 import { renderDifferentialPrecisionComponent } from './generators/DifferentialPrecision';
 import { renderGearboxPrecisionComponent } from './generators/GearboxPrecision';
+import { renderSuspensionPrecisionComponent } from './generators/SuspensionPrecision';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -938,6 +939,14 @@ function EngineeringComponentRenderer({
     blueprintEnabled
   });
   if (gbPrecision) return gbPrecision;
+
+  const suspPrecision = renderSuspensionPrecisionComponent(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (suspPrecision) return suspPrecision;
 
   // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
   const premiumWhole = renderPremiumWholeModel(objectId, id, {
