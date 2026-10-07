@@ -476,6 +476,23 @@ function V8Accessories({ state }: { state: State }) {
   );
 }
 
+function V8PistonBankSide({ state, side }: { state: State; side: -1 | 1 }) {
+  return <group position={[side * 0.25, 0.26, 0]} rotation={[0, 0, side * BANK]}>
+    {Z.map((z, i) => (
+      <group key={i} position={[0, 0, z]}>
+        <Cylinder args={[0.185, 0.185, 0.60, 48, 1, true]} position={[0, 0.03, 0]}>
+          <M state={state} color="#37414a" metalness={0.82} roughness={0.24} />
+        </Cylinder>
+        <Torus args={[0.186, 0.014, 12, 48]} position={[0, 0.34, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <M state={state} color="#d4dbe0" metalness={0.97} roughness={0.10} />
+        </Torus>
+        <Piston state={state} position={[0, 0.17, 0]} />
+        <Rod state={state} />
+      </group>
+    ))}
+  </group>;
+}
+
 function V8Assembly({ state }: { state: State }) {
   return (
     <group rotation={[0.12, -0.46, 0.02]}>
@@ -501,7 +518,7 @@ function V8Assembly({ state }: { state: State }) {
 }
 
 export function V8Block({ state }: { state: State }) {
-  return <V8Assembly state={state} />;
+  return <V8BlockShell state={state} />;
 }
 
 export function V8Crankshaft({ state }: { state: State }) {
@@ -509,30 +526,15 @@ export function V8Crankshaft({ state }: { state: State }) {
 }
 
 export function V8PistonBank({ state }: { state: State }) {
-  return (
-    <group>
-      <V8PistonBank state={state} side={-1} />
-      <V8PistonBank state={state} side={1} />
-    </group>
-  );
+  return <V8PistonBankSide state={state} side={-1} />;
 }
 
 export function V8Head({ state }: { state: State }) {
-  return (
-    <group>
-      <V8CylinderHead state={state} side={-1} />
-      <V8CylinderHead state={state} side={1} />
-    </group>
-  );
+  return <V8CylinderHead state={state} side={-1} />;
 }
 
 export function V8ValveCover({ state }: { state: State }) {
-  return (
-    <group>
-      <V8ValveCovers state={state} side={-1} />
-      <V8ValveCovers state={state} side={1} />
-    </group>
-  );
+  return <V8ValveCovers state={state} side={-1} />;
 }
 
 export function V8Camshaft({ state }: { state: State }) {
@@ -544,12 +546,7 @@ export function V8IntakeManifold({ state }: { state: State }) {
 }
 
 export function V8ExhaustManifold({ state }: { state: State }) {
-  return (
-    <group>
-      <V8Exhaust state={state} side={-1} />
-      <V8Exhaust state={state} side={1} />
-    </group>
-  );
+  return <V8Exhaust state={state} side={-1} />;
 }
 
 export function V8TimingCover({ state }: { state: State }) {
@@ -580,25 +577,25 @@ export function renderV8PrecisionComponent(
     case 'v8_crankshaft':
       return <V8Crankshaft state={state} />;
     case 'v8_pistons_a':
-      return <V8PistonBank state={state} />;
+      return <V8PistonBankSide state={state} side={-1} />;
     case 'v8_pistons_b':
-      return <V8PistonBank state={state} />;
+      return <V8PistonBankSide state={state} side={1} />;
     case 'v8_head_a':
-      return <V8Head state={state} />;
+      return <V8CylinderHead state={state} side={-1} />;
     case 'v8_head_b':
-      return <V8Head state={state} />;
+      return <V8CylinderHead state={state} side={1} />;
     case 'v8_valve_cover_a':
-      return <V8ValveCover state={state} />;
+      return <V8ValveCovers state={state} side={-1} />;
     case 'v8_valve_cover_b':
-      return <V8ValveCover state={state} />;
+      return <V8ValveCovers state={state} side={1} />;
     case 'v8_camshaft':
       return <V8Camshaft state={state} />;
     case 'v8_intake':
       return <V8IntakeManifold state={state} />;
     case 'v8_exhaust_a':
-      return <V8ExhaustManifold state={state} />;
+      return <V8Exhaust state={state} side={-1} />;
     case 'v8_exhaust_b':
-      return <V8ExhaustManifold state={state} />;
+      return <V8Exhaust state={state} side={1} />;
     case 'v8_timing_cover':
       return <V8TimingCover state={state} />;
     case 'v8_oil_pan':
