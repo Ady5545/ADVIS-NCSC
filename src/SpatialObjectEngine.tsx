@@ -10,6 +10,7 @@ import { renderGearboxPrecisionComponent } from './generators/GearboxPrecision';
 import { renderSuspensionPrecisionComponent } from './generators/SuspensionPrecision';
 import { renderSteeringPrecisionComponent } from './generators/SteeringPrecision';
 import { renderPmsmPrecisionComponent } from './generators/PmsmPrecision';
+import { renderJetEnginePrecisionComponent } from './generators/JetEnginePrecision';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -965,6 +966,14 @@ function EngineeringComponentRenderer({
     blueprintEnabled
   });
   if (pmsmPrecision) return pmsmPrecision;
+
+  const jetPrecision = renderJetEnginePrecisionComponent(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (jetPrecision) return jetPrecision;
 
   // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
   const premiumWhole = renderPremiumWholeModel(objectId, id, {

@@ -1275,8 +1275,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         'Inspection Focus': 'Continuous gas path and shaft line'
       }
     },
+    animations: ['explodedView', 'airflowSweep'],
+    explodedParts: ['jet_fan', 'jet_compressor', 'jet_combustor', 'jet_turbine', 'jet_exhaust_nozzle', 'jet_shaft', 'jet_casing'],
     components: [
-      { id: 'jetengine.core', name: 'Jet Engine Core Assembly', description: 'Layered axial-flow core with compressor rotors, combustor region, turbine stages, casing, and center shaft.', position: [0, 0, 0], size: [1.4, 2.5, 1.4], explodedOffset: [0, 0.7, 0], shape: 'cylinder', color: '#475569', engineeringDetails: { material: 'Nickel-based high-temperature alloy and stainless-steel style casing surfaces' } }
+      { id: 'jet_fan', name: 'Fan Stage', description: 'The large front-facing blades every turbofan is recognized by — most of a turbofan\'s thrust actually comes from air the fan pushes around the core, not through it.', position: [0, 0, 1.15], size: [1.4, 0.5, 1.4], explodedOffset: [0, 0.9, 2.3], shape: 'custom', color: '#cbd5e1' },
+      { id: 'jet_compressor', name: 'Axial Compressor (3 Stages)', description: 'Each stage\'s rotor+stator blade pair squeezes incoming air a little more, raising pressure and temperature before it reaches the combustor.', position: [0, 0, 0.5], size: [1.0, 0.9, 1.0], explodedOffset: [0, 0.6, 1.1], shape: 'custom', color: '#cbd5e1' },
+      { id: 'jet_combustor', name: 'Combustion Chamber', description: 'Fuel is injected and continuously burned here, the hottest region in the engine, dramatically expanding the gas that drives the turbine.', position: [0, 0, -0.08], size: [1.1, 0.4, 1.1], explodedOffset: [0, 0, 0], shape: 'custom', color: '#8b3e23' },
+      { id: 'jet_turbine', name: 'Turbine (3 Stages)', description: 'Hot expanding gas spins these blades, which drive the shaft back to the compressor and fan — self-sustaining operation is the whole point of the Brayton cycle this engine runs on.', position: [0, 0, -0.56], size: [0.9, 0.8, 0.9], explodedOffset: [0, -0.6, -1.1], shape: 'custom', color: '#8f8a84' },
+      { id: 'jet_exhaust_nozzle', name: 'Exhaust Nozzle', description: 'Accelerates the spent, still-hot gas out the back — converting remaining pressure into exhaust velocity is what produces core thrust.', position: [0, 0, -1.1], size: [0.9, 0.5, 0.9], explodedOffset: [0, -0.9, -2.3], shape: 'custom', color: '#9aa0a8' },
+      { id: 'jet_shaft', name: 'Center Shaft', description: 'Connects the turbine to the compressor and fan — whatever RPM the turbine spins at, the compressor and fan spin at exactly the same rate.', position: [0, 0, 0], size: [0.15, 0.15, 2.7], explodedOffset: [0.9, 0, 0], shape: 'custom', color: '#e2e7eb' },
+      { id: 'jet_casing', name: 'Outer Casing', description: 'The structural shell everything mounts inside, also forming the bypass duct the fan pushes air through around the core.', position: [0, 0, 0], size: [1.36, 1.36, 2.6], explodedOffset: [-0.9, 0, 0], shape: 'custom', color: '#475569' },
     ]
   },
 
