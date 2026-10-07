@@ -1168,8 +1168,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Passenger Automobiles', 'Light Commercial Vehicles'],
       specifications: { 'Steering Ratio': '14.5:1', 'Turns Lock-to-Lock': '2.6' }
     },
+    animations: ['explodedView', 'steerSweep'],
+    explodedParts: ['steering_wheel', 'steering_column', 'steering_pinion', 'steering_rack', 'steering_housing', 'steering_tie_rods', 'steering_power_assist'],
     components: [
-      { id: 'steering_rack', name: 'Linear Toothed Rack Bar', description: 'Hardened steel bar with cut gear teeth connected to tie-rod ends.', position: [0, 0, 0], size: [2.2, 0.2, 0.2], explodedOffset: [0, -0.5, 0], shape: 'box', color: '#94a3b8' }
+      { id: 'steering_wheel', name: 'Steering Wheel', description: 'The driver\'s input — where the whole chain of rotational-to-linear motion conversion begins.', position: [0, 0.3, -1.0], size: [0.5, 0.5, 0.1], explodedOffset: [0, 1.2, -2.0], shape: 'custom', color: '#2a2e34' },
+      { id: 'steering_column', name: 'Steering Column', description: 'Carries rotation from the wheel down to the pinion, usually with a collapsible section for crash safety.', position: [0, 0.15, -0.6], size: [0.08, 0.08, 0.7], explodedOffset: [0, 0.8, -1.3], shape: 'custom', color: '#9aa0a8' },
+      { id: 'steering_pinion', name: 'Pinion Gear', description: 'Rotates with the steering wheel and meshes directly with the rack\'s teeth — this was entirely missing before, with nothing shown actually turning the rack.', position: [0, 0.05, -0.1], size: [0.14, 0.14, 0.26], explodedOffset: [0, 0.6, -0.3], shape: 'custom', color: '#c7cdd6' },
+      { id: 'steering_rack', name: 'Linear Toothed Rack Bar', description: 'Hardened steel bar with cut gear teeth — the pinion rolling along these teeth converts the wheel\'s rotation into the rack\'s side-to-side sliding motion.', position: [0, 0, 0], size: [2.2, 0.2, 0.2], explodedOffset: [0, -0.5, 0], shape: 'custom', color: '#94a3b8' },
+      { id: 'steering_housing', name: 'Rack Housing', description: 'Tubular casing the rack slides inside, bolted to the subframe, keeping the whole mechanism aligned and protected.', position: [0, 0, 0], size: [2.1, 0.22, 0.2], explodedOffset: [0, -1.0, 0], shape: 'custom', color: '#3c4047' },
+      { id: 'steering_tie_rods', name: 'Tie Rods', description: 'Connect each end of the rack to a steering knuckle — as the rack slides left or right, the tie rods push or pull each front wheel to turn it.', position: [0, 0, 0], size: [2.4, 0.08, 0.08], explodedOffset: [0, -0.3, 1.0], shape: 'custom', color: '#9aa0a8' },
+      { id: 'steering_power_assist', name: 'Power Assist Unit', description: 'A hydraulic or electric motor that adds assist torque to the rack, dramatically reducing the effort needed to turn the wheel.', position: [0.9, 0, 0], size: [0.3, 0.3, 0.3], explodedOffset: [1.6, -0.6, 0.4], shape: 'custom', color: '#2a2e34' },
     ]
   },
 

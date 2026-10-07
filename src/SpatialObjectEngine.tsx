@@ -8,6 +8,7 @@ import { renderTurboPrecisionComponent } from './generators/TurboPrecision';
 import { renderDifferentialPrecisionComponent } from './generators/DifferentialPrecision';
 import { renderGearboxPrecisionComponent } from './generators/GearboxPrecision';
 import { renderSuspensionPrecisionComponent } from './generators/SuspensionPrecision';
+import { renderSteeringPrecisionComponent } from './generators/SteeringPrecision';
 import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
@@ -947,6 +948,14 @@ function EngineeringComponentRenderer({
     blueprintEnabled
   });
   if (suspPrecision) return suspPrecision;
+
+  const steerPrecision = renderSteeringPrecisionComponent(objectId, id, {
+    isHovered,
+    isSelected,
+    xrayEnabled,
+    blueprintEnabled
+  });
+  if (steerPrecision) return steerPrecision;
 
   // Premium non-V12 procedural presentation. The V12 route above is intentionally untouched.
   const premiumWhole = renderPremiumWholeModel(objectId, id, {
