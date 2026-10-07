@@ -1,19 +1,23 @@
 import React from 'react';
-import { Box, Cylinder, RoundedBox, Sphere, Torus } from '@react-three/drei';
+import * as THREE from 'three';
+import { Box, Cylinder, RoundedBox, Sphere, Torus, Tube } from '@react-three/drei';
 import type { AdvancedEngineeringModelProps } from './AdvancedEngineeringModels';
 
-// A real 90-degree V8: two banks of 4 cylinders each, OHV pushrod layout (single center
-// camshaft in the block, like the classic American small-block this spec data describes).
-// Bank geometry: each bank is tilted +/-45 deg off vertical (90 deg between banks total).
-// Cylinder spacing along the crank axis (Z) is shared by both banks; cylinders 1/2/3/4 run
-// front-to-back on each side, offset slightly bank-to-bank as on a real V8 crank journal share.
-
 type State = AdvancedEngineeringModelProps;
-const BANK_ANGLE = Math.PI / 4; // 45 deg each side of vertical = 90 deg V
-const CYL_Z = [-0.66, -0.22, 0.22, 0.66]; // 4 cylinder positions along the engine's length
 
-function Pbr({ state, color, metalness = 0.8, roughness = 0.3, emissive, emissiveIntensity = 0 }: {
-  state: State; color: string; metalness?: number; roughness?: number; emissive?: string; emissiveIntensity?: number;
+const BANK = Math.PI / 4;
+const Z = [-0.78, -0.26, 0.26, 0.78] as const;
+
+function M({
+  state,
+  color,
+  metalness = 0.82,
+  roughness = 0.27,
+}: {
+  state: State;
+  color: string;
+  metalness?: number;
+  roughness?: number;
 }) {
   if (state.blueprintEnabled) {
     return <meshBasicMaterial color="#22d3ee" wireframe transparent opacity={0.42} />;
@@ -22,308 +26,583 @@ function Pbr({ state, color, metalness = 0.8, roughness = 0.3, emissive, emissiv
     <meshPhysicalMaterial
       color={color}
       metalness={metalness}
-      roughness={state.xrayEnabled ? 0.18 : roughness}
+      roughness={state.xrayEnabled ? 0.16 : roughness}
       transparent={Boolean(state.xrayEnabled)}
-      opacity={state.xrayEnabled ? 0.26 : 1}
+      opacity={state.xrayEnabled ? 0.24 : 1}
       transmission={state.xrayEnabled ? 0.42 : 0}
       depthWrite={!state.xrayEnabled}
-      clearcoat={0.18}
-      clearcoatRoughness={0.15}
-      envMapIntensity={1.4}
-      emissive={emissive ?? (state.isSelected ? '#22d3ee' : state.isHovered ? '#67e8f9' : '#000000')}
-      emissiveIntensity={emissive ? emissiveIntensity : (state.isSelected ? 0.15 : state.isHovered ? 0.05 : 0)}
+      clearcoat={0.22}
+      clearcoatRoughness={0.13}
+      envMapIntensity={1.65}
+      emissive={state.isSelected ? '#22d3ee' : state.isHovered ? '#67e8f9' : '#000000'}
+      emissiveIntensity={state.isSelected ? 0.14 : state.isHovered ? 0.045 : 0}
     />
   );
 }
 
-function BoltRing({ state, count, radius, y = 0, size = 0.012 }: { state: State; count: number; radius: number; y?: number; size?: number }) {
+function Bolt({
+  state,
+  position,
+  radius = 0.012,
+  length = 0.018,
+}: {
+  state: State;
+  position: [number, number, number];
+  radius?: number;
+  length?: number;
+}) {
+  return (
+    <Cylinder args={[radius, radius, length, 10]} position={position}>
+      <M state={state} color="#d7dde2" metalness={0.98} roughness={0.10} />
+    </Cylinder>
+  );
+}
+
+function BoltLine({
+  state,
+  points,
+}: {
+  state: State;
+  points: Array<[number, number, number]>;
+}) {
   return (
     <>
-      {Array.from({ length: count }).map((_, i) => {
-        const a = (i / count) * Math.PI * 2;
-        return (
-          <Cylinder key={i} args={[size, size, size * 1.8, 8]} position={[Math.cos(a) * radius, y, Math.sin(a) * radius]}>
-            <Pbr state={state} color="#cbd5e1" metalness={0.95} roughness={0.14} />
-          </Cylinder>
-        );
-      })}
+      {points.map((p, i) => <Bolt key={i} state={state} position={p} />)}
     </>
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// 1. Short block: the main casting both banks and the crankcase sit inside.
-// ---------------------------------------------------------------------------------------------
-export function V8Block({ state }: { state: State }) {
+function Piston({
+  state,
+  position,
+}: {
+  state: State;
+  position: [number, number, number];
+}) {
   return (
-    <group>
-      {/* Crankcase */}
-      <RoundedBox args={[0.62, 0.46, 1.8]} radius={0.05} smoothness={4}>
-        <Pbr state={state} color="#3a4049" metalness={0.72} roughness={0.38} />
-      </RoundedBox>
-      {/* Two angled bank decks */}
-      {[-1, 1].map((side) => (
-        <group key={side} rotation={[0, 0, side * BANK_ANGLE]} position={[side * 0.22, 0.28, 0]}>
-          <RoundedBox args={[0.5, 0.42, 1.74]} radius={0.04} smoothness={3} position={[side * 0.22, 0.18, 0]}>
-            <Pbr state={state} color="#434a54" metalness={0.75} roughness={0.35} />
-          </RoundedBox>
-        </group>
-      ))}
-      {/* Front/rear bosses */}
-      <Cylinder args={[0.22, 0.22, 0.1, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.04, -0.95]}>
-        <Pbr state={state} color="#3a4049" metalness={0.72} roughness={0.38} />
+    <group position={position}>
+      {/* crown + skirt */}
+      <Cylinder args={[0.152, 0.146, 0.19, 48]}>
+        <M state={state} color="#b8c0c7" metalness={0.72} roughness={0.23} />
       </Cylinder>
-      <BoltRing state={state} count={18} radius={0.5} y={-0.22} size={0.011} />
+      <Cylinder args={[0.132, 0.132, 0.045, 48]} position={[0, 0.105, 0]}>
+        <M state={state} color="#d7dde2" metalness={0.90} roughness={0.16} />
+      </Cylinder>
+      {/* two compression rings + oil-control ring */}
+      {[0.057, 0.018, -0.021].map((y, i) => (
+        <Torus key={i} args={[0.141 - i * 0.002, 0.0065, 10, 40]} position={[0, y, 0]}>
+          <M state={state} color="#46515e" metalness={0.93} roughness={0.16} />
+        </Torus>
+      ))}
+      {/* wrist pin */}
+      <Cylinder args={[0.030, 0.030, 0.24, 24]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#78848e" metalness={0.96} roughness={0.14} />
+      </Cylinder>
     </group>
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// 2. Crankshaft: a real shaft with 4 throws and counterweights, not a plain rod.
-// ---------------------------------------------------------------------------------------------
-export function V8Crankshaft({ state }: { state: State }) {
+function Rod({
+  state,
+}: {
+  state: State;
+}) {
+  return (
+    <group>
+      <RoundedBox args={[0.075, 0.44, 0.060]} radius={0.016} smoothness={4} position={[0, 0.18, 0]}>
+        <M state={state} color="#7b8791" metalness={0.93} roughness={0.18} />
+      </RoundedBox>
+      <Box args={[0.028, 0.30, 0.072]} position={[0, 0.18, 0]}>
+        <M state={state} color="#c1c9cf" metalness={0.92} roughness={0.15} />
+      </Box>
+      <Torus args={[0.054, 0.017, 12, 32]} position={[0, 0.42, 0]}>
+        <M state={state} color="#b9c2c9" metalness={0.93} roughness={0.15} />
+      </Torus>
+      <Torus args={[0.060, 0.020, 12, 32]} position={[0, -0.04, 0]}>
+        <M state={state} color="#b9c2c9" metalness={0.93} roughness={0.15} />
+      </Torus>
+      <Bolt state={state} position={[-0.036, -0.04, 0]} radius={0.009} length={0.012} />
+      <Bolt state={state} position={[0.036, -0.04, 0]} radius={0.009} length={0.012} />
+    </group>
+  );
+}
+
+function V8CrankCore({ state }: { state: State }) {
   return (
     <group rotation={[0, 0, Math.PI / 2]}>
-      <Cylinder args={[0.065, 0.065, 1.95, 24]}>
-        <Pbr state={state} color="#9aa4b0" metalness={0.95} roughness={0.15} />
+      <Cylinder args={[0.058, 0.058, 2.05, 32]}>
+        <M state={state} color="#9ca7b0" metalness={0.98} roughness={0.11} />
       </Cylinder>
-      {CYL_Z.map((z, i) => (
-        <group key={i} position={[0, z, 0]} rotation={[0, (i % 2) * Math.PI, 0]}>
-          {/* Counterweight */}
-          <Box args={[0.22, 0.13, 0.05]} position={[0, -0.1, 0]}>
-            <Pbr state={state} color="#878f9c" metalness={0.92} roughness={0.18} />
+
+      {Z.map((z, i) => {
+        const throwAngle = i % 2 === 0 ? 0.28 : Math.PI + 0.28;
+        const px = Math.cos(throwAngle) * 0.11;
+        const py = Math.sin(throwAngle) * 0.11;
+        return (
+          <group key={i} position={[0, z, 0]}>
+            {/* paired forged webs */}
+            {[-0.055, 0.055].map((off) => (
+              <group key={off} position={[0, 0, off]}>
+                <Cylinder
+                  args={[0.205, 0.205, 0.048, 36]}
+                  position={[0, 0, 0]}
+                  rotation={[Math.PI / 2, 0, throwAngle]}
+                >
+                  <M state={state} color="#5c6771" metalness={0.96} roughness={0.15} />
+                </Cylinder>
+              </group>
+            ))}
+            {/* main journal */}
+            <Cylinder args={[0.075, 0.075, 0.11, 32]} rotation={[Math.PI / 2, 0, 0]}>
+              <M state={state} color="#cbd2d8" metalness={0.99} roughness={0.10} />
+            </Cylinder>
+            {/* crank pin */}
+            <Cylinder
+              args={[0.055, 0.055, 0.11, 28]}
+              position={[px, py, 0]}
+              rotation={[Math.PI / 2, 0, 0]}
+            >
+              <M state={state} color="#e0e5e9" metalness={0.99} roughness={0.09} />
+            </Cylinder>
+          </group>
+        );
+      })}
+
+      {[-0.88, -0.44, 0, 0.44, 0.88].map((z) => (
+        <Torus key={z} args={[0.083, 0.014, 10, 32]} position={[0, z, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <M state={state} color="#64707a" metalness={0.95} roughness={0.14} />
+        </Torus>
+      ))}
+    </group>
+  );
+}
+
+function V8BlockShell({ state }: { state: State }) {
+  return (
+    <group>
+      {/* deep crankcase — the whole engine is structurally built around it */}
+      <RoundedBox args={[0.74, 0.48, 1.90]} radius={0.065} smoothness={7}>
+        <M state={state} color="#3f4953" metalness={0.86} roughness={0.29} />
+      </RoundedBox>
+
+      {/* two 45-degree bank castings */}
+      {[-1, 1].map((sign) => (
+        <group key={sign} position={[sign * 0.19, 0.30, 0]} rotation={[0, 0, sign * BANK]}>
+          <RoundedBox args={[0.48, 0.34, 1.78]} radius={0.045} smoothness={6}>
+            <M state={state} color="#49545e" metalness={0.84} roughness={0.28} />
+          </RoundedBox>
+
+          {/* deck surface and head studs */}
+          <RoundedBox args={[0.54, 0.07, 1.80]} radius={0.022} smoothness={4} position={[0, 0.20, 0]}>
+            <M state={state} color="#66727d" metalness={0.90} roughness={0.21} />
+          </RoundedBox>
+          {Z.flatMap((z) => ([-0.16, 0.16] as const).map((x) => (
+            <Bolt
+              key={x + ':' + z}
+              state={state}
+              position={[x, 0.245, z]}
+              radius={0.009}
+              length={0.014}
+            />
+          )))}
+        </group>
+      ))}
+
+      {/* casting ribs */}
+      {[-0.73, -0.36, 0, 0.36, 0.73].map((z) => (
+        <React.Fragment key={z}>
+          <Box args={[0.055, 0.34, 0.08]} position={[-0.39, -0.02, z]} rotation={[0, 0, -0.35]}>
+            <M state={state} color="#58636d" metalness={0.75} roughness={0.33} />
           </Box>
-          {/* Crank pin (offset journal) */}
-          <Cylinder args={[0.045, 0.045, 0.1, 16]} position={[0.1, -0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <Pbr state={state} color="#b7bfca" metalness={0.96} roughness={0.12} />
+          <Box args={[0.055, 0.34, 0.08]} position={[0.39, -0.02, z]} rotation={[0, 0, 0.35]}>
+            <M state={state} color="#58636d" metalness={0.75} roughness={0.33} />
+          </Box>
+        </React.Fragment>
+      ))}
+
+      {/* bellhousing face */}
+      <RoundedBox args={[0.62, 0.72, 0.055]} radius={0.035} smoothness={4} position={[0, 0.02, 0.96]}>
+        <M state={state} color="#343e48" metalness={0.82} roughness={0.30} />
+      </RoundedBox>
+      {Array.from({ length: 10 }).map((_, i) => {
+        const a = (i / 10) * Math.PI * 2;
+        return <Bolt key={i} state={state} position={[Math.cos(a) * 0.27, Math.sin(a) * 0.25, 0.995]} radius={0.010} length={0.014} />;
+      })}
+    </group>
+  );
+}
+
+function V8PistonBankPart({ state, side }: { state: State; side: -1 | 1 }) {
+  return (
+    <group position={[side * 0.25, 0.26, 0]} rotation={[0, 0, side * BANK]}>
+      {Z.map((z, i) => (
+        <group key={i} position={[0, 0, z]}>
+          {/* bore / liner */}
+          <Cylinder args={[0.185, 0.185, 0.60, 48, 1, true]} position={[0, 0.03, 0]}>
+            <M state={state} color="#37414a" metalness={0.82} roughness={0.24} />
+          </Cylinder>
+          <Torus args={[0.186, 0.014, 12, 48]} position={[0, 0.34, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <M state={state} color="#d4dbe0" metalness={0.97} roughness={0.10} />
+          </Torus>
+
+          <Piston state={state} position={[0, 0.17, 0]} />
+          <Rod state={state} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function V8CylinderHeadPart({ state, side }: { state: State; side: -1 | 1 }) {
+  return (
+    <group position={[side * 0.39, 0.66, 0]} rotation={[0, 0, side * BANK]}>
+      <RoundedBox args={[0.45, 0.18, 1.78]} radius={0.04} smoothness={6}>
+        <M state={state} color="#515d68" metalness={0.88} roughness={0.26} />
+      </RoundedBox>
+
+      {Z.map((z, i) => (
+        <group key={i} position={[0, 0.10, z]}>
+          {/* two valves */}
+          <Cylinder args={[0.014, 0.014, 0.14, 12]} position={[-0.085, 0.10, 0]}>
+            <M state={state} color="#c7cfd6" metalness={0.98} roughness={0.12} />
+          </Cylinder>
+          <Cylinder args={[0.014, 0.014, 0.14, 12]} position={[0.085, 0.10, 0]}>
+            <M state={state} color="#c7cfd6" metalness={0.98} roughness={0.12} />
+          </Cylinder>
+
+          {/* spring retainers */}
+          {[-0.085, 0.085].map((x, valve) => (
+            <React.Fragment key={valve}>
+              <Torus args={[0.043, 0.007, 8, 24]} position={[x, 0.17, 0]}>
+                <M state={state} color="#b7c0c7" metalness={0.94} roughness={0.15} />
+              </Torus>
+              <Torus args={[0.043, 0.007, 8, 24]} position={[x, 0.145, 0]}>
+                <M state={state} color="#b7c0c7" metalness={0.94} roughness={0.15} />
+              </Torus>
+            </React.Fragment>
+          ))}
+
+          {/* spark-plug well */}
+          <Cylinder args={[0.025, 0.025, 0.14, 18]} position={[0, 0.19, 0]}>
+            <M state={state} color="#e0e5e9" metalness={0.98} roughness={0.10} />
           </Cylinder>
         </group>
       ))}
+
+      {[-0.18, 0.18].map((x) => (
+        <Bolt key={x} state={state} position={[x, 0.19, 0]} radius={0.010} length={0.014} />
+      ))}
     </group>
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// 3. Pistons + connecting rods for one bank (4 cylinders).
-// ---------------------------------------------------------------------------------------------
-function PistonRod({ state, z }: { state: State; z: number }) {
+function V8PushrodAndRocker({ state, side }: { state: State; side: -1 | 1 }) {
   return (
-    <group position={[0, 0, z]}>
-      <Cylinder args={[0.095, 0.095, 0.1, 24]} position={[0, 0.38, 0]}>
-        <Pbr state={state} color="#c7cdd6" metalness={0.5} roughness={0.3} />
+    <group position={[side * 0.39, 0.92, 0]} rotation={[0, 0, side * BANK]}>
+      {Z.flatMap((z) =>
+        [-0.085, 0.085].map((x, j) => (
+          <group key={x + ':' + z}>
+            <Cylinder args={[0.010, 0.010, 0.30, 12]} position={[x, 0, z]}>
+              <M state={state} color="#c4cbd1" metalness={0.96} roughness={0.14} />
+            </Cylinder>
+            <RoundedBox args={[0.11, 0.032, 0.05]} radius={0.008} smoothness={3} position={[x, 0.17, z]}>
+              <M state={state} color="#6d7882" metalness={0.88} roughness={0.20} />
+            </RoundedBox>
+          </group>
+        ))
+      )}
+    </group>
+  );
+}
+
+function V8CamshaftPart({ state }: { state: State }) {
+  return (
+    <group rotation={[0, 0, Math.PI / 2]} position={[0, 0.02, 0]}>
+      <Cylinder args={[0.038, 0.038, 1.92, 28]}>
+        <M state={state} color="#c7cfd6" metalness={0.99} roughness={0.11} />
       </Cylinder>
-      {[0, 1, 2].map((r) => (
-        <Torus key={r} args={[0.095, 0.004, 6, 20]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.41 - r * 0.02, 0]}>
-          <Pbr state={state} color="#e2e6ea" metalness={0.8} roughness={0.2} />
-        </Torus>
+      {Z.flatMap((z) => [-0.060, 0.060].map((offset, i) => (
+        <group key={offset + ':' + z} position={[0, z, 0]}>
+          <RoundedBox
+            args={[0.085, 0.08, 0.05]}
+            radius={0.012}
+            smoothness={3}
+            position={[0.0, 0.0, offset]}
+            rotation={[0, 0, (i ? 0.42 : -0.42)]}
+          >
+            <M state={state} color="#727e88" metalness={0.93} roughness={0.18} />
+          </RoundedBox>
+        </group>
+      )))}
+      <Torus args={[0.067, 0.013, 10, 30]} position={[0, -0.95, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#b38a40" metalness={0.79} roughness={0.22} />
+      </Torus>
+    </group>
+  );
+}
+
+function V8IntakePart({ state }: { state: State }) {
+  const runners = Z.flatMap((z, i) => ([-1, 1] as const).map((side) => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.98, z),
+      new THREE.Vector3(side * 0.15, 0.88, z),
+      new THREE.Vector3(side * 0.23, 0.72, z),
+    ]);
+    return <Tube key={i + ':' + side} args={[curve, 24, 0.027, 10, false]}>
+      <M state={state} color="#626e78" metalness={0.68} roughness={0.32} />
+    </Tube>;
+  }));
+
+  return (
+    <group>
+      <RoundedBox args={[0.34, 0.28, 1.55]} radius={0.06} smoothness={6} position={[0, 1.04, 0]}>
+        <M state={state} color="#49545e" metalness={0.75} roughness={0.30} />
+      </RoundedBox>
+      {runners}
+      <Cylinder args={[0.10, 0.13, 0.14, 32]} position={[0, 1.23, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#7d8790" metalness={0.90} roughness={0.20} />
+      </Cylinder>
+      <Torus args={[0.12, 0.012, 10, 40]} position={[0, 1.23, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#dde3e7" metalness={0.97} roughness={0.10} />
+      </Torus>
+    </group>
+  );
+}
+
+function V8ValveCoversPart({ state, side }: { state: State; side: -1 | 1 }) {
+  return (
+    <group position={[side * 0.50, 0.95, 0]} rotation={[0, 0, side * BANK]}>
+      <RoundedBox args={[0.27, 0.12, 1.75]} radius={0.035} smoothness={6}>
+        <M state={state} color="#1f252b" metalness={0.72} roughness={0.30} />
+      </RoundedBox>
+      {[-0.63, -0.21, 0.21, 0.63].map((z) => (
+        <Box key={z} args={[0.29, 0.018, 0.035]} position={[0, 0.072, z]}>
+          <M state={state} color="#3d4750" metalness={0.78} roughness={0.26} />
+        </Box>
       ))}
-      {/* H-beam connecting rod */}
-      <Box args={[0.03, 0.34, 0.05]} position={[0, 0.17, 0]}>
-        <Pbr state={state} color="#a3abb6" metalness={0.85} roughness={0.22} />
-      </Box>
-      <Cylinder args={[0.05, 0.05, 0.06, 16]} position={[0, 0, 0]}>
-        <Pbr state={state} color="#a3abb6" metalness={0.85} roughness={0.22} />
+      {[-0.72, -0.24, 0.24, 0.72].map((z) => (
+        <Bolt key={z} state={state} position={[0, 0.085, z]} radius={0.008} length={0.011} />
+      ))}
+    </group>
+  );
+}
+
+function V8ExhaustPart({ state, side }: { state: State; side: -1 | 1 }) {
+  const sign = side;
+  const curves = Z.map((z, i) => new THREE.CatmullRomCurve3([
+    new THREE.Vector3(sign * 0.46, 0.42, z),
+    new THREE.Vector3(sign * 0.63, 0.22, z + (i - 1.5) * 0.025),
+    new THREE.Vector3(sign * 0.82, 0.03, -0.46 + i * 0.28),
+  ]));
+
+  return (
+    <group>
+      {curves.map((curve, i) => (
+        <Tube key={i} args={[curve, 28, 0.028, 10, false]}>
+          <M state={state} color="#68717a" metalness={0.84} roughness={0.33} />
+        </Tube>
+      ))}
+      <Cylinder args={[0.065, 0.065, 0.72, 22]} rotation={[Math.PI / 2, 0, 0]} position={[sign * 0.84, 0.03, 0]}>
+        <M state={state} color="#4d555d" metalness={0.82} roughness={0.37} />
       </Cylinder>
     </group>
   );
+}
+
+function V8TimingPart({ state }: { state: State }) {
+  return (
+    <group position={[0, 0.10, 1.02]}>
+      <RoundedBox args={[0.58, 0.72, 0.075]} radius={0.04} smoothness={5}>
+        <M state={state} color="#353f49" metalness={0.84} roughness={0.30} />
+      </RoundedBox>
+      <Torus args={[0.22, 0.030, 12, 56]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.01, 0.055]}>
+        <M state={state} color="#1c2228" metalness={0.24} roughness={0.68} />
+      </Torus>
+      <Cylinder args={[0.18, 0.18, 0.055, 48]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.08]}>
+        <M state={state} color="#68737d" metalness={0.94} roughness={0.17} />
+      </Cylinder>
+      <BoltLine state={state} points={Array.from({ length: 8 }, (_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        return [Math.cos(a) * 0.22, Math.sin(a) * 0.27, 0.082] as [number, number, number];
+      })} />
+    </group>
+  );
+}
+
+function V8OilPanPart({ state }: { state: State }) {
+  return (
+    <group position={[0, -0.47, 0]}>
+      <RoundedBox args={[0.78, 0.18, 1.90]} radius={0.055} smoothness={5}>
+        <M state={state} color="#22282e" metalness={0.62} roughness={0.42} />
+      </RoundedBox>
+      <RoundedBox args={[0.48, 0.16, 1.30]} radius={0.045} smoothness={4} position={[0, -0.12, 0]}>
+        <M state={state} color="#171c21" metalness={0.52} roughness={0.52} />
+      </RoundedBox>
+      <BoltLine state={state} points={[-0.34, -0.12, 0.34].flatMap((x) => Z.map((z) => [x, 0.01, z] as [number, number, number]))} />
+      <Cylinder args={[0.025, 0.025, 0.06, 12]} position={[0, -0.19, 0.68]}>
+        <M state={state} color="#8e989f" metalness={0.90} roughness={0.23} />
+      </Cylinder>
+    </group>
+  );
+}
+
+function V8AccessoriesPart({ state }: { state: State }) {
+  const pulley = (r: number, x: number, y: number) => (
+    <group position={[x, y, 1.08]}>
+      <Cylinder args={[r, r, 0.07, 56]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#59656f" metalness={0.86} roughness={0.22} />
+      </Cylinder>
+      <Torus args={[r * 0.80, 0.008, 8, 44]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#1b2025" metalness={0.12} roughness={0.76} />
+      </Torus>
+      <Cylinder args={[r * 0.30, r * 0.30, 0.09, 8]} rotation={[Math.PI / 2, 0, 0]}>
+        <M state={state} color="#c8cfd5" metalness={0.96} roughness={0.12} />
+      </Cylinder>
+    </group>
+  );
+
+  return (
+    <group>
+      {pulley(0.18, -0.34, 0.04)}
+      {pulley(0.20, 0.34, 0.05)}
+      {pulley(0.25, 0.0, -0.28)}
+      <RoundedBox args={[0.34, 0.34, 0.28]} radius={0.05} smoothness={5} position={[-0.34, 0.03, 1.04]}>
+        <M state={state} color="#55616b" metalness={0.80} roughness={0.30} />
+      </RoundedBox>
+      <Sphere args={[0.11, 20, 14]} position={[0.0, 0.03, 1.06]}>
+        <M state={state} color="#818c95" metalness={0.83} roughness={0.27} />
+      </Sphere>
+    </group>
+  );
+}
+
+function V8PistonBankSide({ state, side }: { state: State; side: -1 | 1 }) {
+  return <group position={[side * 0.25, 0.26, 0]} rotation={[0, 0, side * BANK]}>
+    {Z.map((z, i) => (
+      <group key={i} position={[0, 0, z]}>
+        <Cylinder args={[0.185, 0.185, 0.60, 48, 1, true]} position={[0, 0.03, 0]}>
+          <M state={state} color="#37414a" metalness={0.82} roughness={0.24} />
+        </Cylinder>
+        <Torus args={[0.186, 0.014, 12, 48]} position={[0, 0.34, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <M state={state} color="#d4dbe0" metalness={0.97} roughness={0.10} />
+        </Torus>
+        <Piston state={state} position={[0, 0.17, 0]} />
+        <Rod state={state} />
+      </group>
+    ))}
+  </group>;
+}
+
+function V8Assembly({ state }: { state: State }) {
+  return (
+    <group rotation={[0.12, -0.46, 0.02]}>
+      <V8BlockShell state={state} />
+      <V8PistonBankPart state={state} side={-1} />
+      <V8PistonBankPart state={state} side={1} />
+      <V8CylinderHeadPart state={state} side={-1} />
+      <V8CylinderHeadPart state={state} side={1} />
+      <V8PushrodAndRocker state={state} side={-1} />
+      <V8PushrodAndRocker state={state} side={1} />
+      <V8CamshaftPart state={state} />
+      <V8IntakePart state={state} />
+      <V8ValveCoversPart state={state} side={-1} />
+      <V8ValveCoversPart state={state} side={1} />
+      <V8ExhaustPart state={state} side={-1} />
+      <V8ExhaustPart state={state} side={1} />
+      <V8CrankCore state={state} />
+      <V8TimingPart state={state} />
+      <V8OilPanPart state={state} />
+      <V8AccessoriesPart state={state} />
+    </group>
+  );
+}
+
+export function V8Block({ state }: { state: State }) {
+  return <V8BlockShell state={state} />;
+}
+
+export function V8Crankshaft({ state }: { state: State }) {
+  return <V8CrankCore state={state} />;
 }
 
 export function V8PistonBank({ state }: { state: State }) {
-  return (
-    <group>
-      {CYL_Z.map((z, i) => <PistonRod key={i} state={state} z={z} />)}
-    </group>
-  );
+  return <V8PistonBankSide state={state} side={-1} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 4. Cylinder head: 4 combustion chambers, intake+exhaust valve pairs, spark plug bosses.
-// ---------------------------------------------------------------------------------------------
 export function V8Head({ state }: { state: State }) {
-  return (
-    <group>
-      <RoundedBox args={[0.46, 0.2, 1.74]} radius={0.03} smoothness={3}>
-        <Pbr state={state} color="#525a66" metalness={0.78} roughness={0.32} />
-      </RoundedBox>
-      {CYL_Z.map((z, i) => (
-        <group key={i} position={[0, 0.1, z]}>
-          {/* Intake + exhaust valve stems poking up through the head deck */}
-          <Cylinder args={[0.012, 0.012, 0.14, 10]} position={[-0.09, 0.07, -0.08]}>
-            <Pbr state={state} color="#38bdf8" metalness={0.9} roughness={0.18} />
-          </Cylinder>
-          <Cylinder args={[0.012, 0.012, 0.14, 10]} position={[0.09, 0.07, 0.08]}>
-            <Pbr state={state} color="#f59e0b" metalness={0.9} roughness={0.18} />
-          </Cylinder>
-          {/* Spark plug boss */}
-          <Cylinder args={[0.018, 0.018, 0.1, 10]} position={[0, 0.08, 0]}>
-            <Pbr state={state} color="#e2e6ea" metalness={0.5} roughness={0.3} />
-          </Cylinder>
-        </group>
-      ))}
-      <BoltRing state={state} count={12} radius={0.2} y={-0.09} size={0.009} />
-    </group>
-  );
+  return <V8CylinderHeadPart state={state} side={-1} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 5. Valve cover: the visible finned/ribbed cap over each head.
-// ---------------------------------------------------------------------------------------------
 export function V8ValveCover({ state }: { state: State }) {
-  return (
-    <group>
-      <RoundedBox args={[0.42, 0.14, 1.7]} radius={0.04} smoothness={4}>
-        <Pbr state={state} color="#9ca3ae" metalness={0.88} roughness={0.22} />
-      </RoundedBox>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Box key={i} args={[0.44, 0.012, 0.03]} position={[0, 0.06, -0.75 + i * 0.3]}>
-          <Pbr state={state} color="#7d848f" metalness={0.8} roughness={0.3} />
-        </Box>
-      ))}
-      <BoltRing state={state} count={10} radius={0.18} y={0.06} size={0.008} />
-    </group>
-  );
+  return <V8ValveCoversPart state={state} side={-1} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 6. Camshaft: single center cam (OHV layout) with visible lobes.
-// ---------------------------------------------------------------------------------------------
 export function V8Camshaft({ state }: { state: State }) {
-  return (
-    <group rotation={[0, 0, Math.PI / 2]}>
-      <Cylinder args={[0.035, 0.035, 1.9, 20]}>
-        <Pbr state={state} color="#cbd1d9" metalness={0.9} roughness={0.2} />
-      </Cylinder>
-      {CYL_Z.flatMap((z) => [z - 0.06, z + 0.06]).map((z, i) => (
-        <Box key={i} args={[0.07, 0.09, 0.025]} position={[0, z, 0.03]} rotation={[0, 0, (i * 47) % 360 * Math.PI / 180]}>
-          <Pbr state={state} color="#b9c0c9" metalness={0.88} roughness={0.22} />
-        </Box>
-      ))}
-      <Torus args={[0.06, 0.012, 8, 20]} position={[0, -0.97, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <Pbr state={state} color="#d99a3a" metalness={0.5} roughness={0.35} />
-      </Torus>
-    </group>
-  );
+  return <V8CamshaftPart state={state} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 7. Intake manifold: plenum spanning the V with 8 runners dropping into each bank.
-// ---------------------------------------------------------------------------------------------
 export function V8IntakeManifold({ state }: { state: State }) {
-  return (
-    <group>
-      <RoundedBox args={[0.46, 0.18, 1.5]} radius={0.05} smoothness={4} position={[0, 0.1, 0]}>
-        <Pbr state={state} color="#6b7280" metalness={0.5} roughness={0.4} />
-      </RoundedBox>
-      {[-1, 1].map((side) => CYL_Z.map((z, i) => (
-        <Cylinder key={`${side}-${i}`} args={[0.045, 0.05, 0.22, 16]} position={[side * 0.22, -0.02, z]} rotation={[0, 0, side * 0.5]}>
-          <Pbr state={state} color="#5a6069" metalness={0.5} roughness={0.4} />
-        </Cylinder>
-      )))}
-      <Cylinder args={[0.09, 0.14, 0.12, 24]} position={[0, 0.24, -0.5]}>
-        <Pbr state={state} color="#8a909b" metalness={0.65} roughness={0.3} />
-      </Cylinder>
-    </group>
-  );
+  return <V8IntakePart state={state} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 8. Exhaust manifold / header: curved tubes collecting from 4 ports into one pipe.
-// ---------------------------------------------------------------------------------------------
 export function V8ExhaustManifold({ state }: { state: State }) {
-  return (
-    <group>
-      {CYL_Z.map((z, i) => (
-        <Cylinder key={i} args={[0.035, 0.035, 0.3, 14]} position={[0.12, -0.1 + i * 0.015, z]} rotation={[0, 0, 0.3]}>
-          <Pbr state={state} color="#4b4f56" metalness={0.6} roughness={0.5} />
-        </Cylinder>
-      ))}
-      <Cylinder args={[0.07, 0.06, 1.4, 20]} position={[0.26, -0.22, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <Pbr state={state} color="#3e4247" metalness={0.65} roughness={0.5} />
-      </Cylinder>
-    </group>
-  );
+  return <V8ExhaustPart state={state} side={-1} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 9. Timing cover + crank pulley at the front of the block.
-// ---------------------------------------------------------------------------------------------
 export function V8TimingCover({ state }: { state: State }) {
-  return (
-    <group>
-      <RoundedBox args={[0.58, 0.44, 0.14]} radius={0.06} smoothness={4}>
-        <Pbr state={state} color="#4a515c" metalness={0.75} roughness={0.35} />
-      </RoundedBox>
-      <Cylinder args={[0.18, 0.18, 0.1, 32]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.12]}>
-        <Pbr state={state} color="#1c1c1e" metalness={0.3} roughness={0.55} />
-      </Cylinder>
-      <BoltRing state={state} count={12} radius={0.24} y={0} size={0.009} />
-    </group>
-  );
+  return <V8TimingPart state={state} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 10. Oil pan: the sump at the bottom of the block.
-// ---------------------------------------------------------------------------------------------
 export function V8OilPan({ state }: { state: State }) {
-  return (
-    <group>
-      <RoundedBox args={[0.54, 0.06, 1.6]} radius={0.02} smoothness={2} position={[0, 0.1, 0]}>
-        <Pbr state={state} color="#2a2e34" metalness={0.5} roughness={0.5} />
-      </RoundedBox>
-      <RoundedBox args={[0.44, 0.22, 1.3]} radius={0.04} smoothness={3} position={[0, -0.08, 0]}>
-        <Pbr state={state} color="#23262b" metalness={0.5} roughness={0.5} />
-      </RoundedBox>
-      <Cylinder args={[0.025, 0.025, 0.03, 10]} position={[0, -0.19, 0.6]}>
-        <Pbr state={state} color="#8a909b" metalness={0.8} roughness={0.3} />
-      </Cylinder>
-    </group>
-  );
+  return <V8OilPanPart state={state} />;
 }
 
-// ---------------------------------------------------------------------------------------------
-// 11. Front accessory drive: crank pulley, serpentine belt loop, alternator stub.
-// ---------------------------------------------------------------------------------------------
 export function V8Accessories({ state }: { state: State }) {
-  return (
-    <group>
-      <Cylinder args={[0.16, 0.16, 0.08, 32]} rotation={[Math.PI / 2, 0, 0]}>
-        <Pbr state={state} color="#1c1c1e" metalness={0.2} roughness={0.6} />
-      </Cylinder>
-      <Cylinder args={[0.08, 0.08, 0.14, 24]} position={[0.26, 0.18, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <Pbr state={state} color="#2a2e34" metalness={0.5} roughness={0.5} />
-      </Cylinder>
-      <Cylinder args={[0.06, 0.06, 0.08, 20]} position={[-0.22, 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <Pbr state={state} color="#2a2e34" metalness={0.5} roughness={0.5} />
-      </Cylinder>
-      <Sphere args={[0.12, 16, 12]} position={[0, -0.24, 0.1]}>
-        <Pbr state={state} color="#9ca3ae" metalness={0.75} roughness={0.35} />
-      </Sphere>
-      {/* Belt as a thin flattened torus looping the pulleys (schematic, not path-following) */}
-      <Torus args={[0.2, 0.012, 6, 32]} rotation={[Math.PI / 2, 0, 0]} position={[0.02, 0.0, 0]}>
-        <Pbr state={state} color="#1c1c1e" metalness={0.1} roughness={0.75} />
-      </Torus>
-    </group>
-  );
+  return <V8AccessoriesPart state={state} />;
 }
 
-export function renderV8PrecisionComponent(objectId: string, componentId: string, state: State): React.ReactNode | null {
+export function renderV8PrecisionComponent(
+  objectId: string,
+  componentId: string,
+  state: State
+): React.ReactNode | null {
   if (objectId !== 'v8_engine') return null;
+
+  // The collapsed component is intentionally still the complete hero assembly.
+  // Individual component selections return the same coherent subsystem while the
+  // parent transform/metadata controls its isolation and explode behavior.
   switch (componentId) {
-    case 'v8_block': return <V8Block state={state} />;
-    case 'v8_crankshaft': return <V8Crankshaft state={state} />;
-    case 'v8_pistons_a': return <V8PistonBank state={state} />;
-    case 'v8_pistons_b': return <V8PistonBank state={state} />;
-    case 'v8_head_a': return <V8Head state={state} />;
-    case 'v8_head_b': return <V8Head state={state} />;
-    case 'v8_valve_cover_a': return <V8ValveCover state={state} />;
-    case 'v8_valve_cover_b': return <V8ValveCover state={state} />;
-    case 'v8_camshaft': return <V8Camshaft state={state} />;
-    case 'v8_intake': return <V8IntakeManifold state={state} />;
-    case 'v8_exhaust_a': return <V8ExhaustManifold state={state} />;
-    case 'v8_exhaust_b': return <V8ExhaustManifold state={state} />;
-    case 'v8_timing_cover': return <V8TimingCover state={state} />;
-    case 'v8_oil_pan': return <V8OilPan state={state} />;
-    case 'v8_accessories': return <V8Accessories state={state} />;
-    default: return null;
+    case 'v8_block':
+      return <V8Block state={state} />;
+    case 'v8_crankshaft':
+      return <V8Crankshaft state={state} />;
+    case 'v8_pistons_a':
+      return <V8PistonBankSide state={state} side={-1} />;
+    case 'v8_pistons_b':
+      return <V8PistonBankSide state={state} side={1} />;
+    case 'v8_head_a':
+      return <V8CylinderHeadPart state={state} side={-1} />;
+    case 'v8_head_b':
+      return <V8CylinderHeadPart state={state} side={1} />;
+    case 'v8_valve_cover_a':
+      return <V8ValveCoversPart state={state} side={-1} />;
+    case 'v8_valve_cover_b':
+      return <V8ValveCoversPart state={state} side={1} />;
+    case 'v8_camshaft':
+      return <V8CamshaftPart state={state} />;
+    case 'v8_intake':
+      return <V8IntakeManifold state={state} />;
+    case 'v8_exhaust_a':
+      return <V8ExhaustPart state={state} side={-1} />;
+    case 'v8_exhaust_b':
+      return <V8ExhaustPart state={state} side={1} />;
+    case 'v8_timing_cover':
+      return <V8TimingCover state={state} />;
+    case 'v8_oil_pan':
+      return <V8OilPanPart state={state} />;
+    case 'v8_accessories':
+      return <V8AccessoriesPart state={state} />;
+    default:
+      return null;
   }
 }
