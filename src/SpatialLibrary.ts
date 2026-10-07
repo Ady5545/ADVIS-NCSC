@@ -1055,8 +1055,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Rear-Wheel Drive Sports Cars', '4WD Off-Road Vehicles'],
       specifications: { 'Gear Ratio': '3.73:1', 'Type': 'Clutch-Type LSD' }
     },
+    animations: ['explodedView', 'torqueFlow'],
+    explodedParts: ['diff_ring', 'diff_pinion', 'diff_carrier', 'diff_spider_gears', 'diff_side_gears', 'diff_axle_shafts', 'diff_clutch_pack'],
     components: [
-      { id: 'diff_ring', name: 'Hypoid Crown Ring Gear', description: 'Large spiral bevel gear bolted to differential carrier.', position: [0, 0, 0], size: [0.8, 0.8, 0.15], explodedOffset: [0, 0.6, 0], shape: 'torus', color: '#cbd5e1' }
+      { id: 'diff_ring', name: 'Hypoid Crown Ring Gear', description: 'Large spiral bevel gear bolted to the carrier, driven by the pinion at roughly 90 degrees to turn driveshaft rotation into axle rotation.', position: [0, 0, 0], size: [0.8, 0.8, 0.15], explodedOffset: [0, 0.9, 0], shape: 'custom', color: '#cbd5e1' },
+      { id: 'diff_pinion', name: 'Drive Pinion Gear', description: 'Connects to the driveshaft and meshes with the ring gear at a right angle — the gear that was entirely missing before, with nothing shown actually driving the ring gear.', position: [0, 0, -0.55], size: [0.2, 0.2, 0.9], explodedOffset: [0, 0.3, -1.3], shape: 'custom', color: '#9ca3ae' },
+      { id: 'diff_carrier', name: 'Differential Carrier Case', description: 'Bolted to and spinning with the ring gear, this housing contains the spider gears and clutch pack — the part that lets the whole mechanism actually be a differential rather than a solid axle.', position: [0, 0, 0], size: [0.5, 0.5, 0.42], explodedOffset: [0, -0.6, 0], shape: 'custom', color: '#3c4047' },
+      { id: 'diff_spider_gears', name: 'Spider Bevel Gears', description: 'Small gears on a cross-pin inside the carrier. They stay still when going straight, but rotate freely in a turn, letting the outer wheel spin faster than the inner one — this is the core mechanism the word "differential" refers to.', position: [0, 0, 0], size: [0.3, 0.16, 0.16], explodedOffset: [0, 0.2, 0.9], shape: 'custom', color: '#aeb4bd' },
+      { id: 'diff_side_gears', name: 'Side Gears', description: 'Mesh with the spider gears and connect directly to each axle shaft, delivering torque out to the wheels.', position: [0, 0, 0], size: [0.4, 0.2, 0.2], explodedOffset: [0, -0.2, 1.2], shape: 'custom', color: '#9ca3ae' },
+      { id: 'diff_axle_shafts', name: 'Axle Shafts', description: 'The two shafts carrying torque from the side gears out to the left and right wheels.', position: [0, 0, 0], size: [1.4, 0.07, 0.07], explodedOffset: [0, -0.8, 1.6], shape: 'custom', color: '#c7cdd6' },
+      { id: 'diff_clutch_pack', name: 'Clutch Pack (Limited-Slip)', description: 'Alternating steel and friction plates that resist the spider gears spinning freely — what makes this specifically a LIMITED-SLIP differential: a slipping wheel still gets some torque instead of all torque going to the wheel with no grip.', position: [0.15, 0, 0], size: [0.22, 0.22, 0.12], explodedOffset: [0.9, 0.4, 0.6], shape: 'custom', color: '#2a2e34' },
     ]
   },
 
