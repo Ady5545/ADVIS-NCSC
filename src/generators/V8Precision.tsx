@@ -232,7 +232,7 @@ function V8BlockShell({ state }: { state: State }) {
   );
 }
 
-function V8PistonBank({ state, side }: { state: State; side: -1 | 1 }) {
+function V8PistonBankPart({ state, side }: { state: State; side: -1 | 1 }) {
   return (
     <group position={[side * 0.25, 0.26, 0]} rotation={[0, 0, side * BANK]}>
       {Z.map((z, i) => (
@@ -253,7 +253,7 @@ function V8PistonBank({ state, side }: { state: State; side: -1 | 1 }) {
   );
 }
 
-function V8CylinderHead({ state, side }: { state: State; side: -1 | 1 }) {
+function V8CylinderHeadPart({ state, side }: { state: State; side: -1 | 1 }) {
   return (
     <group position={[side * 0.39, 0.66, 0]} rotation={[0, 0, side * BANK]}>
       <RoundedBox args={[0.45, 0.18, 1.78]} radius={0.04} smoothness={6}>
@@ -315,7 +315,7 @@ function V8PushrodAndRocker({ state, side }: { state: State; side: -1 | 1 }) {
   );
 }
 
-function V8Camshaft({ state }: { state: State }) {
+function V8CamshaftPart({ state }: { state: State }) {
   return (
     <group rotation={[0, 0, Math.PI / 2]} position={[0, 0.02, 0]}>
       <Cylinder args={[0.038, 0.038, 1.92, 28]}>
@@ -341,7 +341,7 @@ function V8Camshaft({ state }: { state: State }) {
   );
 }
 
-function V8Intake({ state }: { state: State }) {
+function V8IntakePart({ state }: { state: State }) {
   const runners = Z.flatMap((z, i) => ([-1, 1] as const).map((side) => {
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0.98, z),
@@ -369,7 +369,7 @@ function V8Intake({ state }: { state: State }) {
   );
 }
 
-function V8ValveCovers({ state, side }: { state: State; side: -1 | 1 }) {
+function V8ValveCoversPart({ state, side }: { state: State; side: -1 | 1 }) {
   return (
     <group position={[side * 0.50, 0.95, 0]} rotation={[0, 0, side * BANK]}>
       <RoundedBox args={[0.27, 0.12, 1.75]} radius={0.035} smoothness={6}>
@@ -387,7 +387,7 @@ function V8ValveCovers({ state, side }: { state: State; side: -1 | 1 }) {
   );
 }
 
-function V8Exhaust({ state, side }: { state: State; side: -1 | 1 }) {
+function V8ExhaustPart({ state, side }: { state: State; side: -1 | 1 }) {
   const sign = side;
   const curves = Z.map((z, i) => new THREE.CatmullRomCurve3([
     new THREE.Vector3(sign * 0.46, 0.42, z),
@@ -409,7 +409,7 @@ function V8Exhaust({ state, side }: { state: State; side: -1 | 1 }) {
   );
 }
 
-function V8Timing({ state }: { state: State }) {
+function V8TimingPart({ state }: { state: State }) {
   return (
     <group position={[0, 0.10, 1.02]}>
       <RoundedBox args={[0.58, 0.72, 0.075]} radius={0.04} smoothness={5}>
@@ -429,7 +429,7 @@ function V8Timing({ state }: { state: State }) {
   );
 }
 
-function V8OilPan({ state }: { state: State }) {
+function V8OilPanPart({ state }: { state: State }) {
   return (
     <group position={[0, -0.47, 0]}>
       <RoundedBox args={[0.78, 0.18, 1.90]} radius={0.055} smoothness={5}>
@@ -446,7 +446,7 @@ function V8OilPan({ state }: { state: State }) {
   );
 }
 
-function V8Accessories({ state }: { state: State }) {
+function V8AccessoriesPart({ state }: { state: State }) {
   const pulley = (r: number, x: number, y: number) => (
     <group position={[x, y, 1.08]}>
       <Cylinder args={[r, r, 0.07, 56]} rotation={[Math.PI / 2, 0, 0]}>
@@ -497,22 +497,22 @@ function V8Assembly({ state }: { state: State }) {
   return (
     <group rotation={[0.12, -0.46, 0.02]}>
       <V8BlockShell state={state} />
-      <V8PistonBank state={state} side={-1} />
-      <V8PistonBank state={state} side={1} />
-      <V8CylinderHead state={state} side={-1} />
-      <V8CylinderHead state={state} side={1} />
+      <V8PistonBankPart state={state} side={-1} />
+      <V8PistonBankPart state={state} side={1} />
+      <V8CylinderHeadPart state={state} side={-1} />
+      <V8CylinderHeadPart state={state} side={1} />
       <V8PushrodAndRocker state={state} side={-1} />
       <V8PushrodAndRocker state={state} side={1} />
-      <V8Camshaft state={state} />
-      <V8Intake state={state} />
-      <V8ValveCovers state={state} side={-1} />
-      <V8ValveCovers state={state} side={1} />
-      <V8Exhaust state={state} side={-1} />
-      <V8Exhaust state={state} side={1} />
+      <V8CamshaftPart state={state} />
+      <V8IntakePart state={state} />
+      <V8ValveCoversPart state={state} side={-1} />
+      <V8ValveCoversPart state={state} side={1} />
+      <V8ExhaustPart state={state} side={-1} />
+      <V8ExhaustPart state={state} side={1} />
       <V8CrankCore state={state} />
-      <V8Timing state={state} />
-      <V8OilPan state={state} />
-      <V8Accessories state={state} />
+      <V8TimingPart state={state} />
+      <V8OilPanPart state={state} />
+      <V8AccessoriesPart state={state} />
     </group>
   );
 }
@@ -530,35 +530,35 @@ export function V8PistonBank({ state }: { state: State }) {
 }
 
 export function V8Head({ state }: { state: State }) {
-  return <V8CylinderHead state={state} side={-1} />;
+  return <V8CylinderHeadPart state={state} side={-1} />;
 }
 
 export function V8ValveCover({ state }: { state: State }) {
-  return <V8ValveCovers state={state} side={-1} />;
+  return <V8ValveCoversPart state={state} side={-1} />;
 }
 
 export function V8Camshaft({ state }: { state: State }) {
-  return <V8Camshaft state={state} />;
+  return <V8CamshaftPart state={state} />;
 }
 
 export function V8IntakeManifold({ state }: { state: State }) {
-  return <V8Intake state={state} />;
+  return <V8IntakePart state={state} />;
 }
 
 export function V8ExhaustManifold({ state }: { state: State }) {
-  return <V8Exhaust state={state} side={-1} />;
+  return <V8ExhaustPart state={state} side={-1} />;
 }
 
 export function V8TimingCover({ state }: { state: State }) {
-  return <V8Timing state={state} />;
+  return <V8TimingPart state={state} />;
 }
 
 export function V8OilPan({ state }: { state: State }) {
-  return <V8OilPan state={state} />;
+  return <V8OilPanPart state={state} />;
 }
 
 export function V8Accessories({ state }: { state: State }) {
-  return <V8Accessories state={state} />;
+  return <V8AccessoriesPart state={state} />;
 }
 
 export function renderV8PrecisionComponent(
@@ -581,27 +581,27 @@ export function renderV8PrecisionComponent(
     case 'v8_pistons_b':
       return <V8PistonBankSide state={state} side={1} />;
     case 'v8_head_a':
-      return <V8CylinderHead state={state} side={-1} />;
+      return <V8CylinderHeadPart state={state} side={-1} />;
     case 'v8_head_b':
-      return <V8CylinderHead state={state} side={1} />;
+      return <V8CylinderHeadPart state={state} side={1} />;
     case 'v8_valve_cover_a':
-      return <V8ValveCovers state={state} side={-1} />;
+      return <V8ValveCoversPart state={state} side={-1} />;
     case 'v8_valve_cover_b':
-      return <V8ValveCovers state={state} side={1} />;
+      return <V8ValveCoversPart state={state} side={1} />;
     case 'v8_camshaft':
-      return <V8Camshaft state={state} />;
+      return <V8CamshaftPart state={state} />;
     case 'v8_intake':
       return <V8IntakeManifold state={state} />;
     case 'v8_exhaust_a':
-      return <V8Exhaust state={state} side={-1} />;
+      return <V8ExhaustPart state={state} side={-1} />;
     case 'v8_exhaust_b':
-      return <V8Exhaust state={state} side={1} />;
+      return <V8ExhaustPart state={state} side={1} />;
     case 'v8_timing_cover':
       return <V8TimingCover state={state} />;
     case 'v8_oil_pan':
-      return <V8OilPan state={state} />;
+      return <V8OilPanPart state={state} />;
     case 'v8_accessories':
-      return <V8Accessories state={state} />;
+      return <V8AccessoriesPart state={state} />;
     default:
       return null;
   }
