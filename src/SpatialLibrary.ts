@@ -1084,8 +1084,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       applications: ['Manual Sports Cars', 'Commercial Delivery Trucks'],
       specifications: { 'Ratios': '6 Forward + 1 Reverse', 'Max Input Torque': '450 N·cm' }
     },
+    animations: ['explodedView', 'shiftSequence'],
+    explodedParts: ['gb_case', 'gb_input_shaft', 'gb_counter_shaft', 'gb_main_shaft', 'gb_cluster_low', 'gb_cluster_mid', 'gb_cluster_high', 'gb_synchros', 'gb_shift_fork', 'gb_reverse_idler'],
     components: [
-      { id: 'gear_shaft', name: 'Main Gear Assembly', description: 'Helical gears mounted on main shaft with needle roller bearings.', position: [0, 0, 0], size: [0.5, 0.5, 1.4], explodedOffset: [0, 0.6, 0], shape: 'cylinder', color: '#94a3b8' }
+      { id: 'gb_case', name: 'Transmission Case', description: 'Houses all three shafts and every gear pair in a sealed, oil-bathed enclosure.', position: [0, 0, 0], size: [0.9, 0.9, 1.6], explodedOffset: [0, -1.1, 0], shape: 'custom', color: '#3c4047' },
+      { id: 'gb_input_shaft', name: 'Input Shaft', description: 'Connects to the clutch and engine, carrying torque into the gearbox at engine speed.', position: [0, 0.2, 0], size: [0.1, 0.1, 1.3], explodedOffset: [0, 1.0, -1.0], shape: 'custom', color: '#c7cdd6' },
+      { id: 'gb_counter_shaft', name: 'Countershaft (Layshaft)', description: 'Runs parallel to the input/main shafts, carrying one gear of every ratio pair — the "always spinning" shaft that every gear set meshes against.', position: [0, -0.22, 0], size: [0.12, 0.12, 1.3], explodedOffset: [0, -1.5, 0], shape: 'custom', color: '#b7bfca' },
+      { id: 'gb_main_shaft', name: 'Main (Output) Shaft', description: 'Carries the selected gear\'s torque out to the driveshaft — only one gear is locked to it at a time via the synchros.', position: [0.3, 0.2, 0], size: [0.1, 0.1, 1.3], explodedOffset: [1.3, 1.0, -1.0], shape: 'custom', color: '#c7cdd6' },
+      { id: 'gb_cluster_low', name: '1st/2nd Gear Pair', description: 'The largest gear pair, giving the biggest torque multiplication for starting from a stop.', position: [0, 0, -0.5], size: [0.44, 0.5, 0.16], explodedOffset: [-1.2, 0.3, -0.6], shape: 'custom', color: '#9ca3ae' },
+      { id: 'gb_cluster_mid', name: '3rd/4th Gear Pair', description: 'A roughly 1:1 ratio pair used for mid-range acceleration and cruising.', position: [0, 0, 0], size: [0.38, 0.38, 0.16], explodedOffset: [-1.2, 0.3, 0], shape: 'custom', color: '#aeb4bd' },
+      { id: 'gb_cluster_high', name: '5th/6th Gear Pair', description: 'The smallest gear pair — an overdrive ratio for efficient high-speed cruising at low engine RPM.', position: [0, 0, 0.5], size: [0.44, 0.5, 0.16], explodedOffset: [-1.2, 0.3, 0.6], shape: 'custom', color: '#9ca3ae' },
+      { id: 'gb_synchros', name: 'Synchromesh Collars', description: 'Brass cone rings that spin-match a gear to the main shaft speed before the dog teeth lock it in — this is what lets you shift gears smoothly without grinding them.', position: [0.3, 0.2, 0], size: [0.22, 0.22, 0.6], explodedOffset: [1.5, -0.3, 0], shape: 'custom', color: '#d99a3a' },
+      { id: 'gb_shift_fork', name: 'Shift Fork & Selector Rail', description: 'Connected to the gear lever; slides the synchromesh collars left and right along the main shaft to select a gear.', position: [0, 0.5, 0], size: [0.5, 0.5, 0.06], explodedOffset: [0, 1.7, 0.6], shape: 'custom', color: '#9aa0a8' },
+      { id: 'gb_reverse_idler', name: 'Reverse Idler Gear', description: 'A single extra gear inserted between the counter and main shaft only in reverse, which is why reverse spins the output shaft the opposite direction.', position: [-0.3, -0.05, -0.75], size: [0.24, 0.24, 0.12], explodedOffset: [-1.3, -0.3, -1.6], shape: 'custom', color: '#4b4f56' },
     ]
   },
 
