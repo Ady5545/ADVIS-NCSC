@@ -257,7 +257,7 @@ export const LEARNING_LESSONS: LearningLesson[] = [
       {
         id: 'v12-evidence',
         title: 'Read the evidence limits',
-        objective: 'Avoid treating a visual model as an exact manufacturer's specification.',
+        objective: 'Avoid treating a visual model as an exact manufacturer specification.',
         explanation: 'Engine variants differ in geometry, firing sequence, valvetrain, and rated output. Without a matching source packet, these values should remain unspecified.',
         learnerTask: 'Answer the question, then return the model to its assembled state.',
         action: { type: 'RESET_VIEW' },
