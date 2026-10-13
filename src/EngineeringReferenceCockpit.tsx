@@ -11,6 +11,7 @@ import { VisualInspectionModal } from './VisualInspectionModal';
 import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
 import { ModelCapabilityPanel } from './models/ModelCapabilityPanel';
 import { AuthoringWorkbench } from './authoring/AuthoringWorkbench';
+import { PrivacyDataPanel } from './accessibility/PrivacyDataPanel';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -99,6 +100,7 @@ export function EngineeringReferenceCockpit({
   const [workshopOpen, setWorkshopOpen] = useState(false);
   const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
   const [authoringOpen, setAuthoringOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -230,22 +232,28 @@ export function EngineeringReferenceCockpit({
             </div>
             <button
               type="button"
-              onClick={() => { setWorkshopOpen(false); setAuthoringOpen(false); setCapabilitiesOpen(true); }}
+              onClick={() => { setWorkshopOpen(false); setAuthoringOpen(false); setPrivacyOpen(false); setCapabilitiesOpen(true); }}
               className="pointer-events-auto mr-2 min-h-9 rounded-full border border-slate-300 bg-white/90 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
               aria-label="Open model capability matrix"
             >MATRIX</button>
             <button
               type="button"
-              onClick={() => { setCapabilitiesOpen(false); setAuthoringOpen(false); setWorkshopOpen(true); }}
+              onClick={() => { setCapabilitiesOpen(false); setAuthoringOpen(false); setPrivacyOpen(false); setWorkshopOpen(true); }}
               className="pointer-events-auto min-h-9 rounded-full border border-cyan-500/40 bg-cyan-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-cyan-800 hover:bg-cyan-100 transition-all shadow-sm"
               aria-label="Open innovation workshop for an editable copy"
             >WORKSHOP</button>
             <button
               type="button"
-              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setAuthoringOpen(true); }}
+              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setPrivacyOpen(false); setAuthoringOpen(true); }}
               className="pointer-events-auto min-h-9 rounded-full border border-violet-500/40 bg-violet-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-violet-800 hover:bg-violet-100 transition-all shadow-sm"
               aria-label="Open model and lesson authoring review"
             >AUTHORING</button>
+            <button
+              type="button"
+              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setAuthoringOpen(false); setPrivacyOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-emerald-500/40 bg-emerald-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald-800 hover:bg-emerald-100 transition-all shadow-sm"
+              aria-label="Open privacy and local data controls"
+            >PRIVACY</button>
             <button
               type="button"
               onClick={onClose}
@@ -618,6 +626,7 @@ export function EngineeringReferenceCockpit({
       />
       {capabilitiesOpen && <ModelCapabilityPanel activeModelId={objectKey} onClose={() => setCapabilitiesOpen(false)} />}
       {authoringOpen && <AuthoringWorkbench onClose={() => setAuthoringOpen(false)} />}
+      {privacyOpen && <PrivacyDataPanel onClose={() => setPrivacyOpen(false)} />}
       {workshopOpen && objectMeta && (
         <InnovationWorkshopPanel
           model={objectMeta}
