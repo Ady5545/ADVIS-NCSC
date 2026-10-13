@@ -177,7 +177,7 @@ export const LEARNING_LESSONS: LearningLesson[] = [
             { id: 'shell', text: 'A solid material shell with a sharp outer surface' }
           ],
           correctChoiceId: 'probability',
-          explanation: 'Correct. The cloud is a representation of probability density, not a fixed planetary path or a hard shell. This model's specific cloud remains conceptual, not a validated plotted quantum state.',
+          explanation: "Correct. The cloud is a representation of probability density, not a fixed planetary path or a hard shell. This model's specific cloud remains conceptual, not a validated plotted quantum state.",
           hint: 'Think about where an electron may be found when measured, rather than an exact path.'
         },
         estimatedMinutes: 2
