@@ -41,6 +41,7 @@ This document is an honest tracker, not a declaration that the full roadmap is c
 - [x] Removed 15 unreferenced component engineering-property tables from the scientific V8 schema rather than displaying exact-looking values without a source-identified engine.
 - [x] Documented simulation level, assumptions and limitations for the four-stroke kinematics and anatomy presentation waveforms; changed the V8 pressure output to a relative illustrative index and clarified normalized scene units.
 - [x] Added explicit parameter metadata and made the anatomy stroke-volume control affect the illustrative volume curve.
+- [x] Made the V8 throttle teaching input affect its relative cycle indicator and added contract checks that advertised RPM, throttle, spark timing, and anatomy stroke volume produce observable model-state changes.
 - [x] Added `scripts/validate-scientific-trust.mjs` and wired it into the `lint` contract and GitHub Actions workflow.
 - [ ] Run the new and existing checks against this exact branch via GitHub Actions and fix any failures.
 - [ ] Browser-verify the affected interfaces and confirm no unexpected model regressions.
