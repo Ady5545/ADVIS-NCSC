@@ -2011,7 +2011,8 @@ function AppContent() {
     {/* Engineering Mode: reference-inspired study cockpit */}
     {isEngineeringMode && (
       <EngineeringReferenceCockpit 
-        onClose={() => setIsEngineeringMode(false)} 
+        onClose={() => setIsEngineeringMode(false)}
+        onAskTutor={(question) => { void handleSendMessage(question); }}
         activeObject={currentSpatialObject} 
         selectedComponentId={selectedComponentId}
         onSelectComponent={setSelectedComponentId}
