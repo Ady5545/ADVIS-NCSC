@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   // This repository is published at https://ady5545.github.io/ADVIS-NCSC/
-  base: '/ADVIS-NCSC/',
+  base: process.env.VERCEL === '1' ? '/' : '/ADVIS-NCSC/',
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
     // OCCT ships WebAssembly; keep it out of Vite's dependency pre-bundling.
