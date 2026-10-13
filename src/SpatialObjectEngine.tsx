@@ -2118,6 +2118,7 @@ export function SpatialObjectEngine({
   const isKinematicPlayingRef = useRef(isKinematicPlaying);
   const kinematicSpeedRef = useRef(kinematicSpeed);
   const kinematicAngleRef = useRef(0);
+  const lastV8AngleBroadcastRef = useRef(0);
   const sysTimeRef = useRef<number>(0);
   const v12RpmRef = useRef(v12Rpm);
   v12RpmRef.current = v12Rpm;
@@ -2909,6 +2910,11 @@ export function SpatialObjectEngine({
       sysTimeRef.current += delta * (activeSpeed || 1.0);
     }
     const kAngle = kinematicAngleRef.current;
+    if (isV8ModelActive && typeof window !== 'undefined' && state.clock.elapsedTime - lastV8AngleBroadcastRef.current >= 0.08) {
+      lastV8AngleBroadcastRef.current = state.clock.elapsedTime;
+      const angleDeg = ((kAngle * 180 / Math.PI) % 720 + 720) % 720;
+      window.dispatchEvent(new CustomEvent('advis-v8-crank-angle', { detail: { angleDeg } }));
+    }
 
     // Real-time Engine Kinematics Telemetry Broadcast
     if (currentObjIds.includes('v12_engine')) {
