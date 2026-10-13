@@ -101,7 +101,17 @@ try {
   const offlinePack = offline.createOfflineLearningPack(v12Lesson, SPATIAL_LIBRARY.v12_engine, '2026-01-01T00:00:00.000Z');
   assert.equal(offline.validateOfflineLearningPack(JSON.parse(offline.serializeOfflineLearningPack(offlinePack))), true);
   assert.throws(() => offline.createOfflineLearningPack(v12Lesson, SPATIAL_LIBRARY.v8_engine), /IDs do not match/);
-  console.log('Roadmap foundations passed: workshop edits/undo-redo/local persistence, tutor action allowlist, capability-matrix validation, offline pack schema, accessibility preferences, and authoring review gates.');
+  const offlineHtml = offline.createOfflineLearningHtml(offlinePack);
+  assert.match(offlineHtml, /<!doctype html>/i);
+  assert.match(offlineHtml, /data-question/);
+  assert.doesNotMatch(offlineHtml, /<script\\s+src=/i, 'offline workbook must not load remote scripts');
+  assert.doesNotMatch(offlineHtml, /<link[^>]+rel=["']stylesheet/i, 'offline workbook must not require external stylesheets');
+  const maliciousLesson = { ...v12Lesson, title: '<script>alert("unsafe")</script>' };
+  const maliciousPack = offline.createOfflineLearningPack(maliciousLesson, SPATIAL_LIBRARY.v12_engine, '2026-01-01T00:00:00.000Z');
+  const maliciousHtml = offline.createOfflineLearningHtml(maliciousPack);
+  assert.ok(maliciousHtml.includes('&lt;script&gt;alert(&quot;unsafe&quot;)&lt;/script&gt;'));
+  assert.ok(!maliciousHtml.includes('<script>alert("unsafe")</script>'), 'lesson-provided text must be escaped in offline HTML');
+  console.log('Roadmap foundations passed: workshop edits/undo-redo/local persistence, tutor action allowlist, capability-matrix validation, self-contained offline workbook safety, accessibility preferences, and authoring review gates.');
 } catch (error) {
   console.error('Roadmap foundations failed:', error);
   process.exitCode = 1;
