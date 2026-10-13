@@ -959,8 +959,8 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
 
     stepFunction: (state, dt, params) => {
       const rpm = params['rpm'] !== undefined ? params['rpm'] : 1800;
-      const compressionRatio = params['compressionRatio'] || 10.5;
-      const sparkAdvance = params['sparkAdvance'] || 14.0;
+      const compressionRatio = params['compressionRatio'] ?? 10.5;
+      const sparkAdvance = params['sparkAdvance'] ?? 14.0;
       const throttleFraction = Math.max(0, Math.min(100, params['throttle'] ?? 65)) / 100;
 
       // Angular velocity in degrees per second:
