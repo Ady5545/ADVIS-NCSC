@@ -13,7 +13,7 @@ import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
-import { Fingerprint, Lock } from 'lucide-react';
+import { Fingerprint, Lock, X } from 'lucide-react';\nimport { ParametricInnovationLab } from './cad/ParametricInnovationLab';
 import { motion } from 'framer-motion';
 import { useHandTracking, HandTrackingData } from './useHandTracking';
 import { MediaPipeAdapter } from './MediaPipeAdapter';
@@ -282,7 +282,7 @@ function AppContent() {
     setHighlightedComponentId(null);
   }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
-  const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
+  const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);\n  const [showInnovationLab, setShowInnovationLab] = useState<boolean>(false);
   const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});\n  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
   const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
   const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
@@ -1985,6 +1985,7 @@ function AppContent() {
         canRedoTransform={transformFuture.length > 0}
         onUndoTransform={undoComponentTransform}
         onRedoTransform={redoComponentTransform}
+        onOpenInnovationLab={() => setShowInnovationLab(true)}
         explodedFactor={explodedFactor}
         onUpdateExplodedFactor={(factor) => {
           const next = Math.max(0, Math.min(1, factor));
@@ -2009,6 +2010,20 @@ function AppContent() {
         lodTier={lodTier}
         onUpdateLodTier={setLodTier}
       />
+    )}
+
+    {showInnovationLab && (
+      <div className="fixed inset-0 z-[95] bg-slate-950/95 backdrop-blur-md p-3 md:p-6 flex flex-col">
+        <div className="flex items-center justify-between gap-3 mb-3 border-b border-cyan-500/20 pb-3">
+          <div className="font-mono text-xs md:text-sm tracking-[0.16em] text-cyan-200">ADVIS // INNOVATION WORKSHOP</div>
+          <button type="button" onClick={() => setShowInnovationLab(false)} aria-label="Close innovation workshop" className="flex items-center gap-2 rounded-lg border border-cyan-500/30 px-3 py-2 text-cyan-200 hover:bg-cyan-500/10">
+            <X size={15} /> CLOSE WORKSHOP
+          </button>
+        </div>
+        <div className="min-h-0 flex-1">
+          <ParametricInnovationLab />
+        </div>
+      </div>
     )}
 
     {/* Connection Screen / Cinematic Boot Loader */}
