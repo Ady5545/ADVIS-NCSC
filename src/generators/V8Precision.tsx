@@ -51,6 +51,20 @@ function M({
   );
 }
 
+export function V8StudioLightRig() {
+  return (
+    <group>
+      {/* Model-only studio lighting: neutral key, cool rim, warm fill and soft ambient lift. */}
+      <hemisphereLight args={['#dce8f5', '#121a22', 0.85]} />
+      <ambientLight color="#d8e1eb" intensity={0.28} />
+      <directionalLight position={[4.5, 6, 5]} color="#fff1df" intensity={2.0} />
+      <directionalLight position={[-4, 2.5, -3]} color="#83cfff" intensity={1.65} />
+      <directionalLight position={[1, 3, -5]} color="#f3c28c" intensity={0.85} />
+      <pointLight position={[0, 2.2, 1.5]} color="#c4e4ff" intensity={5} distance={8} decay={2} />
+    </group>
+  );
+}
+
 function Bolt({
   state,
   position,
