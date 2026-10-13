@@ -13,7 +13,7 @@ const server = spawn(process.execPath, [
   '--host', host,
   '--port', String(port),
   '--strictPort',
-], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, CI: 'true' } });
+], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, CI: 'true', VERCEL: '1' } });
 server.stdout.on('data', (chunk) => serverOutput.push(String(chunk)));
 server.stderr.on('data', (chunk) => serverOutput.push(String(chunk)));
 
