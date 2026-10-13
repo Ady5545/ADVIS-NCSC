@@ -234,8 +234,8 @@ export function AuthoringWorkbench({ onClose }: AuthoringWorkbenchProps) {
     const assessment = assessDraft(selected.payloadJson, selected.kind);
     const reviewerName = reviewer.trim();
     const now = new Date().toISOString();
-    if (nextStatus !== 'IN_REVIEW' && !reviewerName) {
-      setStatusMessage('Enter a reviewer identifier before recording a decision.');
+    if (!reviewerName) {
+      setStatusMessage('Enter a reviewer identifier before starting or recording a review decision.');
       return;
     }
     if (nextStatus === 'APPROVED' && !canPublishContribution('APPROVED', assessment.issues, reviewerName, now)) {
