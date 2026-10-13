@@ -61,7 +61,7 @@ export function resolveComponentFidelity(component: ComponentMetadata): Geometry
   const capabilities = componentCapabilities(component);
   const sourcePath = component.cadAssetPath || component.assetPath;
 
-  if (hasCadSource(component.cadAssetPath)) {
+  if (hasCadSource(sourcePath)) {
     return {
       authority: 'CAD_SOURCE_UNVERIFIED',
       tier: 'L2',
