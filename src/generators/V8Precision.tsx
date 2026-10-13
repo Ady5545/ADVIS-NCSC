@@ -253,20 +253,20 @@ function V8BlockShell({ state }: { state: State }) {
 
       {/* Machined cylinder decks and cast bank rails follow the two 45-degree banks. */}
       {[-1, 1].map((sign) => (
-        <group key={sign} position={[sign * 0.19, 0.18, 0]} rotation={[0, 0, -sign * BANK]}>
+        <group key={sign} position={[sign * 0.19, 0.18, sign * 0.035]} rotation={[0, 0, -sign * BANK]}>
           <RoundedBox args={[0.48, 0.34, 1.78]} radius={0.045} smoothness={6}>
             <M state={state} color="#414c55" metalness={0.74} roughness={0.38} clearcoat={0.06} />
           </RoundedBox>
-          <RoundedBox args={[0.54, 0.065, 1.80]} radius={0.018} smoothness={4} position={[0, 0.20, 0]}>
+          <RoundedBox args={[0.54, 0.065, 1.80]} radius={0.018} smoothness={4} position={[0, 0.174, 0]}>
             <M state={state} color="#b5bec5" metalness={0.86} roughness={0.28} clearcoat={0.08} />
           </RoundedBox>
           {/* Head-bolt bosses and machined fasteners along both deck rails. */}
           {Z.flatMap((z) => ([-0.16, 0.16] as const).map((x) => (
             <React.Fragment key={x + ':' + z}>
-              <Cylinder args={[0.021, 0.021, 0.012, 14]} position={[x, 0.239, z]}>
+              <Cylinder args={[0.021, 0.021, 0.012, 14]} position={[x, 0.203, z]}>
                 <M state={state} color="#59656d" metalness={0.8} roughness={0.31} />
               </Cylinder>
-              <Bolt state={state} position={[x, 0.249, z]} radius={0.008} length={0.012} />
+              <Bolt state={state} position={[x, 0.213, z]} radius={0.008} length={0.012} />
             </React.Fragment>
           )))}
         </group>
