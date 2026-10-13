@@ -5,6 +5,59 @@ import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
 import { LUNGS_COMPONENTS } from './AutonomousModelEngine/precision/LungsModel';
 import { EYE_COMPONENTS } from './AutonomousModelEngine/precision/EyeModel';
 import { SKELETON_COMPONENTS } from './AutonomousModelEngine/precision/SkeletonModel';
+export type ModelKind =
+  | 'PHYSICAL_REFERENCE'
+  | 'SOURCED_VISUAL_ASSET'
+  | 'CAD_BREP_ASSEMBLY'
+  | 'PROCEDURAL_EDUCATIONAL_MODEL'
+  | 'SCIENTIFIC_CONCEPT_MODEL'
+  | 'SCHEMATIC';
+
+export type ModelCapability =
+  | 'inspect'
+  | 'componentHierarchy'
+  | 'hideShow'
+  | 'isolate'
+  | 'explode'
+  | 'transparency'
+  | 'blueprint'
+  | 'sectionPlane'
+  | 'measure'
+  | 'kinematics'
+  | 'validatedSimulation'
+  | 'parameterEditing'
+  | 'guidedLessons'
+  | 'saveProject'
+  | 'exportGlb'
+  | 'exportStep'
+  | 'deepZoom'
+  | 'interiorGeometry';
+
+export interface ModelReference {
+  label: string;
+  url?: string;
+  citation?: string;
+  accessedAt?: string;
+  applicability?: 'EXACT_MODEL' | 'RELATED_MODEL' | 'GENERAL_PRINCIPLE' | 'ILLUSTRATIVE';
+}
+
+export interface ModelEvidenceMetadata {
+  geometryAuthority?: 'SOURCE_CAD' | 'SOURCED_VISUAL' | 'PROCEDURAL' | 'SCIENTIFIC_APPROXIMATION' | 'SCHEMATIC';
+  sourcePath?: string;
+  sourceHash?: string;
+  license?: string;
+  attribution?: string;
+  dimensionsStatus?: 'UNSPECIFIED' | 'NOMINAL' | 'SOURCE_SUPPORTED' | 'VALIDATED';
+  simulationStatus?: 'NONE' | 'PRESENTATION_ANIMATION' | 'KINEMATIC' | 'ANALYTICAL' | 'NUMERICAL' | 'BENCHMARK_VALIDATED';
+  educationalLevel?: 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'UNDERGRADUATE' | 'ADVANCED';
+  references?: ModelReference[];
+  limitations?: string[];
+  reviewer?: string;
+  reviewedAt?: string;
+  revision?: string;
+  capabilities?: Partial<Record<ModelCapability, boolean>>;
+}
+
 export interface ComponentMetadata {
   id: string;
   name: string;
@@ -20,6 +73,12 @@ export interface ComponentMetadata {
   rotation?: [number, number, number];
   category?: string;
   interactionEnabled?: boolean;
+  /** Optional hierarchy fields; legacy flat component records remain supported. */
+  parentId?: string | null;
+  childrenIds?: string[];
+  subsystemId?: string;
+  connectionIds?: string[];
+  explosionDirection?: [number, number, number];
   specifications?: Record<string, string>;
   engineeringDetails?: {
     material?: string;
@@ -49,7 +108,14 @@ export interface ObjectMetadata {
   modelStatus: 'AVAILABLE' | 'AWAITING_ASSET' | 'FALLBACK' | 'UNAVAILABLE';
   category: string;
   description: string;
+  /** Stable, versioned educational identity; optional while legacy catalog entries migrate. */
+  modelVersion?: string;
+  modelKind?: ModelKind;
+  unitSystem?: 'SI' | 'IMPERIAL' | 'MIXED' | 'UNSPECIFIED';
   metadata?: Record<string, any>;
+  evidence?: ModelEvidenceMetadata;
+  /** Only explicit, reviewed capabilities should enable advanced controls by default. */
+  capabilities?: Partial<Record<ModelCapability, boolean>>;
   geometryAuthority?: string;
   cadAssetPath?: string;
   components: ComponentMetadata[];
