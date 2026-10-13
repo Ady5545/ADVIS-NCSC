@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb, Save, FolderOpen } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb, Save, FolderOpen, ShieldCheck, Gauge, FilePlus2 } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
@@ -8,6 +8,7 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { QUALITY_PROFILES, type AccessibilityPreferences, type QualityPreset } from './accessibility/QualityProfiles';
 import { InnovationWorkshop } from './workshop/InnovationWorkshop';
 
 export interface EngineeringReferenceCockpitProps {
@@ -21,6 +22,17 @@ export interface EngineeringReferenceCockpitProps {
   onUndoTransform?: () => void;
   onRedoTransform?: () => void;
   onOpenInnovationLab?: () => void;
+  onOpenPrivacyData?: () => void;
+  onOpenAuthoringWorkbench?: () => void;
+  onOpenCapabilityMatrix?: () => void;
+  qualityPreset?: QualityPreset;
+  onQualityPresetChange?: (preset: QualityPreset) => void;
+  reducedMotion?: boolean;
+  onReducedMotionChange?: (enabled: boolean) => void;
+  captionsEnabled?: boolean;
+  onCaptionsEnabledChange?: (enabled: boolean) => void;
+  audioPreferenceEnabled?: boolean;
+  onAudioPreferenceChange?: (enabled: boolean) => void;
   onSaveWorkspace?: () => void;
   onLoadWorkspace?: () => void;
   workspaceSaveNotice?: string;
@@ -65,6 +77,17 @@ export function EngineeringReferenceCockpit({
   onUndoTransform,
   onRedoTransform,
   onOpenInnovationLab,
+  onOpenPrivacyData,
+  onOpenAuthoringWorkbench,
+  onOpenCapabilityMatrix,
+  qualityPreset = 'BALANCED',
+  onQualityPresetChange,
+  reducedMotion = false,
+  onReducedMotionChange,
+  captionsEnabled = true,
+  onCaptionsEnabledChange,
+  audioPreferenceEnabled = false,
+  onAudioPreferenceChange,
   onSaveWorkspace,
   onLoadWorkspace,
   workspaceSaveNotice = '',
@@ -276,6 +299,27 @@ export function EngineeringReferenceCockpit({
               >
                 <Redo2 size={15} />
               </button>
+              <button
+                type="button"
+                onClick={onOpenCapabilityMatrix}
+                className="h-9 px-2.5 rounded-full border border-violet-300 bg-white/90 text-violet-800 hover:bg-violet-50 transition-all flex items-center justify-center gap-1.5 text-[9px] font-semibold"
+                aria-label="Open model capability matrix"
+                title="Review verified and undeclared model capabilities"
+              ><Gauge size={14} /><span className="hidden lg:inline">CAPABILITIES</span></button>
+              <button
+                type="button"
+                onClick={onOpenAuthoringWorkbench}
+                className="h-9 px-2.5 rounded-full border border-emerald-300 bg-white/90 text-emerald-800 hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5 text-[9px] font-semibold"
+                aria-label="Open local model and lesson authoring"
+                title="Create a draft and validate it locally before review"
+              ><FilePlus2 size={14} /><span className="hidden lg:inline">AUTHOR</span></button>
+              <button
+                type="button"
+                onClick={onOpenPrivacyData}
+                className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-700 hover:bg-slate-100 transition-all flex items-center justify-center gap-1.5 text-[9px] font-semibold"
+                aria-label="Open privacy and local data controls"
+                title="Inspect or delete locally stored data"
+              ><ShieldCheck size={14} /><span className="hidden lg:inline">PRIVACY</span></button>
               <button
                 type="button"
                 onClick={onClose}
@@ -535,6 +579,39 @@ export function EngineeringReferenceCockpit({
               <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'BLUEPRINT' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>BLUEPRINT</button>
             </div>
 
+            <div className="px-3 pt-2 border-t border-slate-200 space-y-2">
+              <div className="text-[9px] uppercase tracking-[0.15em] text-slate-400">Accessibility & quality</div>
+              <label className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2 text-[9px] text-slate-600">
+                <span>Rendering</span>
+                <select
+                  value={qualityPreset}
+                  onChange={(event) => onQualityPresetChange?.(event.currentTarget.value as QualityPreset)}
+                  aria-label="Rendering quality profile"
+                  className="min-w-0 rounded border border-slate-300 bg-white px-2 py-1.5 text-[9px] text-slate-800"
+                >
+                  <option value="LOW">Low · device friendly</option>
+                  <option value="BALANCED">Balanced</option>
+                  <option value="HIGH">High</option>
+                  <option value="ULTRA">Ultra</option>
+                </select>
+              </label>
+              <div className="text-[8px] leading-relaxed text-slate-500">{QUALITY_PROFILES[qualityPreset].note}</div>
+              <div className="grid grid-cols-3 gap-2">
+                <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
+                  <input type="checkbox" checked={reducedMotion} onChange={(event) => onReducedMotionChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
+                  Reduced motion
+                </label>
+                <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
+                  <input type="checkbox" checked={captionsEnabled} onChange={(event) => onCaptionsEnabledChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
+                  Captions
+                </label>
+                <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
+                  <input type="checkbox" checked={audioPreferenceEnabled} onChange={(event) => onAudioPreferenceChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
+                  Audio
+                </label>
+              </div>
+              <p className="text-[8px] leading-relaxed text-slate-500">Camera/hand tracking remains opt-in and is never enabled by these saved preferences.</p>
+            </div>
             <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Overlays</div>
             <div className="grid grid-cols-4 gap-1 p-2">
               <button onClick={() => setShowParts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Parts</button>
