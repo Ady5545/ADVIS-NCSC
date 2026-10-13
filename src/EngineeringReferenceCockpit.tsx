@@ -42,6 +42,8 @@ export interface EngineeringReferenceCockpitProps {
   onToggleMagnifier?: () => void;
   lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
   onUpdateLodTier?: (tier: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA') => void;
+  reducedMotionEnabled?: boolean;
+  onToggleReducedMotion?: () => void;
 }
 
 const phaseLegend = [
@@ -83,6 +85,8 @@ export function EngineeringReferenceCockpit({
   onToggleMagnifier,
   lodTier = 'HIGH',
   onUpdateLodTier,
+  reducedMotionEnabled = false,
+  onToggleReducedMotion,
 }: EngineeringReferenceCockpitProps) {
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showParts, setShowParts] = useState(false);
@@ -554,6 +558,15 @@ export function EngineeringReferenceCockpit({
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                onClick={onToggleReducedMotion}
+                disabled={!onToggleReducedMotion}
+                aria-pressed={reducedMotionEnabled}
+                className={`mt-2 w-full rounded border px-2 py-1.5 text-left text-[9px] font-semibold transition-colors ${reducedMotionEnabled ? 'border-cyan-600/40 bg-cyan-50 text-cyan-800' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'} disabled:opacity-40`}
+              >
+                Reduced motion: {reducedMotionEnabled ? 'On · kinematics paused' : 'Off'}
+              </button>
             </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
               {objectMeta?.capabilities?.measure !== false && (
