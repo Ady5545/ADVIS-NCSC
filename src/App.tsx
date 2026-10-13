@@ -1113,13 +1113,24 @@ function AppContent() {
     const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
     const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
     const tutorScientificState = useScientificStore.getState();
-    const tutorScientificModel = tutorScientificState.activeModel ||
-      (tutorModelId ? ScientificModelRegistry.getModel(tutorModelId) || null : null);
+    // Never reuse an old scientific engine's state when the visible model is unrelated.
+    const expectedScientificId = tutorModelId === 'v8_engine'
+      ? 'v8_engine_scientific'
+      : tutorModelId;
+    const registeredTutorScientificModel = expectedScientificId
+      ? ScientificModelRegistry.getModel(expectedScientificId) || null
+      : null;
+    const tutorScientificModel = tutorScientificState.activeModel?.id === expectedScientificId
+      ? tutorScientificState.activeModel
+      : registeredTutorScientificModel;
+    const scientificStateMatches = Boolean(
+      tutorScientificModel && tutorScientificState.activeModel?.id === tutorScientificModel.id
+    );
     const modelTutorContext = tutorModel
       ? buildModelTutorContext(tutorModel, selectedComponentId || hoveredComponentId, {
           scientificModel: tutorScientificModel,
-          scientificVariables: tutorScientificState.simulationVariables,
-          scientificParameters: tutorScientificState.parameters
+          scientificVariables: scientificStateMatches ? tutorScientificState.simulationVariables : {},
+          scientificParameters: scientificStateMatches ? tutorScientificState.parameters : (tutorScientificModel?.simulation.parameters || {})
         })
       : null;
 
