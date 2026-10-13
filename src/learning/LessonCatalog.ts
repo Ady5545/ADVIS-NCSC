@@ -568,7 +568,7 @@ export const LEARNING_LESSONS: LearningLesson[] = [
         id: 'flow-direction',
         title: 'Follow one-way flow',
         objective: 'Explain why cardiac valves are part of the flow pathway.',
-        explanation: 'Valves open and close as pressure differences change, helping direct blood through the chambers and vessels. A concept model can explain the pathway, but it does not establish an individual's valve function.',
+        explanation: "Valves open and close as pressure differences change, helping direct blood through the chambers and vessels. A concept model can explain the pathway, but it does not establish an individual's valve function.",
         learnerTask: 'Choose the normal high-level order for blood leaving the right ventricle.',
         completionRule: { type: 'ACKNOWLEDGE' },
         question: {
