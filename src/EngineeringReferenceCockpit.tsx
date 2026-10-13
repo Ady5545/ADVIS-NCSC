@@ -8,6 +8,7 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -53,6 +54,8 @@ export function EngineeringReferenceCockpit({
   onClose,
   activeObject,
   selectedComponentId,
+  componentTransforms = {},
+  onUpdateComponentTransform,
   onSelectComponent,
   hiddenComponentIds = [],
   onToggleComponentVisibility,
@@ -85,6 +88,7 @@ export function EngineeringReferenceCockpit({
   const [collapsedTreeNodes, setCollapsedTreeNodes] = useState<Record<string, boolean>>({});
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
+  const [workshopOpen, setWorkshopOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -215,6 +219,13 @@ export function EngineeringReferenceCockpit({
               </div>
             </div>
             <button
+              type="button"
+              onClick={() => setWorkshopOpen(true)}
+              className="pointer-events-auto mr-2 min-h-9 rounded-full border border-cyan-500/40 bg-cyan-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-cyan-800 hover:bg-cyan-100 transition-all shadow-sm"
+              aria-label="Open innovation workshop for an editable copy"
+            >WORKSHOP</button>
+            <button
+              type="button"
               onClick={onClose}
               className="pointer-events-auto w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
               aria-label="Exit engineering study"
@@ -548,6 +559,16 @@ export function EngineeringReferenceCockpit({
         onClose={() => setInspectionOpen(false)}
         activeObjectKey={objectKey || null}
       />
+      {workshopOpen && objectMeta && (
+        <InnovationWorkshopPanel
+          model={objectMeta}
+          selectedComponentId={selectedComponentId || null}
+          componentTransforms={componentTransforms}
+          onSelectComponent={(id) => onSelectComponent?.(id)}
+          onUpdateComponentTransform={(id, transform) => onUpdateComponentTransform?.(id, transform)}
+          onClose={() => setWorkshopOpen(false)}
+        />
+      )}
     </>
   );
 }
