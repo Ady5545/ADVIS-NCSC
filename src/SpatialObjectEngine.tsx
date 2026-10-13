@@ -191,6 +191,7 @@ function RealisticGLTFModel({
 
 // 3D Spatial Metadata library with components and offsets
 import { ComponentMetadata, ObjectMetadata, SPATIAL_LIBRARY } from './SpatialLibrary';
+import { resolveExplodedPosition } from './models/assemblies/ExplosionMath';
 import { useGestureEngine } from './GestureContext';
 
 /**
@@ -2030,6 +2031,33 @@ export function SpatialObjectEngine({
   const componentRefs = useRef<Record<string, THREE.Object3D>>({});
   const idleRotationRef = useRef(0);
 
+  useEffect(() => {
+    const focusComponent = (event: Event) => {
+      const componentId = (event as CustomEvent<{ componentId?: string }>).detail?.componentId;
+      if (!componentId) return;
+      const targetObject = componentRefs.current[componentId];
+      if (!targetObject) return;
+
+      targetObject.updateWorldMatrix(true, true);
+      const bounds = new THREE.Box3().setFromObject(targetObject);
+      if (bounds.isEmpty()) return;
+
+      const center = bounds.getCenter(new THREE.Vector3());
+      const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+      window.dispatchEvent(new CustomEvent('advis-focus-world-point', {
+        detail: {
+          componentId,
+          target: [center.x, center.y, center.z] as [number, number, number],
+          radius: Math.max(0.15, sphere.radius),
+        },
+      }));
+    };
+
+    window.addEventListener('advis-focus-component', focusComponent);
+    return () => window.removeEventListener('advis-focus-component', focusComponent);
+  }, []);
+
+
   // Transition and Level Of Detail States
   const transitionRef = useRef(0);
   const [lod, setLod] = useState<'FAR' | 'MEDIUM' | 'CLOSE'>('MEDIUM');
@@ -2162,11 +2190,10 @@ export function SpatialObjectEngine({
       const base = object.userData.__advisBasePosition as [number, number, number] | undefined;
       const offset = object.userData.explodedOffset as [number, number, number] | undefined;
       if (!base || !offset) return;
-      const target = new THREE.Vector3(
-        base[0] + offset[0] * theatreFactor,
-        base[1] + offset[1] * theatreFactor,
-        base[2] + offset[2] * theatreFactor
-      );
+      // All component offsets flow through this single, testable transform resolver.
+      const stage = Number(object.userData.explosionStage) || 0;
+      const position = resolveExplodedPosition(base, offset, theatreFactor, stage);
+      const target = new THREE.Vector3(position[0], position[1], position[2]);
       object.position.lerp(target, 0.16);
     });
   });
@@ -3104,26 +3131,27 @@ export function SpatialObjectEngine({
 
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
-                      const expOffset = comp.explodedOffset || [0, 0, 0];
-                      const currentExplodedFactor = explodedFactor || 0;
-                      
-                      const pos: [number, number, number] = [
-                        basePos[0] + expOffset[0] * currentExplodedFactor,
-                        basePos[1] + expOffset[1] * currentExplodedFactor,
-                        basePos[2] + expOffset[2] * currentExplodedFactor,
-                      ];
+                      // Canonical/user-edited position only. The authoritative scene transform controller
+                      // applies explosion displacement so React and useFrame never compete for position.
+                      const pos: [number, number, number] = [...basePos];
 
                       const rot = transform ? transform.rotation : (comp.rotation || [0, 0, 0]);
-                      const scl = transform ? transform.scale : (isIsolated ? [1, 1, 1] : [0.95, 0.95, 0.95]);
+                      const scl = transform ? transform.scale : [1, 1, 1];
                       
                       return (
                         <group visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
                             ref={(el) => {
                               if (el) componentRefs.current[comp.id] = el;
+                              else delete componentRefs.current[comp.id];
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedComponentId(comp.id);
+                            }}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedComponentId(comp.id);
+                              window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: comp.id } }));
                             }}
                             onPointerOver={(e) => {
                               e.stopPropagation();
@@ -3142,6 +3170,7 @@ export function SpatialObjectEngine({
                               category: obj.category,
                               specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
                               explodedOffset: comp.explodedOffset,
+                              explosionStage: comp.explosionStage ?? 0,
                               __advisBasePosition: basePos,
                               interactionEnabled: comp.interactionEnabled !== false
                             }}

@@ -3,6 +3,7 @@ import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, 
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
+import { V8_CAMERA_PRESETS } from './components/v8/V8EngineController';
 import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12ScientificConfig';
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
@@ -18,6 +19,9 @@ export interface EngineeringReferenceCockpitProps {
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
   onShowAllComponents?: () => void;
+  isolatedComponentId?: string | null;
+  onToggleIsolateComponent?: (id: string | null) => void;
+  onFocusComponent?: (id: string) => void;
   explodedFactor?: number;
   onUpdateExplodedFactor?: (factor: number) => void;
   xrayEnabled?: boolean;
@@ -53,6 +57,9 @@ export function EngineeringReferenceCockpit({
   hiddenComponentIds = [],
   onToggleComponentVisibility,
   onShowAllComponents,
+  isolatedComponentId = null,
+  onToggleIsolateComponent,
+  onFocusComponent,
   explodedFactor = 0,
   onUpdateExplodedFactor,
   xrayEnabled = false,
@@ -86,6 +93,8 @@ export function EngineeringReferenceCockpit({
   const components = objectMeta?.components || [];
   const fidelity = objectMeta ? resolveObjectFidelity(objectMeta) : null;
   const isV12 = objectKey === 'v12_engine';
+  const isV8 = objectKey === 'v8_engine';
+  const activeCameraPresets = isV8 ? V8_CAMERA_PRESETS : isV12 ? V12_CAMERA_PRESETS : V12_CAMERA_PRESETS.slice(0, 3);
 
   const activeCylinder = telemetry.focusedCylinder || 1;
   const activeTelemetry =
@@ -162,7 +171,7 @@ export function EngineeringReferenceCockpit({
 
 
   const applyPreset = (presetId: string) => {
-    const preset = V12_CAMERA_PRESETS.find((entry) => entry.id === presetId);
+    const preset = activeCameraPresets.find((entry) => entry.id === presetId);
     if (!preset) return;
     setActivePreset(preset.id);
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
@@ -174,7 +183,7 @@ export function EngineeringReferenceCockpit({
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
   }, [objectKey]);
 
-  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'SECTION' : 'SOLID';
+  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'BLUEPRINT' : 'SOLID';
 
   return (
     <>
@@ -358,6 +367,18 @@ export function EngineeringReferenceCockpit({
                   <div><div className="text-slate-400 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
                   <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
                 </div>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => onFocusComponent?.(selectedComponent.id)}
+                    className="rounded border border-cyan-700/30 bg-cyan-50 px-2 py-2 text-[9px] font-semibold text-cyan-800 hover:bg-cyan-100"
+                  >Focus in 3D</button>
+                  <button
+                    type="button"
+                    onClick={() => onToggleIsolateComponent?.(isolatedComponentId === selectedComponent.id ? null : selectedComponent.id)}
+                    className={`rounded border px-2 py-2 text-[9px] font-semibold ${isolatedComponentId === selectedComponent.id ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'}`}
+                  >{isolatedComponentId === selectedComponent.id ? 'Restore assembly' : 'Isolate selected'}</button>
+                </div>
               </section>
             )}
 
@@ -436,18 +457,18 @@ export function EngineeringReferenceCockpit({
           <div className="bg-white/94 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)]">
             <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.15em] text-slate-400">Camera</div>
             <div className="grid grid-cols-5 gap-1 p-2">
-              {(isV12 ? V12_CAMERA_PRESETS : V12_CAMERA_PRESETS.slice(0, 3)).map((preset) => (
+              {activeCameraPresets.map((preset) => (
                 <button key={preset.id} onClick={() => applyPreset(preset.id)} className={`px-1.5 py-1.5 border text-[8px] uppercase tracking-[0.10em] ${activePreset === preset.id ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400'}`}>
                   {preset.id}
                 </button>
               ))}
             </div>
 
-            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Cutaway</div>
+            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">View mode</div>
             <div className="grid grid-cols-3 gap-1 p-2">
               <button onClick={() => { if (xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SOLID' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SOLID</button>
               <button onClick={() => { if (!xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'GLASS' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>GLASS</button>
-              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SECTION' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SECTION</button>
+              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'BLUEPRINT' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>BLUEPRINT</button>
             </div>
 
             <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Overlays</div>
@@ -455,13 +476,53 @@ export function EngineeringReferenceCockpit({
               <button onClick={() => setShowParts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Parts</button>
               <button onClick={() => setShowCharts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Charts</button>
               <button onClick={() => onHighlightComponent?.(highlightedComponentId ? null : selectedComponentId || components[0]?.id || null)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Callout</button>
-              <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Isolate</button>
+              <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Zoom focus</button>
+            </div>
+            <div className="px-3 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                <label htmlFor="assembly-explosion-factor">Assembly separation</label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Previous exploded-view stage"
+                    title="Previous stage"
+                    onClick={() => onUpdateExplodedFactor?.(Math.max(0, Math.round((explodedFactor - 0.15) * 100) / 100))}
+                    disabled={explodedFactor <= 0}
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-600 disabled:opacity-35"
+                  >−</button>
+                  <span className="min-w-[36px] text-center tabular-nums">{Math.round(explodedFactor * 100)}%</span>
+                  <button
+                    type="button"
+                    aria-label="Next exploded-view stage"
+                    title="Next stage"
+                    onClick={() => onUpdateExplodedFactor?.(Math.min(1, Math.round((explodedFactor + 0.15) * 100) / 100))}
+                    disabled={explodedFactor >= 1}
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-600 disabled:opacity-35"
+                  >+</button>
+                </div>
+              </div>
+              <input
+                id="assembly-explosion-factor"
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={Math.max(0, Math.min(1, explodedFactor))}
+                onChange={(event) => onUpdateExplodedFactor?.(Number(event.currentTarget.value))}
+                aria-label="Assembly separation from assembled to fully exploded"
+                className="mt-1 w-full accent-cyan-700"
+              />
+              <div className="flex items-center justify-between text-[8px] text-slate-400">
+                <span>Assembled</span><span>Separated</span>
+              </div>
             </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
-              <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Ruler size={11} className="mx-auto" /></button>
-              <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Sparkles size={11} className="mx-auto" /></button>
-              <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 0.85)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Maximize2 size={11} className="mx-auto" /></button>
-              <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]">DIR</button>
+              {objectMeta?.capabilities?.measure !== false && (
+                <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Toggle measurement mode"><Ruler size={11} className="mx-auto" /></button>
+              )}
+              <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Enable ultra detail"><Sparkles size={11} className="mx-auto" /></button>
+              <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 1)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label={explodedFactor > 0.05 ? 'Reassemble all components' : 'Fully explode all components'}><Maximize2 size={11} className="mx-auto" /></button>
+              {isV12 && <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]" aria-label="Toggle V12 engine rotation direction">DIR</button>}
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
             </div>
           </div>
@@ -473,7 +534,7 @@ export function EngineeringReferenceCockpit({
         {/* Mobile */}
         <div className="absolute left-1/2 -translate-x-1/2 bottom-3 md:hidden pointer-events-auto w-[92vw]">
           <div className="bg-white/95 border border-slate-300 shadow-lg p-2 grid grid-cols-5 gap-1">
-            {V12_CAMERA_PRESETS.map((preset) => (
+            {activeCameraPresets.map((preset) => (
               <button key={preset.id} onClick={() => applyPreset(preset.id)} className="py-2 border border-slate-200 text-[9px]">
                 {preset.id}
               </button>

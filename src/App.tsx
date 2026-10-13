@@ -61,8 +61,38 @@ function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
         lookAtRef.current.set(0, 0, 0);
       }
     };
+    const handleFocusWorldPoint = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        target?: [number, number, number];
+        radius?: number;
+      }>).detail;
+      if (!detail?.target) return;
+
+      const [targetX, targetY, targetZ] = detail.target;
+      const radius = Number.isFinite(detail.radius) ? detail.radius as number : 0.5;
+      const distance = THREE.MathUtils.clamp(radius * 4.5, 2.5, 14);
+      const theta = gestureState?.spatialCam?.targetTheta ?? 0.78;
+      const phi = gestureState?.spatialCam?.targetPhi ?? 1.02;
+
+      if (gestureState?.spatialCam) {
+        gestureState.spatialCam.targetRadius = distance;
+      }
+      if (gestureState?.cameraTarget) {
+        gestureState.cameraTarget.set(
+          targetX + distance * Math.sin(phi) * Math.sin(theta),
+          targetY + distance * Math.cos(phi),
+          targetZ + distance * Math.sin(phi) * Math.cos(theta),
+        );
+      }
+      lookAtRef.current.set(targetX, targetY, targetZ);
+    };
+
     window.addEventListener('advis-camera-preset', handlePreset);
-    return () => window.removeEventListener('advis-camera-preset', handlePreset);
+    window.addEventListener('advis-focus-world-point', handleFocusWorldPoint);
+    return () => {
+      window.removeEventListener('advis-camera-preset', handlePreset);
+      window.removeEventListener('advis-focus-world-point', handleFocusWorldPoint);
+    };
   }, [gestureState]);
 
   useFrame((state) => {
@@ -1922,11 +1952,19 @@ function AppContent() {
         onSelectComponent={setSelectedComponentId}
         hiddenComponentIds={hiddenComponentIds}
         onToggleComponentVisibility={toggleComponentVisibility}
-        onShowAllComponents={() => setHiddenComponentIds([])}
+        onShowAllComponents={() => { setHiddenComponentIds([]); setIsolatedComponentId(null); }}
+        isolatedComponentId={isolatedComponentId}
+        onToggleIsolateComponent={setIsolatedComponentId}
+        onFocusComponent={(id) => window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: id } }))}
         componentTransforms={componentTransforms}
         onUpdateComponentTransform={handleUpdateComponentTransform}
         explodedFactor={explodedFactor}
-        onUpdateExplodedFactor={setExplodedFactor}
+        onUpdateExplodedFactor={(factor) => {
+          const next = Math.max(0, Math.min(1, factor));
+          setExplodedFactor(next);
+          setIsExploded(next > 0.001);
+          setSpatialMode(next > 0.001 ? 'EXPLODED' : 'INSPECTION');
+        }}
         xrayEnabled={xrayEnabled}
         onToggleXray={() => setXrayEnabled(!xrayEnabled)}
         blueprintEnabled={blueprintEnabled}

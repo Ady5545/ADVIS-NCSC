@@ -85,6 +85,10 @@ try {
       if (!isFiniteTriple(component.explodedOffset)) {
         fail(`[${modelLabel}] ${component.id || label} has an invalid explodedOffset; expected three finite numbers.`);
       }
+      if (component.explosionStage !== undefined &&
+          (!Number.isFinite(component.explosionStage) || component.explosionStage < 0 || component.explosionStage > 0.95)) {
+        fail(`[${modelLabel}] ${component.id || label} has an invalid explosionStage; expected a finite value between 0 and 0.95.`);
+      }
       if (component.cadAssetPath && !/\.(step|stp|brep|brp)$/i.test(component.cadAssetPath)) {
         warn(`[${modelLabel}] ${component.id} has a CAD path with an unexpected extension; inspect its source metadata.`);
       }
