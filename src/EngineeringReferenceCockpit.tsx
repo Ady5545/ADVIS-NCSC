@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2 } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
@@ -14,7 +14,7 @@ export interface EngineeringReferenceCockpitProps {
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
-  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;
+  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;\n  onOpenInnovationLab?: () => void;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
@@ -215,6 +215,15 @@ export function EngineeringReferenceCockpit({
               </div>
             </div>
             <div className="pointer-events-auto flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onOpenInnovationLab}
+                className="h-9 px-3 rounded-full border border-cyan-300/60 bg-cyan-50/95 text-cyan-800 hover:bg-cyan-100 transition-all flex items-center justify-center gap-1.5 shadow-sm text-[10px] font-semibold tracking-wide"
+                aria-label="Open innovation workshop"
+                title="Create and experiment with an editable study"
+              >
+                <Lightbulb size={14} /> WORKSHOP
+              </button>
               <button
                 type="button"
                 onClick={onUndoTransform}
