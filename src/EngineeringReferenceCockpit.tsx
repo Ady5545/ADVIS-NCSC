@@ -70,6 +70,8 @@ export function EngineeringReferenceCockpit({
   workspaceSaveNotice = '',
   activeObject,
   selectedComponentId,
+  componentTransforms = {},
+  onUpdateComponentTransform,
   onSelectComponent,
   hiddenComponentIds = [],
   onToggleComponentVisibility,
