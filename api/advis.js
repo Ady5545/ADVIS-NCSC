@@ -183,7 +183,8 @@ function cleanContext(value) {
     showLabels: typeof input.showLabels === "boolean" ? input.showLabels : undefined,
     isEngineeringMode: Boolean(input.isEngineeringMode),
     systemState: cleanText(input.systemState, 40),
-    activeMolecule: molecule,\n    activeModelEvidence: cleanModelEvidence(input.activeModelEvidence),
+    activeMolecule: molecule,
+    activeModelEvidence: cleanModelEvidence(input.activeModelEvidence),
     recentActions: Array.isArray(input.recentActions)
       ? input.recentActions.slice(-6).map(function (action) {
           return {
