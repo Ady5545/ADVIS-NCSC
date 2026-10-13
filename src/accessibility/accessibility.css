@@ -1,0 +1,22 @@
+/* Accessibility preference hooks: CSS-driven movement is reduced when the user asks for it. */
+html[data-advis-reduced-motion="true"],
+html[data-advis-reduced-motion="true"] * ,
+html[data-advis-reduced-motion="true"] *::before,
+html[data-advis-reduced-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  caret-color: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-advis-reduced-motion="false"]) *,
+  html:not([data-advis-reduced-motion="false"]) *::before,
+  html:not([data-advis-reduced-motion="false"]) *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
