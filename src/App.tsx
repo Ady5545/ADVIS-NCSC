@@ -359,18 +359,22 @@ function AppContent() {
 
     if (newMode === 'INSPECTION') {
       setIsExploded(false);
+      setExplodedFactor(0);
       setIsPresentationMode(false);
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     } else if (newMode === 'SHOWCASE') {
       setIsExploded(false);
+      setExplodedFactor(0);
       setIsPresentationMode(false);
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     } else if (newMode === 'EXPLODED') {
       setIsExploded(true);
+      setExplodedFactor(1);
       setIsPresentationMode(false);
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     } else if (newMode === 'DEMO') {
       setIsExploded(false);
+      setExplodedFactor(0);
       setIsPresentationMode(true);
       setPresentationStep(0);
 
@@ -1562,7 +1566,12 @@ function AppContent() {
         spatialMode={spatialMode}
         onChangeSpatialMode={changeSpatialMode}
         isExploded={isExploded}
-        onToggleExploded={() => setIsExploded(!isExploded)}
+        onToggleExploded={() => {
+          const nextExploded = !isExploded;
+          setIsExploded(nextExploded);
+          setExplodedFactor(nextExploded ? 1 : 0);
+          setSpatialMode(nextExploded ? 'EXPLODED' : 'INSPECTION');
+        }}
         xrayEnabled={xrayEnabled}
         onToggleXray={() => setXrayEnabled(!xrayEnabled)}
         blueprintEnabled={blueprintEnabled}
