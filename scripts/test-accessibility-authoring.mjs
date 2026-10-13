@@ -140,7 +140,7 @@ try {
   const html = offline.createOfflineLearningHtml(pack);
   assert.match(html, /<!doctype html>/i);
   assert.match(html, /data-question/);
-  assert.match(html, /does not include the interactive 3D model/i);
+  assert.match(html, /does not include the interactive 3D mesh/i);
   assert.doesNotMatch(html, /<script\s+src=/i, 'offline workbook must not load external JavaScript');
   assert.doesNotMatch(html, /<link[^>]+rel=["']stylesheet/i, 'offline workbook must not require remote stylesheets');
   const maliciousLesson = { ...selectedLesson, title: '<script>alert("unsafe")</script>' };
