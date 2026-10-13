@@ -418,6 +418,79 @@ function AppContent() {
     setTransformHistory((items) => [...items.slice(-49), entry]);
   };
 
+  const [workspaceSaveNotice, setWorkspaceSaveNotice] = useState('');
+  const activeTransformModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const saveEngineeringWorkspace = () => {
+    if (!activeTransformModelId || !SPATIAL_LIBRARY[activeTransformModelId]) {
+      setWorkspaceSaveNotice('Open a catalog model before saving workspace edits.');
+      return;
+    }
+    try {
+      const componentIds = new Set((SPATIAL_LIBRARY[activeTransformModelId].components || []).map((component) => component.id));
+      const transforms = Object.fromEntries(Object.entries(componentTransforms).filter(([id]) => componentIds.has(id)));
+      window.localStorage.setItem('advis-ncsc.workspace-transforms.v1', JSON.stringify({
+        version: 1,
+        modelId: activeTransformModelId,
+        transforms,
+        savedAt: new Date().toISOString(),
+      }));
+      setWorkspaceSaveNotice('Workspace edits saved on this device.');
+    } catch {
+      setWorkspaceSaveNotice('Local save unavailable; current workspace remains unchanged.');
+    }
+  };
+
+  const loadEngineeringWorkspace = () => {
+    if (!activeTransformModelId || !SPATIAL_LIBRARY[activeTransformModelId]) {
+      setWorkspaceSaveNotice('Open the same catalog model before loading its workspace edits.');
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem('advis-ncsc.workspace-transforms.v1');
+      if (!raw) { setWorkspaceSaveNotice('No saved workspace edits found on this device.'); return; }
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setWorkspaceSaveNotice('Saved workspace data is invalid; current edits were kept.');
+        return;
+      }
+      const payload = parsed as { version?: unknown; modelId?: unknown; transforms?: unknown };
+      if (payload.version !== 1 || payload.modelId !== activeTransformModelId || !payload.transforms || typeof payload.transforms !== 'object' || Array.isArray(payload.transforms)) {
+        setWorkspaceSaveNotice('Saved edits belong to another model or an unsupported version; current edits were kept.');
+        return;
+      }
+      const componentIds = new Set((SPATIAL_LIBRARY[activeTransformModelId].components || []).map((component) => component.id));
+      const restored: Record<string, ComponentTransform> = {};
+      for (const [id, candidate] of Object.entries(payload.transforms as Record<string, unknown>)) {
+        if (!componentIds.has(id) || !candidate || typeof candidate !== 'object') {
+          setWorkspaceSaveNotice('Saved edits failed validation; current edits were kept.');
+          return;
+        }
+        const transform = candidate as Partial<ComponentTransform>;
+        const validTriple = (value: unknown) => Array.isArray(value) && value.length === 3 && value.every((n) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= 1000);
+        if (!validTriple(transform.position) || !validTriple(transform.rotation) || !validTriple(transform.scale) ||
+            (transform.scale as number[]).some((n) => n <= 0)) {
+          setWorkspaceSaveNotice('Saved edits failed transform validation; current edits were kept.');
+          return;
+        }
+        restored[id] = {
+          position: [...transform.position] as [number, number, number],
+          rotation: [...transform.rotation] as [number, number, number],
+          scale: [...transform.scale] as [number, number, number],
+        };
+      }
+      setComponentTransforms((prev) => {
+        const next = { ...prev };
+        for (const id of componentIds) delete next[id];
+        return { ...next, ...restored };
+      });
+      setTransformHistory([]);
+      setTransformFuture([]);
+      setWorkspaceSaveNotice('Workspace edits loaded.');
+    } catch {
+      setWorkspaceSaveNotice('Could not load saved edits; current workspace was kept.');
+    }
+  };
+
   const changeSpatialMode = (newMode: SpatialMode) => {
     setSpatialMode(newMode);
 
@@ -1986,6 +2059,9 @@ function AppContent() {
         onUndoTransform={undoComponentTransform}
         onRedoTransform={redoComponentTransform}
         onOpenInnovationLab={() => setShowInnovationLab(true)}
+        onSaveWorkspace={saveEngineeringWorkspace}
+        onLoadWorkspace={loadEngineeringWorkspace}
+        workspaceSaveNotice={workspaceSaveNotice}
         explodedFactor={explodedFactor}
         onUpdateExplodedFactor={(factor) => {
           const next = Math.max(0, Math.min(1, factor));
