@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2 } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
@@ -14,7 +14,7 @@ export interface EngineeringReferenceCockpitProps {
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
-  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
+  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
@@ -214,13 +214,36 @@ export function EngineeringReferenceCockpit({
                 ))}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="pointer-events-auto w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
-              aria-label="Exit engineering study"
-            >
-              <X size={16} />
-            </button>
+            <div className="pointer-events-auto flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onUndoTransform}
+                disabled={!canUndoTransform}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-sm"
+                aria-label="Undo component transform"
+                title="Undo transform"
+              >
+                <Undo2 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onRedoTransform}
+                disabled={!canRedoTransform}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-sm"
+                aria-label="Redo component transform"
+                title="Redo transform"
+              >
+                <Redo2 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
+                aria-label="Exit engineering study"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
