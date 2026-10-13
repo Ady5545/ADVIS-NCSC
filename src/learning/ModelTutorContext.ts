@@ -1,5 +1,5 @@
 import type { ObjectMetadata } from '../SpatialLibrary';
-import type { ScientificSystemModel, ScientificValidationLevel } from '../scientific/ScientificSchema';
+import type { ScientificSystemModel, SimulationValidationLevel } from '../scientific/ScientificSchema';
 
 export type EvidenceKind = 'SOURCE_BACKED' | 'MODEL_DERIVED' | 'ILLUSTRATIVE' | 'UNKNOWN';
 
@@ -23,7 +23,7 @@ export interface ModelTutorContext {
   relationships: Array<{ componentId: string; name: string; relationship: string; description: string }>;
   parameters: Array<{ id: string; name: string; unit: string; value: number; description: string }>;
   evidence: TutorEvidenceItem[];
-  simulationLevel: ScientificValidationLevel | 'NONE';
+  simulationLevel: SimulationValidationLevel | 'NONE';
   limitations: string[];
   safeActions: Array<'SELECT_COMPONENT' | 'SET_EXPLOSION' | 'SET_VIEW_MODE' | 'FOCUS_COMPONENT' | 'OPEN_LESSON'>;
 }
