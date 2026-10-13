@@ -262,6 +262,7 @@ function AppContent() {
   const [isV8KinematicPlaying, setIsV8KinematicPlaying] = useState<boolean>(true);
   const [v8KinematicSpeed, setV8KinematicSpeed] = useState<number>(1.0);
   const [v8KinematicTimeOffset, setV8KinematicTimeOffset] = useState<number>(0);
+  const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
   const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
   const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
   const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
@@ -331,8 +332,20 @@ function AppContent() {
 
   const handleScrubV8Angle = (angleDeg: number) => {
     setV8KinematicTimeOffset(angleDeg);
+    setV8CrankAngleDeg(((angleDeg % 720) + 720) % 720);
     window.dispatchEvent(new CustomEvent('advis-scrub-crank', { detail: { angleDeg } }));
   };
+
+  useEffect(() => {
+    const onV8CrankAngle = (event: Event) => {
+      const angleDeg = (event as CustomEvent<{ angleDeg?: number }>).detail?.angleDeg;
+      if (typeof angleDeg === 'number' && Number.isFinite(angleDeg)) {
+        setV8CrankAngleDeg(((angleDeg % 720) + 720) % 720);
+      }
+    };
+    window.addEventListener('advis-v8-crank-angle', onV8CrankAngle);
+    return () => window.removeEventListener('advis-v8-crank-angle', onV8CrankAngle);
+  }, []);
 
   const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
     setComponentTransforms(prev => ({
@@ -1649,7 +1662,7 @@ function AppContent() {
         onTogglePlaying={() => setIsV8KinematicPlaying(!isV8KinematicPlaying)}
         kinematicSpeed={v8KinematicSpeed}
         onChangeSpeed={setV8KinematicSpeed}
-        kinematicAngleDeg={engineTelemetry.crankAngleDeg}
+        kinematicAngleDeg={v8CrankAngleDeg}
         onScrubAngle={handleScrubV8Angle}
         focusedCylinder={focusedCylinder}
         onSelectCylinder={setFocusedCylinder}
