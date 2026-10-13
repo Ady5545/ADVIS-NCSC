@@ -4,15 +4,97 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#020617" />
-    <link rel="icon" type="image/svg+xml" href="/ADVIS-NCSC/favicon.svg" />
-    <link rel="apple-touch-icon" href="/ADVIS-NCSC/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%favicon.svg" />
     <title>A.D.V.I.S. — Scientific Learning & Visualization Platform</title>
     <meta name="description" content="An interactive scientific visualization and autonomous engineering construction workstation featuring real-time digital twins, non-contact diagnostics, procedural model synthesis, and spatial AI reasoning." />
     <meta property="og:title" content="A.D.V.I.S. — Scientific Learning & Visualization Platform" />
     <meta property="og:description" content="An interactive scientific visualization and autonomous engineering construction workstation featuring real-time digital twins, non-contact diagnostics, procedural model synthesis, and spatial AI reasoning." />
+    <style>
+      html, body, #root { width: 100%; height: 100%; min-height: 100%; margin: 0; background: #020617; color: #e2e8f0; }
+      #advis-startup-fallback { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background: radial-gradient(ellipse at center, #0c2236 0%, #020617 68%); color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-align: center; }
+      #advis-startup-panel { width: min(100%, 620px); }
+      #advis-startup-orb { width: 58px; height: 58px; margin: 0 auto 24px; border-radius: 50%; border: 2px solid rgba(34,211,238,.35); border-top-color: #22d3ee; box-shadow: 0 0 28px rgba(34,211,238,.22); animation: advis-spin 1.5s linear infinite; }
+      #advis-startup-title { margin: 0 0 12px; font-size: clamp(22px, 4vw, 30px); letter-spacing: .18em; font-weight: 700; color: #67e8f9; }
+      #advis-startup-detail { margin: 0 auto; max-width: 560px; color: #b6c7d9; font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.6; overflow-wrap: anywhere; }
+      #advis-startup-subtitle { margin-top: 18px; color: #7895ac; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+      @keyframes advis-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #advis-startup-orb { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main id="advis-startup-fallback" role="status" aria-live="polite">
+        <div id="advis-startup-panel">
+          <div id="advis-startup-orb" aria-hidden="true"></div>
+          <h1 id="advis-startup-title">A.D.V.I.S.</h1>
+          <p id="advis-startup-detail">Initializing the scientific workspace…</p>
+          <p id="advis-startup-subtitle">Spatial systems · Engineering models · Scientific learning</p>
+        </div>
+      </main>
+    </div>
+    <script>
+      (function () {
+        function showStartupFailure(title, detail) {
+          if (window.__ADVIS_BOOT_RENDER_STARTED__) return;
+          var root = document.getElementById('root');
+          if (!root) return;
+          root.replaceChildren();
+          var screen = document.createElement('main');
+          screen.id = 'advis-startup-fallback';
+          screen.setAttribute('role', 'alert');
+          var panel = document.createElement('div');
+          panel.id = 'advis-startup-panel';
+          var orb = document.createElement('div');
+          orb.id = 'advis-startup-orb';
+          orb.setAttribute('aria-hidden', 'true');
+          var heading = document.createElement('h1');
+          heading.id = 'advis-startup-title';
+          heading.textContent = title;
+          var message = document.createElement('p');
+          message.id = 'advis-startup-detail';
+          message.textContent = detail;
+          var hint = document.createElement('p');
+          hint.id = 'advis-startup-subtitle';
+          hint.textContent = 'Reload the page after the deployment finishes';
+          panel.append(orb, heading, message, hint);
+          screen.appendChild(panel);
+          root.appendChild(screen);
+          orb.style.animation = 'none';
+          orb.style.borderColor = '#fb7185';
+        }
+
+        window.addEventListener('error', function (event) {
+          if (window.__ADVIS_BOOT_RENDER_STARTED__) return;
+          var target = event.target;
+          if (target && target !== window) {
+            var resource = target.src || target.href || '';
+            showStartupFailure(
+              'A.D.V.I.S. asset failed to load',
+              resource ? 'Could not load: ' + resource : 'A startup script or stylesheet failed to load.'
+            );
+            return;
+          }
+          if (event.message) {
+            showStartupFailure('A.D.V.I.S. startup error', event.message);
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event.reason && (event.reason.message || String(event.reason));
+          showStartupFailure('A.D.V.I.S. could not start', reason || 'A startup module rejected before the workspace mounted.');
+        });
+
+        window.setTimeout(function () {
+          if (!window.__ADVIS_BOOT_RENDER_STARTED__) {
+            showStartupFailure(
+              'A.D.V.I.S. is not starting',
+              'The application module did not finish loading. This usually indicates a missing or incorrectly routed deployment asset.'
+            );
+          }
+        }, 25000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
