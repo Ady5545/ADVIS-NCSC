@@ -102,10 +102,10 @@ export function V8EngineController(props: V8EngineControllerProps) {
 
       <div className="absolute top-[4.3rem] left-1/2 -translate-x-1/2 pointer-events-auto">
         <div className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-slate-950/90 p-2 shadow-lg backdrop-blur-xl">
-          <span className="flex items-center gap-1.5 border-r border-cyan-500/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-cyan-400"><Layers size={12} /> Cutaway:</span>
+          <span className="flex items-center gap-1.5 border-r border-cyan-500/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-cyan-400"><Layers size={12} /> View mode:</span>
           {(['SOLID', 'GLASS', 'SECTION'] as const).map((mode) => (
             <button key={mode} onClick={() => cutaway(mode)} className={`${cyanButton} ${currentCutawayMode === mode ? 'border-cyan-400 bg-cyan-500/25 text-white shadow-[0_0_10px_rgba(6,182,212,0.25)]' : inactiveButton}`}>
-              {mode === 'SECTION' ? 'Section' : mode === 'GLASS' ? 'Glass' : 'Solid'}
+              {mode === 'SECTION' ? 'Blueprint' : mode === 'GLASS' ? 'Glass' : 'Solid'}
             </button>
           ))}
         </div>
