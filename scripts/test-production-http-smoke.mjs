@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 
-const require = createRequire(import.meta.url);
-const viteCli = require.resolve('vite/bin/vite.js');
+const viteCli = resolve(process.cwd(), 'node_modules/vite/bin/vite.js');
 
 const host = '127.0.0.1';
 const port = 4179;
