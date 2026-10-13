@@ -48,6 +48,9 @@ jobs:
       - name: Test safe innovation study import and export
         run: npm run test:study-project
 
+      - name: Test model-grounded tutor context and capability boundaries
+        run: npm run test:tutor-context
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
