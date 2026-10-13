@@ -34,7 +34,7 @@ import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
 import { useV8EngineAudio } from './scientific/V8EngineAudioEngine';
-import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
+import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';\n\ntype ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };\ntype TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -283,7 +283,8 @@ function AppContent() {
   }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
-  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});\n  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
+  const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
   const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
   const [explodedFactor, setExplodedFactor] = useState<number>(0);
   const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
@@ -388,11 +389,33 @@ function AppContent() {
     return () => window.removeEventListener('advis-v8-crank-angle', onV8CrankAngle);
   }, []);
 
-  const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
-    setComponentTransforms(prev => ({
-      ...prev,
-      [id]: transform
-    }));
+  const handleUpdateComponentTransform = (id: string, transform: ComponentTransform) => {
+    const before = componentTransforms[id] ?? null;
+    if (before && JSON.stringify(before) === JSON.stringify(transform)) return;
+    setTransformHistory((items) => [...items.slice(-49), { id, before, after: transform }]);
+    setTransformFuture([]);
+    setComponentTransforms((prev) => ({ ...prev, [id]: transform }));
+  };
+
+  const undoComponentTransform = () => {
+    const entry = transformHistory[transformHistory.length - 1];
+    if (!entry) return;
+    setComponentTransforms((prev) => {
+      const next = { ...prev };
+      if (entry.before) next[entry.id] = entry.before;
+      else delete next[entry.id];
+      return next;
+    });
+    setTransformHistory((items) => items.slice(0, -1));
+    setTransformFuture((items) => [entry, ...items].slice(0, 50));
+  };
+
+  const redoComponentTransform = () => {
+    const entry = transformFuture[0];
+    if (!entry) return;
+    setComponentTransforms((prev) => ({ ...prev, [entry.id]: entry.after }));
+    setTransformFuture((items) => items.slice(1));
+    setTransformHistory((items) => [...items.slice(-49), entry]);
   };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
@@ -1958,6 +1981,10 @@ function AppContent() {
         onFocusComponent={(id) => window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: id } }))}
         componentTransforms={componentTransforms}
         onUpdateComponentTransform={handleUpdateComponentTransform}
+        canUndoTransform={transformHistory.length > 0}
+        canRedoTransform={transformFuture.length > 0}
+        onUndoTransform={undoComponentTransform}
+        onRedoTransform={redoComponentTransform}
         explodedFactor={explodedFactor}
         onUpdateExplodedFactor={(factor) => {
           const next = Math.max(0, Math.min(1, factor));
