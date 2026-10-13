@@ -1,6 +1,8 @@
 # A.D.V.I.S.-NCSC — Implementation Status
 
 **Last reviewed:** 2026-10-13  
+**Latest code-validation commit:** `9d1ea03061e36dd3fcdddf4c0e32d001080a464f`  
+**GitHub Actions run:** `38392021388` (run #159; catalog/CAD, scientific trust, lesson, simulation, explosion, TypeScript and build steps all passed on the listed code-validation commit)  
 **Working branch:** `implementation-roadmap-2026-10-13`  
 **Baseline:** `main` at `b5205e459c30be440ccbfd779ce8da02e2dd6727` (“Complete component focus and staged explosion controls”)  
 **Status vocabulary:** **Present in code** means repository evidence exists, not that production behavior has been browser-verified. **Partial** means a foundation exists but acceptance criteria are incomplete. **Not implemented** means the plan's complete deliverable is not established in the inspected code. **Blocked** means an external permission/access limitation prevents verification.
@@ -11,7 +13,7 @@ This document is an honest tracker, not a declaration that the full roadmap is c
 
 - GitHub repository contents and the current mainline implementation were inspected through the connected GitHub integration.
 - The mainline already has model catalog/CAD evidence checks, component hierarchy validation, deterministic staged-explosion math tests, a model explorer, simulation lifecycle tests, authored lesson schema/catalog checks, and a CI workflow for TypeScript/build validation.
-- **Live deployment verification is blocked:** the connected Vercel tool returned HTTP 403 for the `ady17` scope. As a result, this report does not claim that the current production site opens, that the V8 explosion transition works in a real browser, or that the deployed commit matches the repository baseline.
+- **Live deployment verification is blocked:** the connected Vercel tool returned HTTP 403 for the `ady17` scope. The separate Vercel check on the PR reports a build-rate-limit target. As a result, this report does not claim that the current production site opens, that the V8 explosion transition works in a real browser, or that the deployed commit matches the repository baseline.
 - No production deployment was initiated from this branch.
 
 ## Phase-by-phase status
@@ -19,7 +21,7 @@ This document is an honest tracker, not a declaration that the full roadmap is c
 | Plan phase | Current status | Remaining work |
 |---|---|---|
 | 0. Baseline, deployment and regression audit | **Partial / blocked** | Vercel authorization must be restored before verifying the live deployment. Capture real browser screenshots and recordings; test WebGL startup, model switches, V8/V12 and a non-engine model; record the exact production SHA and observed defects. The existing CI/build checks are not a substitute for browser smoke tests. |
-| 1. Model trust and evidence | **Partial; trust corrections added on this branch** | Existing CAD evidence and geometry-fidelity modules are present. This branch removes unsourced V8-scientific property tables, labels the V8 cycle output as a relative teaching indicator, and removes the V12's unsupported exact variant specifications. The entire model catalog, all component narratives, sources/licenses, and evidence labels still need a systematic review. The new trust validator still needs CI confirmation. |
+| 1. Model trust and evidence | **Partial; trust corrections added on this branch** | Existing CAD evidence and geometry-fidelity modules are present. This branch removes unsourced V8-scientific property tables, labels the V8 cycle output as a relative teaching indicator, and removes the V12's unsupported exact variant specifications. The entire model catalog, all component narratives, sources/licenses, and evidence labels still need a systematic review. The new trust validator passed in GitHub Actions run #159. |
 | 2. Hierarchy and exploration | **Partial; key foundations present in mainline** | A compatible hierarchy builder/validator, component explorer, focus/isolation affordances, staged explosion math, and pure tests exist. Live V8/V12/non-engine interaction verification remains outstanding. Confirm one authoritative transform writer in every rendering path, exact reset, selection sync, breadcrumbs, component relationships, staged steps/guides, and section-plane/blueprint semantics. |
 | 3. V8 benchmark | **Partial** | A representative V8 assembly and authored draft lesson exist. The exact OEM identity is not claimed by the main V8 catalog entry. Deep subassembly decomposition, geometric alignment tests, view-by-view kinematics verification, cylinder/firing event correctness, audio lifecycle/browser testing, and fully reviewed references are not complete. |
 | 4. V12 parity | **Partial** | A V12 catalog entry/controller and model-specific visual behavior exist. Variant-specific geometry, component hierarchy depth, firing/kinematics/audio validation, source packet, parity testing, and a complete reviewed lesson are not established. |
@@ -43,7 +45,7 @@ This document is an honest tracker, not a declaration that the full roadmap is c
 - [x] Added explicit parameter metadata and made the anatomy stroke-volume control affect the illustrative volume curve.
 - [x] Made the V8 throttle teaching input affect its relative cycle indicator and added contract checks that advertised RPM, throttle, spark timing, and anatomy stroke volume produce observable model-state changes.
 - [x] Added `scripts/validate-scientific-trust.mjs` and wired it into the `lint` contract and GitHub Actions workflow.
-- [ ] Run the new and existing checks against this exact branch via GitHub Actions and fix any failures.
+- [x] GitHub Actions run #159 passed catalog/CAD validation, scientific-trust validation, lesson validation, simulation tests, explosion tests, TypeScript, and the production build on code-validation commit `9d1ea03061e36dd3fcdddf4c0e32d001080a464f`.
 - [ ] Browser-verify the affected interfaces and confirm no unexpected model regressions.
 - [ ] Obtain Vercel access and verify production before promoting changes.
 
@@ -51,4 +53,4 @@ This document is an honest tracker, not a declaration that the full roadmap is c
 
 This change is a focused trust/evidence work package, not the entire multi-phase roadmap. It does **not** implement the full three-level V8 parts breakdown, complete V12 parity, CAD kernel authoring/export, a generalized workspace shell, fully reviewed lesson curriculum, grounded AI tutoring, editable project workshop, undo/redo/save/import/export, assembly constraints, full chemistry/anatomy/electrical/structures/fluid/robotics learning modules, teacher/community workflows, full offline support, or comprehensive accessibility/performance/E2E test coverage.
 
-The next safe sequence is: (1) pass CI and review the metadata diff, (2) restore Vercel authorization and browser-verify existing V8/V12 behaviors, (3) finish the evidence audit and hierarchy/transform contract across representative models, (4) complete one fully reviewed V8 lesson end-to-end, then continue with the work-package order in the supplied plan. Production promotion remains a separate gate.
+The next safe sequence is: (1) restore Vercel access and browser-verify existing V8/V12 behaviors, (2) finish the evidence audit and hierarchy/transform contract across representative models, (3) complete one fully reviewed V8 lesson end-to-end, then continue with the work-package order in the supplied plan. Production promotion remains a separate gate.
