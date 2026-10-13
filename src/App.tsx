@@ -30,6 +30,19 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
+import { PrivacyDataPanel } from './accessibility/PrivacyDataPanel';
+import {
+  DEFAULT_ACCESSIBILITY_PREFERENCES,
+  QUALITY_PROFILES,
+  loadAccessibilityPreferences,
+  saveAccessibilityPreferences,
+  type AccessibilityPreferences,
+  type QualityPreset,
+} from './accessibility/QualityProfiles';
+import { AuthoringWorkbench } from './authoring/AuthoringWorkbench';
+import { ModelCapabilityPanel } from './models/ModelCapabilityPanel';
+import { buildModelTutorContext, type ModelTutorContext } from './learning/ModelTutorContext';
+import './accessibility/accessibility.css';
 import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
@@ -288,6 +301,61 @@ function AppContent() {
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
   const [showInnovationLab, setShowInnovationLab] = useState<boolean>(false);
+  const [showPrivacyDataPanel, setShowPrivacyDataPanel] = useState(false);
+  const [showAuthoringWorkbench, setShowAuthoringWorkbench] = useState(false);
+  const [showModelCapabilityPanel, setShowModelCapabilityPanel] = useState(false);
+  const [accessibilityPreferences, setAccessibilityPreferences] = useState<AccessibilityPreferences>({ ...DEFAULT_ACCESSIBILITY_PREFERENCES });
+  const [accessibilityPreferencesLoaded, setAccessibilityPreferencesLoaded] = useState(false);
+  const qualityPreset: QualityPreset = accessibilityPreferences.quality;
+  const qualityProfile = QUALITY_PROFILES[qualityPreset];
+
+  useEffect(() => {
+    let storage: Storage | null = null;
+    let prefersReducedMotion = false;
+    try {
+      storage = typeof window !== 'undefined' ? window.localStorage : null;
+      prefersReducedMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+    } catch {
+      storage = null;
+    }
+    const loaded = loadAccessibilityPreferences(storage, prefersReducedMotion);
+    setAccessibilityPreferences(loaded);
+    setLodTier(QUALITY_PROFILES[loaded.quality].detailLevel);
+    setSoundEnabled(loaded.audioEnabled);
+    setV8SoundEnabled(loaded.audioEnabled);
+    setAccessibilityPreferencesLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!accessibilityPreferencesLoaded) return;
+    let storage: Storage | null = null;
+    try {
+      storage = typeof window !== 'undefined' ? window.localStorage : null;
+    } catch {
+      storage = null;
+    }
+    saveAccessibilityPreferences(storage, accessibilityPreferences);
+    if (typeof document !== 'undefined') {
+      if (accessibilityPreferences.reducedMotion) {
+        document.documentElement.setAttribute('data-advis-reduced-motion', 'true');
+      } else {
+        document.documentElement.removeAttribute('data-advis-reduced-motion');
+      }
+    }
+    setLodTier(QUALITY_PROFILES[accessibilityPreferences.quality].detailLevel);
+    setSoundEnabled(accessibilityPreferences.audioEnabled);
+    setV8SoundEnabled(accessibilityPreferences.audioEnabled);
+    if (accessibilityPreferences.reducedMotion) {
+      setIsKinematicPlaying(false);
+      setIsV8KinematicPlaying(false);
+    }
+  }, [accessibilityPreferences, accessibilityPreferencesLoaded]);
+
+  const updateAccessibilityPreferences = (patch: Partial<AccessibilityPreferences>) => {
+    setAccessibilityPreferences((current) => ({ ...current, ...patch }));
+  };
   const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
   const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
   const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
@@ -1608,9 +1676,9 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          shadows={qualityProfile.shadows}
+          dpr={qualityProfile.pixelRatio}
+          gl={{ antialias: qualityProfile.pixelRatio >= 1, powerPreference: qualityPreset === 'LOW' ? 'low-power' : 'high-performance' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
@@ -1627,7 +1695,7 @@ function AppContent() {
           <ambientLight intensity={0.4} color="#f8fafc" />
 
           {/* 2. Key Light: High-angle front-right directional source establishing primary form and crisp shadow separation */}
-          <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+          <directionalLight castShadow={qualityProfile.shadows} position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
 
           {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
           <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
@@ -1639,7 +1707,7 @@ function AppContent() {
           <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
           {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+          {qualityProfile.shadows && <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={qualityPreset === 'LOW' ? 256 : qualityPreset === 'BALANCED' ? 512 : 1024} />}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
@@ -1713,17 +1781,23 @@ function AppContent() {
             />
           </React.Suspense>
           
-          <EffectComposer>
-            <Bloom
-              luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
-              mipmapBlur
-              intensity={(isEngineeringMode ? 0.035 : 0.16) * hologramIntensity}
-            />
-            {!isEngineeringMode && (
-              <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
-            )}
-            <Noise opacity={isEngineeringMode ? 0.004 : 0.012} />
-          </EffectComposer>
+          {qualityProfile.postProcessing && (
+            <EffectComposer>
+              {qualityProfile.bloom && (
+                <Bloom
+                  luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
+                  mipmapBlur
+                  intensity={(isEngineeringMode ? 0.035 : 0.16) * hologramIntensity}
+                />
+              )}
+              {qualityPreset !== 'LOW' && !isEngineeringMode && (
+                <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
+              )}
+              {(qualityPreset === 'HIGH' || qualityPreset === 'ULTRA') ? (
+                <Noise opacity={isEngineeringMode ? 0.004 : 0.012} />
+              ) : null}
+            </EffectComposer>
+          )}
         </Canvas>
       </div>
 
