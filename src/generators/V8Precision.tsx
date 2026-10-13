@@ -139,27 +139,27 @@ function Rod({ state }: { state: State }) {
   return (
     <group>
       {/* Forged I/H-beam shank with the small and big ends concentric with their pins. */}
-      <RoundedBox args={[0.064, 0.32, 0.046]} radius={0.012} smoothness={5}>
+      <RoundedBox args={[0.064, 0.34, 0.046]} radius={0.012} smoothness={5}>
         <M state={state} color="#87939c" metalness={0.91} roughness={0.22} />
       </RoundedBox>
       <Box args={[0.026, 0.255, 0.054]}>
         <M state={state} color="#b8c1c7" metalness={0.92} roughness={0.18} clearcoat={0.08} />
       </Box>
-      <Torus args={[0.044, 0.011, 10, 32]} position={[0, 0.151, 0]}>
+      <Torus args={[0.044, 0.011, 10, 32]} position={[0, 0.16, 0]}>
         <M state={state} color="#c0c8ce" metalness={0.94} roughness={0.17} />
       </Torus>
-      <Torus args={[0.063, 0.014, 10, 36]} position={[0, -0.151, 0]}>
+      <Torus args={[0.063, 0.014, 10, 36]} position={[0, -0.16, 0]}>
         <M state={state} color="#9ba6ae" metalness={0.93} roughness={0.2} />
       </Torus>
-      <Cylinder args={[0.029, 0.029, 0.066, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.151, 0]}>
+      <Cylinder args={[0.029, 0.029, 0.066, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.16, 0]}>
         <M state={state} color="#252d33" metalness={0.28} roughness={0.62} />
       </Cylinder>
-      <Cylinder args={[0.043, 0.043, 0.074, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.151, 0]}>
+      <Cylinder args={[0.043, 0.043, 0.074, 24]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.16, 0]}>
         <M state={state} color="#252d33" metalness={0.28} roughness={0.62} />
       </Cylinder>
       {[-0.025, 0.025].map((x) => (
         <React.Fragment key={x}>
-          <Cylinder args={[0.008, 0.008, 0.012, 8]} position={[x, -0.176, 0.026]}>
+          <Cylinder args={[0.008, 0.008, 0.012, 8]} position={[x, -0.185, 0.026]}>
             <M state={state} color="#d7dee3" metalness={0.95} roughness={0.15} />
           </Cylinder>
         </React.Fragment>
@@ -336,9 +336,11 @@ function V8MovingCylinder({
   const crankAxisOffset = -0.325;
 
   useFrame(() => {
-    const angle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] - (Math.PI / 2 - side * BANK);
-    const crankX = crankRadius * Math.sin(angle);
-    const crankY = crankAxisOffset + crankRadius * Math.cos(angle);
+    // Transform the global crank throw into this bank's local coordinate frame.
+    // Bank A is rotated +45 degrees, Bank B -45 degrees in its parent transform.
+    const localThrowAngle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] + side * BANK;
+    const crankX = crankRadius * Math.cos(localThrowAngle);
+    const crankY = crankAxisOffset + crankRadius * Math.sin(localThrowAngle);
     const verticalRodLength = Math.sqrt(Math.max(0.0001, rodLength * rodLength - crankX * crankX));
     const pistonY = crankY + verticalRodLength;
 
