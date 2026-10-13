@@ -200,11 +200,11 @@ export function V12EngineController(props: V12EngineControllerProps) {
           </div>
         </div>
 
-        {/* Cutaway Mode Panel (Solid / Glass / Section) */}
+        {/* View mode panel (Solid / Glass / Blueprint wireframe) */}
         <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl px-2.5 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center gap-1">
           <div className="flex items-center gap-1.5 pr-2 border-r border-cyan-500/20 text-[10px] text-cyan-400/80 font-bold uppercase tracking-wider">
             <Layers size={12} className="text-cyan-400" />
-            <span className="hidden sm:inline">Cutaway:</span>
+            <span className="hidden sm:inline">View mode:</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -241,7 +241,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
                   : 'border border-transparent bg-slate-900/60 hover:bg-cyan-950/40 text-cyan-400/70 hover:text-cyan-200'
               }`}
             >
-              Section
+              Blueprint
             </button>
           </div>
         </div>
