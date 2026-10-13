@@ -216,7 +216,7 @@ function V8CrankCore({ state }: { state: State }) {
           <Cylinder args={[0.075, 0.075, 0.095, 36]} rotation={[Math.PI / 2, 0, 0]}>
             <M state={state} color="#a4afb7" metalness={0.96} roughness={0.19} />
           </Cylinder>
-          <Torus args={[0.077, 0.006, 8, 40]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.045]}>
+          <Torus args={[0.077, 0.006, 8, 40]} position={[0, 0, 0.045]}>
             <M state={state} color="#65717a" metalness={0.93} roughness={0.26} />
           </Torus>
         </group>
@@ -227,13 +227,13 @@ function V8CrankCore({ state }: { state: State }) {
         <Cylinder args={[0.22, 0.22, 0.075, 56]} rotation={[Math.PI / 2, 0, 0]}>
           <M state={state} color="#67737c" metalness={0.94} roughness={0.22} />
         </Cylinder>
-        <Torus args={[0.205, 0.023, 10, 64]} rotation={[Math.PI / 2, 0, 0]}>
+        <Torus args={[0.205, 0.023, 10, 64]}>
           <M state={state} color="#222a30" metalness={0.76} roughness={0.32} />
         </Torus>
         {Array.from({ length: 32 }).map((_, i) => {
           const a = (i / 32) * Math.PI * 2;
           return (
-            <Box key={i} args={[0.022, 0.028, 0.065]} position={[Math.cos(a) * 0.224, Math.sin(a) * 0.224, 0]}>
+            <Box key={i} args={[0.022, 0.028, 0.065]} position={[Math.cos(a) * 0.224, Math.sin(a) * 0.224, 0]} rotation={[0, 0, a]}>
               <M state={state} color="#8b969e" metalness={0.86} roughness={0.28} />
             </Box>
           );
@@ -298,7 +298,7 @@ function V8BlockShell({ state }: { state: State }) {
               <Cylinder args={[0.048, 0.048, 0.014, 32]}>
                 <M state={state} color="#69757d" metalness={0.78} roughness={0.31} />
               </Cylinder>
-              <Torus args={[0.041, 0.004, 8, 32]}>
+              <Torus args={[0.041, 0.004, 8, 32]} rotation={[Math.PI / 2, 0, 0]}>
                 <M state={state} color="#242d34" metalness={0.48} roughness={0.5} clearcoat={0.03} />
               </Torus>
             </group>
@@ -539,7 +539,7 @@ function V8CamshaftPart({ state }: { state: State }) {
       <Cylinder args={[0.085, 0.085, 0.08, 32]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.96]}>
         <M state={state} color="#59656d" metalness={0.9} roughness={0.24} />
       </Cylinder>
-      <Torus args={[0.078, 0.009, 8, 36]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -1.005]}>
+      <Torus args={[0.078, 0.009, 8, 36]} position={[0, 0, -1.005]}>
         <M state={state} color="#c2cbd1" metalness={0.91} roughness={0.2} />
       </Torus>
     </group>
@@ -581,7 +581,7 @@ function V8IntakePart({ state }: { state: State }) {
         <Cylinder args={[0.105, 0.12, 0.16, 40]} rotation={[Math.PI / 2, 0, 0]}>
           <M state={state} color="#9aa5ad" metalness={0.86} roughness={0.22} />
         </Cylinder>
-        <Torus args={[0.103, 0.012, 10, 40]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.085]}>
+        <Torus args={[0.103, 0.012, 10, 40]} position={[0, 0, -0.085]}>
           <M state={state} color="#d4dade" metalness={0.95} roughness={0.16} />
         </Torus>
         <Cylinder args={[0.072, 0.072, 0.012, 32]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.088]}>
@@ -650,7 +650,7 @@ function V8ExhaustPart({ state, side }: { state: State; side: -1 | 1 }) {
       <Cylinder args={[0.067, 0.073, 0.82, 28]} rotation={[Math.PI / 2, 0, 0]} position={[side * 0.43, -0.22, 0.10]}>
         <M state={state} color="#55585b" metalness={0.84} roughness={0.36} />
       </Cylinder>
-      <Torus args={[0.068, 0.009, 8, 32]} rotation={[Math.PI / 2, 0, 0]} position={[side * 0.43, -0.22, -0.315]}>
+      <Torus args={[0.068, 0.009, 8, 32]} position={[side * 0.43, -0.22, -0.315]}>
         <M state={state} color="#b0a18e" metalness={0.82} roughness={0.28} />
       </Torus>
       {[-0.25, 0.25].map((z) => (
@@ -676,7 +676,7 @@ function V8TimingPart({ state }: { state: State }) {
         <M state={state} color="#2b343c" metalness={0.62} roughness={0.43} clearcoat={0.06} />
       </RoundedBox>
       <group ref={gearRef} position={[0, 0, -0.072]}>
-        <Torus args={[0.22, 0.028, 12, 64]} rotation={[Math.PI / 2, 0, 0]}>
+        <Torus args={[0.22, 0.028, 12, 64]}>
           <M state={state} color="#262e34" metalness={0.45} roughness={0.53} />
         </Torus>
         <Cylinder args={[0.18, 0.18, 0.055, 48]} rotation={[Math.PI / 2, 0, 0]}>
@@ -693,7 +693,7 @@ function V8TimingPart({ state }: { state: State }) {
       {[-0.26, 0.26].map((x) => [-0.31, 0.31].map((y) => (
         <Bolt key={x + ':' + y} state={state} position={[x, y, 0.04]} radius={0.009} length={0.014} />
       )))}
-      <Torus args={[0.12, 0.009, 8, 40]} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.01, -0.085]}>
+      <Torus args={[0.12, 0.009, 8, 40]} position={[0, -0.01, -0.085]}>
         <M state={state} color="#1c242a" metalness={0.38} roughness={0.56} />
       </Torus>
     </group>
@@ -740,8 +740,10 @@ function RotatingPulley({
   ribCount?: number;
 }) {
   const pulleyRef = useRef<THREE.Group>(null);
+  // Belt-driven accessories turn faster as driven-pulley radius decreases.
+  const speedRatio = 0.245 / radius;
   useFrame(() => {
-    if (pulleyRef.current) pulleyRef.current.rotation.z = state.crankAngleRef?.current ?? 0;
+    if (pulleyRef.current) pulleyRef.current.rotation.z = (state.crankAngleRef?.current ?? 0) * speedRatio;
   });
 
   return (
@@ -750,7 +752,7 @@ function RotatingPulley({
         <M state={state} color="#59656d" metalness={0.86} roughness={0.25} />
       </Cylinder>
       {Array.from({ length: ribCount }).map((_, i) => (
-        <Torus key={i} args={[radius * (0.65 + i * 0.045), 0.0045, 6, 40]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.042]}>
+        <Torus key={i} args={[radius * (0.65 + i * 0.045), 0.0045, 6, 40]} position={[0, 0, -0.042]}>
           <M state={state} color="#252d33" metalness={0.36} roughness={0.58} />
         </Torus>
       ))}
@@ -801,7 +803,7 @@ function V8AccessoriesPart({ state }: { state: State }) {
         <Cylinder args={[0.17, 0.19, 0.15, 40]} rotation={[Math.PI / 2, 0, 0]}>
           <M state={state} color="#8d999f" metalness={0.8} roughness={0.32} />
         </Cylinder>
-        <Torus args={[0.17, 0.012, 8, 44]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.08]}>
+        <Torus args={[0.17, 0.012, 8, 44]} position={[0, 0, -0.08]}>
           <M state={state} color="#c4cbd0" metalness={0.9} roughness={0.2} />
         </Torus>
       </group>
