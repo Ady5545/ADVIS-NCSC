@@ -535,11 +535,31 @@ export function EngineeringReferenceCockpit({
                 <span>Assembled</span><span>Separated</span>
               </div>
             </div>
+            <div className="px-2 pb-2">
+              <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-[0.13em] text-slate-500">
+                <span>Rendering quality</span>
+                <span>{lodTier === 'MEDIUM' ? 'BALANCED' : lodTier}</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1" role="group" aria-label="Rendering quality preset">
+                {(['LOW', 'MEDIUM', 'HIGH', 'ULTRA'] as const).map((quality) => (
+                  <button
+                    key={quality}
+                    type="button"
+                    onClick={() => onUpdateLodTier?.(quality)}
+                    aria-pressed={lodTier === quality}
+                    title={quality === 'MEDIUM' ? 'Balanced rendering quality' : `${quality.toLowerCase()} rendering quality`}
+                    className={`rounded border px-1.5 py-1.5 text-[8px] font-semibold ${lodTier === quality ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    {quality === 'MEDIUM' ? 'BALANCED' : quality}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
               {objectMeta?.capabilities?.measure !== false && (
                 <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Toggle measurement mode"><Ruler size={11} className="mx-auto" /></button>
               )}
-              <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Enable ultra detail"><Sparkles size={11} className="mx-auto" /></button>
+              <button onClick={() => onUpdateLodTier?.('HIGH')} className={`py-1.5 border text-[8px] ${lodTier === 'HIGH' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Set high detail" aria-pressed={lodTier === 'HIGH'} title="High rendering quality">HIGH</button>
               <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 1)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label={explodedFactor > 0.05 ? 'Reassemble all components' : 'Fully explode all components'}><Maximize2 size={11} className="mx-auto" /></button>
               {isV12 && <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]" aria-label="Toggle V12 engine rotation direction">DIR</button>}
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
