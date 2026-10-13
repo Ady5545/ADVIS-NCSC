@@ -37,7 +37,8 @@ import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
 import { useV8EngineAudio } from './scientific/V8EngineAudioEngine';
 import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
 
-type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };\ntype TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
+type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };
+type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
