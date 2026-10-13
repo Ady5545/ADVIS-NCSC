@@ -3,6 +3,7 @@ import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, 
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
+import { V8_CAMERA_PRESETS } from './components/v8/V8EngineController';
 import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12ScientificConfig';
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
@@ -92,6 +93,8 @@ export function EngineeringReferenceCockpit({
   const components = objectMeta?.components || [];
   const fidelity = objectMeta ? resolveObjectFidelity(objectMeta) : null;
   const isV12 = objectKey === 'v12_engine';
+  const isV8 = objectKey === 'v8_engine';
+  const activeCameraPresets = isV8 ? V8_CAMERA_PRESETS : isV12 ? V12_CAMERA_PRESETS : V12_CAMERA_PRESETS.slice(0, 3);
 
   const activeCylinder = telemetry.focusedCylinder || 1;
   const activeTelemetry =
@@ -168,7 +171,7 @@ export function EngineeringReferenceCockpit({
 
 
   const applyPreset = (presetId: string) => {
-    const preset = V12_CAMERA_PRESETS.find((entry) => entry.id === presetId);
+    const preset = activeCameraPresets.find((entry) => entry.id === presetId);
     if (!preset) return;
     setActivePreset(preset.id);
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
@@ -454,7 +457,7 @@ export function EngineeringReferenceCockpit({
           <div className="bg-white/94 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)]">
             <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.15em] text-slate-400">Camera</div>
             <div className="grid grid-cols-5 gap-1 p-2">
-              {(isV12 ? V12_CAMERA_PRESETS : V12_CAMERA_PRESETS.slice(0, 3)).map((preset) => (
+              {activeCameraPresets.map((preset) => (
                 <button key={preset.id} onClick={() => applyPreset(preset.id)} className={`px-1.5 py-1.5 border text-[8px] uppercase tracking-[0.10em] ${activePreset === preset.id ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400'}`}>
                   {preset.id}
                 </button>
@@ -531,7 +534,7 @@ export function EngineeringReferenceCockpit({
         {/* Mobile */}
         <div className="absolute left-1/2 -translate-x-1/2 bottom-3 md:hidden pointer-events-auto w-[92vw]">
           <div className="bg-white/95 border border-slate-300 shadow-lg p-2 grid grid-cols-5 gap-1">
-            {V12_CAMERA_PRESETS.map((preset) => (
+            {activeCameraPresets.map((preset) => (
               <button key={preset.id} onClick={() => applyPreset(preset.id)} className="py-2 border border-slate-200 text-[9px]">
                 {preset.id}
               </button>
