@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, FileUp, RotateCcw, Save, Undo2, Redo2, X, Copy, ArrowLeftRight } from 'lucide-react';
 import type { ObjectMetadata, ComponentMetadata } from '../SpatialLibrary';
 import {
@@ -65,19 +65,25 @@ export function InnovationWorkshopPanel({
   }), [model]);
   const allowedIds = useMemo(() => new Set(source.components.map((component) => component.id)), [source]);
   const [project, setProject] = useState<WorkshopProject>(() => {
-    if (typeof window !== 'undefined') {
-      return loadWorkshopProject(window.localStorage, source) || createProjectCopy(source);
+    try {
+      if (typeof window !== 'undefined') return loadWorkshopProject(window.localStorage, source) || createProjectCopy(source);
+    } catch {
+      // Private browsing and storage policies may make localStorage unavailable.
     }
     return createProjectCopy(source);
   });
+  const updateTransformRef = useRef(onUpdateComponentTransform);
+  useEffect(() => { updateTransformRef.current = onUpdateComponentTransform; }, [onUpdateComponentTransform]);
   const [compareToSource, setCompareToSource] = useState(false);
   const [status, setStatus] = useState('');
   const [importKey, setImportKey] = useState(0);
 
   useEffect(() => {
     let next: WorkshopProject | null = null;
-    if (typeof window !== 'undefined') {
-      next = loadWorkshopProject(window.localStorage, source);
+    try {
+      if (typeof window !== 'undefined') next = loadWorkshopProject(window.localStorage, source);
+    } catch {
+      // Continue with a fresh in-memory copy when browser storage is blocked.
     }
     const initial = next || createProjectCopy(source);
     setProject(initial);
@@ -87,9 +93,9 @@ export function InnovationWorkshopPanel({
     // Re-apply saved copy transforms when the source model changes.
     for (const componentId of Object.keys(initial.transforms)) {
       const transform = initial.transforms[componentId];
-      if (allowedIds.has(componentId)) onUpdateComponentTransform(componentId, cloneTransform(transform));
+      if (allowedIds.has(componentId)) updateTransformRef.current(componentId, cloneTransform(transform));
     }
-  }, [source.id, source.version, allowedIds, onUpdateComponentTransform]);
+  }, [source.id, source.version, allowedIds]);
 
   const selectedComponent = model.components.find((component) => component.id === selectedComponentId) || null;
   const projectTransform = selectedComponent ? project.transforms[selectedComponent.id] : undefined;
