@@ -2,9 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+const isVercelBuild = Boolean(
+  process.env.VERCEL ||
+  process.env.VERCEL_ENV ||
+  process.env.VERCEL_URL
+)
+
 export default defineConfig({
-  // This repository is published at https://ady5545.github.io/ADVIS-NCSC/
-  base: process.env.VERCEL ? '/' : '/ADVIS-NCSC/',
+  // Vercel serves from the domain root; GitHub Pages uses the repository subpath.
+  base: isVercelBuild ? '/' : '/ADVIS-NCSC/',
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
     // OCCT ships WebAssembly; keep it out of Vite's dependency pre-bundling.
