@@ -10,7 +10,8 @@
     "lint": "npm run validate:catalog && npm run validate:lessons && npm run test:simulation",
     "validate:catalog": "node scripts/validate-model-catalog.mjs",
     "validate:lessons": "node scripts/validate-lessons.mjs",
-    "test:simulation": "node scripts/test-simulation-engine.mjs"
+    "test:simulation": "node scripts/test-simulation-engine.mjs",
+    "test:explosion": "node scripts/test-explosion-math.mjs"
   },
   "keywords": [
     "browser",
