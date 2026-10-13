@@ -333,7 +333,7 @@ function V8MovingCylinder({
   const rodRef = useRef<THREE.Group>(null);
   const crankRadius = 0.108;
   const rodLength = 0.32;
-  const crankAxisOffset = -0.32;
+  const crankAxisOffset = -0.325;
 
   useFrame(() => {
     const angle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] - (Math.PI / 2 - side * BANK);
@@ -352,13 +352,13 @@ function V8MovingCylinder({
   return (
     <group position={[0, 0, z]}>
       {/* Open liner makes the piston/ring pack readable in inspection and X-ray modes. */}
-      <Cylinder args={[0.171, 0.171, 0.62, 48, 1, true]} position={[0, 0.06, 0]}>
+      <Cylinder args={[0.171, 0.171, 0.44, 48, 1, true]} position={[0, -0.05, 0]}>
         <M state={state} color="#697781" metalness={0.87} roughness={0.25} clearcoat={0.08} />
       </Cylinder>
-      <Torus args={[0.171, 0.012, 10, 48]} position={[0, 0.37, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <Torus args={[0.171, 0.012, 10, 48]} position={[0, 0.17, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <M state={state} color="#c5cdd2" metalness={0.94} roughness={0.19} />
       </Torus>
-      <Torus args={[0.166, 0.005, 8, 48]} position={[0, 0.342, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <Torus args={[0.166, 0.005, 8, 48]} position={[0, 0.15, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <M state={state} color="#2b3339" metalness={0.75} roughness={0.34} />
       </Torus>
       <group ref={pistonRef}>
@@ -524,11 +524,11 @@ function V8CamshaftPart({ state }: { state: State }) {
       <Cylinder args={[0.034, 0.034, 1.95, 32]} rotation={[Math.PI / 2, 0, 0]}>
         <M state={state} color="#9eaab2" metalness={0.97} roughness={0.18} />
       </Cylinder>
-      {Z.flatMap((z, index) => [0, 1].map((lobe) => {
-        const phase = THROW_PHASES[index] + (lobe ? Math.PI * 0.74 : 0.18);
+      {Z.flatMap((z, index) => [-0.16, -0.055, 0.055, 0.16].map((offset, lobe) => {
+        const phase = THROW_PHASES[index] + (lobe % 2 ? Math.PI * 0.74 : 0.18) + (lobe > 1 ? 0.22 : 0);
         return (
-          <group key={z + ':' + lobe} position={[0, 0, z + (lobe ? 0.105 : -0.105)]} rotation={[0, 0, phase]}>
-            <Sphere args={[0.052, 24, 16]} scale={[0.72, 1.35, 0.7]} position={[0, 0.045, 0]}>
+          <group key={z + ':' + lobe} position={[0, 0, z + offset]} rotation={[0, 0, phase]}>
+            <Sphere args={[0.048, 24, 16]} scale={[0.75, 1.35, 0.72]} position={[0, 0.043, 0]}>
               <M state={state} color="#b9c3ca" metalness={0.93} roughness={0.2} />
             </Sphere>
           </group>
