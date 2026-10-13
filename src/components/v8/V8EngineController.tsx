@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   Camera, Layers, Play, Pause, Volume2, VolumeX, Zap, Tag, Wind, Activity, RotateCcw
 } from 'lucide-react';
-import type { CameraPreset, CutawayMode } from '../scientific/V12ScientificConfig';
+import type { CameraPreset, CutawayMode } from '../../scientific/V12ScientificConfig';
 
 export interface V8EngineControllerProps {
   onApplyCameraPreset: (preset: CameraPreset) => void;
