@@ -11,6 +11,9 @@ const modules = {
   offline: join(directory, 'offline-pack.cjs'),
   authoring: join(directory, 'authoring.cjs'),
   preferences: join(directory, 'preferences.cjs'),
+  matrix: join(directory, 'capability-matrix.cjs'),
+  spatial: join(directory, 'spatial-library.cjs'),
+  lessons: join(directory, 'lesson-catalog.cjs'),
 };
 try {
   await Promise.all([
@@ -19,11 +22,18 @@ try {
     build({ entryPoints: [resolve('src/learning/OfflineLearningPack.ts')], outfile: modules.offline, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
     build({ entryPoints: [resolve('src/authoring/ContributionValidation.ts')], outfile: modules.authoring, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
     build({ entryPoints: [resolve('src/accessibility/QualityProfiles.ts')], outfile: modules.preferences, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
+    build({ entryPoints: [resolve('src/models/ModelCapabilityMatrix.ts')], outfile: modules.matrix, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
+    build({ entryPoints: [resolve('src/SpatialLibrary.ts')], outfile: modules.spatial, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
+    build({ entryPoints: [resolve('src/learning/LessonCatalog.ts')], outfile: modules.lessons, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' }),
   ]);
   const require = createRequire(import.meta.url);
   const workshop = require(modules.workshop);
   const preferences = require(modules.preferences);
   const tutor = require(modules.tutor);
+  const offline = require(modules.offline);
+  const matrixModule = require(modules.matrix);
+  const { SPATIAL_LIBRARY } = require(modules.spatial);
+  const { LEARNING_LESSONS } = require(modules.lessons);
   const source = { id: 'test-model', name: 'Test Model', version: '1.0', components: [{ id: 'part-a', position: [0, 0, 0], rotation: [0, 0, 0] }] };
   let project = workshop.createProjectCopy(source, { id: 'test-project', now: '2026-01-01T00:00:00.000Z' });
   const allowed = new Set(['part-a']);
@@ -74,7 +84,24 @@ try {
   const authoring = require(modules.authoring);
   assert.equal(authoring.canPublishContribution('APPROVED', [], 'reviewer', '2026-01-01T00:00:00.000Z'), true);
   assert.equal(authoring.canPublishContribution('SUBMITTED', [], undefined, undefined), false);
-  console.log('Roadmap foundations passed: immutable-source project edits, undo/redo, project validation/persistence, tutor action allowlist, quality preference fallbacks, and authoring publication gates.');
+
+  const builtMatrix = matrixModule.buildModelCapabilityMatrix(SPATIAL_LIBRARY, LEARNING_LESSONS);
+  assert.equal(builtMatrix.length, Object.keys(SPATIAL_LIBRARY).length, 'matrix must include every registered spatial model');
+  assert.deepEqual(
+    matrixModule.validateModelCapabilityMatrix(SPATIAL_LIBRARY, LEARNING_LESSONS).filter((issue) => issue.severity === 'ERROR'),
+    [],
+    'catalog IDs, lessons and capability claims must remain consistent',
+  );
+  const v12Matrix = builtMatrix.find((item) => item.id === 'v12_engine');
+  assert.equal(v12Matrix?.hasLesson, true, 'V12 draft lesson should be registered');
+  assert.equal(v12Matrix?.platform.visualTransformCopy, 'SUPPORTED', 'generic visual edit copy should be declared separately from CAD editing');
+  assert.equal(v12Matrix?.capabilities.validatedSimulation, 'UNSUPPORTED', 'V12 must not claim validated simulation');
+  const v12Lesson = LEARNING_LESSONS.find((lesson) => lesson.id === 'v12-architecture-explorer');
+  assert.ok(v12Lesson, 'V12 guided lesson should exist');
+  const offlinePack = offline.createOfflineLearningPack(v12Lesson, SPATIAL_LIBRARY.v12_engine, '2026-01-01T00:00:00.000Z');
+  assert.equal(offline.validateOfflineLearningPack(JSON.parse(offline.serializeOfflineLearningPack(offlinePack))), true);
+  assert.throws(() => offline.createOfflineLearningPack(v12Lesson, SPATIAL_LIBRARY.v8_engine), /IDs do not match/);
+  console.log('Roadmap foundations passed: workshop edits/undo-redo/local persistence, tutor action allowlist, capability-matrix validation, offline pack schema, accessibility preferences, and authoring review gates.');
 } catch (error) {
   console.error('Roadmap foundations failed:', error);
   process.exitCode = 1;
