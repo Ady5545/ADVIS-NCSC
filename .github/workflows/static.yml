@@ -42,6 +42,9 @@ jobs:
       - name: Test deterministic simulation contract
         run: npm run test:simulation
 
+      - name: Test staged explosion transform contract
+        run: npm run test:explosion
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
