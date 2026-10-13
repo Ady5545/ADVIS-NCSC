@@ -9,6 +9,7 @@ import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
 import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
+import { ModelCapabilityPanel } from './models/ModelCapabilityPanel';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -95,6 +96,7 @@ export function EngineeringReferenceCockpit({
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [workshopOpen, setWorkshopOpen] = useState(false);
+  const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -224,6 +226,12 @@ export function EngineeringReferenceCockpit({
                 ))}
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setCapabilitiesOpen(true)}
+              className="pointer-events-auto mr-2 min-h-9 rounded-full border border-slate-300 bg-white/90 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+              aria-label="Open model capability matrix"
+            >MATRIX</button>
             <button
               type="button"
               onClick={() => setWorkshopOpen(true)}
@@ -600,6 +608,7 @@ export function EngineeringReferenceCockpit({
         onClose={() => setInspectionOpen(false)}
         activeObjectKey={objectKey || null}
       />
+      {capabilitiesOpen && <ModelCapabilityPanel activeModelId={objectKey} onClose={() => setCapabilitiesOpen(false)} />}
       {workshopOpen && objectMeta && (
         <InnovationWorkshopPanel
           model={objectMeta}
