@@ -1,15 +1,22 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const viteCli = require.resolve('vite/bin/vite.js');
 
 const host = '127.0.0.1';
 const port = 4179;
 const origin = `http://${host}:${port}`;
+const serverOutput = [];
 const server = spawn(process.execPath, [
-  'node_modules/vite/bin/vite.js', 'preview',
+  viteCli, 'preview',
   '--host', host,
   '--port', String(port),
   '--strictPort',
-], { stdio: 'ignore', env: { ...process.env, CI: 'true' } });
+], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, CI: 'true' } });
+server.stdout.on('data', (chunk) => serverOutput.push(String(chunk)));
+server.stderr.on('data', (chunk) => serverOutput.push(String(chunk)));
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function fetchWithTimeout(url, timeoutMs = 1800) {
@@ -36,7 +43,7 @@ try {
     }
     await wait(200);
   }
-  assert.ok(response?.ok, `Production-like preview did not become ready: ${lastError?.message || 'no response'}`);
+  assert.ok(response?.ok, `Production-like preview did not become ready: ${lastError?.message || 'no response'}. Server output: ${serverOutput.join('').slice(-1200)}`);
   assert.match(response.headers.get('content-type') || '', /text\/html/i, 'Root response must be HTML');
   const html = await response.text();
   assert.match(html, /<div[^>]+id=["']root["']/i, 'Root app mount node must be present');
