@@ -5,7 +5,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
   name: 'Human Anatomy Atlas',
   scientificTitle: 'Integrated Human Anatomical Systems & Cardiovascular Hemodynamics',
   domain: 'ANATOMY',
-  description: 'A hierarchical educational anatomy atlas with visualized organ systems, pulmonary pathways, and neural connections. Its cardiac pressure and volume curves are illustrative teaching waveforms, not a validated clinical or patient-specific simulation.'
+  description: 'A hierarchical educational anatomy atlas with visualized organ systems, pulmonary pathways, and neural connections. Its cardiac pressure and volume curves are illustrative teaching waveforms, not a validated clinical or patient-specific simulation.',
 
   subsystems: [
     {
