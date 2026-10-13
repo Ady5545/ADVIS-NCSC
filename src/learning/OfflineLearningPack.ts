@@ -67,8 +67,10 @@ export function downloadOfflineLearningPack(pack: OfflineLearningPack): boolean 
     link.href = url;
     link.download = `${pack.lesson.id}-offline-pack.json`;
     link.rel = 'noopener';
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     return true;
   } catch {
     return false;
