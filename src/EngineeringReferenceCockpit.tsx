@@ -6,6 +6,8 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { LearningStepPanel } from './learning/LearningStepPanel';
+import { V8_FOUR_STROKE_LESSON } from './learning/V8FourStrokeLesson';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -70,6 +72,8 @@ export function EngineeringReferenceCockpit({
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
+  const [showLearning, setShowLearning] = useState(false);
+  const [componentSearch, setComponentSearch] = useState('');
 
   const telemetry = useEngineTelemetry();
   const objectKey = Array.isArray(activeObject) ? activeObject[0] : activeObject;
@@ -77,6 +81,7 @@ export function EngineeringReferenceCockpit({
   const components = objectMeta?.components || [];
   const fidelity = objectMeta ? resolveObjectFidelity(objectMeta) : null;
   const isV12 = objectKey === 'v12_engine';
+  const isV8 = Boolean(objectKey?.startsWith('v8_engine') || objectKey === 'v8_engine');
 
   const activeCylinder = telemetry.focusedCylinder || 1;
   const activeTelemetry =
@@ -86,12 +91,22 @@ export function EngineeringReferenceCockpit({
   const pressure = activeTelemetry?.cylinderPressureBar ?? 0;
   const qualityLabel =
     fidelity?.authority === 'CAD_BREP'
-      ? 'SOURCE CAD'
-      : fidelity?.authority === 'GLTF_ASSET'
-        ? 'GLTF'
-        : 'PROCEDURAL';
+      ? 'CAD CHECKS RECORDED'
+      : fidelity?.authority === 'CAD_SOURCE_UNVERIFIED'
+        ? 'CAD SOURCE · UNVERIFIED'
+        : fidelity?.authority === 'GLTF_ASSET'
+          ? 'GLTF / GLB'
+          : 'EDUCATIONAL GEOMETRY';
 
-  const visibleComponents = useMemo(() => components.slice(0, 18), [components]);
+  const visibleComponents = useMemo(() => {
+    const query = componentSearch.trim().toLowerCase();
+    if (!query) return components;
+    return components.filter((component) =>
+      [component.id, component.name, component.description, component.category || '']
+        .some((value) => value.toLowerCase().includes(query))
+    );
+  }, [components, componentSearch]);
+  const selectedComponent = components.find((component) => component.id === selectedComponentId);
 
   const applyPreset = (presetId: string) => {
     const preset = V12_CAMERA_PRESETS.find((entry) => entry.id === presetId);
@@ -106,7 +121,7 @@ export function EngineeringReferenceCockpit({
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
   }, [objectKey]);
 
-  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'SECTION' : 'SOLID';
+  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'BLUEPRINT' : 'SOLID';
 
   return (
     <>
@@ -201,7 +216,7 @@ export function EngineeringReferenceCockpit({
         </div>
 
         {/* Right telemetry */}
-        <div className="absolute top-24 right-5 w-[290px] md:w-[325px] max-h-[66vh] pointer-events-auto overflow-hidden flex flex-col gap-2">
+        <div className="absolute top-24 right-5 w-[290px] md:w-[325px] max-h-[66vh] pointer-events-auto overflow-y-auto flex flex-col gap-2">
           <div className="bg-white/92 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.08)]">
             <button
               onClick={() => setShowTelemetry((v) => !v)}
@@ -258,6 +273,16 @@ export function EngineeringReferenceCockpit({
               </div>
             </div>
           )}
+
+          {showLearning && isV8 && (
+            <LearningStepPanel
+              lesson={V8_FOUR_STROKE_LESSON}
+              components={components}
+              selectedComponentId={selectedComponentId}
+              onSelectComponent={onSelectComponent}
+              onHighlightComponent={onHighlightComponent}
+            />
+          )}
         </div>
 
         {/* Parts drawer */}
@@ -267,7 +292,18 @@ export function EngineeringReferenceCockpit({
               <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]"><Layers3 size={13} /> Components</div>
               <button onClick={() => setShowParts(false)}><X size={13} /></button>
             </div>
-            <div className="p-2 max-h-[44vh] overflow-y-auto space-y-1">
+            <div className="p-2 border-b border-slate-200">
+              <input
+                type="search"
+                value={componentSearch}
+                onChange={(event) => setComponentSearch(event.target.value)}
+                placeholder="Search name, function, or ID…"
+                aria-label="Search model components"
+                className="w-full border border-slate-300 px-2 py-1.5 text-[10px] outline-none focus:border-rose-500"
+              />
+            </div>
+            <div className="p-2 max-h-[33vh] overflow-y-auto space-y-1">
+              {visibleComponents.length === 0 && <p className="px-2 py-3 text-[10px] text-slate-500">No components match this search.</p>}
               {visibleComponents.map((component) => {
                 const active = selectedComponentId === component.id;
                 return (
@@ -288,6 +324,18 @@ export function EngineeringReferenceCockpit({
                 );
               })}
             </div>
+            {selectedComponent && (
+              <div className="p-3 border-t border-slate-200 bg-slate-50">
+                <div className="text-[9px] uppercase tracking-[0.12em] text-slate-500 mb-1">Selected component</div>
+                <div className="text-[11px] font-semibold">{selectedComponent.name}</div>
+                <p className="text-[10px] leading-relaxed mt-1">{selectedComponent.description || 'No description supplied.'}</p>
+                <dl className="mt-2 space-y-1 text-[9px]">
+                  <div className="flex gap-2"><dt className="text-slate-500">Material</dt><dd>{selectedComponent.engineeringDetails?.material || 'Not specified'}</dd></div>
+                  <div className="flex gap-2"><dt className="text-slate-500">Weight</dt><dd>{selectedComponent.engineeringDetails?.weight || 'Not specified'}</dd></div>
+                  <div className="flex gap-2"><dt className="text-slate-500">Dimensions</dt><dd>Not specified with authoritative units</dd></div>
+                </dl>
+              </div>
+            )}
           </div>
         )}
 
@@ -365,19 +413,20 @@ export function EngineeringReferenceCockpit({
               ))}
             </div>
 
-            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Cutaway</div>
+            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Surface view</div>
             <div className="grid grid-cols-3 gap-1 p-2">
               <button onClick={() => { if (xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SOLID' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SOLID</button>
               <button onClick={() => { if (!xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'GLASS' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>GLASS</button>
-              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SECTION' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SECTION</button>
+              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'BLUEPRINT' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} title="Wireframe blueprint view; this is not a geometric section plane">BLUEPRINT</button>
             </div>
 
             <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Overlays</div>
-            <div className="grid grid-cols-4 gap-1 p-2">
+            <div className="grid grid-cols-5 gap-1 p-2">
               <button onClick={() => setShowParts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Parts</button>
               <button onClick={() => setShowCharts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Charts</button>
               <button onClick={() => onHighlightComponent?.(highlightedComponentId ? null : selectedComponentId || components[0]?.id || null)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Callout</button>
               <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Isolate</button>
+              {isV8 && <button onClick={() => setShowLearning((value) => !value)} aria-pressed={showLearning} className={`py-1.5 border text-[8px] uppercase ${showLearning ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Learn</button>}
             </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
               <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Ruler size={11} className="mx-auto" /></button>
