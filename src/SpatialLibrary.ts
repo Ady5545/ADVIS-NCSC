@@ -167,10 +167,10 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       exportGlb: false, exportStep: false, measure: false, sectionPlane: false, deepZoom: false, interiorGeometry: false
     },
     category: 'Mechanical Engineering',
-    description: 'A procedural educational model showing crankshaft rotation, reciprocating piston motion, illustrative valve timing, and a simplified four-stroke cycle. It is not an identified OEM engine or a validated thermodynamic simulation.'
+    description: 'A procedural educational model showing crankshaft rotation, reciprocating piston motion, illustrative valve timing, and a simplified four-stroke cycle. It is not an identified OEM engine or a validated thermodynamic simulation.',
     defaultScale: 1.2,
     educationalInformation: {
-      overview: 'Illustrates the four phases of a four-stroke cycle. The pressure/cycle indicator is qualitative and does not predict measured cylinder pressure or engine performance.'
+      overview: 'Illustrates the four phases of a four-stroke cycle. The pressure/cycle indicator is qualitative and does not predict measured cylinder pressure or engine performance.',
       keyFeatures: [
         'Illustrative crankshaft geometry with offset crankpins',
         'Reciprocating Piston with Wrist Pin & Compression Rings',
@@ -178,7 +178,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         'Illustrative valve and cam components',
         'Illustrative spark/ignition visualization'
       ],
-      workingPrinciple: 'In a four-stroke engine, piston and valve motion are coordinated over two crankshaft revolutions. This model illustrates linkage motion and cycle phases; it does not calculate combustion, torque, or thermodynamic performance.'
+      workingPrinciple: 'In a four-stroke engine, piston and valve motion are coordinated over two crankshaft revolutions. This model illustrates linkage motion and cycle phases; it does not calculate combustion, torque, or thermodynamic performance.',
       applications: ['Automotive Powertrains', 'Aviation Piston Engines', 'Marine Propulsion', 'Industrial Power Generation'],
       specifications: {
         'Cycle': 'Four-Stroke Otto Cycle (720°)',
