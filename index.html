@@ -68,6 +68,9 @@
           if (window.__ADVIS_BOOT_RENDER_STARTED__) return;
           var target = event.target;
           if (target && target !== window) {
+            var isScript = target.tagName === 'SCRIPT';
+            var isStylesheet = target.tagName === 'LINK' && String(target.rel).toLowerCase() === 'stylesheet';
+            if (!isScript && !isStylesheet) return;
             var resource = target.src || target.href || '';
             showStartupFailure(
               'A.D.V.I.S. asset failed to load',
