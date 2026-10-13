@@ -402,6 +402,7 @@ function AppContent() {
     jet_engine_core: 'jet-engine-core-flow-path',
     suspension: 'suspension-load-path-inspection',
     human_anatomy_scientific: 'anatomy-heart-and-blood-flow',
+    hydraulic_pump: 'hydraulic-pump-pressure-and-flow',
   };
 
   useV12EngineAudio({
