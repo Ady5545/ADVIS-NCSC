@@ -209,6 +209,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/cardiovascular',
     assetPath: 'procedural/biology/cardiovascular',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Biological Systems',
     description: 'Hierarchical anatomical atlas with discrete cardiac chambers, great vessels, trachea, and pulmonic lobes with real physiological hemodynamics.',
@@ -250,6 +262,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/arduino_uno',
     assetPath: 'procedural/engineering/arduino_uno',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Engineering',
     description: 'ATmega328P based microcontroller board.',
@@ -292,6 +316,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/esp32',
     assetPath: 'procedural/engineering/esp32',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Dual-core MCU with WiFi and Bluetooth.',
     defaultScale: 3.0,
@@ -323,6 +359,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/sg90_servo',
     assetPath: 'procedural/engineering/sg90_servo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'TowerPro SG90 9g Micro Servo Motor.',
     defaultScale: 4.0,
@@ -351,6 +399,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/solar_panel',
     assetPath: 'procedural/engineering/solar_panel',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Monocrystalline photovoltaic panel.',
     defaultScale: 3.0,
@@ -376,6 +436,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/ldr.glb',
     assetPath: '/models/ldr.glb',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Light Dependent Resistor sensor.',
     defaultScale: 8.0,
@@ -397,6 +469,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/resistor_10k.glb',
     assetPath: '/models/resistor_10k.glb',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: '1/4W 10K ohm through-hole resistor.',
     defaultScale: 10.0,
@@ -418,6 +502,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/heliomotion',
     assetPath: 'procedural/engineering/heliomotion',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Complete dual-axis solar tracking prototype assembly featuring base frame, dual SG90 servo motors, solar panel assembly, and Arduino microcontroller.',
     defaultScale: 3.0,
@@ -472,6 +568,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Silicon Photovoltaic Cell',
     path: '/models/procedural/silicon_pv_cell',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Educational',
     description: 'Microscopic educational visualization of a silicon crystal structure in a photovoltaic cell.',
     defaultScale: 10.0,
@@ -492,6 +600,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Solar Semiconductor Structure',
     path: '/models/procedural/solar_semiconductor',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Educational',
     description: 'Educational cross-section of a P-N junction solar cell.',
     defaultScale: 4.0,
@@ -514,6 +634,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Wankel Rotary Engine',
     path: '/models/procedural/rotary',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A type of internal combustion engine using an eccentric rotary design to convert pressure into rotating motion.',
     defaultScale: 1.5,
@@ -536,6 +668,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'AC Induction Motor Assembly',
     path: '/models/procedural/tesla',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A high-performance liquid-cooled AC induction electric motor integrated with a single-speed reduction gear.',
     defaultScale: 1.2,
@@ -559,6 +703,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: '18650 Li-Ion Cell Pack',
     path: '/models/procedural/battery',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'An array of cylindrical lithium-ion 18650 cells wired in series and parallel with an active BMS.',
     defaultScale: 1.5,
@@ -582,6 +738,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'DNA Double Helix',
     path: '/models/procedural/dna',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'Deoxyribonucleic acid molecular structure carrying genetic instructions for all known living organisms.',
     defaultScale: 1.5,
@@ -604,6 +772,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Quantum Probability Cloud',
     path: '/models/procedural/quantum',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'Visualization of a quantum particle existing in a superposition of states defined by a wave function.',
     defaultScale: 2.0,
@@ -625,6 +805,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Mark LXXXV Armor System',
     path: '/models/procedural/stark_suit',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Special',
     description: 'Advanced nanotech integration armor featuring autonomous repulsor systems and localized force field generation.',
     defaultScale: 1.5,
@@ -653,6 +845,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/raspberry_pi',
     assetPath: 'procedural/electronics/raspberry_pi',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A powerful single-board computer with a quad-core 64-bit ARM processor, dual 4K display support, and full Linux OS capabilities.',
     defaultScale: 1.0,
@@ -696,6 +900,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/servo',
     assetPath: 'procedural/electronics/servo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Electronics',
     description: 'A tiny and lightweight servo motor providing controlled angular rotation (0 to 180 degrees) via PWM signals.',
@@ -732,6 +948,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/stepper',
     assetPath: 'procedural/electronics/stepper',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A high-precision brushless DC motor that divides a 360-degree rotation into 200 discrete steps (1.8 deg per step).',
     defaultScale: 1.5,
@@ -766,6 +994,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/dc_motor',
     assetPath: 'procedural/electronics/dc_motor',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A simple direct-current motor that converts electrical energy into high-speed rotational mechanical energy.',
     defaultScale: 1.5,
@@ -798,6 +1038,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/bldc',
     assetPath: 'procedural/electronics/bldc',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A high-efficiency 3-phase brushless motor with an external rotating bell housing, providing extreme power-to-weight ratio.',
     defaultScale: 1.5,
@@ -830,6 +1082,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/breadboard',
     assetPath: 'procedural/electronics/breadboard',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A reusable construction grid with 830 tie-points for rapid electronic circuit assembly without soldering.',
     defaultScale: 1.0,
@@ -857,6 +1121,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/relay',
     assetPath: 'procedural/electronics/relay',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'An electrically operated electromagnetic switch allowing low-voltage microcontrollers to control high-voltage AC mains appliances.',
     defaultScale: 2.0,
@@ -884,6 +1160,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/ultrasonic',
     assetPath: 'procedural/electronics/ultrasonic',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'Emits 40 kHz ultrasonic sound bursts and calculates precise distance by measuring the echo time-of-flight.',
     defaultScale: 2.5,
@@ -916,6 +1204,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/lcd',
     assetPath: 'procedural/electronics/lcd',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'Displays 32 ASCII alphanumeric characters across two rows of 16 dot-matrix blocks with LED backlighting.',
     defaultScale: 1.5,
@@ -1049,6 +1349,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/inline4',
     assetPath: 'procedural/automotive/inline4',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'An internal combustion engine with four cylinders mounted in a straight line along a shared crankcase.',
     defaultScale: 1.0,
@@ -1159,6 +1471,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/turbo',
     assetPath: 'procedural/automotive/turbo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A forced-induction turbine device that compresses intake air using waste exhaust gas kinetic energy.',
     defaultScale: 1.5,
@@ -1193,6 +1517,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/differential',
     assetPath: 'procedural/automotive/differential',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'Allows drive wheels to rotate at different speeds while cornering while locking torque transfer if one wheel slips.',
     defaultScale: 1.2,
@@ -1222,6 +1558,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/gearbox',
     assetPath: 'procedural/automotive/gearbox',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A multi-speed transmission using meshing gear sets and synchromesh rings to select drive ratios.',
     defaultScale: 1.0,
@@ -1254,6 +1602,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/suspension',
     assetPath: 'procedural/automotive/suspension',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Automotive',
     description: 'Combines a coil spring and telescopic shock absorber into a single structural steering pivot strut.',
@@ -1285,6 +1645,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/brake',
     assetPath: 'procedural/automotive/brake',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A lightweight carbon-fiber reinforced ceramic brake rotor squeezed by multi-piston hydraulic calipers.',
     defaultScale: 1.5,
@@ -1307,6 +1679,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/steering',
     assetPath: 'procedural/automotive/steering',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'Converts rotational steering wheel motion into linear horizontal tie-rod motion to turn front wheels.',
     defaultScale: 1.0,
@@ -1336,6 +1720,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/electrical/pmsm',
     assetPath: 'procedural/electrical/pmsm',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Mechanical Engineering',
     description: 'A radial-flux permanent-magnet synchronous motor showing the stator, rotor, magnet ring, shaft, bearings, cooling ribs, and terminal housing as a serviceable assembly.',
     defaultScale: 1.1,
@@ -1375,6 +1771,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/transmission/planetary',
     assetPath: 'procedural/transmission/planetary',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Mechanical Engineering',
     description: 'A detailed planetary transmission element with ring gear, sun gear, three planet gears, carrier plates, and planet pins.',
     defaultScale: 1.2,
@@ -1405,6 +1813,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/aerospace/jet_engine_core',
     assetPath: 'procedural/aerospace/jet_engine_core',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Mechanical Engineering',
     description: 'A sectional axial-flow engine core emphasizing compressor stages, combustor region, turbine stages, shaft line, and casing interfaces.',
@@ -1444,6 +1864,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/fluid/hydraulic_pump',
     assetPath: 'procedural/fluid/hydraulic_pump',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Mechanical Engineering',
     description: 'A detailed compact hydraulic pump visualization with housing, shaft, internal pumping elements, service ports, retaining hardware, and case ribs.',
@@ -1476,6 +1908,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/anatomy/heart',
     assetPath: 'procedural/anatomy/heart',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'A four-chambered muscular organ that pumps deoxygenated blood to the lungs and oxygenated blood to the body.',
     defaultScale: 2.0,
@@ -1521,6 +1965,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/brain',
     assetPath: 'procedural/anatomy/brain',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'The central control organ of the nervous system, containing 86 billion neurons responsible for cognition, memory, emotion, and motor control.',
     defaultScale: 1.8,
@@ -1550,6 +2006,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/lungs',
     assetPath: 'procedural/anatomy/lungs',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'Primary respiratory organs facilitating gas exchange between inhaled atmospheric air and the circulatory bloodstream.',
     defaultScale: 1.5,
@@ -1578,6 +2046,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/eye',
     assetPath: 'procedural/anatomy/eye',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'A sensory organ that focuses incoming light rays onto photosensitive retinal cells to produce vision.',
     defaultScale: 3.0,
@@ -1606,6 +2086,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/skeleton',
     assetPath: 'procedural/anatomy/skeleton',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'The internal rigid bone framework protecting organs and anchoring skeletal muscles for movement.',
     defaultScale: 0.5,
@@ -1633,6 +2125,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Quantum Electron Particle',
     path: '/models/procedural/electron',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'A fundamental subatomic particle representing a quantum superposition of states.',
     defaultScale: 1.5,
@@ -1657,6 +2161,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/atomic/hydrogen',
     assetPath: 'procedural/atomic/hydrogen',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     capabilities: { guidedLessons: true },
     category: 'Quantum Mechanics',
     description: 'The simplest atomic system consisting of a single proton nucleus bound to one electron in a 1s orbital.',
@@ -1679,6 +2195,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/atomic/nucleus',
     assetPath: 'procedural/atomic/nucleus',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Quantum Mechanics',
     description: 'Dense nuclear cluster composed of 6 protons and 6 neutrons bound by the strong nuclear force.',
     defaultScale: 1.5,
@@ -1701,6 +2229,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/physics/magnetic_field',
     assetPath: 'procedural/physics/magnetic_field',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Physics',
     description: 'Interactive visualization of 3D magnetic flux lines around a dipole magnet, illustrating vector intensity fields.',
     defaultScale: 1.0,
@@ -1723,6 +2263,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/earth',
     assetPath: 'procedural/astronomy/earth',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'A multi-layered holographic representation of Earth featuring planetary crust, atmosphere, and cloud layers.',
     defaultScale: 1.5,
@@ -1745,6 +2297,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/moon',
     assetPath: 'procedural/astronomy/moon',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Earth\'s natural satellite featuring heavily cratered highlands and dark basaltic mare plains.',
     defaultScale: 1.5,
@@ -1766,6 +2330,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/solar_system',
     assetPath: 'procedural/astronomy/solar_system',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Interactive scale model of the central Sun and orbital paths of the terrestrial and gas giant planets.',
     defaultScale: 0.3,
@@ -1787,6 +2363,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/iss',
     assetPath: 'procedural/astronomy/iss',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Modular habitable space laboratory orbiting Earth in Low Earth Orbit at 28,000 km/h.',
     defaultScale: 1.0,
@@ -1819,6 +2407,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/satellite',
     assetPath: 'procedural/astronomy/satellite',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'High-capacity telecommunications satellite stationed in geostationary orbit 35,786 km above Earth.',
     defaultScale: 1.5,
