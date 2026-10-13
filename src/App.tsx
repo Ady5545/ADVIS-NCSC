@@ -29,6 +29,7 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
+import { buildModelTutorContext } from './learning/ModelTutorContext';
 import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
@@ -1088,6 +1089,19 @@ function AppContent() {
           ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
           : 'HUD'));
 
+    const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+    const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
+    const tutorScientificState = useScientificStore.getState();
+    const tutorScientificModel = tutorScientificState.activeModel ||
+      (tutorModelId ? ScientificModelRegistry.getModel(tutorModelId) || null : null);
+    const modelTutorContext = tutorModel
+      ? buildModelTutorContext(tutorModel, selectedComponentId || hoveredComponentId, {
+          scientificModel: tutorScientificModel,
+          scientificVariables: tutorScientificState.simulationVariables,
+          scientificParameters: tutorScientificState.parameters
+        })
+      : null;
+
     const butlerContext = {
       activeProjectId,
       activeWorkspace,
@@ -1096,6 +1110,7 @@ function AppContent() {
       activeMolecule: sessionMolecule.getMolecularContextForAI(),
       selectedComponentId,
       hoveredComponentId,
+      modelTutorContext,
       spatialMode,
       showLabels,
       isEngineeringMode,
