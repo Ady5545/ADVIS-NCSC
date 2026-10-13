@@ -36,6 +36,12 @@ jobs:
       - name: Validate model catalog and CAD evidence
         run: npm run validate:catalog
 
+      - name: Validate lesson catalog and assessment integrity
+        run: npm run validate:lessons
+
+      - name: Test deterministic simulation contract
+        run: npm run test:simulation
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
