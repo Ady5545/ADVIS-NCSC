@@ -646,6 +646,90 @@ export const LEARNING_LESSONS: LearningLesson[] = [
     ]
   }
 
+
+  ,
+  {
+    id: 'hydraulic-pump-pressure-and-flow',
+    version: 1,
+    title: 'Pressure and Flow in a Hydraulic System',
+    domain: 'FLUID_MECHANICS',
+    learnerLevel: 'HIGH_SCHOOL',
+    summary: 'Inspect a generic hydraulic pump visualization and learn the difference between pressure, force, flow rate and a validated pump-performance result.',
+    modelId: 'hydraulic_pump',
+    prerequisites: ['Know that liquids can transmit pressure in an enclosed system'],
+    learningObjectives: [
+      'Distinguish pressure from force and flow rate.',
+      'Use pressure equals force divided by area with consistent units.',
+      'Recognize what is not measured by a generic hydraulic-pump render.'
+    ],
+    estimatedMinutes: 5,
+    authoringStatus: 'EDUCATIONAL_DRAFT',
+    sourceReferences: [
+      { label: 'OpenStax: Pascal’s Principle and Hydraulics', url: 'https://openstax.org/books/university-physics-volume-1/pages/14-3-pascals-principle-and-hydraulics', applicability: 'GENERAL_PRINCIPLE' },
+      { label: 'OpenStax: University Physics, Fluid Mechanics Summary', url: 'https://openstax.org/books/university-physics-volume-1/pages/14-summary', applicability: 'GENERAL_PRINCIPLE' }
+    ],
+    limitations: [
+      'The catalog object is a single generic pump visual, not a dimensioned or source-identified pump assembly.',
+      'No pressure, flow rate, efficiency, leakage, power, temperature or cavitation simulation is implemented.',
+      'The lesson teaches general fluid mechanics and does not specify a safe operating pressure for any real equipment.'
+    ],
+    steps: [
+      {
+        id: 'hydraulic-pump-inspect',
+        title: 'Inspect the pump representation',
+        objective: 'Recognize a hydraulic pump as part of a fluid-power system.',
+        explanation: 'A hydraulic pump transfers mechanical input into fluid flow. Pressure in the system depends on the system’s resistance to flow and other operating conditions; a picture alone does not determine operating pressure or flow rate.',
+        learnerTask: 'Select the hydraulic pump core assembly in the component explorer.',
+        action: { type: 'SELECT_COMPONENT', componentId: 'hydraulic_pump.core' },
+        completionRule: { type: 'SELECT_COMPONENT', componentId: 'hydraulic_pump.core' },
+        hint: 'This catalog model currently contains one component called Hydraulic Pump Core Assembly.',
+        estimatedMinutes: 1
+      },
+      {
+        id: 'hydraulic-pressure-units',
+        title: 'Separate pressure from force',
+        objective: 'Recognize that pressure is force per unit area.',
+        explanation: 'Pressure is defined as the perpendicular force divided by the area over which it acts: p = F/A. In SI, pressure is measured in pascals (Pa), where 1 Pa = 1 N/m². Do not infer an actual pump pressure from this illustration.',
+        learnerTask: 'Answer the question about pressure units.',
+        completionRule: { type: 'ANSWER_QUESTION', questionId: 'hydraulic-pressure-units-question' },
+        question: {
+          id: 'hydraulic-pressure-units-question',
+          prompt: 'Which expression gives average pressure for a perpendicular force over an area?',
+          choices: [
+            { id: 'correct', text: 'Pressure = force ÷ area (p = F/A)' },
+            { id: 'area', text: 'Pressure = force × area' },
+            { id: 'flow', text: 'Pressure = volume flow rate ÷ time' }
+          ],
+          correctChoiceId: 'correct',
+          explanation: 'Correct. Dividing force in newtons by area in square metres gives pressure in pascals. Real hydraulic systems also have losses and dynamic effects.',
+          hint: 'Pressure describes how much force acts over a given area.'
+        },
+        estimatedMinutes: 2
+      },
+      {
+        id: 'hydraulic-flow-limits',
+        title: 'What does the model not measure?',
+        objective: 'Distinguish a general principle from a model-specific performance result.',
+        explanation: 'Flow rate describes the volume of fluid passing a point per unit time. This visualization does not compute the pump’s flow rate, pressure rise, efficiency or operating limits; those require a specified pump, operating conditions and reliable data.',
+        learnerTask: 'Choose the statement that correctly describes this visualization.',
+        completionRule: { type: 'ANSWER_QUESTION', questionId: 'hydraulic-flow-limits-question' },
+        question: {
+          id: 'hydraulic-flow-limits-question',
+          prompt: 'Can the 3D pump render establish its actual pressure or flow rate?',
+          choices: [
+            { id: 'yes', text: 'Yes; the appearance gives the measured operating values.' },
+            { id: 'no', text: 'No; no measurement or validated pump model is connected to this render.' },
+            { id: 'color', text: 'Yes, if the material appears metallic.' }
+          ],
+          correctChoiceId: 'no',
+          explanation: 'Correct. The render supports visual inspection only. Actual values require source data or an appropriately validated model and known operating conditions.',
+          hint: 'Look for a sensor reading, source specification or calculation. None is supplied here.'
+        },
+        estimatedMinutes: 2
+      }
+    ]
+  }
+
 ];
 
 export function getLessonById(lessonId: string): LearningLesson | undefined {
