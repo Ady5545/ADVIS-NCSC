@@ -2,15 +2,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment } from '@react-three/drei';
 import * as THREE from 'three';
+import { DEFAULT_STUDY_PARAMS, STUDY_STORAGE_KEY, parseStudyProject, createStudyProject, type StudyParams } from './StudyProject';
 import { RotateCcw, Lightbulb, Gauge, Cog, Ruler, Download, Undo2, Redo2, Save, Upload, GitCompare } from 'lucide-react';
-
-type StudyParams = {
-  sunTeeth: number;
-  planetTeeth: number;
-  moduleMm: number;
-  inputRpm: number;
-  inputTorqueNm: number;
-};
 
 function Gear({ radius, teeth, thickness, y, color }: { radius: number; teeth: number; thickness: number; y: number; color: string }) {
   return (
@@ -63,25 +56,6 @@ function PlanetaryPreview({ params }: { params: StudyParams }) {
       </mesh>
     </group>
   );
-}
-
-const DEFAULT_STUDY_PARAMS: StudyParams = {
-  sunTeeth: 24,
-  planetTeeth: 18,
-  moduleMm: 2.0,
-  inputRpm: 3000,
-  inputTorqueNm: 150,
-};
-const STUDY_STORAGE_KEY = 'advis-ncsc.innovation-study.v1';
-
-function isStudyParams(value: unknown): value is StudyParams {
-  if (!value || typeof value !== 'object') return false;
-  const item = value as Record<string, unknown>;
-  return Number.isInteger(item.sunTeeth) && Number(item.sunTeeth) >= 12 && Number(item.sunTeeth) <= 40 &&
-    Number.isInteger(item.planetTeeth) && Number(item.planetTeeth) >= 8 && Number(item.planetTeeth) <= 30 &&
-    typeof item.moduleMm === 'number' && Number.isFinite(item.moduleMm) && item.moduleMm >= 0.5 && item.moduleMm <= 5 &&
-    typeof item.inputRpm === 'number' && Number.isFinite(item.inputRpm) && item.inputRpm >= 100 && item.inputRpm <= 10000 &&
-    typeof item.inputTorqueNm === 'number' && Number.isFinite(item.inputTorqueNm) && item.inputTorqueNm >= 10 && item.inputTorqueNm <= 1000;
 }
 
 export function ParametricInnovationLab() {
@@ -148,7 +122,7 @@ export function ParametricInnovationLab() {
 
   const saveLocally = () => {
     try {
-      window.localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ version: 1, parameters: params, savedAt: new Date().toISOString() }));
+      window.localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(createStudyProject(params, baseline)));
       setBaseline(params);
       setNotice('Study saved on this device');
     } catch {
@@ -160,9 +134,8 @@ export function ParametricInnovationLab() {
     try {
       const raw = window.localStorage.getItem(STUDY_STORAGE_KEY);
       if (!raw) { setNotice('No saved study on this device'); return; }
-      const parsed: unknown = JSON.parse(raw);
-      const parameters = parsed && typeof parsed === 'object' ? (parsed as { parameters?: unknown }).parameters : undefined;
-      if (!isStudyParams(parameters)) { setNotice('Saved study is invalid; current work was kept'); return; }
+      const parameters = parseStudyProject(raw);
+      if (!parameters) { setNotice('Saved study is invalid; current work was kept'); return; }
       commitParams(parameters);
       setBaseline(parameters);
       setNotice('Saved study loaded');
@@ -176,25 +149,16 @@ export function ParametricInnovationLab() {
     event.target.value = '';
     if (!file) return;
     if (file.size > 1024 * 1024) { setNotice('Import rejected: file exceeds 1 MB'); return; }
-    try {
-      const parsed: unknown = JSON.parse(await file.text());
-      const parameters = parsed && typeof parsed === 'object' ? (parsed as { parameters?: unknown }).parameters : undefined;
-      if (!isStudyParams(parameters)) { setNotice('Import rejected: unsupported or out-of-range study data'); return; }
-      commitParams(parameters);
-      setNotice('Study imported');
-    } catch {
-      setNotice('Import rejected: file is not valid JSON');
-    }
+    const parameters = parseStudyProject(await file.text());
+    if (!parameters) { setNotice('Import rejected: unsupported or out-of-range study data'); return; }
+    commitParams(parameters);
+    setNotice('Study imported');
   };
 
   const exportStudy = () => {
     const payload = {
-      schemaVersion: 1,
-      study: 'Planetary Gearset Innovation Study',
-      parameters: params,
+      ...createStudyProject(params, baseline),
       derived,
-      baseline,
-      note: 'Educational design study only; not a certified manufacturing drawing or safety assessment.'
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
