@@ -104,8 +104,7 @@ export class SimulationEngine {
     this.parameters[id] = nextValue;
     this.lastError = null;
     // Evaluate dependent outputs at dt=0; do not advance simulation time.
-    this.step(0);
-    return true;
+    return this.step(0);
   }
 
   public setVariable(id: string, value: number): boolean {
