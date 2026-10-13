@@ -1536,8 +1536,8 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
+          shadows={lodTier !== 'LOW'}
+          dpr={lodTier === 'LOW' ? [0.65, 0.8] : lodTier === 'MEDIUM' ? [0.8, 1] : lodTier === 'HIGH' ? [1, 1.4] : [1, 1.85]}
           gl={{ antialias: true, powerPreference: 'high-performance' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
@@ -1567,7 +1567,7 @@ function AppContent() {
           <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
           {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+          {lodTier !== 'LOW' && <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={lodTier === 'MEDIUM' ? 384 : lodTier === 'HIGH' ? 768 : 1024} />}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
