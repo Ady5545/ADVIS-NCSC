@@ -64,9 +64,10 @@ function removeLocalData(kind: LocalDataKey): { ok: boolean; message: string } {
 
 export interface PrivacyDataPanelProps {
   onClose: () => void;
+  onDataCleared?: (kind: LocalDataKey) => void;
 }
 
-export function PrivacyDataPanel({ onClose }: PrivacyDataPanelProps) {
+export function PrivacyDataPanel({ onClose, onDataCleared }: PrivacyDataPanelProps) {
   const [confirming, setConfirming] = useState<LocalDataKey | null>(null);
   const [message, setMessage] = useState('');
   const [clearedAt, setClearedAt] = useState<Partial<Record<LocalDataKey, number>>>({});
@@ -114,6 +115,7 @@ export function PrivacyDataPanel({ onClose }: PrivacyDataPanelProps) {
     setMessage(result.message);
     if (result.ok) {
       setClearedAt((previous) => ({ ...previous, [kind]: Date.now() }));
+      onDataCleared?.(kind);
     }
     setConfirming(null);
   };
