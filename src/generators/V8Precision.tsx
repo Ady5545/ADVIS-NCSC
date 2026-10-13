@@ -551,8 +551,8 @@ function V8IntakePart({ state }: { state: State }) {
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(side * 0.10, 0.025, z),
       new THREE.Vector3(side * 0.14, -0.04, z + (i - 1.5) * 0.025),
-      new THREE.Vector3(side * 0.22, -0.16, z),
-      new THREE.Vector3(side * 0.25, -0.23, z),
+      new THREE.Vector3(side * 0.22, -0.16, z + side * 0.02),
+      new THREE.Vector3(side * 0.25, -0.23, z + side * 0.035),
     ]);
     return (
       <group key={i + ':' + side}>
