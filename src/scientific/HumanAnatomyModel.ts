@@ -5,7 +5,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
   name: 'Human Anatomy Atlas',
   scientificTitle: 'Integrated Human Anatomical Systems & Cardiovascular Hemodynamics',
   domain: 'ANATOMY',
-  description: 'A multi-tier hierarchical anatomical atlas featuring independently addressable organ systems, cardiovascular hemodynamics, pulmonary pathways, and neural innervation networks.',
+  description: 'A hierarchical educational anatomy atlas with visualized organ systems, pulmonary pathways, and neural connections. Its cardiac pressure and volume curves are illustrative teaching waveforms, not a validated clinical or patient-specific simulation.'
 
   subsystems: [
     {
@@ -414,24 +414,37 @@ export const HumanAnatomyModel: ScientificSystemModel = {
   ],
 
   simulation: {
+    validation: {
+      level: 'PRESENTATION_ANIMATION',
+      assumptions: [
+        'The cardiac cycle is a staged educational waveform to help learners relate phase, pressure indicator, volume indicator, and heart rate.',
+        'Heart-rate changes alter the presentation-cycle speed; stroke-volume input alters the illustrative ventricular-volume curve.',
+        'Pressure and volume curves are hand-authored teaching approximations, not measured data or outputs from a cardiovascular solver.'
+      ],
+      limitations: [
+        'Not a patient-specific model, diagnostic tool, or clinically validated hemodynamic simulation.',
+        'Values do not establish normal ranges, predict disease, or support clinical decisions.',
+        'Anatomical geometry and physiological curves have not been independently validated for medical use.'
+      ]
+    },
     variables: {
       'cardiacPulsation': {
         id: 'cardiacPulsation',
-        name: 'Ventricular Wall Motion',
-        unit: 'mm',
+        name: 'Illustrative Ventricular Wall Motion',
+        unit: 'normalized units',
         defaultValue: 0,
         isDynamic: true,
         description: 'Periodic systolic contraction and diastolic filling deformation of ventricular myocardium'
       },
       'bloodPressure': {
         id: 'bloodPressure',
-        name: 'Aortic Blood Pressure',
-        unit: 'mmHg',
+        name: 'Illustrative Aortic Pressure Indicator',
+        unit: 'mmHg (illustrative)',
         defaultValue: 118,
         min: 60,
         max: 180,
         isDynamic: true,
-        description: 'Instantaneous hydraulic arterial pressure in ascending aorta'
+        description: 'Hand-authored educational waveform in pressure units; not a measurement or clinically validated prediction.'
       },
       'cardiacCycleProgress': {
         id: 'cardiacCycleProgress',
@@ -445,20 +458,23 @@ export const HumanAnatomyModel: ScientificSystemModel = {
       },
       'leftVentricularVolume': {
         id: 'leftVentricularVolume',
-        name: 'Left Ventricular Volume',
-        unit: 'mL',
+        name: 'Illustrative Left Ventricular Volume',
+        unit: 'mL (illustrative)',
         defaultValue: 110,
         min: 45,
         max: 130,
         isDynamic: true,
-        description: 'Instantaneous intracardiac blood volume during diastolic filling and systolic ejection'
+        description: 'Teaching waveform for the cardiac cycle; not a patient-specific or clinically validated volume estimate.'
       }
     },
 
     parameters: {
-      'heartRate': 72,             // Beats per minute
-      'strokeVolume': 70,          // mL per beat
-      'systemicVascularResistance': 1.1 // mmHg·min/L
+      'heartRate': 72,
+      'strokeVolume': 70
+    },
+    parameterDefinitions: {
+      heartRate: { name: 'Cardiac-cycle playback rate', unit: 'bpm', min: 30, max: 180, step: 1, description: 'Controls the speed of the educational cycle; does not simulate autonomic regulation or a patient response.' },
+      strokeVolume: { name: 'Illustrative volume-swing input', unit: 'mL', min: 0, max: 100, step: 5, description: 'Changes the amplitude of the illustrative ventricular-volume curve only; it is not a clinical stroke-volume estimate.' }
     },
 
     cyclePhases: [
@@ -470,7 +486,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         description: 'Ventricles relax. Atrioventricular (mitral/tricuspid) valves open. Blood flows passively from atria into ventricles, followed by atrial contraction kick.',
         color: '#38bdf8',
         activeValves: ['mitral_valve'],
-        thermoState: 'Low pressure ventricular filling (P ≈ 6–10 mmHg)'
+        thermoState: 'Illustrative filling phase; not a patient-specific pressure value'
       },
       {
         id: 'ISOVOLUMETRIC_CONTRACTION',
@@ -480,7 +496,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         description: 'Ventricular myocardium contracts. Intracardiac pressure exceeds atrial pressure, slamming mitral valve shut (S1 heart sound). Volume remains constant.',
         color: '#eab308',
         activeValves: [],
-        thermoState: 'Rapid isovolumetric pressure spike to 80 mmHg'
+        thermoState: 'Illustrative isovolumetric phase; not clinically validated'
       },
       {
         id: 'VENTRICULAR_SYSTOLE',
@@ -490,7 +506,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         description: 'Left ventricular pressure surpasses aortic diastolic threshold (80 mmHg). Aortic valve opens; 70 mL stroke volume is forcefully ejected into aorta.',
         color: '#ef4444',
         activeValves: ['aortic_valve'],
-        thermoState: 'Peak Systolic Pressure (P = 120 mmHg)'
+        thermoState: 'Illustrative ejection-phase pressure indicator; not a clinical prediction'
       },
       {
         id: 'ISOVOLUMETRIC_RELAXATION',
@@ -500,7 +516,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         description: 'Ventricles repolarize and relax. Aortic backflow closes aortic valve (S2 heart sound). All four valves remain closed until ventricular pressure drops below atrial.',
         color: '#a855f7',
         activeValves: [],
-        thermoState: 'Dicrotic notch pressure oscillation'
+        thermoState: 'Illustrative relaxation-phase waveform'
       }
     ],
 
@@ -513,7 +529,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
       let newAngle = (state['cardiacCycleProgress'] + degPerSec * dt) % 360;
       if (newAngle < 0) newAngle += 360;
 
-      // Wiggers hemodynamic waveform:
+      // Hand-authored teaching waveform; this is not a cardiovascular solver.
       let bp = 80;
       let lvVol = 120;
       let pulse = 0;
@@ -522,7 +538,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         // Diastole: pressure low, volume filling
         const p = newAngle / 150;
         bp = 80 - 8 * Math.exp(-p * 2);
-        lvVol = 50 + 70 * Math.pow(p, 0.7);
+        lvVol = (120 - (params['strokeVolume'] ?? 70)) + (params['strokeVolume'] ?? 70) * Math.pow(p, 0.7);
         pulse = -0.04 * (1 - p);
       } else if (newAngle >= 150 && newAngle < 190) {
         // Isovolumetric contraction: volume constant, pressure rising
@@ -534,13 +550,13 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         // Systolic ejection: pressure peaks at 120 mmHg, volume empties to 50 mL
         const p = (newAngle - 190) / 110;
         bp = 82 + 38 * Math.sin(p * Math.PI);
-        lvVol = 120 - 70 * Math.sin(p * (Math.PI / 2));
+        lvVol = 120 - (params['strokeVolume'] ?? 70) * Math.sin(p * (Math.PI / 2));
         pulse = 0.08 * Math.sin(p * Math.PI);
       } else {
         // Isovolumetric relaxation
         const p = (newAngle - 300) / 60;
         bp = 80 + 10 * Math.exp(-p * 3) * Math.cos(p * Math.PI * 2); // Dicrotic notch
-        lvVol = 50;
+        lvVol = 120 - (params['strokeVolume'] ?? 70);
         pulse = 0.02 * (1 - p);
       }
 
@@ -557,9 +573,9 @@ export const HumanAnatomyModel: ScientificSystemModel = {
   diagrams: [
     {
       id: 'wiggers_cardiac_cycle',
-      title: 'Wiggers Diagram (ECG, Pressure, Volume)',
+      title: 'Illustrative Cardiac-Cycle Indicators (not a clinical Wiggers simulation)',
       type: 'PV_DIAGRAM',
-      description: 'Synchronized hemodynamic chart showing simultaneous left ventricular pressure, aortic pressure, and ventricular volume curves across one heartbeat.',
+      description: 'Illustrative pressure and ventricular-volume curves across a teaching cardiac cycle; no ECG trace or clinically validated hemodynamic calculation is produced.',
       parametersTracked: ['bloodPressure', 'leftVentricularVolume', 'cardiacCycleProgress']
     },
     {
