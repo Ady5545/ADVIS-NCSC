@@ -72,7 +72,7 @@ export function PrivacyDataPanel({ onClose, onDataCleared }: PrivacyDataPanelPro
   const [message, setMessage] = useState('');
   const [clearedAt, setClearedAt] = useState<Partial<Record<LocalDataKey, number>>>({});
   const counts = useMemo(() => {
-    if (typeof window === 'undefined') return { lessons: 0, workshop: 0, authoring: 0, preferences: 0 };
+    if (typeof window === 'undefined') return { lessons: 0, workshop: 0, authoring: 0, preferences: 0, workspace: 0, study: 0, chat: 0 };
     try {
       const lessons = window.localStorage.getItem(LESSON_PROGRESS_KEY);
       const authoring = window.localStorage.getItem(CONTRIBUTION_QUEUE_KEY);
