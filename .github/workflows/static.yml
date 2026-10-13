@@ -46,6 +46,8 @@ jobs:
 
       - name: Test staged explosion transform contract
         run: npm run test:explosion
+      - name: Test workshop, tutor, offline-pack and authoring foundations
+        run: npm run test:roadmap-foundations
 
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
