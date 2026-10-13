@@ -1211,6 +1211,9 @@ function AppContent() {
     const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
     const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
     const tutorComponent = tutorModel?.components?.find((component) => component.id === selectedComponentId) || null;
+    const activeModelTutorContext: ModelTutorContext | null = tutorModel
+      ? buildModelTutorContext(tutorModel, selectedComponentId)
+      : null;
     const activeModelEvidence = tutorModel ? {
       id: tutorModel.id,
       name: tutorModel.name,
@@ -1249,6 +1252,7 @@ function AppContent() {
       activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || (sessionMolecule.isSessionActive && sessionMolecule.molecule ? sessionMolecule.molecule.metadata?.name : null),
       activeMolecule: sessionMolecule.getMolecularContextForAI(),
       activeModelEvidence,
+      activeModelTutorContext,
       selectedComponentId,
       hoveredComponentId,
       spatialMode,
@@ -2174,6 +2178,17 @@ function AppContent() {
         onUndoTransform={undoComponentTransform}
         onRedoTransform={redoComponentTransform}
         onOpenInnovationLab={() => setShowInnovationLab(true)}
+        onOpenPrivacyData={() => setShowPrivacyDataPanel(true)}
+        onOpenAuthoringWorkbench={() => setShowAuthoringWorkbench(true)}
+        onOpenCapabilityMatrix={() => setShowModelCapabilityPanel(true)}
+        qualityPreset={qualityPreset}
+        onQualityPresetChange={(preset) => updateAccessibilityPreferences({ quality: preset })}
+        reducedMotion={accessibilityPreferences.reducedMotion}
+        onReducedMotionChange={(enabled) => updateAccessibilityPreferences({ reducedMotion: enabled })}
+        captionsEnabled={accessibilityPreferences.captionsEnabled}
+        onCaptionsEnabledChange={(enabled) => updateAccessibilityPreferences({ captionsEnabled: enabled })}
+        audioPreferenceEnabled={accessibilityPreferences.audioEnabled}
+        onAudioPreferenceChange={(enabled) => updateAccessibilityPreferences({ audioEnabled: enabled })}
         onSaveWorkspace={saveEngineeringWorkspace}
         onLoadWorkspace={loadEngineeringWorkspace}
         workspaceSaveNotice={workspaceSaveNotice}
@@ -2201,6 +2216,19 @@ function AppContent() {
         lodTier={lodTier}
         onUpdateLodTier={setLodTier}
       />
+    )}
+
+    {showModelCapabilityPanel && (
+      <ModelCapabilityPanel
+        activeModelId={Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject}
+        onClose={() => setShowModelCapabilityPanel(false)}
+      />
+    )}
+    {showAuthoringWorkbench && (
+      <AuthoringWorkbench onClose={() => setShowAuthoringWorkbench(false)} />
+    )}
+    {showPrivacyDataPanel && (
+      <PrivacyDataPanel onClose={() => setShowPrivacyDataPanel(false)} />
     )}
 
     {showInnovationLab && (
