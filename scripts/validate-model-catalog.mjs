@@ -2,9 +2,9 @@ import { createRequire } from 'node:module';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'esbuild';
-import { tmpdir } from 'node:os';
 
-const temporaryDirectory = await mkdtemp(join(tmpdir(), 'advis-catalog-audit-'));
+// Keep the temporary bundle under the repository root so Node can resolve its node_modules.
+const temporaryDirectory = await mkdtemp(join(process.cwd(), '.advis-catalog-audit-'));
 const bundledModule = join(temporaryDirectory, 'spatial-library.cjs');
 const errors = [];
 const warnings = [];
