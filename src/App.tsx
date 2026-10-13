@@ -1140,12 +1140,47 @@ function AppContent() {
           ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
           : 'HUD'));
 
+    const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+    const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
+    const tutorComponent = tutorModel?.components?.find((component) => component.id === selectedComponentId) || null;
+    const activeModelEvidence = tutorModel ? {
+      id: tutorModel.id,
+      name: tutorModel.name,
+      category: tutorModel.category,
+      description: tutorModel.description,
+      modelKind: tutorModel.modelKind || null,
+      modelVersion: tutorModel.modelVersion || null,
+      unitSystem: tutorModel.unitSystem || 'UNSPECIFIED',
+      evidence: {
+        geometryAuthority: tutorModel.evidence?.geometryAuthority || null,
+        dimensionsStatus: tutorModel.evidence?.dimensionsStatus || null,
+        simulationStatus: tutorModel.evidence?.simulationStatus || null,
+        educationalLevel: tutorModel.evidence?.educationalLevel || null,
+        references: (tutorModel.evidence?.references || []).slice(0, 5).map((reference) => ({
+          label: reference.label,
+          url: reference.url || '',
+          citation: reference.citation || '',
+          applicability: reference.applicability || 'ILLUSTRATIVE',
+        })),
+        limitations: (tutorModel.evidence?.limitations || []).slice(0, 6),
+      },
+      capabilities: tutorModel.capabilities || {},
+      selectedComponent: tutorComponent ? {
+        id: tutorComponent.id,
+        name: tutorComponent.name,
+        description: tutorComponent.description,
+        category: tutorComponent.category || '',
+        specifications: Object.fromEntries(Object.entries(tutorComponent.specifications || {}).slice(0, 8)),
+      } : null,
+    } : null;
+
     const butlerContext = {
       activeProjectId,
       activeWorkspace,
       activeSpatialObject: currentSpatialObject,
       activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || (sessionMolecule.isSessionActive && sessionMolecule.molecule ? sessionMolecule.molecule.metadata?.name : null),
       activeMolecule: sessionMolecule.getMolecularContextForAI(),
+      activeModelEvidence,
       selectedComponentId,
       hoveredComponentId,
       spatialMode,
