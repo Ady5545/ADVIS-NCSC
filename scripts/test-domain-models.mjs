@@ -50,7 +50,7 @@ try {
 
   const flight = math.calculateMachAndDynamicPressure(100, 340, 1.225);
   assert.ok(Math.abs(flight.mach - (100 / 340)) < 1e-12);
-  assert.equal(flight.dynamicPressurePa, 6125);
+  assert.ok(Math.abs(flight.dynamicPressurePa - 6125) < 1e-8, 'dynamic pressure should match the hand-calculated reference within floating-point tolerance');
   const linkage = math.calculatePlanarTwoLinkKinematics(1, 1, 0, Math.PI / 2);
   assert.ok(Math.abs(linkage.endXMetres - 1) < 1e-12);
   assert.ok(Math.abs(linkage.endYMetres - 1) < 1e-12);
