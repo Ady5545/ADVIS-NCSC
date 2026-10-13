@@ -4,7 +4,7 @@ import { LEARNING_LESSONS, getLessonById } from './LessonCatalog';
 import { clearLessonProgress, loadLessonProgress, saveLessonProgress } from './LessonProgress';
 import type { LearningLesson, LessonAction, LessonProgress, LessonStep } from './LessonSchema';
 import { SPATIAL_LIBRARY } from '../SpatialLibrary';
-import { createOfflineLearningPack, downloadOfflineLearningPack } from './OfflineLearningPack';
+import { createOfflineLearningHtmlPack, createOfflineLearningPack, downloadOfflineLearningHtmlPack, downloadOfflineLearningPack } from './OfflineLearningPack';
 
 export interface LessonRunnerProps {
   open: boolean;
@@ -210,16 +210,37 @@ export function LessonRunner({
                 }
                 try {
                   const pack = createOfflineLearningPack(lesson, model);
-                  setOfflinePackStatus(downloadOfflineLearningPack(pack)
-                    ? 'Lesson text pack downloaded. It contains objectives, explanations, questions and limitations—not the interactive 3D assets or runtime.'
+                  setOfflinePackStatus(downloadOfflineLearningHtmlPack(pack)
+                    ? 'Self-contained HTML workbook downloaded. It runs offline and includes lesson text, checkboxes and formative questions, but not the 3D runtime or live simulation.'
                     : 'Download could not start in this browser. Check download permissions and try again.');
                 } catch (error) {
-                  setOfflinePackStatus(error instanceof Error ? error.message : 'Offline pack could not be prepared.');
+                  setOfflinePackStatus(error instanceof Error ? error.message : 'Offline workbook could not be prepared.');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-cyan-700/50 bg-cyan-950/20 px-2.5 py-2 text-[10px] text-cyan-100 hover:bg-cyan-950/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+            >
+              <Download size={12} /> Download offline HTML workbook
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const model = SPATIAL_LIBRARY[lesson.modelId];
+                if (!model) {
+                  setOfflinePackStatus('This lesson has no matching catalog model, so a data pack could not be prepared.');
+                  return;
+                }
+                try {
+                  const pack = createOfflineLearningPack(lesson, model);
+                  setOfflinePackStatus(downloadOfflineLearningPack(pack)
+                    ? 'JSON data pack downloaded for backup, migration or authoring. Use the HTML workbook for a ready-to-read offline experience.'
+                    : 'Download could not start in this browser. Check download permissions and try again.');
+                } catch (error) {
+                  setOfflinePackStatus(error instanceof Error ? error.message : 'Offline data pack could not be prepared.');
                 }
               }}
               className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-2.5 py-2 text-[10px] text-slate-200 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
             >
-              <Download size={12} /> Download offline text pack
+              <Download size={12} /> Export JSON pack
             </button>
             {offlinePackStatus && (
               <p className="basis-full text-[10px] leading-relaxed text-slate-400" role="status" aria-live="polite">{offlinePackStatus}</p>
