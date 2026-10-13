@@ -1,5 +1,10 @@
 import type { ObjectMetadata } from '../SpatialLibrary';
 
+type CapabilityReasonKey =
+  | 'componentHierarchy' | 'hideIsolate' | 'explosion' | 'glassView' | 'blueprintView'
+  | 'sectionPlane' | 'kinematicMotion' | 'numericalSimulation' | 'measurement' | 'lesson'
+  | 'editableCopy' | 'undoRedo' | 'gltfExport' | 'cadExport';
+
 export interface ModelCapabilityDescriptor {
   orbit: boolean;
   selection: boolean;
@@ -17,7 +22,7 @@ export interface ModelCapabilityDescriptor {
   undoRedo: boolean;
   gltfExport: boolean;
   cadExport: boolean;
-  reasonUnavailable: Partial<Record<keyof Omit<ModelCapabilityDescriptor, 'orbit' | 'selection'>, string>>;
+  reasonUnavailable: Partial<Record<CapabilityReasonKey, string>>;
 }
 
 function hasMeaningfulOffset(offset: unknown): boolean {
