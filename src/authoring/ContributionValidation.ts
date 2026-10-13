@@ -44,7 +44,7 @@ export function validateModelSubmission(model: ObjectMetadata): ContributionVali
   if (!nonEmpty(model.evidence?.attribution) && model.evidence?.license !== 'CC0-1.0' && model.evidence?.license !== 'CC-BY-4.0') {
     issues.push({ severity: 'WARNING', code: 'ATTRIBUTION', message: 'Add creator/source attribution; a license label alone may not be sufficient.' });
   }
-  if (!model.evidence?.references?.length) {
+  if (!Array.isArray(model.evidence?.references) || model.evidence.references.length === 0) {
     issues.push({ severity: 'WARNING', code: 'REFERENCES', message: 'No source references are attached; scientific claims must stay illustrative or unknown.' });
   }
   if (!Array.isArray(model.components) || model.components.length === 0) {
@@ -52,15 +52,19 @@ export function validateModelSubmission(model: ObjectMetadata): ContributionVali
   } else {
     const ids = new Set<string>();
     for (const component of model.components) {
+      if (!component || typeof component !== 'object') {
+        issues.push({ severity: 'ERROR', code: 'COMPONENT_OBJECT', message: 'Every component entry must be an object.' });
+        continue;
+      }
       if (!nonEmpty(component.id) || ids.has(component.id)) {
         issues.push({ severity: 'ERROR', code: 'COMPONENT_ID', message: `Component ID "${component?.id || '(missing)'}" is missing or duplicated.` });
       }
       if (component?.id) ids.add(component.id);
-      if (component?.parentId && !model.components.some((candidate) => candidate.id === component.parentId)) {
+      if (component.parentId && !model.components.some((candidate) => candidate && candidate.id === component.parentId)) {
         issues.push({ severity: 'ERROR', code: 'PARENT_REFERENCE', message: `Component "${component.id}" references missing parent "${component.parentId}".` });
       }
       for (const connectionId of component?.connectionIds || []) {
-        if (!model.components.some((candidate) => candidate.id === connectionId)) {
+        if (!model.components.some((candidate) => candidate && candidate.id === connectionId)) {
           issues.push({ severity: 'ERROR', code: 'CONNECTION_REFERENCE', message: `Component "${component.id}" references missing connection "${connectionId}".` });
         }
       }
@@ -100,11 +104,16 @@ export function validateLessonSubmission(
     issues.push({ severity: 'WARNING', code: 'LESSON_SOURCES', message: 'Attach teaching references or explicitly label the lesson as illustrative/draft.' });
   }
   if (lesson.authoringStatus === 'EVIDENCE_REVIEWED' &&
-      (!nonEmpty(lesson.reviewedBy) || !nonEmpty(lesson.reviewedAt) || !lesson.sourceReferences.some((reference) => nonEmpty(reference.url)))) {
+      (!nonEmpty(lesson.reviewedBy) || !nonEmpty(lesson.reviewedAt) || !Array.isArray(lesson.sourceReferences) || !lesson.sourceReferences.some((reference) => nonEmpty(reference?.url)))) {
     issues.push({ severity: 'ERROR', code: 'REVIEW_EVIDENCE', message: 'Evidence-reviewed lessons require a reviewer, date and at least one source URL.' });
   }
   const stepIds = new Set<string>();
-  for (const step of lesson.steps || []) {
+  const steps = Array.isArray(lesson.steps) ? lesson.steps : [];
+  for (const step of steps) {
+    if (!step || typeof step !== 'object') {
+      issues.push({ severity: 'ERROR', code: 'STEP_OBJECT', message: 'Every lesson step must be an object.' });
+      continue;
+    }
     if (!nonEmpty(step.id) || stepIds.has(step.id)) {
       issues.push({ severity: 'ERROR', code: 'STEP_ID', message: `Step ID "${step?.id || '(missing)'}" is missing or duplicated.` });
     }
@@ -113,7 +122,7 @@ export function validateLessonSubmission(
       issues.push({ severity: 'ERROR', code: 'STEP_TARGET', message: `Step "${step.id}" has an empty component target.` });
     }
     if (step?.question) {
-      const choices = step.question.choices || [];
+      const choices = Array.isArray(step.question.choices) ? step.question.choices : [];
       const choiceIds = new Set(choices.map((choice) => choice.id));
       if (choices.length < 2 || choiceIds.size !== choices.length || !choiceIds.has(step.question.correctChoiceId)) {
         issues.push({ severity: 'ERROR', code: 'QUESTION_CHOICES', message: `Question "${step.question.id}" has invalid choices or correctChoiceId.` });
