@@ -4,7 +4,7 @@ import { LEARNING_LESSONS, getLessonById } from './LessonCatalog';
 import { clearLessonProgress, loadLessonProgress, saveLessonProgress } from './LessonProgress';
 import type { LearningLesson, LessonAction, LessonProgress, LessonStep } from './LessonSchema';
 import { SPATIAL_LIBRARY } from '../SpatialLibrary';
-import { createOfflineLearningHtmlPack, createOfflineLearningPack, downloadOfflineLearningHtmlPack, downloadOfflineLearningPack } from './OfflineLearningPack';
+import { createOfflineLearningPack, downloadOfflineLearningHtmlPack, downloadOfflineLearningPack } from './OfflineLearningPack';
 
 export interface LessonRunnerProps {
   open: boolean;
