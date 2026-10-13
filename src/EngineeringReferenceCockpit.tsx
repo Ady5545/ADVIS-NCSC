@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, Maximize2, Play, Ruler, Sparkles, X, Layers3 } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
-import { resolveObjectFidelity } from './cad/GeometryFidelity';
+import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
+import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
 import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12ScientificConfig';
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
@@ -14,6 +15,9 @@ export interface EngineeringReferenceCockpitProps {
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
   onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
   onSelectComponent?: (id: string | null) => void;
+  hiddenComponentIds?: string[];
+  onToggleComponentVisibility?: (id: string) => void;
+  onShowAllComponents?: () => void;
   explodedFactor?: number;
   onUpdateExplodedFactor?: (factor: number) => void;
   xrayEnabled?: boolean;
@@ -46,6 +50,9 @@ export function EngineeringReferenceCockpit({
   activeObject,
   selectedComponentId,
   onSelectComponent,
+  hiddenComponentIds = [],
+  onToggleComponentVisibility,
+  onShowAllComponents,
   explodedFactor = 0,
   onUpdateExplodedFactor,
   xrayEnabled = false,
@@ -67,6 +74,8 @@ export function EngineeringReferenceCockpit({
 }: EngineeringReferenceCockpitProps) {
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showParts, setShowParts] = useState(false);
+  const [componentSearch, setComponentSearch] = useState('');
+  const [collapsedTreeNodes, setCollapsedTreeNodes] = useState<Record<string, boolean>>({});
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
@@ -91,7 +100,66 @@ export function EngineeringReferenceCockpit({
         ? 'GLTF'
         : 'PROCEDURAL';
 
-  const visibleComponents = useMemo(() => components.slice(0, 18), [components]);
+  const visibleComponents = useMemo(() => {
+    const query = componentSearch.trim().toLowerCase();
+    if (!query) return components;
+    return components.filter((component) => [component.id, component.name, component.description, component.category, component.subsystemId]
+      .filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  }, [components, componentSearch]);
+  const componentTree = useMemo(() => buildComponentHierarchy({ components: visibleComponents }), [visibleComponents]);
+  const selectedComponent = components.find((component) => component.id === selectedComponentId) || null;
+  const selectedComponentFidelity = selectedComponent ? resolveComponentFidelity(selectedComponent) : null;
+
+  const renderComponentTreeNode = (node: ComponentTreeNode, depth = 0): React.ReactNode => {
+    const collapsed = collapsedTreeNodes[node.id] ?? false;
+    if (node.kind === 'subsystem') {
+      return (
+        <div key={node.id}>
+          <button
+            type="button"
+            aria-expanded={!collapsed}
+            onClick={() => setCollapsedTreeNodes((state) => ({ ...state, [node.id]: !collapsed }))}
+            className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-slate-100 border-y border-slate-200 text-left text-[9px] uppercase tracking-[0.12em] text-slate-600 hover:bg-slate-200"
+          >
+            <ChevronRight size={11} className={collapsed ? '' : 'rotate-90 transition-transform'} />
+            <span className="flex-1 truncate">{node.label}</span>
+            <span className="text-[8px] text-slate-400">{node.children.length}</span>
+          </button>
+          {!collapsed && node.children.map((child) => renderComponentTreeNode(child, depth + 1))}
+        </div>
+      );
+    }
+    const component = node.component;
+    if (!component) return null;
+    const active = selectedComponentId === component.id;
+    const hidden = hiddenComponentIds.includes(component.id);
+    const subCollapsed = collapsedTreeNodes[node.id] ?? false;
+    return (
+      <div key={node.id} style={{ paddingLeft: Math.min(depth * 8, 24) }} className="flex items-stretch gap-1">
+        <button
+          type="button"
+          aria-pressed={active}
+          onClick={() => { onSelectComponent?.(component.id); onHighlightComponent?.(component.id); }}
+          className={`min-w-0 flex-1 text-left px-2 py-1.5 border transition-colors ${active ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-semibold truncate">{component.name}</span>
+            <span className="text-[8px] text-slate-400">{component.shape}</span>
+          </div>
+          <div className="text-[8px] text-slate-400 truncate mt-0.5">{component.description}</div>
+        </button>
+        <button
+          type="button"
+          aria-label={hidden ? `Show ${component.name}` : `Hide ${component.name}`}
+          aria-pressed={!hidden}
+          title={hidden ? 'Show component' : 'Hide component'}
+          onClick={() => onToggleComponentVisibility?.(component.id)}
+          className={`w-8 shrink-0 flex items-center justify-center border ${hidden ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:text-slate-900'}`}
+        >{hidden ? <EyeOff size={12} /> : <Eye size={12} />}</button>
+      </div>
+    );
+  };
+
 
   const applyPreset = (presetId: string) => {
     const preset = V12_CAMERA_PRESETS.find((entry) => entry.id === presetId);
@@ -260,33 +328,43 @@ export function EngineeringReferenceCockpit({
           )}
         </div>
 
-        {/* Parts drawer */}
+        {/* Searchable component explorer: grouped for legacy models, nested for assemblies with parent metadata. */}
         {showParts && (
-          <div className="absolute left-5 top-[24%] w-[250px] max-h-[50vh] bg-white/95 border border-slate-300 shadow-xl pointer-events-auto overflow-hidden">
+          <div className="absolute left-5 top-[24%] w-[min(360px,calc(100vw-40px))] max-h-[60vh] bg-white/95 border border-slate-300 shadow-xl pointer-events-auto overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]"><Layers3 size={13} /> Components</div>
-              <button onClick={() => setShowParts(false)}><X size={13} /></button>
+              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]"><Layers3 size={13} /> Component explorer <span className="text-slate-400">({components.length})</span></div>
+              <button type="button" onClick={() => setShowParts(false)} aria-label="Close component explorer"><X size={13} /></button>
             </div>
-            <div className="p-2 max-h-[44vh] overflow-y-auto space-y-1">
-              {visibleComponents.map((component) => {
-                const active = selectedComponentId === component.id;
-                return (
-                  <button
-                    key={component.id}
-                    onClick={() => {
-                      onSelectComponent?.(component.id);
-                      onHighlightComponent?.(component.id);
-                    }}
-                    className={`w-full text-left px-2 py-1.5 border transition-all ${active ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-semibold truncate">{component.name}</span>
-                      <span className="text-[8px] text-slate-400">{component.shape}</span>
-                    </div>
-                    <div className="text-[8px] text-slate-400 truncate mt-0.5">{component.description}</div>
-                  </button>
-                );
-              })}
+
+            <div className="p-2 border-b border-slate-200 space-y-2">
+              <label className="flex items-center gap-2 px-2 border border-slate-300 bg-white">
+                <Search size={13} className="text-slate-400" />
+                <input value={componentSearch} onChange={(event) => setComponentSearch(event.currentTarget.value)} aria-label="Search components by name, subsystem or description" placeholder="Search all components…" className="min-w-0 w-full py-2 text-[10px] outline-none bg-transparent" />
+              </label>
+              <div className="flex items-center justify-between text-[9px] text-slate-500">
+                <span>{visibleComponents.length} matching components · {hiddenComponentIds.length} hidden</span>
+                <button type="button" onClick={onShowAllComponents} className="font-semibold text-rose-600 hover:text-rose-800">Show all</button>
+              </div>
+            </div>
+
+            {selectedComponent && (
+              <section aria-label="Selected component details" className="p-3 border-b border-slate-200 bg-rose-50/60 space-y-1">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-rose-700">Selected component</div>
+                <div className="text-[12px] font-semibold text-slate-900">{selectedComponent.name}</div>
+                <p className="text-[10px] leading-relaxed text-slate-600">{selectedComponent.description}</p>
+                <div className="grid grid-cols-2 gap-2 text-[9px] pt-1">
+                  <div><div className="text-slate-400 uppercase">Subsystem</div><div className="text-slate-700">{selectedComponent.subsystemId?.replace(/[-_]+/g, ' ') || selectedComponent.category || 'Not specified'}</div></div>
+                  <div><div className="text-slate-400 uppercase">Material</div><div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div></div>
+                  <div><div className="text-slate-400 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
+                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
+                </div>
+              </section>
+            )}
+
+            <div className="min-h-0 p-2 overflow-y-auto space-y-1">
+              {componentTree.length === 0 ? (
+                <div className="p-4 text-center text-[10px] text-slate-500">No components match this search.</div>
+              ) : componentTree.map((node) => renderComponentTreeNode(node))}
             </div>
           </div>
         )}

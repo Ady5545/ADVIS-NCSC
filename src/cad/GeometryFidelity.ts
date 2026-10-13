@@ -1,4 +1,4 @@
-import type { ObjectMetadata, ComponentMetadata } from '../SpatialLibrary';
+import type { ModelCapability, ObjectMetadata, ComponentMetadata } from '../SpatialLibrary';
 import { assessCadEvidence, isSourceCadVerified } from './CadCertification';
 
 export type GeometryAuthority =
@@ -20,8 +20,8 @@ export interface GeometryFidelityProfile {
   detailLabel: string;
 }
 
-function explicitCapability(metadata: Record<string, any> | undefined, key: string): boolean {
-  return metadata?.capabilities?.[key] === true;
+function explicitCapability(object: Pick<ObjectMetadata, 'capabilities'>, key: ModelCapability): boolean {
+  return object.capabilities?.[key] === true;
 }
 
 export function resolveComponentFidelity(component: ComponentMetadata): GeometryFidelityProfile {
@@ -51,7 +51,7 @@ export function resolveComponentFidelity(component: ComponentMetadata): Geometry
     authority: 'PROCEDURAL_HIGH_DETAIL',
     tier: 'L2',
     supportsDeepZoom: false,
-    supportsInteriorInspection: explicitCapability((component as any).metadata, 'interiorGeometryAvailable'),
+    supportsInteriorInspection: component.capabilities?.interiorGeometry === true,
     sourceLabel: 'Procedural engineering geometry',
     detailLabel: 'Educational detail; dimensions require evidence',
   };
@@ -59,14 +59,13 @@ export function resolveComponentFidelity(component: ComponentMetadata): Geometry
 
 export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityProfile {
   const evidence = assessCadEvidence(object);
-  const metadata = object.metadata;
 
   if (evidence.status === 'SOURCE_CAD_VERIFIED' && isSourceCadVerified(evidence)) {
     return {
       authority: 'CAD_BREP',
       tier: 'L4',
-      supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-      supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+      supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+      supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
       sourceLabel: 'Source CAD; recorded validation available',
       detailLabel: 'Validated only for recorded checks',
     };
@@ -87,8 +86,8 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
     return {
       authority: 'GLTF_ASSET',
       tier: 'L3',
-      supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-      supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+      supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+      supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
       sourceLabel: 'GLTF / visual asset',
       detailLabel: 'Visual asset; CAD authority unverified',
     };
@@ -98,8 +97,8 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
     return {
       authority: 'SCIENTIFIC_STRUCTURAL',
       tier: 'L1',
-      supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-      supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+      supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+      supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
       sourceLabel: 'Scientific visualization',
       detailLabel: 'Concept geometry; see assumptions',
     };
@@ -107,10 +106,10 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
 
   return {
     authority: object.geometryAuthority === 'CONCEPT' ? 'CONCEPT' : 'PROCEDURAL_HIGH_DETAIL',
-    tier: explicitCapability(metadata, 'geometryReviewed') ? 'L2' : 'L1',
-    supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-    supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+    tier: object.evidence?.reviewer && object.evidence?.reviewedAt ? 'L2' : 'L1',
+    supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+    supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
     sourceLabel: 'Procedural educational model',
-    detailLabel: explicitCapability(metadata, 'geometryReviewed') ? 'Geometry reviewed for stated scope' : 'Geometry validation not recorded',
+    detailLabel: object.evidence?.reviewer && object.evidence?.reviewedAt ? 'Geometry reviewed for stated scope' : 'Geometry validation not recorded',
   };
 }

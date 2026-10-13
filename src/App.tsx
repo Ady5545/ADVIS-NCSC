@@ -242,14 +242,22 @@ function AppContent() {
   const [presentationStep, setPresentationStep] = useState<number>(0);
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
+
+  useEffect(() => {
+    setHiddenComponentIds([]);
+    setIsolatedComponentId(null);
+    setHighlightedComponentId(null);
+  }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
   const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
   const [explodedFactor, setExplodedFactor] = useState<number>(0);
   const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
   const [blueprintEnabled, setBlueprintEnabled] = useState<boolean>(false);
   const [highlightedComponentId, setHighlightedComponentId] = useState<string | null>(null);
   const [isolatedComponentId, setIsolatedComponentId] = useState<string | null>(null);
+  const toggleComponentVisibility = (componentId: string) => setHiddenComponentIds((current) => current.includes(componentId) ? current.filter((id) => id !== componentId) : [...current, componentId]);
   const [tracedFunctionKey, setTracedFunctionKey] = useState<string | null>(null);
   const [isKinematicPlaying, setIsKinematicPlaying] = useState<boolean>(true);
   const [kinematicSpeed, setKinematicSpeed] = useState<number>(1.0);
@@ -1452,6 +1460,7 @@ function AppContent() {
               blueprintEnabled={blueprintEnabled}
               highlightedComponentId={highlightedComponentId}
               isolatedComponentId={isolatedComponentId}
+              hiddenComponentIds={hiddenComponentIds}
               tracedFunctionKey={tracedFunctionKey}
               isKinematicPlaying={isKinematicPlaying}
               kinematicSpeed={kinematicSpeed}
@@ -1834,6 +1843,9 @@ function AppContent() {
         activeObject={currentSpatialObject} 
         selectedComponentId={selectedComponentId}
         onSelectComponent={setSelectedComponentId}
+        hiddenComponentIds={hiddenComponentIds}
+        onToggleComponentVisibility={toggleComponentVisibility}
+        onShowAllComponents={() => setHiddenComponentIds([])}
         componentTransforms={componentTransforms}
         onUpdateComponentTransform={handleUpdateComponentTransform}
         explodedFactor={explodedFactor}
