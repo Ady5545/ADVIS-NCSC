@@ -14,7 +14,15 @@ export interface EngineeringReferenceCockpitProps {
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
-  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;\n  onOpenInnovationLab?: () => void;\n  onSaveWorkspace?: () => void;\n  onLoadWorkspace?: () => void;\n  workspaceSaveNotice?: string;
+  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
+  canUndoTransform?: boolean;
+  canRedoTransform?: boolean;
+  onUndoTransform?: () => void;
+  onRedoTransform?: () => void;
+  onOpenInnovationLab?: () => void;
+  onSaveWorkspace?: () => void;
+  onLoadWorkspace?: () => void;
+  workspaceSaveNotice?: string;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
