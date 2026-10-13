@@ -473,9 +473,9 @@ function AppContent() {
           return;
         }
         restored[id] = {
-          position: [...transform.position] as [number, number, number],
-          rotation: [...transform.rotation] as [number, number, number],
-          scale: [...transform.scale] as [number, number, number],
+          position: [...(transform.position as [number, number, number])],
+          rotation: [...(transform.rotation as [number, number, number])],
+          scale: [...(transform.scale as [number, number, number])],
         };
       }
       setComponentTransforms((prev) => {
