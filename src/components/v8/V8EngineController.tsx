@@ -28,7 +28,6 @@ export interface V8EngineControllerProps {
   isolatedComponentId: string | null;
   onToggleIsolate: (id: string | null) => void;
   selectedComponentId: string | null;
-  onSelectComponent: (id: string | null) => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -60,7 +59,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
     kinematicAngleDeg, onScrubAngle, focusedCylinder, onSelectCylinder,
     showLabels, onToggleLabels, chargeFlowEnabled, onToggleChargeFlow,
     vectorsEnabled, onToggleVectors, isolatedComponentId, onToggleIsolate,
-    selectedComponentId, onSelectComponent, soundEnabled, onToggleSound
+    selectedComponentId, soundEnabled, onToggleSound
   } = props;
 
   const currentCutawayMode: CutawayMode = blueprintEnabled ? 'SECTION' : xrayEnabled ? 'GLASS' : 'SOLID';
@@ -80,7 +79,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
 
   const cutaway = (mode: CutawayMode) => onSetCutawayMode(mode);
   const toggleIsolate = () => {
-    if (isolatedComponentId || selectedComponentId) {
+    if (isolatedComponentId) {
       onToggleIsolate(null);
     } else if (selectedComponentId) {
       onToggleIsolate(selectedComponentId);
