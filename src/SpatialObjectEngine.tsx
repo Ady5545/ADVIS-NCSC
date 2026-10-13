@@ -318,6 +318,7 @@ interface SpatialObjectEngineProps {
   blueprintEnabled?: boolean;
   highlightedComponentId?: string | null;
   isolatedComponentId?: string | null;
+  hiddenComponentIds?: string[];
   tracedFunctionKey?: string | null;
   isKinematicPlaying?: boolean;
   kinematicSpeed?: number;
@@ -2006,6 +2007,7 @@ export function SpatialObjectEngine({
   blueprintEnabled = false,
   highlightedComponentId = null,
   isolatedComponentId = null,
+  hiddenComponentIds = [],
   tracedFunctionKey = null,
   isKinematicPlaying = true,
   kinematicSpeed = 1.0,
@@ -3097,6 +3099,7 @@ export function SpatialObjectEngine({
                       
                       // Isolation mode check
                       const isIsolated = isolatedComponentId ? (comp.id === isolatedComponentId) : true;
+                      const isHidden = hiddenComponentIds.includes(comp.id);
                       const compXray = !isIsolated || xrayEnabled;
 
                       const transform = componentTransforms?.[comp.id];
@@ -3114,7 +3117,7 @@ export function SpatialObjectEngine({
                       const scl = transform ? transform.scale : (isIsolated ? [1, 1, 1] : [0.95, 0.95, 0.95]);
                       
                       return (
-                        <group position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
+                        <group visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
                             ref={(el) => {
                               if (el) componentRefs.current[comp.id] = el;
                             }}
