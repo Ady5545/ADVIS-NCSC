@@ -10,6 +10,7 @@ import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
 import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
 import { ModelCapabilityPanel } from './models/ModelCapabilityPanel';
+import { AuthoringWorkbench } from './authoring/AuthoringWorkbench';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -97,6 +98,7 @@ export function EngineeringReferenceCockpit({
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [workshopOpen, setWorkshopOpen] = useState(false);
   const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
+  const [authoringOpen, setAuthoringOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -215,7 +217,7 @@ export function EngineeringReferenceCockpit({
             </div>
           </div>
 
-          <div className="flex items-start gap-8">
+          <div className="flex items-start gap-2 sm:gap-4">
             <div className="hidden md:flex flex-col items-end pt-1">
               <div className="flex items-center gap-4 text-[9px] uppercase tracking-[0.14em] text-slate-500">
                 {phaseLegend.map(([label, color]) => (
@@ -228,16 +230,22 @@ export function EngineeringReferenceCockpit({
             </div>
             <button
               type="button"
-              onClick={() => setCapabilitiesOpen(true)}
+              onClick={() => { setWorkshopOpen(false); setAuthoringOpen(false); setCapabilitiesOpen(true); }}
               className="pointer-events-auto mr-2 min-h-9 rounded-full border border-slate-300 bg-white/90 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
               aria-label="Open model capability matrix"
             >MATRIX</button>
             <button
               type="button"
-              onClick={() => setWorkshopOpen(true)}
-              className="pointer-events-auto mr-2 min-h-9 rounded-full border border-cyan-500/40 bg-cyan-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-cyan-800 hover:bg-cyan-100 transition-all shadow-sm"
+              onClick={() => { setCapabilitiesOpen(false); setAuthoringOpen(false); setWorkshopOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-cyan-500/40 bg-cyan-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-cyan-800 hover:bg-cyan-100 transition-all shadow-sm"
               aria-label="Open innovation workshop for an editable copy"
             >WORKSHOP</button>
+            <button
+              type="button"
+              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setAuthoringOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-violet-500/40 bg-violet-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-violet-800 hover:bg-violet-100 transition-all shadow-sm"
+              aria-label="Open model and lesson authoring review"
+            >AUTHORING</button>
             <button
               type="button"
               onClick={onClose}
@@ -609,6 +617,7 @@ export function EngineeringReferenceCockpit({
         activeObjectKey={objectKey || null}
       />
       {capabilitiesOpen && <ModelCapabilityPanel activeModelId={objectKey} onClose={() => setCapabilitiesOpen(false)} />}
+      {authoringOpen && <AuthoringWorkbench onClose={() => setAuthoringOpen(false)} />}
       {workshopOpen && objectMeta && (
         <InnovationWorkshopPanel
           model={objectMeta}
