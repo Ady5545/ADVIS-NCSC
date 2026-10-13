@@ -272,7 +272,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       specifications: { 'Microcontroller': 'ATmega328P', 'Operating Voltage': '5V', 'Clock Speed': '16 MHz' }
     },
     components: [
-      { id: 'uno_pcb', parentId: 'null', name: 'PCB Substrate', description: 'Six-layer FR4 copper-clad substrate board carrying every other component.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#044530' },
+      { id: 'uno_pcb', name: 'PCB Substrate', description: 'Six-layer FR4 copper-clad substrate board carrying every other component.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#044530' },
       { id: 'uno_atmega', parentId: 'uno_pcb', name: 'ATmega328P MCU (DIP-28)', description: '8-bit AVR RISC microcontroller — the board\'s brain. Runs at 16 MHz, 32 KB flash, 2 KB SRAM.', position: [0.08, 0.06, 0.22], size: [0.14, 0.07, 0.34], explodedOffset: [0, 0.55, 0], shape: 'box', color: '#1c1c1e' },
       { id: 'uno_crystal', parentId: 'uno_pcb', name: '16 MHz Crystal Oscillator', description: 'Ceramic resonator providing the precise clock signal the ATmega328P times every instruction against.', position: [0.22, 0.05, 0.42], size: [0.07, 0.07, 0.05], explodedOffset: [0.3, 0.4, 0.3], shape: 'cylinder', color: '#c6c9ce' },
       { id: 'uno_regulator', parentId: 'uno_pcb', name: 'Voltage Regulator (TO-220)', description: 'Steps external 7–12V DC input down to a clean regulated 5V for the board\'s logic.', position: [-0.28, 0.08, 0.55], size: [0.1, 0.12, 0.02], explodedOffset: [-0.3, 0.4, 0.4], shape: 'box', color: '#1c1c1e' },
