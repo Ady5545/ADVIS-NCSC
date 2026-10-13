@@ -2189,10 +2189,16 @@ export function SpatialObjectEngine({
       const base = object.userData.__advisBasePosition as [number, number, number] | undefined;
       const offset = object.userData.explodedOffset as [number, number, number] | undefined;
       if (!base || !offset) return;
+      const stage = THREE.MathUtils.clamp(Number(object.userData.explosionStage) || 0, 0, 0.95);
+      // Components with a later stage start moving only as the slider reaches that stage.
+      // At 100%, every part reaches its full, deterministic exploded offset.
+      const localFactor = stage > 0
+        ? THREE.MathUtils.clamp((theatreFactor - stage) / (1 - stage), 0, 1)
+        : theatreFactor;
       const target = new THREE.Vector3(
-        base[0] + offset[0] * theatreFactor,
-        base[1] + offset[1] * theatreFactor,
-        base[2] + offset[2] * theatreFactor
+        base[0] + offset[0] * localFactor,
+        base[1] + offset[1] * localFactor,
+        base[2] + offset[2] * localFactor
       );
       object.position.lerp(target, 0.16);
     });
@@ -3131,22 +3137,18 @@ export function SpatialObjectEngine({
 
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
-                      const expOffset = comp.explodedOffset || [0, 0, 0];
-                      const currentExplodedFactor = explodedFactor || 0;
-                      
-                      const pos: [number, number, number] = [
-                        basePos[0] + expOffset[0] * currentExplodedFactor,
-                        basePos[1] + expOffset[1] * currentExplodedFactor,
-                        basePos[2] + expOffset[2] * currentExplodedFactor,
-                      ];
+                      // Canonical/user-edited position only. The authoritative scene transform controller
+                      // applies explosion displacement so React and useFrame never compete for position.
+                      const pos: [number, number, number] = [...basePos];
 
                       const rot = transform ? transform.rotation : (comp.rotation || [0, 0, 0]);
-                      const scl = transform ? transform.scale : (isIsolated ? [1, 1, 1] : [0.95, 0.95, 0.95]);
+                      const scl = transform ? transform.scale : [1, 1, 1];
                       
                       return (
                         <group visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
                             ref={(el) => {
                               if (el) componentRefs.current[comp.id] = el;
+                              else delete componentRefs.current[comp.id];
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3174,6 +3176,7 @@ export function SpatialObjectEngine({
                               category: obj.category,
                               specifications: comp.specifications || obj.educationalInformation?.specifications || { "Status": "Active" },
                               explodedOffset: comp.explodedOffset,
+                              explosionStage: comp.explosionStage ?? 0,
                               __advisBasePosition: basePos,
                               interactionEnabled: comp.interactionEnabled !== false
                             }}
