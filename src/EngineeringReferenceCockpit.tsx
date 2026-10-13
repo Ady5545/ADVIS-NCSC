@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb, Save, FolderOpen } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
@@ -207,8 +207,8 @@ export function EngineeringReferenceCockpit({
         <div className="absolute inset-0 bg-[#f4f5f6]/86 backdrop-blur-[1px]" />
 
         {/* Header */}
-        <div className="absolute top-4 left-5 right-5 flex items-start justify-between gap-4">
-          <div className="pointer-events-auto min-w-[250px]">
+        <div className="absolute top-4 left-3 right-3 md:left-5 md:right-5 flex flex-wrap items-start justify-between gap-3">
+          <div className="pointer-events-auto min-w-0 flex-1 basis-[220px]">
             <div className="flex items-center gap-2 text-[10px] tracking-[0.20em] uppercase text-slate-500 mb-1">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
               ADVIS / ENGINEERING STUDY
@@ -231,7 +231,7 @@ export function EngineeringReferenceCockpit({
                 ))}
               </div>
             </div>
-            <div className="pointer-events-auto flex items-center gap-1.5">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5 max-w-full">
               <button
                 type="button"
                 onClick={onOpenInnovationLab}
@@ -239,10 +239,10 @@ export function EngineeringReferenceCockpit({
                 aria-label="Open innovation workshop"
                 title="Create and experiment with an editable study"
               >
-                <Lightbulb size={14} /> WORKSHOP
+                <Lightbulb size={14} /> <span className="hidden sm:inline">WORKSHOP</span>
               </button>
-              <button type="button" onClick={onSaveWorkspace} aria-label="Save editable workspace locally" title="Save current model transforms on this device" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold">SAVE</button>
-              <button type="button" onClick={onLoadWorkspace} aria-label="Load editable workspace from this device" title="Load saved transforms for this model" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold">LOAD</button>
+              <button type="button" onClick={onSaveWorkspace} aria-label="Save editable workspace locally" title="Save current model transforms on this device" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><Save size={13} /><span className="hidden sm:inline">SAVE</span></button>
+              <button type="button" onClick={onLoadWorkspace} aria-label="Load editable workspace from this device" title="Load saved transforms for this model" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><FolderOpen size={13} /><span className="hidden sm:inline">LOAD</span></button>
               <button
                 type="button"
                 onClick={onUndoTransform}
