@@ -150,9 +150,44 @@ const safeSetStorage = (key: string, value: string): void => {
   } catch {}
 };
 
+const CHAT_STORAGE_KEY = 'advis_chat_history_v1';
+const API_BASE_URL = (import.meta.env.VITE_ADVIS_API_BASE_URL || '').trim().replace(/\/+$/, '');
+
+const advisApiUrl = (path: string): string =>
+  API_BASE_URL + (path.startsWith('/') ? path : '/' + path);
+
+const readStoredChatHistory = (): ChatMessage[] => {
+  try {
+    const parsed = JSON.parse(safeGetStorage(CHAT_STORAGE_KEY, '[]'));
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((message: any) =>
+        message &&
+        (message.role === 'user' || message.role === 'assistant') &&
+        typeof message.content === 'string'
+      )
+      .slice(-40)
+      .map((message: any) => ({
+        role: message.role,
+        content: message.content.slice(0, 12000),
+        timestamp: Number.isFinite(message.timestamp) ? message.timestamp : Date.now()
+      }));
+  } catch {
+    return [];
+  }
+};
+
 function AppContent() {
   const [systemState, setSystemState] = useState<SystemState>('ONLINE');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(readStoredChatHistory());
+
+  useEffect(() => {
+    const persistentMessages = messages
+      .filter((message) => !message.image)
+      .slice(-40)
+      .map(({ role, content, timestamp }) => ({ role, content, timestamp }));
+    safeSetStorage(CHAT_STORAGE_KEY, JSON.stringify(persistentMessages));
+  }, [messages]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [bass, setBass] = useState(0);
   const [treble, setTreble] = useState(0);
@@ -331,7 +366,7 @@ function AppContent() {
   const handleCleanSlate = async () => {
     setMessages([]);
     try {
-      await fetch('/api/advis', {
+      await fetch(advisApiUrl('/api/advis'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: "clear chat", mode: "normal", deviceId: safeGetStorage('advis_device_id') })
@@ -613,20 +648,27 @@ function AppContent() {
   }, []);
 
   const fetchHistory = async (deviceId: string) => {
+    const storedHistory = readStoredChatHistory();
+    if (storedHistory.length > 0) {
+      setMessages(storedHistory);
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/history?deviceId=${deviceId}`);
+      const res = await fetch(advisApiUrl('/api/history?deviceId=' + encodeURIComponent(deviceId)));
+      if (!res.ok) throw new Error('History service returned HTTP ' + res.status);
       const data = await res.json();
       if (data && data.length > 0) {
         setMessages(data.map((m: any) => ({
           ...m,
-          timestamp: Date.now()
+          timestamp: Number.isFinite(m.timestamp) ? m.timestamp : Date.now()
         })));
       } else {
         setMessages([{ role: 'assistant', content: 'Welcome to A.D.V.I.S. Scientific visualization workspace online.', timestamp: Date.now() }]);
       }
     } catch (e) {
       console.warn("fetch history warn:", (e as Error).message);
-      setMessages([{ role: 'assistant', content: 'Scientific workspace online. (Offline Mode Active)', timestamp: Date.now() }]);
+      setMessages([{ role: 'assistant', content: 'Scientific workspace online. Chat history is available on this device when saved locally.', timestamp: Date.now() }]);
     }
   };
 
@@ -863,12 +905,12 @@ function AppContent() {
       isEngineeringMode,
       systemState,
       recentActions,
-      recentConversation: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
+      recentConversation: messages.slice(-10).filter(m => !m.image).map(m => ({ role: m.role, content: m.content }))
     };
 
     try {
       const startTime = Date.now();
-      const res = await fetch('/api/advis', {
+      const res = await fetch(advisApiUrl('/api/advis'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

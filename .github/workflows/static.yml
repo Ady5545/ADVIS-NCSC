@@ -30,10 +30,15 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Validate serverless API syntax
+        run: node --check api/advis.js && node --check api/history.js
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
       - name: Build Vite application
+        env:
+          VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
 
   deploy:
@@ -64,6 +69,8 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build Vite application
+        env:
+          VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
 
       - name: Setup Pages
