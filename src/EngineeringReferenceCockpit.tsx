@@ -180,7 +180,7 @@ export function EngineeringReferenceCockpit({
     window.dispatchEvent(new CustomEvent('advis-camera-preset', { detail: preset }));
   }, [objectKey]);
 
-  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'SECTION' : 'SOLID';
+  const modeLabel = xrayEnabled ? 'GLASS' : blueprintEnabled ? 'BLUEPRINT' : 'SOLID';
 
   return (
     <>
@@ -461,11 +461,11 @@ export function EngineeringReferenceCockpit({
               ))}
             </div>
 
-            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Cutaway</div>
+            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">View mode</div>
             <div className="grid grid-cols-3 gap-1 p-2">
               <button onClick={() => { if (xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SOLID' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SOLID</button>
               <button onClick={() => { if (!xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'GLASS' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>GLASS</button>
-              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SECTION' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SECTION</button>
+              <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'BLUEPRINT' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>BLUEPRINT</button>
             </div>
 
             <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Overlays</div>
