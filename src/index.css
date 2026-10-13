@@ -59,3 +59,21 @@
   90% { opacity: 1; }
   100% { transform: translateY(150px); opacity: 0; }
 }
+
+
+/* Respect operating-system motion preferences and make keyboard focus unmistakable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--primary, #22d3ee);
+  outline-offset: 3px;
+}
