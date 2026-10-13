@@ -105,12 +105,16 @@ export function InnovationWorkshopPanel({
 
   const persist = (next: WorkshopProject) => {
     setProject(next);
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') {
+      setStatus('Browser storage is unavailable in this environment.');
+      return;
+    }
+    try {
       setStatus(saveWorkshopProject(window.localStorage, next)
         ? 'Saved locally on this device.'
         : 'Local browser storage is unavailable; export the project JSON to keep a copy.');
-    } else {
-      setStatus('Browser storage is unavailable in this environment.');
+    } catch {
+      setStatus('Local browser storage is blocked; export the project JSON to keep a copy.');
     }
   };
 
@@ -261,7 +265,7 @@ export function InnovationWorkshopPanel({
             </select>
             <div className="mt-4 space-y-2">
               <button type="button" onClick={createFreshCopy} className="flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/40 px-3 py-2 text-xs hover:bg-cyan-950/50"><Copy size={13} /> Create my copy</button>
-              <button type="button" onClick={() => { if (typeof window !== 'undefined' && saveWorkshopProject(window.localStorage, project)) setStatus('Saved locally on this device.'); else setStatus('Local save unavailable; export project JSON instead.'); }} className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs hover:bg-slate-900"><Save size={13} /> Save locally</button>
+              <button type="button" onClick={() => { try { if (typeof window !== 'undefined' && saveWorkshopProject(window.localStorage, project)) setStatus('Saved locally on this device.'); else setStatus('Local save unavailable; export project JSON instead.'); } catch { setStatus('Local storage is blocked; export project JSON instead.'); } }} className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs hover:bg-slate-900"><Save size={13} /> Save locally</button>
               <button type="button" onClick={downloadProject} className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs hover:bg-slate-900"><Download size={13} /> Export project JSON</button>
               <label htmlFor="workshop-import" className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs hover:bg-slate-900"><FileUp size={13} /> Import project JSON</label>
               <input key={importKey} id="workshop-import" type="file" accept=".json,.advis-project.json,application/json" className="sr-only" onChange={importProject} />
