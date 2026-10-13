@@ -193,8 +193,7 @@ export const LEARNING_LESSONS: LearningLesson[] = [
         estimatedMinutes: 2
       }
     ]
-  }
-];
+  },
 
   {
     id: 'arduino-circuit-basics',
@@ -597,7 +596,9 @@ export const LEARNING_LESSONS: LearningLesson[] = [
         estimatedMinutes: 2
       }
     ]
-  },
+  }
+];
+
 export function getLessonById(lessonId: string): LearningLesson | undefined {
   return LEARNING_LESSONS.find((lesson) => lesson.id === lessonId);
 }
