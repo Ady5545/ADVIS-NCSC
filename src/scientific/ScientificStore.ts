@@ -48,11 +48,14 @@ export const useScientificStore = create<ScientificState>((set, get) => ({
   selectedComponentId: null,
   isolatedSubsystemId: null,
   explosionFactor: 0.0,
-  simulationRunning: true,
+  simulationRunning: false,
   simulationSpeed: 1.0,
   rpm: 1800,
 
   setActiveModel: (modelId: string | null) => {
+    // Dispose the previous model's loop and listeners before switching contexts.
+    get().simulation?.dispose();
+
     if (!modelId) {
       set({
         activeModelId: null,
@@ -61,7 +64,11 @@ export const useScientificStore = create<ScientificState>((set, get) => ({
         graph: null,
         simulationVariables: {},
         parameters: {},
-        currentCyclePhase: undefined
+        currentCyclePhase: undefined,
+        selectedComponentId: null,
+        isolatedSubsystemId: null,
+        explosionFactor: 0,
+        simulationRunning: false
       });
       return;
     }
@@ -87,7 +94,7 @@ export const useScientificStore = create<ScientificState>((set, get) => ({
       currentCyclePhase: phase,
       selectedComponentId: null,
       isolatedSubsystemId: null,
-      simulationRunning: sim.getIsRunning(),
+      simulationRunning: false,
       rpm: params['rpm'] ?? 1800
     });
 
@@ -103,11 +110,18 @@ export const useScientificStore = create<ScientificState>((set, get) => ({
   setParameter: (key: string, value: number) => {
     const { simulation, parameters } = get();
     if (simulation) {
-      simulation.setParameter(key, value);
+      const applied = simulation.setParameter(key, value);
+      if (!applied) return;
+      const updated = simulation.getParameters();
+      set({
+        parameters: updated,
+        ...(key === 'rpm' ? { rpm: updated[key] } : {})
+      });
+      return;
     }
-    const updated = { ...parameters, [key]: value };
+    if (!Number.isFinite(value)) return;
     set({
-      parameters: updated,
+      parameters: { ...parameters, [key]: value },
       ...(key === 'rpm' ? { rpm: value } : {})
     });
   },
@@ -126,14 +140,18 @@ export const useScientificStore = create<ScientificState>((set, get) => ({
 
   setSelectedComponentId: (id: string | null) => set({ selectedComponentId: id }),
   setIsolatedSubsystemId: (subId: string | null) => set({ isolatedSubsystemId: subId }),
-  setExplosionFactor: (factor: number) => set({ explosionFactor: factor }),
+  setExplosionFactor: (factor: number) => {
+    if (Number.isFinite(factor)) set({ explosionFactor: Math.max(0, Math.min(1, factor)) });
+  },
 
   setSimulationSpeed: (speed: number) => {
     const { simulation } = get();
     if (simulation) {
-      simulation.setSpeedMultiplier(speed);
+      const appliedSpeed = simulation.setSpeedMultiplier(speed);
+      set({ simulationSpeed: appliedSpeed });
+      return;
     }
-    set({ simulationSpeed: speed });
+    if (Number.isFinite(speed)) set({ simulationSpeed: Math.max(0.05, Math.min(10, speed)) });
   },
 
   toggleSimulation: () => {
