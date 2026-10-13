@@ -194,7 +194,10 @@ export function ParametricInnovationLab() {
           <button onClick={loadLocally} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs">
             LOAD
           </button>
-          <button onClick={() => { setBaseline(params); setCompareOpen((open) => !open); }} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs flex items-center gap-1.5">
+          <button onClick={() => { setBaseline(params); setNotice('Current design marked as comparison baseline'); }} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs">
+            MARK BASELINE
+          </button>
+          <button onClick={() => setCompareOpen((open) => !open)} aria-expanded={compareOpen} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs flex items-center gap-1.5">
             <GitCompare size={13} /> COMPARE
           </button>
           <button onClick={() => importRef.current?.click()} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
