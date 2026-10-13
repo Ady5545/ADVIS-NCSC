@@ -72,6 +72,74 @@ function cleanRecentConversation(value) {
     .filter(function (item) { return item.content.length > 0; });
 }
 
+function cleanModelEvidence(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value;
+  const evidenceInput = input.evidence && typeof input.evidence === "object" && !Array.isArray(input.evidence) ? input.evidence : {};
+  const allowedKinds = ["PHYSICAL_REFERENCE", "SOURCED_VISUAL_ASSET", "CAD_BREP_ASSEMBLY", "PROCEDURAL_EDUCATIONAL_MODEL", "SCIENTIFIC_CONCEPT_MODEL", "SCHEMATIC"];
+  const allowedGeometry = ["SOURCE_CAD", "SOURCED_VISUAL", "PROCEDURAL", "SCIENTIFIC_APPROXIMATION", "SCHEMATIC"];
+  const allowedDimensions = ["UNSPECIFIED", "NOMINAL", "SOURCE_SUPPORTED", "VALIDATED"];
+  const allowedSimulation = ["NONE", "PRESENTATION_ANIMATION", "KINEMATIC", "ANALYTICAL", "NUMERICAL", "BENCHMARK_VALIDATED"];
+  const allowedLevels = ["MIDDLE_SCHOOL", "HIGH_SCHOOL", "UNDERGRADUATE", "ADVANCED"];
+  const capabilitiesInput = input.capabilities && typeof input.capabilities === "object" && !Array.isArray(input.capabilities) ? input.capabilities : {};
+  const allowedCapabilities = ["inspect", "componentHierarchy", "hideShow", "isolate", "explode", "transparency", "blueprint", "sectionPlane", "measure", "kinematics", "validatedSimulation", "parameterEditing", "guidedLessons", "saveProject", "exportGlb", "exportStep", "deepZoom", "interiorGeometry"];
+  const capabilities = {};
+  for (const key of allowedCapabilities) {
+    if (typeof capabilitiesInput[key] === "boolean") capabilities[key] = capabilitiesInput[key];
+  }
+  const references = Array.isArray(evidenceInput.references) ? evidenceInput.references.slice(0, 5).map(function (reference) {
+    if (!reference || typeof reference !== "object") return null;
+    const label = cleanText(reference.label, 160);
+    const rawUrl = cleanText(reference.url, 500);
+    return {
+      label,
+      url: /^https?:\/\//i.test(rawUrl) ? rawUrl : "",
+      citation: cleanText(reference.citation, 240),
+      applicability: ["EXACT_MODEL", "RELATED_MODEL", "GENERAL_PRINCIPLE", "ILLUSTRATIVE"].includes(reference.applicability) ? reference.applicability : "ILLUSTRATIVE"
+    };
+  }).filter(function (reference) { return reference && reference.label; }) : [];
+  const limitations = Array.isArray(evidenceInput.limitations) ? evidenceInput.limitations.slice(0, 6).map(function (item) {
+    return cleanText(item, 240);
+  }).filter(Boolean) : [];
+  let selectedComponent = null;
+  if (input.selectedComponent && typeof input.selectedComponent === "object" && !Array.isArray(input.selectedComponent)) {
+    const component = input.selectedComponent;
+    const specsInput = component.specifications && typeof component.specifications === "object" && !Array.isArray(component.specifications) ? component.specifications : {};
+    const specifications = {};
+    for (const [key, val] of Object.entries(specsInput).slice(0, 8)) {
+      const safeKey = cleanText(key, 80);
+      const safeValue = cleanText(val, 180);
+      if (safeKey && safeValue) specifications[safeKey] = safeValue;
+    }
+    selectedComponent = {
+      id: cleanText(component.id, 120),
+      name: cleanText(component.name, 160),
+      description: cleanText(component.description, 500),
+      category: cleanText(component.category, 100),
+      specifications
+    };
+  }
+  return {
+    id: cleanText(input.id, 120),
+    name: cleanText(input.name, 160),
+    category: cleanText(input.category, 100),
+    description: cleanText(input.description, 500),
+    modelKind: allowedKinds.includes(input.modelKind) ? input.modelKind : null,
+    modelVersion: cleanText(input.modelVersion, 80) || null,
+    unitSystem: ["SI", "IMPERIAL", "MIXED", "UNSPECIFIED"].includes(input.unitSystem) ? input.unitSystem : "UNSPECIFIED",
+    evidence: {
+      geometryAuthority: allowedGeometry.includes(evidenceInput.geometryAuthority) ? evidenceInput.geometryAuthority : null,
+      dimensionsStatus: allowedDimensions.includes(evidenceInput.dimensionsStatus) ? evidenceInput.dimensionsStatus : null,
+      simulationStatus: allowedSimulation.includes(evidenceInput.simulationStatus) ? evidenceInput.simulationStatus : null,
+      educationalLevel: allowedLevels.includes(evidenceInput.educationalLevel) ? evidenceInput.educationalLevel : null,
+      references,
+      limitations
+    },
+    capabilities,
+    selectedComponent
+  };
+}
+
 function cleanContext(value) {
   const input = value && typeof value === "object" ? value : {};
   const allowedWorkspaces = ["HUD", "SPATIAL", "CHEMISTRY", "ENGINEERING"];
@@ -115,7 +183,7 @@ function cleanContext(value) {
     showLabels: typeof input.showLabels === "boolean" ? input.showLabels : undefined,
     isEngineeringMode: Boolean(input.isEngineeringMode),
     systemState: cleanText(input.systemState, 40),
-    activeMolecule: molecule,
+    activeMolecule: molecule,\n    activeModelEvidence: cleanModelEvidence(input.activeModelEvidence),
     recentActions: Array.isArray(input.recentActions)
       ? input.recentActions.slice(-6).map(function (action) {
           return {
