@@ -80,6 +80,9 @@ jobs:
           VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
 
+      - name: Smoke test production-like HTTP output
+        run: npm run test:production-http
+
       - name: Install Chromium for browser smoke tests
         run: npx playwright install --with-deps chromium
 
