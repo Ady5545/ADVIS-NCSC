@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Validate serverless API syntax
-        run: node --check api/advis.js && node --check api/history.js
+      - name: Validate serverless API and tutor syntax
+        run: node --check api/advis.js && node --check api/history.js && node --check ButlerEngine.js
 
       - name: Validate model catalog and CAD evidence
         run: npm run validate:catalog
