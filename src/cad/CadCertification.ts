@@ -58,9 +58,11 @@ function getExtension(path = ''): string {
   return match?.[0] || '';
 }
 
-function isScientificConcept(id: string, category: string): boolean {
-  const value = id + ' ' + category;
-  return /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(value);
+function isScientificConcept(obj: Pick<ObjectMetadata, 'id' | 'name' | 'category' | 'modelKind' | 'evidence'>): boolean {
+  const value = `${obj.id} ${obj.name} ${obj.category}`;
+  return obj.modelKind === 'SCIENTIFIC_CONCEPT_MODEL' ||
+    obj.evidence?.geometryAuthority === 'SCIENTIFIC_APPROXIMATION' ||
+    /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton|molecule|chemistry|biological|silicon_pv_cell|solar_semiconductor|probability_cloud)/i.test(value);
 }
 
 export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence {
@@ -170,7 +172,7 @@ export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence
     };
   }
 
-  const concept = isScientificConcept(obj.id, obj.category);
+  const concept = isScientificConcept(obj);
   return {
     status: concept ? 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE' : 'PROCEDURAL_EDUCATIONAL_MODEL',
     sourceFormat: 'PROCEDURAL',
