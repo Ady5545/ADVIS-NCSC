@@ -2,7 +2,7 @@ import { EngineBlockAssembly, PistonAssemblyBank, ConnectingRodsAssembly, Cranks
 import { renderAdvancedEngineeringModel } from './generators/AdvancedEngineeringModels';
 import { renderPremiumEngineeringDetail, renderPremiumWholeModel } from './generators/PremiumEngineeringDetails';
 import { renderPremiumElectronicsWholeModel } from './generators/PremiumElectronicsDetails';
-import { renderV8PrecisionComponent } from './generators/V8Precision';
+import { renderV8PrecisionComponent, V8StudioLightRig } from './generators/V8Precision';
 import { renderI4PrecisionComponent } from './generators/Inline4Precision';
 import { renderTurboPrecisionComponent } from './generators/TurboPrecision';
 import { renderDifferentialPrecisionComponent } from './generators/DifferentialPrecision';
@@ -811,7 +811,9 @@ function EngineeringComponentRenderer({
   v12Direction,
   sysTimeRef,
   focusedCylinder,
-  crankAngleRef
+  crankAngleRef,
+  isKinematicPlaying,
+  kinematicSpeed
 }: {
   comp: ComponentMetadata;
   objectId: string;
@@ -827,6 +829,8 @@ function EngineeringComponentRenderer({
   sysTimeRef?: React.MutableRefObject<number> | null;
   focusedCylinder?: number;
   crankAngleRef?: React.MutableRefObject<number> | null;
+  isKinematicPlaying?: boolean;
+  kinematicSpeed?: number;
 }) {
   const { id, shape, size, color, assetPath, assetScale, cadAssetPath } = comp;
 
@@ -907,7 +911,11 @@ function EngineeringComponentRenderer({
     isHovered,
     isSelected,
     xrayEnabled,
-    blueprintEnabled
+    blueprintEnabled,
+    crankAngleRef,
+    isKinematicPlaying,
+    kinematicSpeed,
+    v8Rpm: v12Rpm
   });
   if (v8Precision) return v8Precision;
 
@@ -2981,6 +2989,7 @@ export function SpatialObjectEngine({
                 </Html>
               ) : (
                 <group>
+                  {obj.id === 'v8_engine' && <V8StudioLightRig />}
                   {obj.modelStatus === 'FALLBACK' && (
                     <Html position={[0, 2, 0]} center transform distanceFactor={10}>
                        <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-cyan-500/50 rounded-lg text-cyan-400 font-mono text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.2)]">
@@ -3105,6 +3114,8 @@ export function SpatialObjectEngine({
                             sysTimeRef={sysTimeRef}
                             focusedCylinder={focusedCylinderRef.current}
                             crankAngleRef={kinematicAngleRef}
+                            isKinematicPlaying={isKinematicPlayingRef.current}
+                            kinematicSpeed={kinematicSpeedRef.current}
                           />
                           
                           {/* Function tracing energetic marker badge */}
@@ -3134,8 +3145,8 @@ export function SpatialObjectEngine({
                                     {comp.description}
                                   </span>
                                   <div className="mt-2 grid grid-cols-2 gap-2 text-[9px] font-mono border-t border-cyan-500/20 pt-1.5">
-                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || comp.specifications?.['Material'] || 'Alloy Steel'}</span></div>
-                                    <div><span className="text-cyan-400/60">Status:</span> <span className="text-emerald-400 font-bold">Verified</span></div>
+                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || comp.specifications?.['Material'] || (obj.id === 'v8_engine' ? 'Not specified' : 'Alloy Steel')}</span></div>
+                                    <div><span className="text-cyan-400/60">Status:</span> <span className={obj.id === 'v8_engine' ? "text-cyan-300 font-bold" : "text-emerald-400 font-bold"}>{obj.id === 'v8_engine' ? 'Educational model' : 'Verified'}</span></div>
                                     {comp.specifications && Object.entries(comp.specifications).slice(0, 2).map(([k, v]) => (
                                       <div key={k}><span className="text-cyan-400/60">{k}:</span> <span className="text-cyan-200 font-bold">{String(v)}</span></div>
                                     ))}
