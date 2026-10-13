@@ -529,3 +529,6 @@ module.exports = async function advisHandler(req, res) {
     });
   }
 };
+
+// Export the sanitizer for deterministic contract tests; the serverless default remains the handler.
+module.exports.cleanContext = cleanContext;
