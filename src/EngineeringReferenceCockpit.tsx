@@ -12,6 +12,7 @@ import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
+  onAskTutor?: (question: string) => void;
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
@@ -52,6 +53,7 @@ const phaseLegend = [
 
 export function EngineeringReferenceCockpit({
   onClose,
+  onAskTutor,
   activeObject,
   selectedComponentId,
   componentTransforms = {},
@@ -389,6 +391,12 @@ export function EngineeringReferenceCockpit({
                     onClick={() => onToggleIsolateComponent?.(isolatedComponentId === selectedComponent.id ? null : selectedComponent.id)}
                     className={`rounded border px-2 py-2 text-[9px] font-semibold ${isolatedComponentId === selectedComponent.id ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'}`}
                   >{isolatedComponentId === selectedComponent.id ? 'Restore assembly' : 'Isolate selected'}</button>
+                  <button
+                    type="button"
+                    onClick={() => onAskTutor?.(`Explain ${selectedComponent.name} in the currently selected ${objectMeta?.name || '3D model'}. Use the supplied model-specific evidence context. Clearly separate general scientific principles from details verified for this asset, cite supplied evidence IDs and source URLs when available, and state what remains unknown.`)}
+                    disabled={!onAskTutor}
+                    className="col-span-2 rounded border border-cyan-600/30 bg-white px-2 py-2 text-[9px] font-semibold text-cyan-800 hover:bg-cyan-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500"
+                  >Ask ADVIS about this component</button>
                 </div>
               </section>
             )}
