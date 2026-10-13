@@ -69,6 +69,9 @@ jobs:
       - name: Test engine kinematics reference vectors
         run: npm run test:kinematics
 
+      - name: Test accessibility, authoring, tutor and offline-pack contracts
+        run: npm run test:accessibility-authoring
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
