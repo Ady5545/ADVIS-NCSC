@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 const { cleanContext } = require(resolve('api/advis.js'));
+const { buildContextSummary } = require(resolve('ButlerEngine.js'));
 
 const refs = Array.from({ length: 7 }, (_, index) => ({
   label: `Reference ${index + 1}`,
@@ -62,4 +63,49 @@ assert.equal(cleanContext({ activeModelEvidence: 'not an object' }).activeModelE
 assert.equal(cleanContext({ activeModelEvidence: { modelKind: 'MADE_UP', evidence: { simulationStatus: 'PERFECT' } } }).activeModelEvidence.modelKind, null);
 assert.equal(cleanContext({ activeModelEvidence: { modelKind: 'MADE_UP', evidence: { simulationStatus: 'PERFECT' } } }).activeModelEvidence.evidence.simulationStatus, null);
 
-console.log('Tutor context tests passed: bounded evidence, source URL filtering, capability allowlist, component spec limits and invalid-input handling.');
+const typedContext = cleanContext({
+  selectedComponentId: 'v8_crankshaft',
+  activeModelTutorContext: {
+    modelId: 'v8_engine',
+    modelName: 'Representative V8',
+    modelVersion: '1.0-educational',
+    domain: 'Automotive',
+    selectedComponentId: 'v8_crankshaft',
+    selectedComponentName: 'Crankshaft',
+    selectedComponentPurpose: 'Convert linked piston travel to rotation.',
+    simulationLevel: 'KINEMATIC',
+    evidence: [
+      { id: 'ref-1', label: 'General engine principle', kind: 'SOURCE_BACKED', detail: 'General principle only', sourceUrl: 'https://example.org/engine', applicability: 'GENERAL_PRINCIPLE' },
+      { id: 'fake', label: 'Bad URL', kind: 'UNKNOWN', detail: 'Untrusted', sourceUrl: 'javascript:alert(1)', applicability: 'EXACT_MODEL' },
+      { id: 'fake2', label: 'Bad kind', kind: 'ADMINISTRATOR_VERIFIED', detail: 'Trust me', sourceUrl: 'http://example.org/unsecured', applicability: 'EXACT_MODEL' },
+    ],
+    relationships: [
+      { componentId: 'v8_block', name: 'Engine block', relationship: 'supports', description: 'Supports the crankshaft.' },
+      { componentId: 'v8_crankshaft', name: 'Crankshaft', relationship: 'drives', description: 'Driven by connecting rod force.' },
+    ],
+    parameters: [
+      { id: 'rpm', name: 'Engine speed', unit: 'rpm', value: 1200, description: 'Animation input.' },
+      { id: 'malformed', name: 'NaN', unit: '', value: 'not a number', description: 'Must be dropped.' },
+    ],
+    limitations: ['Generic educational geometry'],
+    safeActions: ['SELECT_COMPONENT', 'FOCUS_COMPONENT', 'EXECUTE_CODE', 'SET_EXPLOSION'],
+  },
+});
+assert.equal(typedContext.activeModelTutorContext.modelId, 'v8_engine');
+assert.equal(typedContext.activeModelTutorContext.evidence.length, 3);
+assert.equal(typedContext.activeModelTutorContext.evidence[0].sourceUrl, 'https://example.org/engine');
+assert.equal(typedContext.activeModelTutorContext.evidence[1].sourceUrl, '', 'javascript URLs must be discarded');
+assert.equal(typedContext.activeModelTutorContext.evidence[2].kind, 'UNKNOWN', 'unknown evidence kinds must fail closed');
+assert.equal(typedContext.activeModelTutorContext.evidence[2].sourceUrl, '', 'non-HTTPS tutor context URLs must be discarded');
+assert.equal(typedContext.activeModelTutorContext.parameters.length, 1, 'non-finite or non-numeric parameter values must be discarded');
+assert.deepEqual(typedContext.activeModelTutorContext.safeActions, ['SELECT_COMPONENT', 'FOCUS_COMPONENT', 'SET_EXPLOSION']);
+assert.equal(typedContext.activeModelTutorContext.relationships.length, 2);
+
+const contextSummary = buildContextSummary(typedContext, null, [], []);
+assert.match(contextSummary, /Typed Tutor Context/);
+assert.match(contextSummary, /General engine principle/);
+assert.match(contextSummary, /Allowed Suggested UI Actions: SELECT_COMPONENT, FOCUS_COMPONENT, SET_EXPLOSION/);
+assert.doesNotMatch(contextSummary, /EXECUTE_CODE/);
+assert.doesNotMatch(contextSummary, /Bad URL \|/);
+
+console.log('Tutor context tests passed: bounded source evidence, allowlisted model capabilities, typed component/parameter context, safe action types and invalid-input handling.');
