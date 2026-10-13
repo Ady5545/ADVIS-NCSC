@@ -1,7 +1,8 @@
 // V8EngineAudioEngine.ts
-// Real-time Procedural Web Audio API Engine Sound Synthesizer for 60° V8 Powertrain
-// Accurately models combustion orders (6E, 3E, 12E, 18E), intake Helmholtz resonance,
-// exhaust pulse waveshaping, and valvetrain mechanical whine.
+// Real-time procedural Web Audio API synthesizer for a representative 90° cross-plane V8.
+// Uses the correct four-stroke mean firing order (4 combustion events per crank revolution),
+// a lower-order rumble layer, RPM-swept exhaust/intake filters, and a restrained mechanical layer.
+// This is a parameterized educational synthesis, not a recording of a particular OEM engine.
 
 import { useEffect } from 'react';
 
@@ -24,8 +25,8 @@ class V8EngineAudioEngineClass {
 
   // Primary Firing Pulse Oscillators (4E Fundamental & Harmonics)
   // In a four-stroke V8: 8 firing events over 720 crank degrees = 4 firing pulses per crank revolution (4E order)
-  private oscPrimary: OscillatorNode | null = null;      // 6E fundamental
-  private oscSub: OscillatorNode | null = null;          // 3E sub-harmonic (bank collector resonance)
+  private oscPrimary: OscillatorNode | null = null;      // 4E firing fundamental
+  private oscSub: OscillatorNode | null = null;          // 2E low-order exhaust / bank-pulse texture
   private oscHarmonic: OscillatorNode | null = null;     // 12E second harmonic
   private oscScream: OscillatorNode | null = null;       // 18E high-RPM operatic howl
 
@@ -139,19 +140,19 @@ class V8EngineAudioEngineClass {
       this.filterMechanical.connect(this.masterGain);
 
       // 6. Oscillators for V8 Engine Orders
-      // A. Primary 6E Firing Order Oscillator (Sawtooth for sharp exhaust valve cracks)
+      // A. Primary 4E firing-order oscillator (sawtooth exhaust pulse texture)
       this.oscPrimary = ctx.createOscillator();
       this.oscPrimary.type = 'sawtooth';
       this.oscPrimary.frequency.setValueAtTime(40, ctx.currentTime);
       this.oscPrimary.connect(this.gainPrimary);
 
-      // B. Sub-harmonic 3E Bank Interleave Oscillator (Triangle for visceral low-end rumble)
+      // B. Low-order 2E component for a heavier cross-plane V8 rumble
       this.oscSub = ctx.createOscillator();
       this.oscSub.type = 'triangle';
       this.oscSub.frequency.setValueAtTime(20, ctx.currentTime);
       this.oscSub.connect(this.gainSub);
 
-      // C. 12E Second Order Firing Harmonic (Sawtooth for high RPM rasp)
+      // C. 8E second firing harmonic for exhaust rasp
       this.oscHarmonic = ctx.createOscillator();
       this.oscHarmonic.type = 'sawtooth';
       this.oscHarmonic.frequency.setValueAtTime(80, ctx.currentTime);
@@ -163,7 +164,7 @@ class V8EngineAudioEngineClass {
       this.oscScream.frequency.setValueAtTime(120, ctx.currentTime);
       this.oscScream.connect(this.gainScream);
 
-      // E. High-frequency Mechanical Valvetrain Whine Oscillator
+      // E. Mechanical accessory / valvetrain overtone
       this.oscMechanical = ctx.createOscillator();
       this.oscMechanical.type = 'sine';
       this.oscMechanical.frequency.setValueAtTime(160, ctx.currentTime);
@@ -282,17 +283,17 @@ class V8EngineAudioEngineClass {
       // Crankshaft rotational frequency f0 = (RPM / 60) * speed (Hz)
       // At 600 RPM idle: f0 = 10 Hz
       // At 3000 RPM: f0 = 50 Hz
-      // At 8500 RPM: f0 = 141.67 Hz
+      // At 7000 RPM: f0 = 116.67 Hz
       const f0 = Math.max(1, (rpm / 60) * speed);
 
-      // Primary 6E Firing Order frequency (12 cylinders / 2 revolutions = 6 pulses per rev):
-      // At 600 RPM: 60 Hz (deep visceral rumble)
-      // At 3000 RPM: 300 Hz (throaty Italian V8 baritone)
-      // At 8500 RPM: 850 Hz (high-pitched operatic redline shriek)
+      // Four-stroke V8: 8 events per 720-degree cycle = 4 firing pulses per crank revolution.
+      // At 600 RPM: 40 Hz (low-order V8 exhaust pulse texture)
+      // At 3000 RPM: 200 Hz (throaty V8 exhaust order)
+      // At 7000 RPM: about 467 Hz (upper exhaust harmonic; the V8 remains lower in character than a high-revving V12).
       const fPrimary = f0 * 4;
-      const fSub = f0 * 2;          // 3E exhaust collector pulse
-      const fHarmonic = f0 * 8;     // 12E second firing harmonic
-      const fScream = f0 * 12;       // 18E third harmonic overtone
+      const fSub = f0 * 2;          // 2E low-order collector texture
+      const fHarmonic = f0 * 8;     // 8E second harmonic
+      const fScream = f0 * 12;      // 12E restrained upper harmonic
       const fMechanical = f0 * 16;   // High-speed camshaft/timing chain friction whine
 
       // Smoothly update oscillator frequencies using setTargetAtTime
@@ -302,7 +303,7 @@ class V8EngineAudioEngineClass {
       if (this.oscScream) this.oscScream.frequency.setTargetAtTime(fScream, now, 0.035);
       if (this.oscMechanical) this.oscMechanical.frequency.setTargetAtTime(fMechanical, now, 0.035);
 
-      // Calculate RPM ratio: 0.0 at idle (600), 1.0 at redline (9000)
+      // Calculate RPM ratio over an illustrative 600–7000 RPM control range; this is not an OEM redline.
       const rpmNormalized = Math.max(0, Math.min(1.0, (rpm - 600) / (7000 - 600)));
 
       // Dynamic Harmonic Balancing:
