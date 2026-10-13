@@ -961,6 +961,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       const rpm = params['rpm'] !== undefined ? params['rpm'] : 1800;
       const compressionRatio = params['compressionRatio'] || 10.5;
       const sparkAdvance = params['sparkAdvance'] || 14.0;
+      const throttleFraction = Math.max(0, Math.min(100, params['throttle'] ?? 65)) / 100;
 
       // Angular velocity in degrees per second:
       // (RPM / 60) * 360 deg/sec
@@ -1011,7 +1012,8 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
 
       if (newCrankAngle < 180) {
         // Intake stroke: near atmospheric (manifold depression)
-        pressure = 0.95 + 0.05 * Math.sin((newCrankAngle / 180) * Math.PI);
+        // Throttle changes only the qualitative display index; it does not model airflow or manifold pressure.
+        pressure = 0.85 + 0.10 * throttleFraction + 0.05 * Math.sin((newCrankAngle / 180) * Math.PI);
         flame = 0;
       } else if (newCrankAngle >= 180 && newCrankAngle < 360) {
         // Compression stroke: shape a qualitative indicator; no cylinder-volume or thermodynamic solve is performed.
