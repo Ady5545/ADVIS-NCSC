@@ -86,8 +86,8 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
     return {
       authority: 'GLTF_ASSET',
       tier: 'L3',
-      supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-      supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+      supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+      supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
       sourceLabel: 'GLTF / visual asset',
       detailLabel: 'Visual asset; CAD authority unverified',
     };
@@ -97,8 +97,8 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
     return {
       authority: 'SCIENTIFIC_STRUCTURAL',
       tier: 'L1',
-      supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-      supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+      supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+      supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
       sourceLabel: 'Scientific visualization',
       detailLabel: 'Concept geometry; see assumptions',
     };
@@ -106,10 +106,10 @@ export function resolveObjectFidelity(object: ObjectMetadata): GeometryFidelityP
 
   return {
     authority: object.geometryAuthority === 'CONCEPT' ? 'CONCEPT' : 'PROCEDURAL_HIGH_DETAIL',
-    tier: object.evidence?.reviewer && object.evidence?.reviewedAt ? true : false ? 'L2' : 'L1',
-    supportsDeepZoom: explicitCapability(metadata, 'supportsDeepZoom'),
-    supportsInteriorInspection: explicitCapability(metadata, 'interiorGeometryAvailable'),
+    tier: object.evidence?.reviewer && object.evidence?.reviewedAt ? 'L2' : 'L1',
+    supportsDeepZoom: explicitCapability(object, 'deepZoom'),
+    supportsInteriorInspection: explicitCapability(object, 'interiorGeometry'),
     sourceLabel: 'Procedural educational model',
-    detailLabel: explicitCapability(metadata, 'geometryReviewed') ? 'Geometry reviewed for stated scope' : 'Geometry validation not recorded',
+    detailLabel: object.evidence?.reviewer && object.evidence?.reviewedAt ? 'Geometry reviewed for stated scope' : 'Geometry validation not recorded',
   };
 }
