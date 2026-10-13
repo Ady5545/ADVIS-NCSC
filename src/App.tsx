@@ -1952,11 +1952,19 @@ function AppContent() {
         onSelectComponent={setSelectedComponentId}
         hiddenComponentIds={hiddenComponentIds}
         onToggleComponentVisibility={toggleComponentVisibility}
-        onShowAllComponents={() => setHiddenComponentIds([])}
+        onShowAllComponents={() => { setHiddenComponentIds([]); setIsolatedComponentId(null); }}
+        isolatedComponentId={isolatedComponentId}
+        onToggleIsolateComponent={setIsolatedComponentId}
+        onFocusComponent={(id) => window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: id } }))}
         componentTransforms={componentTransforms}
         onUpdateComponentTransform={handleUpdateComponentTransform}
         explodedFactor={explodedFactor}
-        onUpdateExplodedFactor={setExplodedFactor}
+        onUpdateExplodedFactor={(factor) => {
+          const next = Math.max(0, Math.min(1, factor));
+          setExplodedFactor(next);
+          setIsExploded(next > 0.001);
+          setSpatialMode(next > 0.001 ? 'EXPLODED' : 'INSPECTION');
+        }}
         xrayEnabled={xrayEnabled}
         onToggleXray={() => setXrayEnabled(!xrayEnabled)}
         blueprintEnabled={blueprintEnabled}
