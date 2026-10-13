@@ -158,6 +158,25 @@ try {
   if (fourStroke && Object.values(fourStroke.components).some((component) => Object.keys(component.scientificProperties || {}).length > 0)) {
     fail('[science:v8_engine_scientific] Unreferenced component-level engineering specifications must remain unpublished until evidenced.');
   }
+  if (fourStroke) {
+    const defaults = Object.fromEntries(Object.values(fourStroke.simulation.variables).map((variable) => [variable.id, variable.defaultValue]));
+    const parameters = fourStroke.simulation.parameters;
+    const lowThrottle = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 0 }, 0, { ...parameters, throttle: 0 });
+    const highThrottle = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 0 }, 0, { ...parameters, throttle: 100 });
+    if (lowThrottle.cylinderPressure === highThrottle.cylinderPressure) {
+      fail('[science:v8_engine_scientific] Throttle input is advertised but does not affect the illustrative cycle indicator.');
+    }
+    const slow = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 0 }, 0.01, { ...parameters, rpm: 60 });
+    const fast = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 0 }, 0.01, { ...parameters, rpm: 120 });
+    if (slow.crankAngle === fast.crankAngle) {
+      fail('[science:v8_engine_scientific] RPM input must affect the kinematic cycle rate.');
+    }
+    const standardSpark = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 346 }, 0, { ...parameters, sparkAdvance: 14 });
+    const advancedSpark = fourStroke.simulation.stepFunction({ ...defaults, crankAngle: 346 }, 0, { ...parameters, sparkAdvance: 24 });
+    if (standardSpark.sparkFiring === advancedSpark.sparkFiring) {
+      fail('[science:v8_engine_scientific] Spark-phase input is advertised but does not affect the spark marker.');
+    }
+  }
 
   const anatomy = ScientificModelRegistry.getModel('human_anatomy_scientific');
   if (anatomy?.simulation?.validation?.level !== 'PRESENTATION_ANIMATION') {
@@ -165,6 +184,15 @@ try {
   }
   if (!/not a measurement or clinically validated prediction/i.test(anatomy?.simulation?.variables?.bloodPressure?.description || '')) {
     fail('[science:human_anatomy_scientific] The pressure indicator needs a visible non-clinical limitation in its variable description.');
+  }
+  if (anatomy) {
+    const defaults = Object.fromEntries(Object.values(anatomy.simulation.variables).map((variable) => [variable.id, variable.defaultValue]));
+    const parameters = anatomy.simulation.parameters;
+    const smallStroke = anatomy.simulation.stepFunction({ ...defaults, cardiacCycleProgress: 250 }, 0, { ...parameters, strokeVolume: 20 });
+    const largeStroke = anatomy.simulation.stepFunction({ ...defaults, cardiacCycleProgress: 250 }, 0, { ...parameters, strokeVolume: 80 });
+    if (smallStroke.leftVentricularVolume === largeStroke.leftVentricularVolume) {
+      fail('[science:human_anatomy_scientific] Stroke-volume input is advertised but does not affect the illustrative volume curve.');
+    }
   }
 
   if (errors.length) {
