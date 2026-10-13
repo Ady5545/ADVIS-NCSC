@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Check, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, X, Download } from 'lucide-react';
+import { BookOpen, Check, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, X, Download, FileText } from 'lucide-react';
 import { LEARNING_LESSONS, getLessonById } from './LessonCatalog';
+import { SPATIAL_LIBRARY } from '../SpatialLibrary';
+import { createOfflineLearningPack, downloadOfflineLearningHtmlPack, downloadOfflineLearningPack } from './OfflineLearningPack';
 import { clearLessonProgress, loadLessonProgress, saveLessonProgress } from './LessonProgress';
 import type { LearningLesson, LessonAction, LessonProgress, LessonStep } from './LessonSchema';
 
@@ -183,8 +185,26 @@ export function LessonRunner({
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = 'advis-ncsc-learning-pack.json';
+    document.body.appendChild(anchor);
     anchor.click();
+    anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const downloadOfflineWorkbook = () => {
+    const model = SPATIAL_LIBRARY[lesson.modelId];
+    if (!model) {
+      setActionError('This lesson’s model metadata is not available for an offline workbook.');
+      return;
+    }
+    const pack = createOfflineLearningPack(lesson, model);
+    const htmlDownloaded = downloadOfflineLearningHtmlPack(pack);
+    const jsonDownloaded = downloadOfflineLearningPack(pack);
+    if (!htmlDownloaded || !jsonDownloaded) {
+      setActionError('One or both offline downloads were blocked. Check browser download settings and try again.');
+      return;
+    }
+    setActionError(null);
   };
 
   return (
@@ -197,8 +217,11 @@ export function LessonRunner({
             <h2 className="text-lg sm:text-xl font-semibold mt-1">{lesson.title}</h2>
             <p className="text-xs leading-relaxed text-slate-400 mt-1">{lesson.summary}</p>
           </div>
-          <button type="button" onClick={downloadLearningPack} className="min-h-9 rounded-lg border border-cyan-500/30 px-2.5 text-[10px] uppercase tracking-wide text-cyan-200 hover:bg-cyan-950/60 flex items-center gap-1.5" aria-label="Download authored lesson pack">
-            <Download size={14} /> <span className="hidden sm:inline">Lesson pack</span>
+          <button type="button" onClick={downloadOfflineWorkbook} className="min-h-9 rounded-lg border border-emerald-500/30 px-2.5 text-[10px] uppercase tracking-wide text-emerald-200 hover:bg-emerald-950/60 flex items-center gap-1.5" aria-label="Download standalone offline HTML workbook for this lesson" title="Includes lesson text, questions, hints and limitations; does not include 3D assets">
+            <FileText size={14} /> <span className="hidden sm:inline">Offline HTML</span>
+          </button>
+          <button type="button" onClick={downloadLearningPack} className="min-h-9 rounded-lg border border-cyan-500/30 px-2.5 text-[10px] uppercase tracking-wide text-cyan-200 hover:bg-cyan-950/60 flex items-center gap-1.5" aria-label="Download all authored lesson data as JSON">
+            <Download size={14} /> <span className="hidden sm:inline">All lessons JSON</span>
           </button>
           <button type="button" onClick={onClose} aria-label="Close lesson" className="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 flex items-center justify-center"><X size={16} /></button>
         </header>
