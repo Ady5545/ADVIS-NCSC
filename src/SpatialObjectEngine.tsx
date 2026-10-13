@@ -3145,8 +3145,8 @@ export function SpatialObjectEngine({
                                     {comp.description}
                                   </span>
                                   <div className="mt-2 grid grid-cols-2 gap-2 text-[9px] font-mono border-t border-cyan-500/20 pt-1.5">
-                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || comp.specifications?.['Material'] || 'Alloy Steel'}</span></div>
-                                    <div><span className="text-cyan-400/60">Status:</span> <span className="text-emerald-400 font-bold">Verified</span></div>
+                                    <div><span className="text-cyan-400/60">Material:</span> <span className="text-cyan-200 font-bold">{comp.engineeringDetails?.material || comp.specifications?.['Material'] || (obj.id === 'v8_engine' ? 'Not specified' : 'Alloy Steel')}</span></div>
+                                    <div><span className="text-cyan-400/60">Status:</span> <span className={obj.id === 'v8_engine' ? "text-cyan-300 font-bold" : "text-emerald-400 font-bold"}>{obj.id === 'v8_engine' ? 'Educational model' : 'Verified'}</span></div>
                                     {comp.specifications && Object.entries(comp.specifications).slice(0, 2).map(([k, v]) => (
                                       <div key={k}><span className="text-cyan-400/60">{k}:</span> <span className="text-cyan-200 font-bold">{String(v)}</span></div>
                                     ))}
