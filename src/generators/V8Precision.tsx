@@ -400,33 +400,49 @@ function V8ValveAssembly({
   x: number;
   valveIndex: number;
 }) {
-  const valveRef = useRef<THREE.Group>(null);
+  const movingValveRef = useRef<THREE.Group>(null);
+  const springRefs = useRef<Array<THREE.Mesh | null>>([]);
+
   useFrame(() => {
     const crankAngle = state.crankAngleRef?.current ?? 0;
     const phase = THROW_PHASES[index] + (valveIndex === 0 ? 0.4 : 2.05) + (side < 0 ? 0 : 0.22);
-    // A soft illustrative cam-lift curve; motion is phase-linked but not an OEM valve-timing simulation.
+    // A smooth phase-linked demonstration curve, not OEM valve-timing data.
     const camAngle = crankAngle * 0.5 + phase;
     const lift = Math.max(0, Math.sin(camAngle)) ** 1.4 * 0.027;
-    if (valveRef.current) valveRef.current.position.y = 0.095 + lift;
+
+    // Valve opens down toward the combustion chamber. Keep the spring seat fixed and
+    // compress the visible coil stack progressively toward the moving retainer.
+    if (movingValveRef.current) movingValveRef.current.position.y = -lift;
+    springRefs.current.forEach((coil, coilIndex) => {
+      if (coil) coil.position.y = -0.022 + coilIndex * 0.017 - lift * (coilIndex / 4);
+    });
   });
 
   return (
-    <group ref={valveRef} position={[x, 0.095, z]}>
-      <Cylinder args={[0.008, 0.008, 0.145, 12]} position={[0, -0.01, 0]}>
-        <M state={state} color="#abb6be" metalness={0.96} roughness={0.18} />
-      </Cylinder>
-      <Cylinder args={[0.022, 0.022, 0.012, 20]} position={[0, -0.082, 0]}>
-        <M state={state} color="#d1d8dd" metalness={0.93} roughness={0.22} />
-      </Cylinder>
-      {/* Visible multi-coil valve spring and retainer. */}
+    <group position={[x, 0, z]}>
+      <group ref={movingValveRef}>
+        <Cylinder args={[0.008, 0.008, 0.145, 12]} position={[0, -0.01, 0]}>
+          <M state={state} color="#abb6be" metalness={0.96} roughness={0.18} />
+        </Cylinder>
+        <Cylinder args={[0.022, 0.022, 0.012, 20]} position={[0, -0.082, 0]}>
+          <M state={state} color="#d1d8dd" metalness={0.93} roughness={0.22} />
+        </Cylinder>
+        <Cylinder args={[0.035, 0.035, 0.014, 20]} position={[0, 0.052, 0]}>
+          <M state={state} color="#aeb8bf" metalness={0.9} roughness={0.2} />
+        </Cylinder>
+      </group>
+      {/* Individual coil turns compress as the valve and retainer move down. */}
       {Array.from({ length: 5 }).map((_, i) => (
-        <Torus key={i} args={[0.027, 0.0032, 7, 24]} position={[0, -0.022 + i * 0.017, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <Torus
+          key={i}
+          ref={(el) => { springRefs.current[i] = el; }}
+          args={[0.027, 0.0032, 7, 24]}
+          position={[0, -0.022 + i * 0.017, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
           <M state={state} color="#8c989f" metalness={0.91} roughness={0.25} />
         </Torus>
       ))}
-      <Cylinder args={[0.035, 0.035, 0.014, 20]} position={[0, 0.052, 0]}>
-        <M state={state} color="#aeb8bf" metalness={0.9} roughness={0.2} />
-      </Cylinder>
     </group>
   );
 }
