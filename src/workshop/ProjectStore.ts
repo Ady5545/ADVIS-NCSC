@@ -34,12 +34,12 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function sanitizeTransformMap(input: unknown, canonical: Record<string, WorkshopComponentTransform>) {
+function sanitizeTransformMap(input: unknown, canonical: Record<string, WorkshopComponentTransform>, allowUnknown = false) {
   const output = { ...canonical };
   if (!input || typeof input !== 'object' || Array.isArray(input)) return output;
   for (const [id, value] of Object.entries(input)) {
     const normalized = normalizeTransform(value);
-    if (normalized) output[id] = normalized;
+    if (normalized && (allowUnknown || id in canonical)) output[id] = normalized;
   }
   return output;
 }
@@ -169,7 +169,7 @@ export function importEditableProjectJson(json: string): EditableModelProject | 
     imported.name = `${imported.name} — Imported`.slice(0, 160);
     imported.createdAt = new Date().toISOString();
     imported.updatedAt = imported.createdAt;
-    imported.componentTransforms = sanitizeTransformMap(imported.componentTransforms, {});
+    imported.componentTransforms = sanitizeTransformMap(imported.componentTransforms, {}, true);
     return imported;
   } catch {
     return null;
