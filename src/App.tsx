@@ -336,6 +336,7 @@ function AppContent() {
 
   const [accessibilityPreferences, setAccessibilityPreferences] = useState<AccessibilityPreferences>({ ...DEFAULT_ACCESSIBILITY_PREFERENCES });
   const [accessibilityPreferencesLoaded, setAccessibilityPreferencesLoaded] = useState(false);
+  const skipAccessibilityPreferenceWriteRef = useRef(false);
   const qualityPreset: QualityPreset = accessibilityPreferences.quality;
   const qualityProfile = QUALITY_PROFILES[qualityPreset];
 
@@ -366,12 +367,14 @@ function AppContent() {
     } catch {
       storage = null;
     }
-    saveAccessibilityPreferences(storage, accessibilityPreferences);
+    const skipPreferenceWrite = skipAccessibilityPreferenceWriteRef.current;
+    if (skipPreferenceWrite) skipAccessibilityPreferenceWriteRef.current = false;
+    else saveAccessibilityPreferences(storage, accessibilityPreferences);
     if (typeof document !== 'undefined') {
-      if (accessibilityPreferences.reducedMotion) {
-        document.documentElement.setAttribute('data-advis-reduced-motion', 'true');
-      } else {
+      if (skipPreferenceWrite) {
         document.documentElement.removeAttribute('data-advis-reduced-motion');
+      } else {
+        document.documentElement.setAttribute('data-advis-reduced-motion', accessibilityPreferences.reducedMotion ? 'true' : 'false');
       }
     }
     setLodTier(QUALITY_PROFILES[accessibilityPreferences.quality].detailLevel);
@@ -2228,7 +2231,26 @@ function AppContent() {
       <AuthoringWorkbench onClose={() => setShowAuthoringWorkbench(false)} />
     )}
     {showPrivacyDataPanel && (
-      <PrivacyDataPanel onClose={() => setShowPrivacyDataPanel(false)} />
+      <PrivacyDataPanel
+        onClose={() => setShowPrivacyDataPanel(false)}
+        onDataCleared={(kind) => {
+          if (kind === 'chat-history') setMessages([]);
+          if (kind === 'workspace-state' || kind === 'workshop-projects') {
+            setComponentTransforms({});
+            setTransformHistory([]);
+            setTransformFuture([]);
+            setHiddenComponentIds([]);
+            setIsolatedComponentId(null);
+          }
+          if (kind === 'accessibility-preferences') {
+            skipAccessibilityPreferenceWriteRef.current = true;
+            setAccessibilityPreferences({ ...DEFAULT_ACCESSIBILITY_PREFERENCES });
+            setSoundEnabled(DEFAULT_ACCESSIBILITY_PREFERENCES.audioEnabled);
+            setV8SoundEnabled(DEFAULT_ACCESSIBILITY_PREFERENCES.audioEnabled);
+            document.documentElement.removeAttribute('data-advis-reduced-motion');
+          }
+        }}
+      />
     )}
 
     {showInnovationLab && (
