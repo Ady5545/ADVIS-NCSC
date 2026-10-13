@@ -8,6 +8,7 @@ import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
 import { LearningStepPanel } from './learning/LearningStepPanel';
 import { V8_FOUR_STROKE_LESSON } from './learning/V8FourStrokeLesson';
+import { buildComponentHierarchy } from './scientific/AssemblyHierarchy';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -98,14 +99,26 @@ export function EngineeringReferenceCockpit({
           ? 'GLTF / GLB'
           : 'EDUCATIONAL GEOMETRY';
 
+  const componentHierarchy = useMemo(() => buildComponentHierarchy(components), [components]);
+  const componentRows = useMemo(() => {
+    const rows: Array<{ component: typeof components[number]; depth: number }> = [];
+    const append = (nodes: typeof componentHierarchy.roots, depth: number) => {
+      for (const node of nodes) {
+        rows.push({ component: node.component, depth });
+        append(node.children, depth + 1);
+      }
+    };
+    append(componentHierarchy.roots, 0);
+    return rows;
+  }, [componentHierarchy, components]);
   const visibleComponents = useMemo(() => {
     const query = componentSearch.trim().toLowerCase();
-    if (!query) return components;
-    return components.filter((component) =>
+    if (!query) return componentRows;
+    return componentRows.filter(({ component }) =>
       [component.id, component.name, component.description, component.category || '']
         .some((value) => value.toLowerCase().includes(query))
     );
-  }, [components, componentSearch]);
+  }, [componentRows, componentSearch]);
   const selectedComponent = components.find((component) => component.id === selectedComponentId);
 
   const applyPreset = (presetId: string) => {
@@ -302,9 +315,14 @@ export function EngineeringReferenceCockpit({
                 className="w-full border border-slate-300 px-2 py-1.5 text-[10px] outline-none focus:border-rose-500"
               />
             </div>
+            {componentHierarchy.issues.length > 0 && (
+              <div role="status" className="px-3 py-2 text-[9px] leading-relaxed text-amber-800 bg-amber-50 border-b border-amber-200">
+                Component hierarchy metadata needs review ({componentHierarchy.issues.length} issue{componentHierarchy.issues.length === 1 ? '' : 's'}). The listed parts remain available.
+              </div>
+            )}
             <div className="p-2 max-h-[33vh] overflow-y-auto space-y-1">
               {visibleComponents.length === 0 && <p className="px-2 py-3 text-[10px] text-slate-500">No components match this search.</p>}
-              {visibleComponents.map((component) => {
+              {visibleComponents.map(({ component, depth }) => {
                 const active = selectedComponentId === component.id;
                 return (
                   <button
@@ -313,6 +331,8 @@ export function EngineeringReferenceCockpit({
                       onSelectComponent?.(component.id);
                       onHighlightComponent?.(component.id);
                     }}
+                    style={{ paddingLeft: `${8 + depth * 12}px` }}
+                    aria-pressed={active}
                     className={`w-full text-left px-2 py-1.5 border transition-all ${active ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
                   >
                     <div className="flex items-center justify-between gap-2">
