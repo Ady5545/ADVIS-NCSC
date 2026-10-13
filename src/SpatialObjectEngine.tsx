@@ -219,6 +219,9 @@ function ProceduralAssemblyAutoFitter({
     (obj.components && obj.components.length > 0 && obj.components.some(c => c.assetPath && c.assetPath.endsWith('.glb')))
   );
   
+  // Give the V8 a more substantial on-screen footprint while preserving the shared fitter for all other assets.
+  const targetViewportFraction = obj.id === 'v8_engine' ? 0.90 : 0.75;
+
   // Use defaultScale as fallback initial scale
   const [fittedScale, setFittedScale] = useState<number>(() => {
     return isGltf ? 1.0 : (obj.defaultScale || 1.0);
@@ -241,7 +244,7 @@ function ProceduralAssemblyAutoFitter({
       const fit = calculateAutoFitScale(
         containerRef.current,
         camera,
-        0.75,
+        targetViewportFraction,
         obj.defaultScale || 1.0
       );
 
@@ -255,7 +258,7 @@ function ProceduralAssemblyAutoFitter({
           const retry = calculateAutoFitScale(
             containerRef.current,
             camera,
-            0.75,
+            targetViewportFraction,
             obj.defaultScale || 1.0
           );
           if (retry.isValid && retry.scale > 0) {
@@ -315,11 +318,15 @@ interface SpatialObjectEngineProps {
   kinematicTimeOffset?: number;
   v12Rpm?: number;
   v12Direction?: number;
+  v8Rpm?: number;
   isMagnifierFocused?: boolean;
   lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
   focusedCylinder?: number;
   chargeFlowEnabled?: boolean;
   vectorsEnabled?: boolean;
+  isV8KinematicPlaying?: boolean;
+  v8KinematicSpeed?: number;
+  v8KinematicTimeOffset?: number;
 }
 
 
@@ -809,6 +816,7 @@ function EngineeringComponentRenderer({
   isMagnifierFocused,
   v12Rpm,
   v12Direction,
+  v8Rpm,
   sysTimeRef,
   focusedCylinder,
   crankAngleRef,
@@ -826,6 +834,7 @@ function EngineeringComponentRenderer({
   isMagnifierFocused?: boolean;
   v12Rpm?: number;
   v12Direction?: number;
+  v8Rpm?: number;
   sysTimeRef?: React.MutableRefObject<number> | null;
   focusedCylinder?: number;
   crankAngleRef?: React.MutableRefObject<number> | null;
@@ -915,7 +924,7 @@ function EngineeringComponentRenderer({
     crankAngleRef,
     isKinematicPlaying,
     kinematicSpeed,
-    v8Rpm: v12Rpm
+    v8Rpm: v8Rpm ?? 600
   });
   if (v8Precision) return v8Precision;
 
@@ -1997,6 +2006,10 @@ export function SpatialObjectEngine({
   kinematicTimeOffset = 0,
   v12Rpm = 600,
   v12Direction = 1,
+  v8Rpm = 600,
+  isV8KinematicPlaying = true,
+  v8KinematicSpeed = 1.0,
+  v8KinematicTimeOffset = 0,
   isMagnifierFocused = false,
   lodTier = 'HIGH',
   focusedCylinder = 1,
@@ -2106,11 +2119,19 @@ export function SpatialObjectEngine({
   const isKinematicPlayingRef = useRef(isKinematicPlaying);
   const kinematicSpeedRef = useRef(kinematicSpeed);
   const kinematicAngleRef = useRef(0);
+  const v8KinematicAngleRef = useRef(0);
+  const lastV8AngleBroadcastRef = useRef(0);
   const sysTimeRef = useRef<number>(0);
   const v12RpmRef = useRef(v12Rpm);
   v12RpmRef.current = v12Rpm;
   const v12DirectionRef = useRef(v12Direction);
   v12DirectionRef.current = v12Direction;
+  const v8RpmRef = useRef(v8Rpm);
+  v8RpmRef.current = v8Rpm;
+  const isV8KinematicPlayingRef = useRef(isV8KinematicPlaying);
+  isV8KinematicPlayingRef.current = isV8KinematicPlaying;
+  const v8KinematicSpeedRef = useRef(v8KinematicSpeed);
+  v8KinematicSpeedRef.current = v8KinematicSpeed;
   const isMagnifierFocusedRef = useRef(isMagnifierFocused);
   isMagnifierFocusedRef.current = isMagnifierFocused;
   const focusedCylinderRef = useRef(focusedCylinder);
@@ -2142,9 +2163,13 @@ export function SpatialObjectEngine({
     const handleScrub = (e: any) => {
       if (e.detail && typeof e.detail.angleDeg === 'number') {
         const rad = (e.detail.angleDeg * Math.PI) / 180;
-        kinematicAngleRef.current = rad;
-        const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
-        const omega = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
+        const currentIds = currentSpatialObjectRef.current ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current]) : [];
+        const isV8Active = currentIds.includes('v8_engine');
+        if (isV8Active) v8KinematicAngleRef.current = rad;
+        else kinematicAngleRef.current = rad;
+        const currentRpm = isV8Active ? v8RpmRef.current : v12RpmRef.current;
+        const direction = isV8Active ? 1 : (v12DirectionRef.current || 1);
+        const omega = (currentRpm / 60) * Math.PI * 2 * direction;
         if (omega !== 0) {
           sysTimeRef.current = rad / omega;
         } else {
@@ -2198,18 +2223,20 @@ export function SpatialObjectEngine({
   kinematicSpeedRef.current = kinematicSpeed;
 
   useEffect(() => {
-    if (!isKinematicPlaying && kinematicTimeOffset !== undefined) {
-      const rad = kinematicTimeOffset * (Math.PI / 180);
-      kinematicAngleRef.current = rad;
-      const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
-      const omega = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1);
-      if (omega !== 0) {
-        sysTimeRef.current = rad / omega;
-      } else {
-        sysTimeRef.current = 0;
-      }
+    const ids = currentSpatialObject ? (Array.isArray(currentSpatialObject) ? currentSpatialObject : [currentSpatialObject]) : [];
+    const isV8Active = ids.includes('v8_engine');
+    const isPlaying = isV8Active ? isV8KinematicPlaying : isKinematicPlaying;
+    const angleOffset = isV8Active ? v8KinematicTimeOffset : kinematicTimeOffset;
+    if (!isPlaying && angleOffset !== undefined) {
+      const rad = angleOffset * (Math.PI / 180);
+      if (isV8Active) v8KinematicAngleRef.current = rad;
+      else kinematicAngleRef.current = rad;
+      const currentRpm = isV8Active ? v8RpmRef.current : v12RpmRef.current;
+      const direction = isV8Active ? 1 : (v12DirectionRef.current || 1);
+      const omega = (currentRpm / 60) * Math.PI * 2 * direction;
+      sysTimeRef.current = omega !== 0 ? rad / omega : 0;
     }
-  }, [kinematicTimeOffset, isKinematicPlaying]);
+  }, [kinematicTimeOffset, isKinematicPlaying, v8KinematicTimeOffset, isV8KinematicPlaying, currentSpatialObject]);
 
   useEffect(() => {
     const gEngine = gestureEngineRef.current;
@@ -2874,15 +2901,25 @@ export function SpatialObjectEngine({
       ? (Array.isArray(currentSpatialObjectRef.current) ? currentSpatialObjectRef.current : [currentSpatialObjectRef.current])
       : [];
 
-    const currentRpm = typeof v12RpmRef.current === 'number' ? v12RpmRef.current : 600;
-    const isEngineActive = isKinematicPlayingRef.current && currentRpm > 0;
+    const isV8ModelActive = currentObjIds.includes('v8_engine');
+    const currentRpm = isV8ModelActive ? v8RpmRef.current : v12RpmRef.current;
+    const activePlaying = isV8ModelActive ? isV8KinematicPlayingRef.current : isKinematicPlayingRef.current;
+    const activeSpeed = isV8ModelActive ? v8KinematicSpeedRef.current : kinematicSpeedRef.current;
+    const activeDirection = isV8ModelActive ? 1 : (v12DirectionRef.current || 1);
+    const activeCrankAngleRef = isV8ModelActive ? v8KinematicAngleRef : kinematicAngleRef;
+    const isEngineActive = activePlaying && currentRpm > 0;
 
     if (isEngineActive) {
-      const v12AngularVel = (currentRpm / 60) * Math.PI * 2 * (v12DirectionRef.current || 1) * 0.12;
-      kinematicAngleRef.current += delta * v12AngularVel * (kinematicSpeedRef.current || 1.0);
-      sysTimeRef.current += delta * (kinematicSpeedRef.current || 1.0);
+      const crankAngularVelocity = (currentRpm / 60) * Math.PI * 2 * activeDirection * 0.12;
+      activeCrankAngleRef.current += delta * crankAngularVelocity * (activeSpeed || 1.0);
+      sysTimeRef.current += delta * (activeSpeed || 1.0);
     }
-    const kAngle = kinematicAngleRef.current;
+    const kAngle = activeCrankAngleRef.current;
+    if (isV8ModelActive && typeof window !== 'undefined' && state.clock.elapsedTime - lastV8AngleBroadcastRef.current >= 0.08) {
+      lastV8AngleBroadcastRef.current = state.clock.elapsedTime;
+      const angleDeg = ((kAngle * 180 / Math.PI) % 720 + 720) % 720;
+      window.dispatchEvent(new CustomEvent('advis-v8-crank-angle', { detail: { angleDeg } }));
+    }
 
     // Real-time Engine Kinematics Telemetry Broadcast
     if (currentObjIds.includes('v12_engine')) {
@@ -3109,13 +3146,14 @@ export function SpatialObjectEngine({
                             isHighlighted={isHighlighted}
                             v12Rpm={v12RpmRef.current}
                             v12Direction={v12DirectionRef.current}
+                            v8Rpm={v8RpmRef.current}
                             lodTier={lodTier}
                             isMagnifierFocused={isMagnifierFocused}
                             sysTimeRef={sysTimeRef}
                             focusedCylinder={focusedCylinderRef.current}
-                            crankAngleRef={kinematicAngleRef}
-                            isKinematicPlaying={isKinematicPlayingRef.current}
-                            kinematicSpeed={kinematicSpeedRef.current}
+                            crankAngleRef={obj.id === 'v8_engine' ? v8KinematicAngleRef : kinematicAngleRef}
+                            isKinematicPlaying={obj.id === 'v8_engine' ? isV8KinematicPlayingRef.current : isKinematicPlayingRef.current}
+                            kinematicSpeed={obj.id === 'v8_engine' ? v8KinematicSpeedRef.current : kinematicSpeedRef.current}
                           />
                           
                           {/* Function tracing energetic marker badge */}

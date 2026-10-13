@@ -27,9 +27,11 @@ import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificActionRouter } from './scientific/ScientificActionRouter';
 import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
+import { V8EngineController } from './components/v8/V8EngineController';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
+import { useV8EngineAudio } from './scientific/V8EngineAudioEngine';
 import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
@@ -255,6 +257,13 @@ function AppContent() {
   const [measurementMode, setMeasurementMode] = useState<boolean>(false);
   const [v12Rpm, setV12Rpm] = useState<number>(600);
   const [v12Direction, setV12Direction] = useState<number>(1);
+  // The V8 has independent RPM, play state, animation speed, crank scrubber and audio mute.
+  const [v8Rpm, setV8Rpm] = useState<number>(600);
+  const [isV8KinematicPlaying, setIsV8KinematicPlaying] = useState<boolean>(true);
+  const [v8KinematicSpeed, setV8KinematicSpeed] = useState<number>(1.0);
+  const [v8KinematicTimeOffset, setV8KinematicTimeOffset] = useState<number>(0);
+  const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
+  const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
   const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
   const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
   const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
@@ -279,6 +288,9 @@ function AppContent() {
   const isV12Active = Array.isArray(currentSpatialObject)
     ? currentSpatialObject.includes('v12_engine')
     : currentSpatialObject === 'v12_engine';
+  const isV8Active = Array.isArray(currentSpatialObject)
+    ? currentSpatialObject.includes('v8_engine')
+    : currentSpatialObject === 'v8_engine';
 
   useV12EngineAudio({
     active: isV12Active,
@@ -286,6 +298,14 @@ function AppContent() {
     isPlaying: isKinematicPlaying,
     speed: kinematicSpeed,
     soundEnabled: soundEnabled
+  });
+
+  useV8EngineAudio({
+    active: isV8Active,
+    rpm: v8Rpm,
+    isPlaying: isV8KinematicPlaying,
+    speed: v8KinematicSpeed,
+    soundEnabled: v8SoundEnabled
   });
 
   const handleSetCutawayMode = (mode: 'SOLID' | 'GLASS' | 'SECTION') => {
@@ -309,6 +329,23 @@ function AppContent() {
     setKinematicTimeOffset(angleDeg);
     window.dispatchEvent(new CustomEvent('advis-scrub-crank', { detail: { angleDeg } }));
   };
+
+  const handleScrubV8Angle = (angleDeg: number) => {
+    setV8KinematicTimeOffset(angleDeg);
+    setV8CrankAngleDeg(((angleDeg % 720) + 720) % 720);
+    window.dispatchEvent(new CustomEvent('advis-scrub-crank', { detail: { angleDeg } }));
+  };
+
+  useEffect(() => {
+    const onV8CrankAngle = (event: Event) => {
+      const angleDeg = (event as CustomEvent<{ angleDeg?: number }>).detail?.angleDeg;
+      if (typeof angleDeg === 'number' && Number.isFinite(angleDeg)) {
+        setV8CrankAngleDeg(((angleDeg % 720) + 720) % 720);
+      }
+    };
+    window.addEventListener('advis-v8-crank-angle', onV8CrankAngle);
+    return () => window.removeEventListener('advis-v8-crank-angle', onV8CrankAngle);
+  }, []);
 
   const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
     setComponentTransforms(prev => ({
@@ -1417,6 +1454,10 @@ function AppContent() {
               kinematicTimeOffset={kinematicTimeOffset}
               v12Rpm={v12Rpm}
               v12Direction={v12Direction}
+              v8Rpm={v8Rpm}
+              isV8KinematicPlaying={isV8KinematicPlaying}
+              v8KinematicSpeed={v8KinematicSpeed}
+              v8KinematicTimeOffset={v8KinematicTimeOffset}
               isMagnifierFocused={isMagnifierFocused}
               lodTier={lodTier}
               focusedCylinder={focusedCylinder}
@@ -1564,12 +1605,12 @@ function AppContent() {
         onToggleIsolate={setIsolatedComponentId}
         tracedFunctionKey={tracedFunctionKey}
         onTraceFunction={setTracedFunctionKey}
-        isKinematicPlaying={isKinematicPlaying}
-        onToggleKinematicPlaying={() => setIsKinematicPlaying(!isKinematicPlaying)}
-        kinematicSpeed={kinematicSpeed}
-        onChangeKinematicSpeed={setKinematicSpeed}
-        kinematicTimeOffset={kinematicTimeOffset}
-        onChangeKinematicTimeOffset={setKinematicTimeOffset}
+        isKinematicPlaying={isV8Active ? isV8KinematicPlaying : isKinematicPlaying}
+        onToggleKinematicPlaying={isV8Active ? () => setIsV8KinematicPlaying(!isV8KinematicPlaying) : () => setIsKinematicPlaying(!isKinematicPlaying)}
+        kinematicSpeed={isV8Active ? v8KinematicSpeed : kinematicSpeed}
+        onChangeKinematicSpeed={isV8Active ? setV8KinematicSpeed : setKinematicSpeed}
+        kinematicTimeOffset={isV8Active ? v8KinematicTimeOffset : kinematicTimeOffset}
+        onChangeKinematicTimeOffset={isV8Active ? handleScrubV8Angle : setKinematicTimeOffset}
         onSendMessage={handleSendMessage}
       />
     )}
@@ -1606,6 +1647,36 @@ function AppContent() {
         onSelectCylinder={setFocusedCylinder}
         soundEnabled={soundEnabled}
         onToggleSound={() => setSoundEnabled(!soundEnabled)}
+      />
+    )}
+
+    {isV8Active && (
+      <V8EngineController
+        onApplyCameraPreset={handleApplyCameraPreset}
+        xrayEnabled={xrayEnabled}
+        blueprintEnabled={blueprintEnabled}
+        onSetCutawayMode={handleSetCutawayMode}
+        rpm={v8Rpm}
+        onChangeRpm={setV8Rpm}
+        isKinematicPlaying={isV8KinematicPlaying}
+        onTogglePlaying={() => setIsV8KinematicPlaying(!isV8KinematicPlaying)}
+        kinematicSpeed={v8KinematicSpeed}
+        onChangeSpeed={setV8KinematicSpeed}
+        kinematicAngleDeg={v8CrankAngleDeg}
+        onScrubAngle={handleScrubV8Angle}
+        focusedCylinder={focusedCylinder}
+        onSelectCylinder={setFocusedCylinder}
+        showLabels={showLabels}
+        onToggleLabels={() => setShowLabels(!showLabels)}
+        chargeFlowEnabled={chargeFlowEnabled}
+        onToggleChargeFlow={() => setChargeFlowEnabled(!chargeFlowEnabled)}
+        vectorsEnabled={vectorsEnabled}
+        onToggleVectors={() => setVectorsEnabled(!vectorsEnabled)}
+        isolatedComponentId={isolatedComponentId}
+        onToggleIsolate={(component) => setIsolatedComponentId(isolatedComponentId === component ? null : component)}
+        selectedComponentId={selectedComponentId}
+        soundEnabled={v8SoundEnabled}
+        onToggleSound={() => setV8SoundEnabled(!v8SoundEnabled)}
       />
     )}
 
