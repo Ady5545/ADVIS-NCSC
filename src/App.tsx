@@ -2187,8 +2187,6 @@ function AppContent() {
         onQualityPresetChange={(preset) => updateAccessibilityPreferences({ quality: preset })}
         reducedMotion={accessibilityPreferences.reducedMotion}
         onReducedMotionChange={(enabled) => updateAccessibilityPreferences({ reducedMotion: enabled })}
-        captionsEnabled={accessibilityPreferences.captionsEnabled}
-        onCaptionsEnabledChange={(enabled) => updateAccessibilityPreferences({ captionsEnabled: enabled })}
         audioPreferenceEnabled={accessibilityPreferences.audioEnabled}
         onAudioPreferenceChange={(enabled) => updateAccessibilityPreferences({ audioEnabled: enabled })}
         onSaveWorkspace={saveEngineeringWorkspace}
