@@ -8,6 +8,7 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { InnovationWorkshop } from './workshop/InnovationWorkshop';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -101,6 +102,7 @@ export function EngineeringReferenceCockpit({
   const [collapsedTreeNodes, setCollapsedTreeNodes] = useState<Record<string, boolean>>({});
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
+  const [workshopOpen, setWorkshopOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -241,6 +243,15 @@ export function EngineeringReferenceCockpit({
               >
                 <Lightbulb size={14} /> <span className="hidden sm:inline">WORKSHOP</span>
               </button>
+              <button
+                type="button"
+                onClick={() => setWorkshopOpen(true)}
+                className="h-9 px-3 rounded-full border border-cyan-600/30 bg-slate-950 text-cyan-200 hover:bg-slate-900 transition-all flex items-center justify-center text-[9px] font-semibold tracking-wide"
+                aria-label="Create an editable copy of this model"
+                title="Create a transform-level editable copy without changing the reference model"
+              >
+                <span className="hidden sm:inline">MODEL COPY</span><span className="sm:hidden">COPY</span>
+              </button>
               <button type="button" onClick={onSaveWorkspace} aria-label="Save editable workspace locally" title="Save current model transforms on this device" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><Save size={13} /><span className="hidden sm:inline">SAVE</span></button>
               <button type="button" onClick={onLoadWorkspace} aria-label="Load editable workspace from this device" title="Load saved transforms for this model" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><FolderOpen size={13} /><span className="hidden sm:inline">LOAD</span></button>
               <button
@@ -357,7 +368,7 @@ export function EngineeringReferenceCockpit({
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-[10px]">
-                      <div><div className="text-slate-400 uppercase">Chamber pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div></div>
+                      <div><div className="text-slate-400 uppercase">Indicative pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div><div className="text-[8px] text-amber-700">Teaching indicator; not measured</div></div>
                       <div><div className="text-slate-400 uppercase">Piston position</div><div className="font-semibold text-slate-900">{activeTelemetry?.pistonPositionMm?.toFixed(1)} mm</div></div>
                       <div><div className="text-slate-400 uppercase">Intake lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.intakeLiftMm?.toFixed(1)} mm</div></div>
                       <div><div className="text-slate-400 uppercase">Exhaust lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.exhaustLiftMm?.toFixed(1)} mm</div></div>
@@ -598,6 +609,15 @@ export function EngineeringReferenceCockpit({
         isOpen={inspectionOpen}
         onClose={() => setInspectionOpen(false)}
         activeObjectKey={objectKey || null}
+      />
+      <InnovationWorkshop
+        open={workshopOpen}
+        onClose={() => setWorkshopOpen(false)}
+        object={objectMeta}
+        selectedComponentId={selectedComponentId}
+        componentTransforms={componentTransforms}
+        onSelectComponent={onSelectComponent}
+        onUpdateComponentTransform={onUpdateComponentTransform}
       />
     </>
   );
