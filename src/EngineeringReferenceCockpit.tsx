@@ -404,10 +404,30 @@ export function EngineeringReferenceCockpit({
                 <p className="text-[10px] leading-relaxed text-slate-600">{selectedComponent.description}</p>
                 <div className="grid grid-cols-2 gap-2 text-[9px] pt-1">
                   <div><div className="text-slate-400 uppercase">Subsystem</div><div className="text-slate-700">{selectedComponent.subsystemId?.replace(/[-_]+/g, ' ') || selectedComponent.category || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Material</div><div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div></div>
+                  <div>
+                    <div className="text-slate-400 uppercase">Material claim</div>
+                    <div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div>
+                    <div className="text-amber-700">Not source-verified at component level</div>
+                  </div>
                   <div><div className="text-slate-400 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
+                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'UNSPECIFIED'}</div></div>
                 </div>
+                <details className="mt-2 rounded border border-rose-200 bg-white/80 p-2">
+                  <summary className="cursor-pointer text-[9px] font-semibold text-slate-700">Model evidence, assumptions and limits</summary>
+                  <div className="mt-2 space-y-2 text-[9px] leading-relaxed text-slate-600">
+                    <div><strong>Geometry authority:</strong> {objectMeta?.evidence?.geometryAuthority || objectMeta?.modelKind || 'Not recorded'}</div>
+                    <div><strong>Simulation status:</strong> {objectMeta?.evidence?.simulationStatus || 'Not declared'} (this is separate from render detail).</div>
+                    <div><strong>Model revision:</strong> {objectMeta?.modelVersion || objectMeta?.evidence?.revision || 'Not recorded'}</div>
+                    <div><strong>License / attribution:</strong> {objectMeta?.evidence?.license || 'Not recorded'}{objectMeta?.evidence?.attribution ? ` · ${objectMeta.evidence.attribution}` : ''}</div>
+                    <div>
+                      <strong>Source references:</strong>
+                      {(objectMeta?.evidence?.references || []).filter((reference) => reference.url).length > 0
+                        ? <ul className="mt-1 list-disc pl-4">{(objectMeta?.evidence?.references || []).filter((reference) => reference.url).map((reference, index) => <li key={reference.url || index}><a href={reference.url} target="_blank" rel="noopener noreferrer" className="break-all text-cyan-800 underline">{reference.label}</a> <span>({reference.applicability || 'applicability unspecified'})</span></li>)}</ul>
+                        : <span className="text-amber-700"> No source URL is attached to this model record. Exact material, dimension, performance and tolerance claims should be treated as unverified.</span>}
+                    </div>
+                    {(objectMeta?.evidence?.limitations || []).length > 0 && <div><strong>Limitations:</strong><ul className="mt-1 list-disc pl-4">{objectMeta?.evidence?.limitations?.map((limitation, index) => <li key={index}>{limitation}</li>)}</ul></div>}
+                  </div>
+                </details>
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     type="button"
