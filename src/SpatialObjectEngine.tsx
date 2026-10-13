@@ -816,6 +816,7 @@ function EngineeringComponentRenderer({
   isMagnifierFocused,
   v12Rpm,
   v12Direction,
+  v8Rpm,
   sysTimeRef,
   focusedCylinder,
   crankAngleRef,
