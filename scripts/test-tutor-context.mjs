@@ -106,6 +106,6 @@ assert.match(contextSummary, /Typed Tutor Context/);
 assert.match(contextSummary, /General engine principle/);
 assert.match(contextSummary, /Allowed Suggested UI Actions: SELECT_COMPONENT, FOCUS_COMPONENT, SET_EXPLOSION/);
 assert.doesNotMatch(contextSummary, /EXECUTE_CODE/);
-assert.doesNotMatch(contextSummary, /javascript:alert\\(1\\)/, 'unsafe URL must not appear in tutor prompt');
+assert.doesNotMatch(contextSummary, /javascript:alert\(1\)/, 'unsafe URL must not appear in tutor prompt');
 
 console.log('Tutor context tests passed: bounded source evidence, allowlisted model capabilities, typed component/parameter context, safe action types and invalid-input handling.');
