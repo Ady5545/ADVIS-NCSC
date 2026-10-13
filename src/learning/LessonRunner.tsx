@@ -186,12 +186,12 @@ export function LessonRunner({
           <label className="flex flex-col sm:flex-row sm:items-center gap-2 text-[9px] uppercase tracking-[0.13em] text-slate-500">
             Choose a lesson
             <select value={lesson.id} onChange={(event) => chooseLesson(event.currentTarget.value)} className="sm:ml-2 flex-1 rounded-md border border-slate-700 bg-slate-900 text-cyan-100 px-3 py-2 text-[11px] normal-case tracking-normal outline-none focus:border-cyan-400">
-              {LEARNING_LESSONS.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.learnerLevel.replaceAll('_', ' ')}</option>)}
+              {LEARNING_LESSONS.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.learnerLevel.replace(/_/g, ' ')}</option>)}
             </select>
           </label>
           <div className="flex items-center justify-between gap-3 mt-3 text-[9px] text-slate-400">
             <span>{completedCount} of {lesson.steps.length} steps completed</span>
-            <span>{lesson.estimatedMinutes} min · {lesson.authoringStatus.replaceAll('_', ' ')}</span>
+            <span>{lesson.estimatedMinutes} min · {lesson.authoringStatus.replace(/_/g, ' ')}</span>
           </div>
           <div className="h-1.5 rounded-full bg-slate-800 mt-2 overflow-hidden">
             <div className="h-full rounded-full bg-cyan-400 transition-all" style={{ width: `${progressPercent}%` }} />
