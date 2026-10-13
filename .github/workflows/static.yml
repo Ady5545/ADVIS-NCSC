@@ -35,6 +35,8 @@ jobs:
 
       - name: Validate model catalog and CAD evidence
         run: npm run validate:catalog
+      - name: Validate scientific claim metadata and simulation limits
+        run: npm run validate:science
 
       - name: Validate lesson catalog and assessment integrity
         run: npm run validate:lessons
