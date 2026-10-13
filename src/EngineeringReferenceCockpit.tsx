@@ -473,12 +473,30 @@ export function EngineeringReferenceCockpit({
               <button onClick={() => setShowParts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Parts</button>
               <button onClick={() => setShowCharts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Charts</button>
               <button onClick={() => onHighlightComponent?.(highlightedComponentId ? null : selectedComponentId || components[0]?.id || null)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Callout</button>
-              <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Isolate</button>
+              <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Zoom focus</button>
             </div>
             <div className="px-3 pt-2 border-t border-slate-200">
-              <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-slate-400">
+              <div className="flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.12em] text-slate-400">
                 <label htmlFor="assembly-explosion-factor">Assembly separation</label>
-                <span className="tabular-nums">{Math.round(explodedFactor * 100)}%</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Previous exploded-view stage"
+                    title="Previous stage"
+                    onClick={() => onUpdateExplodedFactor?.(Math.max(0, Math.round((explodedFactor - 0.15) * 100) / 100))}
+                    disabled={explodedFactor <= 0}
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-600 disabled:opacity-35"
+                  >−</button>
+                  <span className="min-w-[36px] text-center tabular-nums">{Math.round(explodedFactor * 100)}%</span>
+                  <button
+                    type="button"
+                    aria-label="Next exploded-view stage"
+                    title="Next stage"
+                    onClick={() => onUpdateExplodedFactor?.(Math.min(1, Math.round((explodedFactor + 0.15) * 100) / 100))}
+                    disabled={explodedFactor >= 1}
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-600 disabled:opacity-35"
+                  >+</button>
+                </div>
               </div>
               <input
                 id="assembly-explosion-factor"
@@ -496,10 +514,12 @@ export function EngineeringReferenceCockpit({
               </div>
             </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
-              <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Toggle measurement mode"><Ruler size={11} className="mx-auto" /></button>
+              {objectMeta?.capabilities?.measure !== false && (
+                <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Toggle measurement mode"><Ruler size={11} className="mx-auto" /></button>
+              )}
               <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Enable ultra detail"><Sparkles size={11} className="mx-auto" /></button>
               <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 1)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label={explodedFactor > 0.05 ? 'Reassemble all components' : 'Fully explode all components'}><Maximize2 size={11} className="mx-auto" /></button>
-              <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]" aria-label="Toggle engine rotation direction">DIR</button>
+              {isV12 && <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]" aria-label="Toggle V12 engine rotation direction">DIR</button>}
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
             </div>
           </div>
