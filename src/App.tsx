@@ -13,7 +13,8 @@ import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
-import { Fingerprint, Lock, X } from 'lucide-react';\nimport { ParametricInnovationLab } from './cad/ParametricInnovationLab';
+import { Fingerprint, Lock, X } from 'lucide-react';
+import { ParametricInnovationLab } from './cad/ParametricInnovationLab';
 import { motion } from 'framer-motion';
 import { useHandTracking, HandTrackingData } from './useHandTracking';
 import { MediaPipeAdapter } from './MediaPipeAdapter';
@@ -34,7 +35,9 @@ import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
 import { useV8EngineAudio } from './scientific/V8EngineAudioEngine';
-import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';\n\ntype ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };\ntype TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
+import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
+
+type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };\ntype TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -282,8 +285,10 @@ function AppContent() {
     setHighlightedComponentId(null);
   }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
-  const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);\n  const [showInnovationLab, setShowInnovationLab] = useState<boolean>(false);
-  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});\n  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
+  const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
+  const [showInnovationLab, setShowInnovationLab] = useState<boolean>(false);
+  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
   const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
   const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
   const [explodedFactor, setExplodedFactor] = useState<number>(0);
