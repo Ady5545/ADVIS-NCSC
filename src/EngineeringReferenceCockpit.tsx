@@ -8,6 +8,7 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { InnovationWorkshop } from './workshop/InnovationWorkshop';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
@@ -85,6 +86,7 @@ export function EngineeringReferenceCockpit({
   const [collapsedTreeNodes, setCollapsedTreeNodes] = useState<Record<string, boolean>>({});
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
+  const [workshopOpen, setWorkshopOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -214,13 +216,23 @@ export function EngineeringReferenceCockpit({
                 ))}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="pointer-events-auto w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
-              aria-label="Exit engineering study"
-            >
-              <X size={16} />
-            </button>
+            <div className="flex items-center gap-2 pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => setWorkshopOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-cyan-600/30 bg-slate-950 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-cyan-200 hover:bg-slate-900 focus-visible:outline-2 focus-visible:outline-cyan-400"
+                aria-label="Open innovation workshop to create an editable copy"
+              >
+                Workshop
+              </button>
+              <button
+                onClick={onClose}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm focus-visible:outline-2 focus-visible:outline-rose-500"
+                aria-label="Exit engineering study"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -306,7 +318,7 @@ export function EngineeringReferenceCockpit({
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-[10px]">
-                      <div><div className="text-slate-400 uppercase">Chamber pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div></div>
+                      <div><div className="text-slate-400 uppercase">Indicative pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div><div className="text-[8px] text-amber-700">Model indicator; not measured</div></div>
                       <div><div className="text-slate-400 uppercase">Piston position</div><div className="font-semibold text-slate-900">{activeTelemetry?.pistonPositionMm?.toFixed(1)} mm</div></div>
                       <div><div className="text-slate-400 uppercase">Intake lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.intakeLiftMm?.toFixed(1)} mm</div></div>
                       <div><div className="text-slate-400 uppercase">Exhaust lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.exhaustLiftMm?.toFixed(1)} mm</div></div>
@@ -547,6 +559,15 @@ export function EngineeringReferenceCockpit({
         isOpen={inspectionOpen}
         onClose={() => setInspectionOpen(false)}
         activeObjectKey={objectKey || null}
+      />
+      <InnovationWorkshop
+        open={workshopOpen}
+        onClose={() => setWorkshopOpen(false)}
+        object={objectMeta}
+        selectedComponentId={selectedComponentId}
+        componentTransforms={componentTransforms}
+        onSelectComponent={onSelectComponent}
+        onUpdateComponentTransform={onUpdateComponentTransform}
       />
     </>
   );
