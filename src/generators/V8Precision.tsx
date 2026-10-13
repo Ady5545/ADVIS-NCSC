@@ -253,7 +253,7 @@ function V8BlockShell({ state }: { state: State }) {
 
       {/* Machined cylinder decks and cast bank rails follow the two 45-degree banks. */}
       {[-1, 1].map((sign) => (
-        <group key={sign} position={[sign * 0.19, 0.30, 0]} rotation={[0, 0, sign * BANK]}>
+        <group key={sign} position={[sign * 0.19, 0.18, 0]} rotation={[0, 0, -sign * BANK]}>
           <RoundedBox args={[0.48, 0.34, 1.78]} radius={0.045} smoothness={6}>
             <M state={state} color="#414c55" metalness={0.74} roughness={0.38} clearcoat={0.06} />
           </RoundedBox>
@@ -333,10 +333,10 @@ function V8MovingCylinder({
   const rodRef = useRef<THREE.Group>(null);
   const crankRadius = 0.108;
   const rodLength = 0.32;
-  const crankAxisOffset = -0.20;
+  const crankAxisOffset = -0.32;
 
   useFrame(() => {
-    const angle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] - (Math.PI / 2 + side * BANK);
+    const angle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] - (Math.PI / 2 - side * BANK);
     const crankX = crankRadius * Math.sin(angle);
     const crankY = crankAxisOffset + crankRadius * Math.cos(angle);
     const verticalRodLength = Math.sqrt(Math.max(0.0001, rodLength * rodLength - crankX * crankX));
