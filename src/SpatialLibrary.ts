@@ -1285,7 +1285,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     metadata: { displacement: 'Not specified — no source-identified variant', cylinderBank: 'Two banks of six; exact V-angle not source-verified', valvetrain: 'Not specified' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
-    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.cylinder_head', 'v12.intake_plenum', 'v12.exhaust_manifold'],
+    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.valvetrain', 'v12.intake_plenum', 'v12.exhaust_manifold'],
     educationalInformation: {
       overview: 'A V12 piston engine has twelve cylinders arranged in two banks around a common crankshaft. Balance, firing sequence, dimensions, and valvetrain depend on the particular engine design.',
       keyFeatures: [
