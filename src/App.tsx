@@ -29,6 +29,7 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
+import { buildModelTutorContext } from './learning/ModelTutorContext';
 import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
@@ -280,6 +281,11 @@ function AppContent() {
     setHiddenComponentIds([]);
     setIsolatedComponentId(null);
     setHighlightedComponentId(null);
+    // A visual edit belongs to the active copy; never carry transforms into another catalog model.
+    setComponentTransforms({});
+    setExplodedFactor(0);
+    setXrayEnabled(false);
+    setBlueprintEnabled(false);
   }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
@@ -306,7 +312,61 @@ function AppContent() {
   const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
   const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
   const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
-  const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
+  const [reducedMotionEnabled, setReducedMotionEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = window.localStorage.getItem('advis-ncsc.accessibility-preferences.v1');
+      if (saved) {
+        const parsed = JSON.parse(saved) as { reducedMotion?: unknown };
+        if (typeof parsed.reducedMotion === 'boolean') return parsed.reducedMotion;
+      }
+    } catch { /* use the OS preference when storage is unavailable */ }
+    return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  });
+  const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>(() => {
+    if (typeof window === 'undefined') return 'HIGH';
+    try {
+      const saved = window.localStorage.getItem('advis-ncsc.accessibility-preferences.v1');
+      if (!saved) return 'HIGH';
+      const parsed = JSON.parse(saved) as { quality?: unknown };
+      if (parsed.quality === 'LOW') return 'LOW';
+      if (parsed.quality === 'BALANCED') return 'MEDIUM';
+      if (parsed.quality === 'HIGH' || parsed.quality === 'ULTRA') return parsed.quality;
+    } catch { /* use safe defaults if storage is unavailable or malformed */ }
+    return 'HIGH';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const key = 'advis-ncsc.accessibility-preferences.v1';
+      let preferences: Record<string, unknown> = {};
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const parsed: unknown = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) preferences = parsed as Record<string, unknown>;
+        }
+      } catch { /* repair malformed preferences using the default fields below */ }
+      preferences.quality = lodTier === 'MEDIUM' ? 'BALANCED' : lodTier;
+      if (typeof preferences.captionsEnabled !== 'boolean') preferences.captionsEnabled = true;
+      if (typeof preferences.cameraFeaturesEnabled !== 'boolean') preferences.cameraFeaturesEnabled = false;
+      if (typeof preferences.audioEnabled !== 'boolean') preferences.audioEnabled = false;
+      preferences.reducedMotion = reducedMotionEnabled;
+      document.documentElement.setAttribute('data-advis-reduced-motion', reducedMotionEnabled ? 'true' : 'false');
+      window.localStorage.setItem(key, JSON.stringify(preferences));
+    } catch { /* quality controls remain usable for this session without storage */ }
+  }, [lodTier, reducedMotionEnabled]);
+
+  useEffect(() => {
+    if (!reducedMotionEnabled) return;
+    setIsKinematicPlaying(false);
+    setIsV8KinematicPlaying(false);
+    setIsPresentationMode(false);
+    stopAllTheatrePresentations();
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch { /* speech APIs may be restricted */ }
+  }, [reducedMotionEnabled]);
+
   const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
   const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
   const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
@@ -332,6 +392,18 @@ function AppContent() {
   const isV8Active = Array.isArray(currentSpatialObject)
     ? currentSpatialObject.includes('v8_engine')
     : currentSpatialObject === 'v8_engine';
+  const activeLessonModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const lessonIdByModel: Record<string, string> = {
+    hydrogen_atom: 'hydrogen-atom-probability-cloud',
+    v8_engine: 'v8-four-stroke-explorer',
+    v12_engine: 'v12-architecture-explorer',
+    arduino_uno: 'arduino-board-signal-path',
+    servo_motor: 'servo-positioning-basics',
+    jet_engine_core: 'jet-engine-core-flow-path',
+    suspension: 'suspension-load-path-inspection',
+    human_anatomy_scientific: 'anatomy-heart-and-blood-flow',
+    hydraulic_pump: 'hydraulic-pump-pressure-and-flow',
+  };
 
   useV12EngineAudio({
     active: isV12Active,
@@ -1038,6 +1110,30 @@ function AppContent() {
           ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
           : 'HUD'));
 
+    const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+    const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
+    const tutorScientificState = useScientificStore.getState();
+    // Never reuse an old scientific engine's state when the visible model is unrelated.
+    const expectedScientificId = tutorModelId === 'v8_engine'
+      ? 'v8_engine_scientific'
+      : tutorModelId;
+    const registeredTutorScientificModel = expectedScientificId
+      ? ScientificModelRegistry.getModel(expectedScientificId) || null
+      : null;
+    const tutorScientificModel = tutorScientificState.activeModel?.id === expectedScientificId
+      ? tutorScientificState.activeModel
+      : registeredTutorScientificModel;
+    const scientificStateMatches = Boolean(
+      tutorScientificModel && tutorScientificState.activeModel?.id === tutorScientificModel.id
+    );
+    const modelTutorContext = tutorModel
+      ? buildModelTutorContext(tutorModel, selectedComponentId || hoveredComponentId, {
+          scientificModel: tutorScientificModel,
+          scientificVariables: scientificStateMatches ? tutorScientificState.simulationVariables : {},
+          scientificParameters: scientificStateMatches ? tutorScientificState.parameters : (tutorScientificModel?.simulation.parameters || {})
+        })
+      : null;
+
     const butlerContext = {
       activeProjectId,
       activeWorkspace,
@@ -1046,6 +1142,7 @@ function AppContent() {
       activeMolecule: sessionMolecule.getMolecularContextForAI(),
       selectedComponentId,
       hoveredComponentId,
+      modelTutorContext,
       spatialMode,
       showLabels,
       isEngineeringMode,
@@ -1471,8 +1568,8 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
+          shadows={lodTier !== 'LOW'}
+          dpr={lodTier === 'LOW' ? [0.65, 0.8] : lodTier === 'MEDIUM' ? [0.8, 1] : lodTier === 'HIGH' ? [1, 1.4] : [1, 1.85]}
           gl={{ antialias: true, powerPreference: 'high-performance' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
@@ -1502,7 +1599,7 @@ function AppContent() {
           <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
           {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+          {lodTier !== 'LOW' && <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={lodTier === 'MEDIUM' ? 384 : lodTier === 'HIGH' ? 768 : 1024} />}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
@@ -1734,7 +1831,7 @@ function AppContent() {
     <LessonRunner
       open={showLessonRunner}
       onClose={() => setShowLessonRunner(false)}
-      initialLessonId={currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer'}
+      initialLessonId={lessonIdByModel[activeLessonModelId || ''] || 'v8-four-stroke-explorer'}
       selectedComponentId={selectedComponentId}
       onOpenModel={handleOpenLessonModel}
       onAction={handleLessonAction}
@@ -1946,7 +2043,8 @@ function AppContent() {
     {/* Engineering Mode: reference-inspired study cockpit */}
     {isEngineeringMode && (
       <EngineeringReferenceCockpit 
-        onClose={() => setIsEngineeringMode(false)} 
+        onClose={() => setIsEngineeringMode(false)}
+        onAskTutor={(question) => { void handleSendMessage(question); }}
         activeObject={currentSpatialObject} 
         selectedComponentId={selectedComponentId}
         onSelectComponent={setSelectedComponentId}
@@ -1981,6 +2079,8 @@ function AppContent() {
         onToggleMagnifier={() => setIsMagnifierFocused(prev => !prev)}
         lodTier={lodTier}
         onUpdateLodTier={setLodTier}
+        reducedMotionEnabled={reducedMotionEnabled}
+        onToggleReducedMotion={() => setReducedMotionEnabled((value) => !value)}
       />
     )}
 

@@ -103,6 +103,71 @@ function cleanContext(value) {
     };
   }
 
+  let modelTutorContext = null;
+  if (input.modelTutorContext && typeof input.modelTutorContext === "object") {
+    const rawTutor = input.modelTutorContext;
+    const allowedEvidenceKinds = ["SOURCE_BACKED", "MODEL_DERIVED", "ILLUSTRATIVE", "UNKNOWN"];
+    const allowedApplicability = ["EXACT_MODEL", "RELATED_MODEL", "GENERAL_PRINCIPLE", "ILLUSTRATIVE"];
+    const allowedActions = ["SELECT_COMPONENT", "SET_EXPLOSION", "SET_VIEW_MODE", "FOCUS_COMPONENT", "OPEN_LESSON"];
+    const evidence = Array.isArray(rawTutor.evidence)
+      ? rawTutor.evidence.slice(0, 8).map(function (item, index) {
+          const sourceUrl = typeof item?.sourceUrl === "string" && /^https:\/\/\S+$/i.test(item.sourceUrl)
+            ? cleanText(item.sourceUrl, 500)
+            : undefined;
+          const kind = allowedEvidenceKinds.includes(item?.kind) ? item.kind : "UNKNOWN";
+          const applicability = allowedApplicability.includes(item?.applicability) ? item.applicability : undefined;
+          return {
+            id: cleanText(item?.id, 100) || `evidence-${index + 1}`,
+            label: cleanText(item?.label, 120),
+            kind: kind,
+            detail: cleanText(item?.detail, 500),
+            ...(sourceUrl ? { sourceUrl: sourceUrl } : {}),
+            ...(applicability ? { applicability: applicability } : {})
+          };
+        }).filter(function (item) { return item.label || item.detail; })
+      : [];
+    const relationships = Array.isArray(rawTutor.relationships)
+      ? rawTutor.relationships.slice(0, 12).map(function (item) {
+          return {
+            componentId: cleanText(item?.componentId, 100),
+            name: cleanText(item?.name, 120),
+            relationship: cleanText(item?.relationship, 80),
+            description: cleanText(item?.description, 300)
+          };
+        }).filter(function (item) { return item.componentId || item.name; })
+      : [];
+    const parameters = Array.isArray(rawTutor.parameters)
+      ? rawTutor.parameters.slice(0, 12).filter(function (item) { return Number.isFinite(item?.value); }).map(function (item) {
+          return {
+            id: cleanText(item?.id, 100),
+            name: cleanText(item?.name, 120),
+            unit: cleanText(item?.unit, 40) || "unit unspecified",
+            value: item.value,
+            description: cleanText(item?.description, 300)
+          };
+        })
+      : [];
+    modelTutorContext = {
+      modelId: cleanText(rawTutor.modelId, 120),
+      modelName: cleanText(rawTutor.modelName, 160),
+      modelVersion: cleanText(rawTutor.modelVersion, 80) || "unversioned",
+      domain: cleanText(rawTutor.domain, 80) || "unspecified",
+      selectedComponentId: cleanText(rawTutor.selectedComponentId, 120) || null,
+      selectedComponentName: cleanText(rawTutor.selectedComponentName, 160) || null,
+      selectedComponentPurpose: cleanText(rawTutor.selectedComponentPurpose, 600) || null,
+      relationships: relationships,
+      parameters: parameters,
+      evidence: evidence,
+      simulationLevel: cleanText(rawTutor.simulationLevel, 60) || "NONE",
+      limitations: Array.isArray(rawTutor.limitations)
+        ? rawTutor.limitations.slice(0, 8).map(function (item) { return cleanText(item, 300); }).filter(Boolean)
+        : [],
+      safeActions: Array.isArray(rawTutor.safeActions)
+        ? rawTutor.safeActions.filter(function (action) { return allowedActions.includes(action); })
+        : []
+    };
+  }
+
   return {
     activeProjectId: cleanText(input.activeProjectId, 120) || null,
     activeProjectName: cleanText(input.activeProjectName, 120) || null,
@@ -116,6 +181,7 @@ function cleanContext(value) {
     isEngineeringMode: Boolean(input.isEngineeringMode),
     systemState: cleanText(input.systemState, 40),
     activeMolecule: molecule,
+    modelTutorContext: modelTutorContext,
     recentActions: Array.isArray(input.recentActions)
       ? input.recentActions.slice(-6).map(function (action) {
           return {

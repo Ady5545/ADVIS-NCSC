@@ -8,9 +8,14 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import { InnovationWorkshopPanel } from './workshop/InnovationWorkshopPanel';
+import { ModelCapabilityPanel } from './models/ModelCapabilityPanel';
+import { AuthoringWorkbench } from './authoring/AuthoringWorkbench';
+import { PrivacyDataPanel } from './accessibility/PrivacyDataPanel';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
+  onAskTutor?: (question: string) => void;
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
@@ -40,6 +45,8 @@ export interface EngineeringReferenceCockpitProps {
   onToggleMagnifier?: () => void;
   lodTier?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
   onUpdateLodTier?: (tier: 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA') => void;
+  reducedMotionEnabled?: boolean;
+  onToggleReducedMotion?: () => void;
 }
 
 const phaseLegend = [
@@ -51,8 +58,11 @@ const phaseLegend = [
 
 export function EngineeringReferenceCockpit({
   onClose,
+  onAskTutor,
   activeObject,
   selectedComponentId,
+  componentTransforms = {},
+  onUpdateComponentTransform,
   onSelectComponent,
   hiddenComponentIds = [],
   onToggleComponentVisibility,
@@ -78,6 +88,8 @@ export function EngineeringReferenceCockpit({
   onToggleMagnifier,
   lodTier = 'HIGH',
   onUpdateLodTier,
+  reducedMotionEnabled = false,
+  onToggleReducedMotion,
 }: EngineeringReferenceCockpitProps) {
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showParts, setShowParts] = useState(false);
@@ -85,6 +97,10 @@ export function EngineeringReferenceCockpit({
   const [collapsedTreeNodes, setCollapsedTreeNodes] = useState<Record<string, boolean>>({});
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
+  const [workshopOpen, setWorkshopOpen] = useState(false);
+  const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
+  const [authoringOpen, setAuthoringOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
 
   const telemetry = useEngineTelemetry();
@@ -203,7 +219,7 @@ export function EngineeringReferenceCockpit({
             </div>
           </div>
 
-          <div className="flex items-start gap-8">
+          <div className="flex items-start gap-2 sm:gap-4">
             <div className="hidden md:flex flex-col items-end pt-1">
               <div className="flex items-center gap-4 text-[9px] uppercase tracking-[0.14em] text-slate-500">
                 {phaseLegend.map(([label, color]) => (
@@ -215,6 +231,31 @@ export function EngineeringReferenceCockpit({
               </div>
             </div>
             <button
+              type="button"
+              onClick={() => { setWorkshopOpen(false); setAuthoringOpen(false); setPrivacyOpen(false); setCapabilitiesOpen(true); }}
+              className="pointer-events-auto mr-2 min-h-9 rounded-full border border-slate-300 bg-white/90 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+              aria-label="Open model capability matrix"
+            >MATRIX</button>
+            <button
+              type="button"
+              onClick={() => { setCapabilitiesOpen(false); setAuthoringOpen(false); setPrivacyOpen(false); setWorkshopOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-cyan-500/40 bg-cyan-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-cyan-800 hover:bg-cyan-100 transition-all shadow-sm"
+              aria-label="Open innovation workshop for an editable copy"
+            >WORKSHOP</button>
+            <button
+              type="button"
+              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setPrivacyOpen(false); setAuthoringOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-violet-500/40 bg-violet-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-violet-800 hover:bg-violet-100 transition-all shadow-sm"
+              aria-label="Open model and lesson authoring review"
+            >AUTHORING</button>
+            <button
+              type="button"
+              onClick={() => { setCapabilitiesOpen(false); setWorkshopOpen(false); setAuthoringOpen(false); setPrivacyOpen(true); }}
+              className="pointer-events-auto min-h-9 rounded-full border border-emerald-500/40 bg-emerald-50 px-3 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald-800 hover:bg-emerald-100 transition-all shadow-sm"
+              aria-label="Open privacy and local data controls"
+            >PRIVACY</button>
+            <button
+              type="button"
               onClick={onClose}
               className="pointer-events-auto w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
               aria-label="Exit engineering study"
@@ -363,10 +404,30 @@ export function EngineeringReferenceCockpit({
                 <p className="text-[10px] leading-relaxed text-slate-600">{selectedComponent.description}</p>
                 <div className="grid grid-cols-2 gap-2 text-[9px] pt-1">
                   <div><div className="text-slate-400 uppercase">Subsystem</div><div className="text-slate-700">{selectedComponent.subsystemId?.replace(/[-_]+/g, ' ') || selectedComponent.category || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Material</div><div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div></div>
+                  <div>
+                    <div className="text-slate-400 uppercase">Material claim</div>
+                    <div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div>
+                    <div className="text-amber-700">Not source-verified at component level</div>
+                  </div>
                   <div><div className="text-slate-400 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
+                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'UNSPECIFIED'}</div></div>
                 </div>
+                <details className="mt-2 rounded border border-rose-200 bg-white/80 p-2">
+                  <summary className="cursor-pointer text-[9px] font-semibold text-slate-700">Model evidence, assumptions and limits</summary>
+                  <div className="mt-2 space-y-2 text-[9px] leading-relaxed text-slate-600">
+                    <div><strong>Geometry authority:</strong> {objectMeta?.evidence?.geometryAuthority || objectMeta?.modelKind || 'Not recorded'}</div>
+                    <div><strong>Simulation status:</strong> {objectMeta?.evidence?.simulationStatus || 'Not declared'} (this is separate from render detail).</div>
+                    <div><strong>Model revision:</strong> {objectMeta?.modelVersion || objectMeta?.evidence?.revision || 'Not recorded'}</div>
+                    <div><strong>License / attribution:</strong> {objectMeta?.evidence?.license || 'Not recorded'}{objectMeta?.evidence?.attribution ? ` · ${objectMeta.evidence.attribution}` : ''}</div>
+                    <div>
+                      <strong>Source references:</strong>
+                      {(objectMeta?.evidence?.references || []).filter((reference) => reference.url).length > 0
+                        ? <ul className="mt-1 list-disc pl-4">{(objectMeta?.evidence?.references || []).filter((reference) => reference.url).map((reference, index) => <li key={reference.url || index}><a href={reference.url} target="_blank" rel="noopener noreferrer" className="break-all text-cyan-800 underline">{reference.label}</a> <span>({reference.applicability || 'applicability unspecified'})</span></li>)}</ul>
+                        : <span className="text-amber-700"> No source URL is attached to this model record. Exact material, dimension, performance and tolerance claims should be treated as unverified.</span>}
+                    </div>
+                    {(objectMeta?.evidence?.limitations || []).length > 0 && <div><strong>Limitations:</strong><ul className="mt-1 list-disc pl-4">{objectMeta?.evidence?.limitations?.map((limitation, index) => <li key={index}>{limitation}</li>)}</ul></div>}
+                  </div>
+                </details>
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     type="button"
@@ -378,6 +439,12 @@ export function EngineeringReferenceCockpit({
                     onClick={() => onToggleIsolateComponent?.(isolatedComponentId === selectedComponent.id ? null : selectedComponent.id)}
                     className={`rounded border px-2 py-2 text-[9px] font-semibold ${isolatedComponentId === selectedComponent.id ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'}`}
                   >{isolatedComponentId === selectedComponent.id ? 'Restore assembly' : 'Isolate selected'}</button>
+                  <button
+                    type="button"
+                    onClick={() => onAskTutor?.(`Explain ${selectedComponent.name} in the currently selected ${objectMeta?.name || '3D model'}. Use the supplied model-specific evidence context. Clearly separate general scientific principles from details verified for this asset, cite supplied evidence IDs and source URLs when available, and state what remains unknown.`)}
+                    disabled={!onAskTutor}
+                    className="col-span-2 rounded border border-cyan-600/30 bg-white px-2 py-2 text-[9px] font-semibold text-cyan-800 hover:bg-cyan-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500"
+                  >Ask ADVIS about this component</button>
                 </div>
               </section>
             )}
@@ -516,11 +583,40 @@ export function EngineeringReferenceCockpit({
                 <span>Assembled</span><span>Separated</span>
               </div>
             </div>
+            <div className="px-2 pb-2">
+              <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-[0.13em] text-slate-500">
+                <span>Rendering quality</span>
+                <span>{lodTier === 'MEDIUM' ? 'BALANCED' : lodTier}</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1" role="group" aria-label="Rendering quality preset">
+                {(['LOW', 'MEDIUM', 'HIGH', 'ULTRA'] as const).map((quality) => (
+                  <button
+                    key={quality}
+                    type="button"
+                    onClick={() => onUpdateLodTier?.(quality)}
+                    aria-pressed={lodTier === quality}
+                    title={quality === 'MEDIUM' ? 'Balanced rendering quality' : `${quality.toLowerCase()} rendering quality`}
+                    className={`rounded border px-1.5 py-1.5 text-[8px] font-semibold ${lodTier === quality ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    {quality === 'MEDIUM' ? 'BALANCED' : quality}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={onToggleReducedMotion}
+                disabled={!onToggleReducedMotion}
+                aria-pressed={reducedMotionEnabled}
+                className={`mt-2 w-full rounded border px-2 py-1.5 text-left text-[9px] font-semibold transition-colors ${reducedMotionEnabled ? 'border-cyan-600/40 bg-cyan-50 text-cyan-800' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'} disabled:opacity-40`}
+              >
+                Reduced motion: {reducedMotionEnabled ? 'On · kinematics paused' : 'Off'}
+              </button>
+            </div>
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
               {objectMeta?.capabilities?.measure !== false && (
                 <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Toggle measurement mode"><Ruler size={11} className="mx-auto" /></button>
               )}
-              <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Enable ultra detail"><Sparkles size={11} className="mx-auto" /></button>
+              <button onClick={() => onUpdateLodTier?.('HIGH')} className={`py-1.5 border text-[8px] ${lodTier === 'HIGH' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label="Set high detail" aria-pressed={lodTier === 'HIGH'} title="High rendering quality">HIGH</button>
               <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 1)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} aria-label={explodedFactor > 0.05 ? 'Reassemble all components' : 'Fully explode all components'}><Maximize2 size={11} className="mx-auto" /></button>
               {isV12 && <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]" aria-label="Toggle V12 engine rotation direction">DIR</button>}
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
@@ -548,6 +644,19 @@ export function EngineeringReferenceCockpit({
         onClose={() => setInspectionOpen(false)}
         activeObjectKey={objectKey || null}
       />
+      {capabilitiesOpen && <ModelCapabilityPanel activeModelId={objectKey} onClose={() => setCapabilitiesOpen(false)} />}
+      {authoringOpen && <AuthoringWorkbench onClose={() => setAuthoringOpen(false)} />}
+      {privacyOpen && <PrivacyDataPanel onClose={() => setPrivacyOpen(false)} />}
+      {workshopOpen && objectMeta && (
+        <InnovationWorkshopPanel
+          model={objectMeta}
+          selectedComponentId={selectedComponentId || null}
+          componentTransforms={componentTransforms}
+          onSelectComponent={(id) => onSelectComponent?.(id)}
+          onUpdateComponentTransform={(id, transform) => onUpdateComponentTransform?.(id, transform)}
+          onClose={() => setWorkshopOpen(false)}
+        />
+      )}
     </>
   );
 }

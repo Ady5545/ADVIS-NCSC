@@ -209,6 +209,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/cardiovascular',
     assetPath: 'procedural/biology/cardiovascular',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Biological Systems',
     description: 'Hierarchical anatomical atlas with discrete cardiac chambers, great vessels, trachea, and pulmonic lobes with real physiological hemodynamics.',
     defaultScale: 1.1,
@@ -233,13 +246,13 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     components: [
       { id: 'human_torso', name: 'Axial Spine & Rib Cage', description: 'Rigid skeletal framework shielding vital thoracic organs.', position: [0, 0, 0], size: [2.2, 3.0, 1.2], explodedOffset: [0, 0, 1.2], shape: 'box', color: '#e2e8f0' },
-      { id: 'heart_myocardium', name: 'Cardiac Myocardium Wall', description: 'Specialized striated cardiac muscle exhibiting continuous syncytial contraction.', position: [0, 0.2, 0], size: [1.2, 1.4, 1.1], explodedOffset: [0, 0.3, 0], shape: 'custom', color: '#e11d48' },
-      { id: 'left_ventricle', name: 'Left Ventricle', description: 'Primary systemic muscular chamber generating 120 mmHg systolic ejection pressure.', position: [0.18, 0, 0.1], size: [0.7, 0.9, 0.7], explodedOffset: [0.5, 0, 0.4], shape: 'custom', color: '#be123c' },
-      { id: 'right_ventricle', name: 'Right Ventricle', description: 'Crescent-shaped muscular chamber propelling deoxygenated blood to pulmonic bed.', position: [-0.18, 0, 0.1], size: [0.65, 0.85, 0.65], explodedOffset: [-0.5, 0, 0.4], shape: 'custom', color: '#9f1239' },
-      { id: 'ascending_aorta', name: 'Ascending Aorta', description: 'Large high-elasticity arterial trunk distributing oxygenated blood throughout the body.', position: [0.08, 0.8, 0], size: [0.35, 1.1, 0.35], explodedOffset: [0.2, 0.9, 0], shape: 'cylinder', color: '#f43f5e' },
-      { id: 'trachea', name: 'Trachea', description: 'Rigid airway tube reinforced with hyaline cartilage rings guiding air to bronchi.', position: [0, 1.2, -0.2], size: [0.22, 1.2, 0.22], explodedOffset: [0, 1.2, -0.5], shape: 'cylinder', color: '#38bdf8' },
-      { id: 'left_lung', name: 'Left Lung', description: 'Dual-lobed pulmonary organ containing 150 million alveoli for oxygen-CO2 exchange.', position: [0.85, 0.3, -0.1], size: [0.8, 1.6, 0.7], explodedOffset: [1.5, 0.3, 0], shape: 'custom', color: '#fb7185' },
-      { id: 'right_lung', name: 'Right Lung', description: 'Tri-lobed pulmonary organ performing bulk diffusion of atmospheric gases.', position: [-0.85, 0.3, -0.1], size: [0.85, 1.6, 0.75], explodedOffset: [-1.5, 0.3, 0], shape: 'custom', color: '#fb7185' }
+      { id: 'heart_myocardium', parentId: 'human_torso', name: 'Cardiac Myocardium Wall', description: 'Specialized striated cardiac muscle exhibiting continuous syncytial contraction.', position: [0, 0.2, 0], size: [1.2, 1.4, 1.1], explodedOffset: [0, 0.3, 0], shape: 'custom', color: '#e11d48' },
+      { id: 'left_ventricle', parentId: 'heart_myocardium', name: 'Left Ventricle', description: 'Primary systemic muscular chamber generating 120 mmHg systolic ejection pressure.', position: [0.18, 0, 0.1], size: [0.7, 0.9, 0.7], explodedOffset: [0.5, 0, 0.4], shape: 'custom', color: '#be123c' },
+      { id: 'right_ventricle', parentId: 'heart_myocardium', name: 'Right Ventricle', description: 'Crescent-shaped muscular chamber propelling deoxygenated blood to pulmonic bed.', position: [-0.18, 0, 0.1], size: [0.65, 0.85, 0.65], explodedOffset: [-0.5, 0, 0.4], shape: 'custom', color: '#9f1239' },
+      { id: 'ascending_aorta', parentId: 'heart_myocardium', name: 'Ascending Aorta', description: 'Large high-elasticity arterial trunk distributing oxygenated blood throughout the body.', position: [0.08, 0.8, 0], size: [0.35, 1.1, 0.35], explodedOffset: [0.2, 0.9, 0], shape: 'cylinder', color: '#f43f5e' },
+      { id: 'trachea', parentId: 'human_torso', name: 'Trachea', description: 'Rigid airway tube reinforced with hyaline cartilage rings guiding air to bronchi.', position: [0, 1.2, -0.2], size: [0.22, 1.2, 0.22], explodedOffset: [0, 1.2, -0.5], shape: 'cylinder', color: '#38bdf8' },
+      { id: 'left_lung', parentId: 'human_torso', name: 'Left Lung', description: 'Dual-lobed pulmonary organ containing 150 million alveoli for oxygen-CO2 exchange.', position: [0.85, 0.3, -0.1], size: [0.8, 1.6, 0.7], explodedOffset: [1.5, 0.3, 0], shape: 'custom', color: '#fb7185' },
+      { id: 'right_lung', parentId: 'human_torso', name: 'Right Lung', description: 'Tri-lobed pulmonary organ performing bulk diffusion of atmospheric gases.', position: [-0.85, 0.3, -0.1], size: [0.85, 1.6, 0.75], explodedOffset: [-1.5, 0.3, 0], shape: 'custom', color: '#fb7185' }
     ]
   },
 
@@ -249,6 +262,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/arduino_uno',
     assetPath: 'procedural/engineering/arduino_uno',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Engineering',
     description: 'ATmega328P based microcontroller board.',
     defaultScale: 3.0,
@@ -271,16 +297,16 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     components: [
       { id: 'uno_pcb', name: 'PCB Substrate', description: 'Six-layer FR4 copper-clad substrate board carrying every other component.', position: [0, 0, 0], size: [1.0, 0.05, 1.4], explodedOffset: [0, -0.3, 0], shape: 'box', color: '#044530' },
-      { id: 'uno_atmega', name: 'ATmega328P MCU (DIP-28)', description: '8-bit AVR RISC microcontroller — the board\'s brain. Runs at 16 MHz, 32 KB flash, 2 KB SRAM.', position: [0.08, 0.06, 0.22], size: [0.14, 0.07, 0.34], explodedOffset: [0, 0.55, 0], shape: 'box', color: '#1c1c1e' },
-      { id: 'uno_crystal', name: '16 MHz Crystal Oscillator', description: 'Ceramic resonator providing the precise clock signal the ATmega328P times every instruction against.', position: [0.22, 0.05, 0.42], size: [0.07, 0.07, 0.05], explodedOffset: [0.3, 0.4, 0.3], shape: 'cylinder', color: '#c6c9ce' },
-      { id: 'uno_regulator', name: 'Voltage Regulator (TO-220)', description: 'Steps external 7–12V DC input down to a clean regulated 5V for the board\'s logic.', position: [-0.28, 0.08, 0.55], size: [0.1, 0.12, 0.02], explodedOffset: [-0.3, 0.4, 0.4], shape: 'box', color: '#1c1c1e' },
-      { id: 'uno_usb', name: 'USB-B Connector', description: 'USB programming and serial interface port — also supplies 5V power from a host computer.', position: [-0.35, 0.12, -0.6], size: [0.3, 0.25, 0.3], explodedOffset: [-0.5, 0.2, -0.4], shape: 'box', color: '#94a3b8' },
-      { id: 'uno_dc', name: 'DC Barrel Jack', description: 'External power input socket accepting 7–12V DC, feeding the onboard voltage regulator.', position: [-0.35, 0.12, 0.6], size: [0.26, 0.24, 0.3], explodedOffset: [-0.5, 0, 0.5], shape: 'box', color: '#0f172a' },
-      { id: 'uno_reset', name: 'Reset Button', description: 'Momentary pushbutton that restarts the running sketch from the beginning.', position: [-0.1, 0.04, -0.55], size: [0.08, 0.04, 0.08], explodedOffset: [-0.15, 0.3, -0.7], shape: 'box', color: '#1c1c1e' },
-      { id: 'uno_leds', name: 'Status LEDs (Power/TX/RX/L)', description: 'Four indicator LEDs: power-on (green), serial TX/RX activity (orange), and the user-programmable pin-13 LED (red).', position: [0.08, 0.03, -0.3], size: [0.4, 0.02, 0.06], explodedOffset: [0.1, 0.35, -0.5], shape: 'box', color: '#4ade80' },
-      { id: 'uno_icsp', name: 'ICSP Header (2x3)', description: 'In-Circuit Serial Programming header — lets external programmers flash the bootloader directly.', position: [0.1, 0.05, 0.02], size: [0.22, 0.03, 0.12], explodedOffset: [0.15, 0.3, 0.1], shape: 'box', color: '#0f172a' },
-      { id: 'uno_headers', name: 'Digital & Power I/O Headers', description: 'Female header rows breaking out the digital I/O, power and analog pins for shields and jumper wires.', position: [0.4, 0.1, 0], size: [0.1, 0.2, 1.2], explodedOffset: [0.5, 0.2, 0], shape: 'box', color: '#0f172a' },
-      { id: 'uno_passives', name: 'Passive Components', description: 'Scattered ceramic/electrolytic capacitors and resistors for decoupling, filtering and current-limiting around the board.', position: [0.0, 0.03, 0.4], size: [0.4, 0.06, 0.2], explodedOffset: [0.2, 0.15, 0.6], shape: 'box', color: '#d99a3a' },
+      { id: 'uno_atmega', parentId: 'uno_pcb', name: 'ATmega328P MCU (DIP-28)', description: '8-bit AVR RISC microcontroller — the board\'s brain. Runs at 16 MHz, 32 KB flash, 2 KB SRAM.', position: [0.08, 0.06, 0.22], size: [0.14, 0.07, 0.34], explodedOffset: [0, 0.55, 0], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_crystal', parentId: 'uno_pcb', name: '16 MHz Crystal Oscillator', description: 'Ceramic resonator providing the precise clock signal the ATmega328P times every instruction against.', position: [0.22, 0.05, 0.42], size: [0.07, 0.07, 0.05], explodedOffset: [0.3, 0.4, 0.3], shape: 'cylinder', color: '#c6c9ce' },
+      { id: 'uno_regulator', parentId: 'uno_pcb', name: 'Voltage Regulator (TO-220)', description: 'Steps external 7–12V DC input down to a clean regulated 5V for the board\'s logic.', position: [-0.28, 0.08, 0.55], size: [0.1, 0.12, 0.02], explodedOffset: [-0.3, 0.4, 0.4], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_usb', parentId: 'uno_pcb', name: 'USB-B Connector', description: 'USB programming and serial interface port — also supplies 5V power from a host computer.', position: [-0.35, 0.12, -0.6], size: [0.3, 0.25, 0.3], explodedOffset: [-0.5, 0.2, -0.4], shape: 'box', color: '#94a3b8' },
+      { id: 'uno_dc', parentId: 'uno_pcb', name: 'DC Barrel Jack', description: 'External power input socket accepting 7–12V DC, feeding the onboard voltage regulator.', position: [-0.35, 0.12, 0.6], size: [0.26, 0.24, 0.3], explodedOffset: [-0.5, 0, 0.5], shape: 'box', color: '#0f172a' },
+      { id: 'uno_reset', parentId: 'uno_pcb', name: 'Reset Button', description: 'Momentary pushbutton that restarts the running sketch from the beginning.', position: [-0.1, 0.04, -0.55], size: [0.08, 0.04, 0.08], explodedOffset: [-0.15, 0.3, -0.7], shape: 'box', color: '#1c1c1e' },
+      { id: 'uno_leds', parentId: 'uno_pcb', name: 'Status LEDs (Power/TX/RX/L)', description: 'Four indicator LEDs: power-on (green), serial TX/RX activity (orange), and the user-programmable pin-13 LED (red).', position: [0.08, 0.03, -0.3], size: [0.4, 0.02, 0.06], explodedOffset: [0.1, 0.35, -0.5], shape: 'box', color: '#4ade80' },
+      { id: 'uno_icsp', parentId: 'uno_pcb', name: 'ICSP Header (2x3)', description: 'In-Circuit Serial Programming header — lets external programmers flash the bootloader directly.', position: [0.1, 0.05, 0.02], size: [0.22, 0.03, 0.12], explodedOffset: [0.15, 0.3, 0.1], shape: 'box', color: '#0f172a' },
+      { id: 'uno_headers', parentId: 'uno_pcb', name: 'Digital & Power I/O Headers', description: 'Female header rows breaking out the digital I/O, power and analog pins for shields and jumper wires.', position: [0.4, 0.1, 0], size: [0.1, 0.2, 1.2], explodedOffset: [0.5, 0.2, 0], shape: 'box', color: '#0f172a' },
+      { id: 'uno_passives', parentId: 'uno_pcb', name: 'Passive Components', description: 'Scattered ceramic/electrolytic capacitors and resistors for decoupling, filtering and current-limiting around the board.', position: [0.0, 0.03, 0.4], size: [0.4, 0.06, 0.2], explodedOffset: [0.2, 0.15, 0.6], shape: 'box', color: '#d99a3a' },
     ]
   },
 
@@ -290,6 +316,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/esp32',
     assetPath: 'procedural/engineering/esp32',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Dual-core MCU with WiFi and Bluetooth.',
     defaultScale: 3.0,
@@ -321,6 +359,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/sg90_servo',
     assetPath: 'procedural/engineering/sg90_servo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'TowerPro SG90 9g Micro Servo Motor.',
     defaultScale: 4.0,
@@ -349,6 +399,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/solar_panel',
     assetPath: 'procedural/engineering/solar_panel',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Monocrystalline photovoltaic panel.',
     defaultScale: 3.0,
@@ -374,6 +436,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/ldr.glb',
     assetPath: '/models/ldr.glb',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Light Dependent Resistor sensor.',
     defaultScale: 8.0,
@@ -395,6 +469,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/resistor_10k.glb',
     assetPath: '/models/resistor_10k.glb',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: '1/4W 10K ohm through-hole resistor.',
     defaultScale: 10.0,
@@ -416,6 +502,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/heliomotion',
     assetPath: 'procedural/engineering/heliomotion',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Engineering',
     description: 'Complete dual-axis solar tracking prototype assembly featuring base frame, dual SG90 servo motors, solar panel assembly, and Arduino microcontroller.',
     defaultScale: 3.0,
@@ -470,6 +568,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Silicon Photovoltaic Cell',
     path: '/models/procedural/silicon_pv_cell',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Educational',
     description: 'Microscopic educational visualization of a silicon crystal structure in a photovoltaic cell.',
     defaultScale: 10.0,
@@ -490,6 +600,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Solar Semiconductor Structure',
     path: '/models/procedural/solar_semiconductor',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Educational',
     description: 'Educational cross-section of a P-N junction solar cell.',
     defaultScale: 4.0,
@@ -512,6 +634,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Wankel Rotary Engine',
     path: '/models/procedural/rotary',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A type of internal combustion engine using an eccentric rotary design to convert pressure into rotating motion.',
     defaultScale: 1.5,
@@ -534,6 +668,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'AC Induction Motor Assembly',
     path: '/models/procedural/tesla',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A high-performance liquid-cooled AC induction electric motor integrated with a single-speed reduction gear.',
     defaultScale: 1.2,
@@ -557,6 +703,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: '18650 Li-Ion Cell Pack',
     path: '/models/procedural/battery',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'An array of cylindrical lithium-ion 18650 cells wired in series and parallel with an active BMS.',
     defaultScale: 1.5,
@@ -580,6 +738,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'DNA Double Helix',
     path: '/models/procedural/dna',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'Deoxyribonucleic acid molecular structure carrying genetic instructions for all known living organisms.',
     defaultScale: 1.5,
@@ -602,6 +772,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Quantum Probability Cloud',
     path: '/models/procedural/quantum',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'Visualization of a quantum particle existing in a superposition of states defined by a wave function.',
     defaultScale: 2.0,
@@ -623,6 +805,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Mark LXXXV Armor System',
     path: '/models/procedural/stark_suit',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Special',
     description: 'Advanced nanotech integration armor featuring autonomous repulsor systems and localized force field generation.',
     defaultScale: 1.5,
@@ -651,6 +845,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/raspberry_pi',
     assetPath: 'procedural/electronics/raspberry_pi',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A powerful single-board computer with a quad-core 64-bit ARM processor, dual 4K display support, and full Linux OS capabilities.',
     defaultScale: 1.0,
@@ -694,6 +900,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/servo',
     assetPath: 'procedural/electronics/servo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Electronics',
     description: 'A tiny and lightweight servo motor providing controlled angular rotation (0 to 180 degrees) via PWM signals.',
     defaultScale: 2.0,
@@ -716,10 +935,10 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     components: [
       { id: 'servo_case', name: 'Blue ABS Outer Shell', description: 'Lightweight translucent plastic enclosure protecting gear train.', position: [0, 0, 0], size: [0.8, 0.9, 0.4], explodedOffset: [0, 0, -0.6], shape: 'box', color: '#0284c7' },
-      { id: 'servo_motor_core', name: 'Internal Coreless DC Motor', description: 'High-RPM micro DC motor converting electrical power into torque.', position: [-0.2, -0.1, 0], size: [0.35, 0.6, 0.35], explodedOffset: [-0.5, -0.3, 0], shape: 'cylinder', color: '#94a3b8' },
-      { id: 'servo_gears', name: 'Nylon Reduction Gear Set', description: 'Multi-stage gear train stepping down motor speed while multiplying torque output.', position: [0.15, 0.35, 0], size: [0.4, 0.3, 0.35], explodedOffset: [0, 0.7, 0], shape: 'cylinder', color: '#f8fafc' },
-      { id: 'servo_pot', name: 'Position Potentiometer', description: 'Rotary potentiometer providing direct voltage position feedback to controller.', position: [0.15, -0.2, 0], size: [0.25, 0.25, 0.25], explodedOffset: [0.5, -0.4, 0], shape: 'box', color: '#d97706' },
-      { id: 'servo_arm', name: 'Output Servo Horn Arm', description: 'External horn attachment transferring angular motion to mechanical links.', position: [0.15, 0.6, 0], size: [0.6, 0.1, 0.15], explodedOffset: [0, 0.9, 0], shape: 'box', color: '#ffffff' }
+      { id: 'servo_motor_core', parentId: 'servo_case', name: 'Internal Coreless DC Motor', description: 'High-RPM micro DC motor converting electrical power into torque.', position: [-0.2, -0.1, 0], size: [0.35, 0.6, 0.35], explodedOffset: [-0.5, -0.3, 0], shape: 'cylinder', color: '#94a3b8' },
+      { id: 'servo_gears', parentId: 'servo_case', name: 'Nylon Reduction Gear Set', description: 'Multi-stage gear train stepping down motor speed while multiplying torque output.', position: [0.15, 0.35, 0], size: [0.4, 0.3, 0.35], explodedOffset: [0, 0.7, 0], shape: 'cylinder', color: '#f8fafc' },
+      { id: 'servo_pot', parentId: 'servo_case', name: 'Position Potentiometer', description: 'Rotary potentiometer providing direct voltage position feedback to controller.', position: [0.15, -0.2, 0], size: [0.25, 0.25, 0.25], explodedOffset: [0.5, -0.4, 0], shape: 'box', color: '#d97706' },
+      { id: 'servo_arm', parentId: 'servo_case', name: 'Output Servo Horn Arm', description: 'External horn attachment transferring angular motion to mechanical links.', position: [0.15, 0.6, 0], size: [0.6, 0.1, 0.15], explodedOffset: [0, 0.9, 0], shape: 'box', color: '#ffffff' }
     ]
   },
 
@@ -729,6 +948,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/stepper',
     assetPath: 'procedural/electronics/stepper',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A high-precision brushless DC motor that divides a 360-degree rotation into 200 discrete steps (1.8 deg per step).',
     defaultScale: 1.5,
@@ -763,6 +994,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/dc_motor',
     assetPath: 'procedural/electronics/dc_motor',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A simple direct-current motor that converts electrical energy into high-speed rotational mechanical energy.',
     defaultScale: 1.5,
@@ -795,6 +1038,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/bldc',
     assetPath: 'procedural/electronics/bldc',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A high-efficiency 3-phase brushless motor with an external rotating bell housing, providing extreme power-to-weight ratio.',
     defaultScale: 1.5,
@@ -827,6 +1082,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/breadboard',
     assetPath: 'procedural/electronics/breadboard',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'A reusable construction grid with 830 tie-points for rapid electronic circuit assembly without soldering.',
     defaultScale: 1.0,
@@ -854,6 +1121,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/relay',
     assetPath: 'procedural/electronics/relay',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'An electrically operated electromagnetic switch allowing low-voltage microcontrollers to control high-voltage AC mains appliances.',
     defaultScale: 2.0,
@@ -881,6 +1160,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/ultrasonic',
     assetPath: 'procedural/electronics/ultrasonic',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'Emits 40 kHz ultrasonic sound bursts and calculates precise distance by measuring the echo time-of-flight.',
     defaultScale: 2.5,
@@ -913,6 +1204,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/lcd',
     assetPath: 'procedural/electronics/lcd',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Electronics',
     description: 'Displays 32 ASCII alphanumeric characters across two rows of 16 dot-matrix blocks with LED backlighting.',
     defaultScale: 1.5,
@@ -964,7 +1267,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     capabilities: {
       inspect: true, componentHierarchy: true, hideShow: true, isolate: true, explode: true,
-      validatedSimulation: false, parameterEditing: false, guidedLessons: false, saveProject: false,
+      validatedSimulation: false, parameterEditing: false, guidedLessons: true, saveProject: false,
       exportGlb: false, exportStep: false, measure: false, deepZoom: false, interiorGeometry: false
     },
     category: 'Automotive',
@@ -982,7 +1285,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     metadata: { displacement: 'Not specified — no source-identified variant', cylinderBank: 'Two banks of six; exact V-angle not source-verified', valvetrain: 'Not specified' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
-    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.cylinder_head', 'v12.intake_plenum', 'v12.exhaust_manifold'],
+    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.valvetrain', 'v12.intake_plenum', 'v12.exhaust_manifold'],
     educationalInformation: {
       overview: 'A V12 piston engine has twelve cylinders arranged in two banks around a common crankshaft. Balance, firing sequence, dimensions, and valvetrain depend on the particular engine design.',
       keyFeatures: [
@@ -1007,34 +1310,34 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       { id: 'v12.engine_block', name: 'V12 Engine Block and Crankcase', description: 'Visual block/crankcase representation; material, dimensions, and bearing design are not source-verified.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_left_bank', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_left_bank', parentId: 'v12.engine_block', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_right_bank', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_right_bank', parentId: 'v12.engine_block', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.connecting_rods', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
+      { id: 'v12.connecting_rods', parentId: 'v12.engine_block', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.crankshaft', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
+      { id: 'v12.crankshaft', parentId: 'v12.engine_block', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.valvetrain', name: 'Valvetrain and Camshaft Representation', description: 'Valvetrain geometry is illustrative; cam count, valve count, materials, and timing profile are not source-verified.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.valvetrain', parentId: 'v12.engine_block', name: 'Valvetrain and Camshaft Representation', description: 'Valvetrain geometry is illustrative; cam count, valve count, materials, and timing profile are not source-verified.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.intake_plenum', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
+      { id: 'v12.intake_plenum', parentId: 'v12.engine_block', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.exhaust_manifold', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
+      { id: 'v12.exhaust_manifold', parentId: 'v12.engine_block', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.cooling_system', name: 'Accessory Drive and Cooling Representation', description: 'Visual accessory/cooling assembly; pump design, fan geometry, flow rate, and pressure rating are not specified.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
+      { id: 'v12.cooling_system', parentId: 'v12.engine_block', name: 'Accessory Drive and Cooling Representation', description: 'Visual accessory/cooling assembly; pump design, fan geometry, flow rate, and pressure rating are not specified.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.lubrication_system', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.lubrication_system', parentId: 'v12.engine_block', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.electronics_sensors', name: 'Engine Management Harness and Sensors', description: 'Visual wiring/sensor assembly; ECU manufacturer, control architecture, and ignition configuration are not specified.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
+      { id: 'v12.electronics_sensors', parentId: 'v12.engine_block', name: 'Engine Management Harness and Sensors', description: 'Visual wiring/sensor assembly; ECU manufacturer, control architecture, and ignition configuration are not specified.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       }
     ]
@@ -1046,6 +1349,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/inline4',
     assetPath: 'procedural/automotive/inline4',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'An internal combustion engine with four cylinders mounted in a straight line along a shared crankcase.',
     defaultScale: 1.0,
@@ -1126,27 +1441,27 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     ],
     components: [
       { id: 'v8_block', name: 'Deep-Skirt V8 Engine Block', description: 'Wide cast crankcase with 90-degree bank geometry, cylinder liners, deck faces, core plugs, main caps and rear bellhousing flange.', subsystemId: 'engine-block', position: [0, 0, 0], size: [1.15, 1.02, 2.05], explodedOffset: [0, -2.4, 0], explosionStage: 0.72, shape: 'custom', color: '#303941' },
-      { id: 'v8_crankshaft', name: 'Four-Throw Cross-Plane Crankshaft', description: 'Representative 90-degree cross-plane shaft with counterweight webs, main-bearing lands, shared rod journals and front drive nose.', subsystemId: 'cranktrain', position: [0, -0.05, 0], size: [0.25, 0.24, 2.0], explodedOffset: [0, -3.5, 0], explosionStage: 0.65, shape: 'custom', color: '#68757d' },
-      { id: 'v8_pistons_a', name: 'Pistons & Connecting Rods — Bank A', description: 'Four machined piston crowns, skirt/ring packs, wrist pins and connecting rods in the first cylinder bank.', subsystemId: 'reciprocating-assembly', position: [-0.23, 0.18, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.58, 0.86, 1.85], explodedOffset: [-2.4, 1.3, -0.3], explosionStage: 0.56, shape: 'custom', color: '#c4cbd0' },
-      { id: 'v8_pistons_b', name: 'Pistons & Connecting Rods — Bank B', description: 'Four matched reciprocating piston and rod assemblies in the opposing 90-degree bank.', subsystemId: 'reciprocating-assembly', position: [0.23, 0.18, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.58, 0.86, 1.85], explodedOffset: [2.4, 1.3, 0.3], explosionStage: 0.56, shape: 'custom', color: '#c4cbd0' },
-      { id: 'v8_head_a', name: 'Cast Cylinder Head — Bank A', description: 'Four combustion chambers with intake/exhaust poppet valves, spring hardware, spark plugs and OHV rocker gear.', subsystemId: 'cylinder-heads', position: [-0.40, 0.39, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.56, 0.26, 1.9], explodedOffset: [-3.1, 1.8, 0], explosionStage: 0.4, shape: 'custom', color: '#89969d' },
-      { id: 'v8_head_b', name: 'Cast Cylinder Head — Bank B', description: 'Opposing four-cylinder head containing two valves per cylinder and spark-plug bosses.', subsystemId: 'cylinder-heads', position: [0.40, 0.39, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.56, 0.26, 1.9], explodedOffset: [3.1, 1.8, 0], explosionStage: 0.4, shape: 'custom', color: '#89969d' },
-      { id: 'v8_valve_cover_a', name: 'Deep-Blue Valve Cover — Bank A', description: 'Ribbed enamelled cover sealing the first bank’s rockers and valvetrain lubrication.', subsystemId: 'valvetrain', position: [-0.48, 0.48, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.42, 0.18, 1.88], explodedOffset: [-3.7, 2.5, 0], explosionStage: 0.25, shape: 'custom', color: '#103c69' },
-      { id: 'v8_valve_cover_b', name: 'Deep-Blue Valve Cover — Bank B', description: 'Separate ribbed enamelled cover on the opposing bank, intentionally distinct from the V12’s red visual identity.', subsystemId: 'valvetrain', position: [0.48, 0.48, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.42, 0.18, 1.88], explodedOffset: [3.7, 2.5, 0], explosionStage: 0.25, shape: 'custom', color: '#103c69' },
-      { id: 'v8_camshaft', name: 'In-Block Camshaft and Lobes', description: 'Single in-block camshaft driving the OHV lifter/pushrod/rocker path. The timing animation is illustrative rather than an OEM cam profile.', subsystemId: 'valvetrain', position: [0, 0.1, 0], size: [0.14, 0.14, 1.98], explodedOffset: [0, -2.6, 1.8], explosionStage: 0.52, shape: 'custom', color: '#8d999f' },
-      { id: 'v8_intake', name: 'Valley Intake Manifold & Throttle Body', description: 'Dark cast/composite central plenum with eight runners, throttle bore, butterfly plate and mounting hardware.', subsystemId: 'air-induction', position: [0, 0.46, 0], size: [0.62, 0.32, 1.72], explodedOffset: [0, 2.8, 0], explosionStage: 0.32, shape: 'custom', color: '#46525b' },
-      { id: 'v8_fuel_system', name: 'Fuel Rails and Eight Injectors', description: 'Two bank-specific fuel rails, eight port injectors and feed connections, separately selectable from the intake manifold.', subsystemId: 'fuel-delivery', position: [0, 0.25, 0], size: [0.72, 0.30, 1.55], explodedOffset: [0, 3.2, 2], explosionStage: 0.3, shape: 'custom', color: '#737f87' },
-      { id: 'v8_ignition', name: 'Eight-Coil Ignition and Plug Leads', description: 'Individual coil modules and high-voltage leads routed to the eight spark-plug locations; a representative ignition layout.', subsystemId: 'ignition', position: [0, 0.20, 0], size: [1.38, 0.32, 1.5], explodedOffset: [2.8, 2, 1.5], explosionStage: 0.3, shape: 'custom', color: '#20272d' },
-      { id: 'v8_exhaust_a', name: 'Stainless-Style Exhaust Header — Bank A', description: 'Four curved primary pipes merge into one collector for the first cylinder bank.', subsystemId: 'exhaust', position: [-0.43, 0.38, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.40, 0.50, 1.50], explodedOffset: [-3.4, -1.2, 0.8], explosionStage: 0.2, shape: 'custom', color: '#8e7760' },
-      { id: 'v8_exhaust_b', name: 'Stainless-Style Exhaust Header — Bank B', description: 'Four independent primary runners converge at the opposing bank’s exhaust collector.', subsystemId: 'exhaust', position: [0.43, 0.38, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.40, 0.50, 1.50], explodedOffset: [3.4, -1.2, 0.8], explosionStage: 0.2, shape: 'custom', color: '#8e7760' },
-      { id: 'v8_timing_cover', name: 'Front Timing Cover and Crank Damper', description: 'Front cover assembly with crank-driven sprocket/damper details and an accessory-drive mounting face.', subsystemId: 'timing-drive', position: [0, 0, -0.97], size: [0.66, 0.82, 0.16], explodedOffset: [0, 0.6, -3], explosionStage: 0.06, shape: 'custom', color: '#3a454e' },
-      { id: 'v8_oil_pan', name: 'Deep Sump Oil Pan and Pickup', description: 'Stepped lower sump and pickup enclosure bolted under the block, with drain plug and pressed ribs.', subsystemId: 'lubrication', position: [0, -0.35, 0], size: [0.70, 0.38, 1.72], explodedOffset: [0, -3.9, 0], explosionStage: 0.06, shape: 'custom', color: '#20272d' },
-      { id: 'v8_accessories', name: 'Serpentine Accessory Drive', description: 'Alternator, coolant pump, crank damper, grooved pulleys, belt path, tensioner and mounting bracket.', subsystemId: 'accessory-drive', position: [0, -0.1, -1.1], size: [0.68, 0.82, 0.28], explodedOffset: [0, -0.9, -3.5], explosionStage: 0.03, shape: 'custom', color: '#39464e' },
-      { id: 'v8_flywheel', name: 'Rear Flywheel and Starter Ring Gear', description: 'Heavy inertia disc and ring gear at the rear crank flange; shown as a separate exploded component.', subsystemId: 'rear-drive', position: [0, 0.02, 1.10], size: [0.84, 0.84, 0.14], explodedOffset: [0, 2.8, 3.2], explosionStage: 0.58, shape: 'custom', color: '#59656d' },
-      { id: 'v8_starter', name: 'Electric Starter Motor and Solenoid', description: 'Starter motor body, solenoid and mounting flange arranged beside the flywheel ring gear.', subsystemId: 'rear-drive', position: [-0.49, -0.18, 0.82], size: [0.34, 0.34, 0.46], explodedOffset: [-3.1, -2, 1.4], explosionStage: 0.12, shape: 'custom', color: '#354047' },
-      { id: 'v8_oil_filter', name: 'Spin-On Engine Oil Filter', description: 'Replaceable spin-on filter canister mounted low on the crankcase side.', subsystemId: 'lubrication', position: [-0.54, -0.18, 0.45], size: [0.28, 0.34, 0.28], explodedOffset: [-3.5, -2, 0.35], explosionStage: 0.14, shape: 'custom', color: '#b52d25' },
-      { id: 'v8_mounts', name: 'Left and Right Engine Mount Assemblies', description: 'Pair of metal mount brackets and elastomer isolators attaching the powertrain to its chassis.', subsystemId: 'mounting-hardware', position: [0, -0.24, 0.2], size: [1.18, 0.30, 0.36], explodedOffset: [0, -3.2, 2.6], explosionStage: 0.08, shape: 'custom', color: '#414b52' },
-      { id: 'v8_sensors', name: 'Crank / Oil Sensors and Wiring', description: 'Representative crank-position/oil-sensing hardware and a short protected harness; locations are illustrative.', subsystemId: 'controls-and-sensors', position: [0, -0.1, 0.0], size: [0.92, 0.40, 1.10], explodedOffset: [3.4, -0.3, 1.9], explosionStage: 0.18, shape: 'custom', color: '#3b464e' }
+      { id: 'v8_crankshaft', parentId: 'v8_block', name: 'Four-Throw Cross-Plane Crankshaft', description: 'Representative 90-degree cross-plane shaft with counterweight webs, main-bearing lands, shared rod journals and front drive nose.', subsystemId: 'cranktrain', position: [0, -0.05, 0], size: [0.25, 0.24, 2.0], explodedOffset: [0, -3.5, 0], explosionStage: 0.65, shape: 'custom', color: '#68757d' },
+      { id: 'v8_pistons_a', parentId: 'v8_block', name: 'Pistons & Connecting Rods — Bank A', description: 'Four machined piston crowns, skirt/ring packs, wrist pins and connecting rods in the first cylinder bank.', subsystemId: 'reciprocating-assembly', position: [-0.23, 0.18, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.58, 0.86, 1.85], explodedOffset: [-2.4, 1.3, -0.3], explosionStage: 0.56, shape: 'custom', color: '#c4cbd0' },
+      { id: 'v8_pistons_b', parentId: 'v8_block', name: 'Pistons & Connecting Rods — Bank B', description: 'Four matched reciprocating piston and rod assemblies in the opposing 90-degree bank.', subsystemId: 'reciprocating-assembly', position: [0.23, 0.18, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.58, 0.86, 1.85], explodedOffset: [2.4, 1.3, 0.3], explosionStage: 0.56, shape: 'custom', color: '#c4cbd0' },
+      { id: 'v8_head_a', parentId: 'v8_block', name: 'Cast Cylinder Head — Bank A', description: 'Four combustion chambers with intake/exhaust poppet valves, spring hardware, spark plugs and OHV rocker gear.', subsystemId: 'cylinder-heads', position: [-0.40, 0.39, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.56, 0.26, 1.9], explodedOffset: [-3.1, 1.8, 0], explosionStage: 0.4, shape: 'custom', color: '#89969d' },
+      { id: 'v8_head_b', parentId: 'v8_block', name: 'Cast Cylinder Head — Bank B', description: 'Opposing four-cylinder head containing two valves per cylinder and spark-plug bosses.', subsystemId: 'cylinder-heads', position: [0.40, 0.39, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.56, 0.26, 1.9], explodedOffset: [3.1, 1.8, 0], explosionStage: 0.4, shape: 'custom', color: '#89969d' },
+      { id: 'v8_valve_cover_a', parentId: 'v8_head_a', name: 'Deep-Blue Valve Cover — Bank A', description: 'Ribbed enamelled cover sealing the first bank’s rockers and valvetrain lubrication.', subsystemId: 'valvetrain', position: [-0.48, 0.48, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.42, 0.18, 1.88], explodedOffset: [-3.7, 2.5, 0], explosionStage: 0.25, shape: 'custom', color: '#103c69' },
+      { id: 'v8_valve_cover_b', parentId: 'v8_head_b', name: 'Deep-Blue Valve Cover — Bank B', description: 'Separate ribbed enamelled cover on the opposing bank, intentionally distinct from the V12’s red visual identity.', subsystemId: 'valvetrain', position: [0.48, 0.48, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.42, 0.18, 1.88], explodedOffset: [3.7, 2.5, 0], explosionStage: 0.25, shape: 'custom', color: '#103c69' },
+      { id: 'v8_camshaft', parentId: 'v8_block', name: 'In-Block Camshaft and Lobes', description: 'Single in-block camshaft driving the OHV lifter/pushrod/rocker path. The timing animation is illustrative rather than an OEM cam profile.', subsystemId: 'valvetrain', position: [0, 0.1, 0], size: [0.14, 0.14, 1.98], explodedOffset: [0, -2.6, 1.8], explosionStage: 0.52, shape: 'custom', color: '#8d999f' },
+      { id: 'v8_intake', parentId: 'v8_block', name: 'Valley Intake Manifold & Throttle Body', description: 'Dark cast/composite central plenum with eight runners, throttle bore, butterfly plate and mounting hardware.', subsystemId: 'air-induction', position: [0, 0.46, 0], size: [0.62, 0.32, 1.72], explodedOffset: [0, 2.8, 0], explosionStage: 0.32, shape: 'custom', color: '#46525b' },
+      { id: 'v8_fuel_system', parentId: 'v8_intake', name: 'Fuel Rails and Eight Injectors', description: 'Two bank-specific fuel rails, eight port injectors and feed connections, separately selectable from the intake manifold.', subsystemId: 'fuel-delivery', position: [0, 0.25, 0], size: [0.72, 0.30, 1.55], explodedOffset: [0, 3.2, 2], explosionStage: 0.3, shape: 'custom', color: '#737f87' },
+      { id: 'v8_ignition', parentId: 'v8_block', name: 'Eight-Coil Ignition and Plug Leads', description: 'Individual coil modules and high-voltage leads routed to the eight spark-plug locations; a representative ignition layout.', subsystemId: 'ignition', position: [0, 0.20, 0], size: [1.38, 0.32, 1.5], explodedOffset: [2.8, 2, 1.5], explosionStage: 0.3, shape: 'custom', color: '#20272d' },
+      { id: 'v8_exhaust_a', parentId: 'v8_head_a', name: 'Stainless-Style Exhaust Header — Bank A', description: 'Four curved primary pipes merge into one collector for the first cylinder bank.', subsystemId: 'exhaust', position: [-0.43, 0.38, -0.035], rotation: [0, 0, 0.7853981633974483], size: [0.40, 0.50, 1.50], explodedOffset: [-3.4, -1.2, 0.8], explosionStage: 0.2, shape: 'custom', color: '#8e7760' },
+      { id: 'v8_exhaust_b', parentId: 'v8_head_b', name: 'Stainless-Style Exhaust Header — Bank B', description: 'Four independent primary runners converge at the opposing bank’s exhaust collector.', subsystemId: 'exhaust', position: [0.43, 0.38, 0.035], rotation: [0, 0, -0.7853981633974483], size: [0.40, 0.50, 1.50], explodedOffset: [3.4, -1.2, 0.8], explosionStage: 0.2, shape: 'custom', color: '#8e7760' },
+      { id: 'v8_timing_cover', parentId: 'v8_block', name: 'Front Timing Cover and Crank Damper', description: 'Front cover assembly with crank-driven sprocket/damper details and an accessory-drive mounting face.', subsystemId: 'timing-drive', position: [0, 0, -0.97], size: [0.66, 0.82, 0.16], explodedOffset: [0, 0.6, -3], explosionStage: 0.06, shape: 'custom', color: '#3a454e' },
+      { id: 'v8_oil_pan', parentId: 'v8_block', name: 'Deep Sump Oil Pan and Pickup', description: 'Stepped lower sump and pickup enclosure bolted under the block, with drain plug and pressed ribs.', subsystemId: 'lubrication', position: [0, -0.35, 0], size: [0.70, 0.38, 1.72], explodedOffset: [0, -3.9, 0], explosionStage: 0.06, shape: 'custom', color: '#20272d' },
+      { id: 'v8_accessories', parentId: 'v8_timing_cover', name: 'Serpentine Accessory Drive', description: 'Alternator, coolant pump, crank damper, grooved pulleys, belt path, tensioner and mounting bracket.', subsystemId: 'accessory-drive', position: [0, -0.1, -1.1], size: [0.68, 0.82, 0.28], explodedOffset: [0, -0.9, -3.5], explosionStage: 0.03, shape: 'custom', color: '#39464e' },
+      { id: 'v8_flywheel', parentId: 'v8_crankshaft', name: 'Rear Flywheel and Starter Ring Gear', description: 'Heavy inertia disc and ring gear at the rear crank flange; shown as a separate exploded component.', subsystemId: 'rear-drive', position: [0, 0.02, 1.10], size: [0.84, 0.84, 0.14], explodedOffset: [0, 2.8, 3.2], explosionStage: 0.58, shape: 'custom', color: '#59656d' },
+      { id: 'v8_starter', parentId: 'v8_block', name: 'Electric Starter Motor and Solenoid', description: 'Starter motor body, solenoid and mounting flange arranged beside the flywheel ring gear.', subsystemId: 'rear-drive', position: [-0.49, -0.18, 0.82], size: [0.34, 0.34, 0.46], explodedOffset: [-3.1, -2, 1.4], explosionStage: 0.12, shape: 'custom', color: '#354047' },
+      { id: 'v8_oil_filter', parentId: 'v8_block', name: 'Spin-On Engine Oil Filter', description: 'Replaceable spin-on filter canister mounted low on the crankcase side.', subsystemId: 'lubrication', position: [-0.54, -0.18, 0.45], size: [0.28, 0.34, 0.28], explodedOffset: [-3.5, -2, 0.35], explosionStage: 0.14, shape: 'custom', color: '#b52d25' },
+      { id: 'v8_mounts', parentId: 'v8_block', name: 'Left and Right Engine Mount Assemblies', description: 'Pair of metal mount brackets and elastomer isolators attaching the powertrain to its chassis.', subsystemId: 'mounting-hardware', position: [0, -0.24, 0.2], size: [1.18, 0.30, 0.36], explodedOffset: [0, -3.2, 2.6], explosionStage: 0.08, shape: 'custom', color: '#414b52' },
+      { id: 'v8_sensors', parentId: 'v8_block', name: 'Crank / Oil Sensors and Wiring', description: 'Representative crank-position/oil-sensing hardware and a short protected harness; locations are illustrative.', subsystemId: 'controls-and-sensors', position: [0, -0.1, 0.0], size: [0.92, 0.40, 1.10], explodedOffset: [3.4, -0.3, 1.9], explosionStage: 0.18, shape: 'custom', color: '#3b464e' }
     ]
   },
 
@@ -1156,6 +1471,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/turbo',
     assetPath: 'procedural/automotive/turbo',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A forced-induction turbine device that compresses intake air using waste exhaust gas kinetic energy.',
     defaultScale: 1.5,
@@ -1190,6 +1517,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/differential',
     assetPath: 'procedural/automotive/differential',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'Allows drive wheels to rotate at different speeds while cornering while locking torque transfer if one wheel slips.',
     defaultScale: 1.2,
@@ -1219,6 +1558,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/gearbox',
     assetPath: 'procedural/automotive/gearbox',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A multi-speed transmission using meshing gear sets and synchromesh rings to select drive ratios.',
     defaultScale: 1.0,
@@ -1251,6 +1602,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/suspension',
     assetPath: 'procedural/automotive/suspension',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Automotive',
     description: 'Combines a coil spring and telescopic shock absorber into a single structural steering pivot strut.',
     defaultScale: 1.2,
@@ -1281,6 +1645,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/brake',
     assetPath: 'procedural/automotive/brake',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'A lightweight carbon-fiber reinforced ceramic brake rotor squeezed by multi-piston hydraulic calipers.',
     defaultScale: 1.5,
@@ -1303,6 +1679,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/steering',
     assetPath: 'procedural/automotive/steering',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Automotive',
     description: 'Converts rotational steering wheel motion into linear horizontal tie-rod motion to turn front wheels.',
     defaultScale: 1.0,
@@ -1332,6 +1720,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/electrical/pmsm',
     assetPath: 'procedural/electrical/pmsm',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Mechanical Engineering',
     description: 'A radial-flux permanent-magnet synchronous motor showing the stator, rotor, magnet ring, shaft, bearings, cooling ribs, and terminal housing as a serviceable assembly.',
     defaultScale: 1.1,
@@ -1371,6 +1771,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/transmission/planetary',
     assetPath: 'procedural/transmission/planetary',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Mechanical Engineering',
     description: 'A detailed planetary transmission element with ring gear, sun gear, three planet gears, carrier plates, and planet pins.',
     defaultScale: 1.2,
@@ -1401,6 +1813,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/aerospace/jet_engine_core',
     assetPath: 'procedural/aerospace/jet_engine_core',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Mechanical Engineering',
     description: 'A sectional axial-flow engine core emphasizing compressor stages, combustor region, turbine stages, shaft line, and casing interfaces.',
     defaultScale: 0.95,
@@ -1423,12 +1848,12 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     animations: ['explodedView', 'airflowSweep'],
     explodedParts: ['jet_fan', 'jet_compressor', 'jet_combustor', 'jet_turbine', 'jet_exhaust_nozzle', 'jet_shaft', 'jet_casing'],
     components: [
-      { id: 'jet_fan', name: 'Fan Stage', description: 'The large front-facing blades every turbofan is recognized by — most of a turbofan\'s thrust actually comes from air the fan pushes around the core, not through it.', position: [0, 0, 1.15], size: [1.4, 0.5, 1.4], explodedOffset: [0, 0.9, 2.3], shape: 'custom', color: '#cbd5e1' },
-      { id: 'jet_compressor', name: 'Axial Compressor (3 Stages)', description: 'Each stage\'s rotor+stator blade pair squeezes incoming air a little more, raising pressure and temperature before it reaches the combustor.', position: [0, 0, 0.5], size: [1.0, 0.9, 1.0], explodedOffset: [0, 0.6, 1.1], shape: 'custom', color: '#cbd5e1' },
-      { id: 'jet_combustor', name: 'Combustion Chamber', description: 'Fuel is injected and continuously burned here, the hottest region in the engine, dramatically expanding the gas that drives the turbine.', position: [0, 0, -0.08], size: [1.1, 0.4, 1.1], explodedOffset: [0, 0, 0], shape: 'custom', color: '#8b3e23' },
-      { id: 'jet_turbine', name: 'Turbine (3 Stages)', description: 'Hot expanding gas spins these blades, which drive the shaft back to the compressor and fan — self-sustaining operation is the whole point of the Brayton cycle this engine runs on.', position: [0, 0, -0.56], size: [0.9, 0.8, 0.9], explodedOffset: [0, -0.6, -1.1], shape: 'custom', color: '#8f8a84' },
-      { id: 'jet_exhaust_nozzle', name: 'Exhaust Nozzle', description: 'Accelerates the spent, still-hot gas out the back — converting remaining pressure into exhaust velocity is what produces core thrust.', position: [0, 0, -1.1], size: [0.9, 0.5, 0.9], explodedOffset: [0, -0.9, -2.3], shape: 'custom', color: '#9aa0a8' },
-      { id: 'jet_shaft', name: 'Center Shaft', description: 'Connects the turbine to the compressor and fan — whatever RPM the turbine spins at, the compressor and fan spin at exactly the same rate.', position: [0, 0, 0], size: [0.15, 0.15, 2.7], explodedOffset: [0.9, 0, 0], shape: 'custom', color: '#e2e7eb' },
+      { id: 'jet_fan', parentId: 'jet_casing', name: 'Fan Stage', description: 'The large front-facing blades every turbofan is recognized by — most of a turbofan\'s thrust actually comes from air the fan pushes around the core, not through it.', position: [0, 0, 1.15], size: [1.4, 0.5, 1.4], explodedOffset: [0, 0.9, 2.3], shape: 'custom', color: '#cbd5e1' },
+      { id: 'jet_compressor', parentId: 'jet_casing', name: 'Axial Compressor (3 Stages)', description: 'Each stage\'s rotor+stator blade pair squeezes incoming air a little more, raising pressure and temperature before it reaches the combustor.', position: [0, 0, 0.5], size: [1.0, 0.9, 1.0], explodedOffset: [0, 0.6, 1.1], shape: 'custom', color: '#cbd5e1' },
+      { id: 'jet_combustor', parentId: 'jet_casing', name: 'Combustion Chamber', description: 'Fuel is injected and continuously burned here, the hottest region in the engine, dramatically expanding the gas that drives the turbine.', position: [0, 0, -0.08], size: [1.1, 0.4, 1.1], explodedOffset: [0, 0, 0], shape: 'custom', color: '#8b3e23' },
+      { id: 'jet_turbine', parentId: 'jet_casing', name: 'Turbine (3 Stages)', description: 'Hot expanding gas spins these blades, which drive the shaft back to the compressor and fan — self-sustaining operation is the whole point of the Brayton cycle this engine runs on.', position: [0, 0, -0.56], size: [0.9, 0.8, 0.9], explodedOffset: [0, -0.6, -1.1], shape: 'custom', color: '#8f8a84' },
+      { id: 'jet_exhaust_nozzle', parentId: 'jet_casing', name: 'Exhaust Nozzle', description: 'Accelerates the spent, still-hot gas out the back — converting remaining pressure into exhaust velocity is what produces core thrust.', position: [0, 0, -1.1], size: [0.9, 0.5, 0.9], explodedOffset: [0, -0.9, -2.3], shape: 'custom', color: '#9aa0a8' },
+      { id: 'jet_shaft', parentId: 'jet_casing', name: 'Center Shaft', description: 'Connects the turbine to the compressor and fan — whatever RPM the turbine spins at, the compressor and fan spin at exactly the same rate.', position: [0, 0, 0], size: [0.15, 0.15, 2.7], explodedOffset: [0.9, 0, 0], shape: 'custom', color: '#e2e7eb' },
       { id: 'jet_casing', name: 'Outer Casing', description: 'The structural shell everything mounts inside, also forming the bypass duct the fan pushes air through around the core.', position: [0, 0, 0], size: [1.36, 1.36, 2.6], explodedOffset: [-0.9, 0, 0], shape: 'custom', color: '#475569' },
     ]
   },
@@ -1439,6 +1864,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/fluid/hydraulic_pump',
     assetPath: 'procedural/fluid/hydraulic_pump',
     modelStatus: 'AVAILABLE',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Procedural educational visualization; not an identified OEM-specific or dimensionally authoritative CAD model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Mechanical Engineering',
     description: 'A detailed compact hydraulic pump visualization with housing, shaft, internal pumping elements, service ports, retaining hardware, and case ribs.',
     defaultScale: 1.25,
@@ -1470,6 +1908,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/anatomy/heart',
     assetPath: 'procedural/anatomy/heart',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'A four-chambered muscular organ that pumps deoxygenated blood to the lungs and oxygenated blood to the body.',
     defaultScale: 2.0,
@@ -1515,6 +1965,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/brain',
     assetPath: 'procedural/anatomy/brain',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'The central control organ of the nervous system, containing 86 billion neurons responsible for cognition, memory, emotion, and motor control.',
     defaultScale: 1.8,
@@ -1544,6 +2006,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/lungs',
     assetPath: 'procedural/anatomy/lungs',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'Primary respiratory organs facilitating gas exchange between inhaled atmospheric air and the circulatory bloodstream.',
     defaultScale: 1.5,
@@ -1572,6 +2046,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/eye',
     assetPath: 'procedural/anatomy/eye',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'A sensory organ that focuses incoming light rays onto photosensitive retinal cells to produce vision.',
     defaultScale: 3.0,
@@ -1600,6 +2086,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/skeleton',
     assetPath: 'procedural/anatomy/skeleton',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Anatomy',
     description: 'The internal rigid bone framework protecting organs and anchoring skeletal muscles for movement.',
     defaultScale: 0.5,
@@ -1627,6 +2125,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     name: 'Quantum Electron Particle',
     path: '/models/procedural/electron',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Science',
     description: 'A fundamental subatomic particle representing a quantum superposition of states.',
     defaultScale: 1.5,
@@ -1651,6 +2161,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/atomic/hydrogen',
     assetPath: 'procedural/atomic/hydrogen',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
+    capabilities: { guidedLessons: true },
     category: 'Quantum Mechanics',
     description: 'The simplest atomic system consisting of a single proton nucleus bound to one electron in a 1s orbital.',
     defaultScale: 1.5,
@@ -1672,6 +2195,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/atomic/nucleus',
     assetPath: 'procedural/atomic/nucleus',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Quantum Mechanics',
     description: 'Dense nuclear cluster composed of 6 protons and 6 neutrons bound by the strong nuclear force.',
     defaultScale: 1.5,
@@ -1694,6 +2229,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/physics/magnetic_field',
     assetPath: 'procedural/physics/magnetic_field',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Physics',
     description: 'Interactive visualization of 3D magnetic flux lines around a dipole magnet, illustrating vector intensity fields.',
     defaultScale: 1.0,
@@ -1716,6 +2263,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/earth',
     assetPath: 'procedural/astronomy/earth',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'A multi-layered holographic representation of Earth featuring planetary crust, atmosphere, and cloud layers.',
     defaultScale: 1.5,
@@ -1738,6 +2297,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/moon',
     assetPath: 'procedural/astronomy/moon',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Earth\'s natural satellite featuring heavily cratered highlands and dark basaltic mare plains.',
     defaultScale: 1.5,
@@ -1759,6 +2330,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/solar_system',
     assetPath: 'procedural/astronomy/solar_system',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Interactive scale model of the central Sun and orbital paths of the terrestrial and gas giant planets.',
     defaultScale: 0.3,
@@ -1780,6 +2363,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/iss',
     assetPath: 'procedural/astronomy/iss',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'Modular habitable space laboratory orbiting Earth in Low Earth Orbit at 28,000 km/h.',
     defaultScale: 1.0,
@@ -1812,6 +2407,18 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/satellite',
     assetPath: 'procedural/astronomy/satellite',
     modelStatus: 'AVAILABLE',
+    modelKind: 'SCIENTIFIC_CONCEPT_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'SCIENTIFIC_APPROXIMATION',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'NONE',
+      references: [],
+      limitations: [
+        'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
+        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+      ]
+    },
     category: 'Astronomy',
     description: 'High-capacity telecommunications satellite stationed in geostationary orbit 35,786 km above Earth.',
     defaultScale: 1.5,

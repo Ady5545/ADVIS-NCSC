@@ -47,7 +47,7 @@ export interface LearningLesson {
   id: string;
   version: number;
   title: string;
-  domain: 'MECHANICAL_ENGINEERING' | 'CHEMISTRY' | 'ANATOMY' | 'PHYSICS' | 'ELECTRICAL_ENGINEERING' | 'FLUID_MECHANICS' | 'ROBOTICS';
+  domain: 'MECHANICAL_ENGINEERING' | 'CHEMISTRY' | 'ANATOMY' | 'PHYSICS' | 'ELECTRICAL_ENGINEERING' | 'FLUID_MECHANICS' | 'ROBOTICS' | 'STRUCTURES' | 'AEROSPACE';
   learnerLevel: LessonLearningLevel;
   summary: string;
   modelId: string;

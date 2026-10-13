@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Check, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, X } from 'lucide-react';
+import { BookOpen, Check, ChevronLeft, ChevronRight, Download, Lightbulb, RotateCcw, X } from 'lucide-react';
 import { LEARNING_LESSONS, getLessonById } from './LessonCatalog';
 import { clearLessonProgress, loadLessonProgress, saveLessonProgress } from './LessonProgress';
 import type { LearningLesson, LessonAction, LessonProgress, LessonStep } from './LessonSchema';
+import { SPATIAL_LIBRARY } from '../SpatialLibrary';
+import { createOfflineLearningPack, downloadOfflineLearningHtmlPack, downloadOfflineLearningPack } from './OfflineLearningPack';
 
 export interface LessonRunnerProps {
   open: boolean;
@@ -40,6 +42,7 @@ export function LessonRunner({
   const [draftChoice, setDraftChoice] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [offlinePackStatus, setOfflinePackStatus] = useState<string | null>(null);
   const lastActionToken = useRef('');
   const lastOpenedLesson = useRef('');
 
@@ -195,6 +198,53 @@ export function LessonRunner({
           </div>
           <div className="h-1.5 rounded-full bg-slate-800 mt-2 overflow-hidden">
             <div className="h-full rounded-full bg-cyan-400 transition-all" style={{ width: `${progressPercent}%` }} />
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const model = SPATIAL_LIBRARY[lesson.modelId];
+                if (!model) {
+                  setOfflinePackStatus('This lesson has no matching catalog model, so a pack could not be prepared.');
+                  return;
+                }
+                try {
+                  const pack = createOfflineLearningPack(lesson, model);
+                  setOfflinePackStatus(downloadOfflineLearningHtmlPack(pack)
+                    ? 'Self-contained HTML workbook downloaded. It runs offline and includes lesson text, checkboxes and formative questions, but not the 3D runtime or live simulation.'
+                    : 'Download could not start in this browser. Check download permissions and try again.');
+                } catch (error) {
+                  setOfflinePackStatus(error instanceof Error ? error.message : 'Offline workbook could not be prepared.');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-cyan-700/50 bg-cyan-950/20 px-2.5 py-2 text-[10px] text-cyan-100 hover:bg-cyan-950/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+            >
+              <Download size={12} /> Download offline HTML workbook
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const model = SPATIAL_LIBRARY[lesson.modelId];
+                if (!model) {
+                  setOfflinePackStatus('This lesson has no matching catalog model, so a data pack could not be prepared.');
+                  return;
+                }
+                try {
+                  const pack = createOfflineLearningPack(lesson, model);
+                  setOfflinePackStatus(downloadOfflineLearningPack(pack)
+                    ? 'JSON data pack downloaded for backup, migration or authoring. Use the HTML workbook for a ready-to-read offline experience.'
+                    : 'Download could not start in this browser. Check download permissions and try again.');
+                } catch (error) {
+                  setOfflinePackStatus(error instanceof Error ? error.message : 'Offline data pack could not be prepared.');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-2.5 py-2 text-[10px] text-slate-200 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+            >
+              <Download size={12} /> Export JSON pack
+            </button>
+            {offlinePackStatus && (
+              <p className="basis-full text-[10px] leading-relaxed text-slate-400" role="status" aria-live="polite">{offlinePackStatus}</p>
+            )}
           </div>
         </div>
 
