@@ -4,15 +4,22 @@ import { Database, ShieldCheck, Trash2, X } from 'lucide-react';
 const LESSON_PROGRESS_KEY = 'advis-ncsc.lesson-progress.v1';
 const ACCESSIBILITY_KEY = 'advis-ncsc.accessibility-preferences.v1';
 const CONTRIBUTION_QUEUE_KEY = 'advis-ncsc.contribution-review-queue.v1';
-const WORKSHOP_PREFIX = 'advis-ncsc.workshop.v1.';
+const WORKSHOP_STORAGE_KEY = 'advis-ncsc.workshop-projects.v1';
+const WORKSHOP_PREFIXES = ['advis-ncsc.workshop.v1.'];
+const WORKSPACE_TRANSFORMS_KEY = 'advis-ncsc.workspace-transforms.v1';
+const STUDY_PROJECT_KEY = 'advis-ncsc.innovation-study.v1';
+const CHAT_HISTORY_KEY = 'advis_chat_history_v1';
 
-type LocalDataKey = 'lesson-progress' | 'workshop-projects' | 'authoring-queue' | 'accessibility-preferences';
+type LocalDataKey = 'lesson-progress' | 'workshop-projects' | 'authoring-queue' | 'accessibility-preferences' | 'workspace-state' | 'innovation-study' | 'chat-history';
 
 const LABELS: Record<LocalDataKey, { title: string; detail: string }> = {
   'lesson-progress': { title: 'Lesson progress', detail: 'Saved lesson IDs, step completion and answer choices.' },
   'workshop-projects': { title: 'Visual workshop projects', detail: 'Local component transforms and undo/redo history for editable copies.' },
   'authoring-queue': { title: 'Draft/review queue', detail: 'Locally stored model and lesson JSON submissions and reviewer notes.' },
   'accessibility-preferences': { title: 'Display preferences', detail: 'Rendering quality and reduced-motion/audio/camera preference flags.' },
+  'workspace-state': { title: 'Saved workspace transforms', detail: 'Locally stored current model transforms and visual workspace state.' },
+  'innovation-study': { title: 'Parametric innovation study', detail: 'Saved planetary gear study parameters and baseline settings.' },
+  'chat-history': { title: 'Assistant chat history', detail: 'The recent text-only assistant conversation saved by this browser.' },
 };
 
 function removeLocalData(kind: LocalDataKey): { ok: boolean; message: string } {
@@ -30,14 +37,24 @@ function removeLocalData(kind: LocalDataKey): { ok: boolean; message: string } {
         document.documentElement.removeAttribute('data-advis-reduced-motion');
         break;
       case 'workshop-projects': {
+        window.localStorage.removeItem(WORKSHOP_STORAGE_KEY);
         const keys: string[] = [];
         for (let index = 0; index < window.localStorage.length; index += 1) {
           const key = window.localStorage.key(index);
-          if (key?.startsWith(WORKSHOP_PREFIX)) keys.push(key);
+          if (key && WORKSHOP_PREFIXES.some((prefix) => key.startsWith(prefix))) keys.push(key);
         }
         for (const key of keys) window.localStorage.removeItem(key);
         break;
       }
+      case 'workspace-state':
+        window.localStorage.removeItem(WORKSPACE_TRANSFORMS_KEY);
+        break;
+      case 'innovation-study':
+        window.localStorage.removeItem(STUDY_PROJECT_KEY);
+        break;
+      case 'chat-history':
+        window.localStorage.removeItem(CHAT_HISTORY_KEY);
+        break;
     }
     return { ok: true, message: `${LABELS[kind].title} cleared from this browser.` };
   } catch {
@@ -59,24 +76,38 @@ export function PrivacyDataPanel({ onClose }: PrivacyDataPanelProps) {
       const lessons = window.localStorage.getItem(LESSON_PROGRESS_KEY);
       const authoring = window.localStorage.getItem(CONTRIBUTION_QUEUE_KEY);
       const preferences = window.localStorage.getItem(ACCESSIBILITY_KEY);
-      let workshop = 0;
+      const workspace = window.localStorage.getItem(WORKSPACE_TRANSFORMS_KEY);
+      const study = window.localStorage.getItem(STUDY_PROJECT_KEY);
+      const chat = window.localStorage.getItem(CHAT_HISTORY_KEY);
+      let workshop = window.localStorage.getItem(WORKSHOP_STORAGE_KEY) ? 1 : 0;
       for (let index = 0; index < window.localStorage.length; index += 1) {
-        if (window.localStorage.key(index)?.startsWith(WORKSHOP_PREFIX)) workshop += 1;
+        if (WORKSHOP_PREFIXES.some((prefix) => window.localStorage.key(index)?.startsWith(prefix))) workshop += 1;
       }
       return {
         lessons: lessons ? 1 : 0,
         workshop,
         authoring: authoring ? 1 : 0,
         preferences: preferences ? 1 : 0,
+        workspace: workspace ? 1 : 0,
+        study: study ? 1 : 0,
+        chat: chat ? 1 : 0,
       };
     } catch {
-      return { lessons: 0, workshop: 0, authoring: 0, preferences: 0 };
+      return { lessons: 0, workshop: 0, authoring: 0, preferences: 0, workspace: 0, study: 0, chat: 0 };
     }
   }, [clearedAt]);
 
-  const countFor = (kind: LocalDataKey): number => kind === 'lesson-progress' ? counts.lessons
-    : kind === 'workshop-projects' ? counts.workshop
-      : kind === 'authoring-queue' ? counts.authoring : counts.preferences;
+  const countFor = (kind: LocalDataKey): number => {
+    switch (kind) {
+      case 'lesson-progress': return counts.lessons;
+      case 'workshop-projects': return counts.workshop;
+      case 'authoring-queue': return counts.authoring;
+      case 'accessibility-preferences': return counts.preferences;
+      case 'workspace-state': return counts.workspace;
+      case 'innovation-study': return counts.study;
+      case 'chat-history': return counts.chat;
+    }
+  };
 
   const clearConfirmed = (kind: LocalDataKey) => {
     const result = removeLocalData(kind);
@@ -115,7 +146,7 @@ export function PrivacyDataPanel({ onClose }: PrivacyDataPanelProps) {
                   <div className="min-w-0 flex-1">
                     <div className="text-[11px] font-semibold">{LABELS[kind].title}</div>
                     <div className="mt-1 text-[10px] leading-relaxed text-slate-500">{LABELS[kind].detail}</div>
-                    <div className="mt-1 text-[9px] text-slate-500">{kind === 'workshop-projects' ? countFor(kind) + ' saved project key(s)' : (countFor(kind) ? 'Data key exists' : 'No data key detected')}</div>
+                    <div className="mt-1 text-[9px] text-slate-500">{(['workshop-projects', 'workspace-state', 'innovation-study'].includes(kind) ? countFor(kind) + ' saved item(s)' : (countFor(kind) ? 'Data key exists' : 'No data key detected'))}</div>
                     {clearedAt[kind] && <div className="mt-1 text-[9px] text-emerald-300">Cleared during this session</div>}
                   </div>
                   {confirming === kind ? (
