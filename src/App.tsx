@@ -2250,6 +2250,21 @@ function AppContent() {
       <EngineeringReferenceCockpit 
         onClose={() => setIsEngineeringMode(false)} 
         activeObject={currentSpatialObject} 
+        activeProjectName={activeEditableProject?.name || null}
+        savedProjects={savedEditableProjects}
+        projectStatus={projectStatus}
+        canUndoTransform={Boolean(activeEditableProject && projectHistory.undoStack.length > 0)}
+        canRedoTransform={Boolean(activeEditableProject && projectHistory.redoStack.length > 0)}
+        onCreateProjectCopy={handleCreateEditableCopy}
+        onSaveProject={handleSaveEditableProject}
+        onUndoTransform={handleUndoProjectTransform}
+        onRedoTransform={handleRedoProjectTransform}
+        onResetProjectToSource={handleResetProjectToSource}
+        onRenameProject={(name) => setActiveEditableProject((current) => current ? { ...current, name: name.slice(0, 160) } : current)}
+        onLoadProject={handleLoadEditableProject}
+        onDeleteProject={handleDeleteEditableProject}
+        onExportProject={handleExportEditableProject}
+        onImportProjectFile={(file) => { void handleImportEditableProjectFile(file); }}
         selectedComponentId={selectedComponentId}
         onSelectComponent={setSelectedComponentId}
         hiddenComponentIds={hiddenComponentIds}
