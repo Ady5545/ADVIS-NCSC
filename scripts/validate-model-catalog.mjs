@@ -6,6 +6,7 @@ import { build } from 'esbuild';
 // Keep the temporary bundle under the repository root so Node can resolve its node_modules.
 const temporaryDirectory = await mkdtemp(join(process.cwd(), '.advis-catalog-audit-'));
 const bundledModule = join(temporaryDirectory, 'spatial-library.cjs');
+const hierarchyModule = join(temporaryDirectory, 'component-hierarchy.cjs');
 const errors = [];
 const warnings = [];
 
@@ -30,7 +31,19 @@ try {
   });
 
   const require = createRequire(import.meta.url);
+  await build({
+    entryPoints: [resolve('src/models/assemblies/ComponentHierarchy.ts')],
+    outfile: hierarchyModule,
+    bundle: true,
+    platform: 'node',
+    format: 'cjs',
+    packages: 'external',
+    sourcemap: false,
+    logLevel: 'silent',
+  });
+
   const { SPATIAL_LIBRARY, getCadCertificationForObject } = require(bundledModule);
+  const { buildComponentHierarchy, validateComponentHierarchy } = require(hierarchyModule);
   const modelEntries = Object.entries(SPATIAL_LIBRARY);
 
   if (modelEntries.length === 0) fail('SpatialLibrary is empty.');
@@ -75,6 +88,26 @@ try {
       if (component.cadAssetPath && !/\.(step|stp|brep|brp)$/i.test(component.cadAssetPath)) {
         warn(`[${modelLabel}] ${component.id} has a CAD path with an unexpected extension; inspect its source metadata.`);
       }
+    }
+
+    const hierarchyIssues = validateComponentHierarchy(model);
+    for (const issue of hierarchyIssues) {
+      fail(`[${modelLabel}] Hierarchy ${issue.code}: ${issue.message}`);
+    }
+    const tree = buildComponentHierarchy(model);
+    const countTreeLeaves = (nodes) => nodes.reduce((total, node) =>
+      total + (node.kind === 'component' ? 1 : 0) + countTreeLeaves(node.children || []), 0);
+    const hierarchyComponentCount = countTreeLeaves(tree);
+    const uniqueComponentCount = validIds.size;
+    if (hierarchyComponentCount !== uniqueComponentCount) {
+      fail(`[${modelLabel}] Component tree contains ${hierarchyComponentCount} components, expected ${uniqueComponentCount} unique component IDs.`);
+    }
+    if (!model.modelKind) warn(`[${modelLabel}] Model kind has not yet been explicitly migrated into metadata.`);
+    if (model.capabilities?.validatedSimulation === true && model.evidence?.simulationStatus !== 'BENCHMARK_VALIDATED') {
+      fail(`[${modelLabel}] Advertises validated simulation without benchmark-validation evidence.`);
+    }
+    if (model.capabilities?.exportStep === true && model.evidence?.geometryAuthority !== 'SOURCE_CAD') {
+      fail(`[${modelLabel}] Advertises STEP export without an authoritative source-CAD geometry declaration.`);
     }
 
     for (const componentId of model.explodedParts || []) {
