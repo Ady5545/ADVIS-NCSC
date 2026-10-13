@@ -1662,7 +1662,6 @@ function AppContent() {
         isolatedComponentId={isolatedComponentId}
         onToggleIsolate={(component) => setIsolatedComponentId(isolatedComponentId === component ? null : component)}
         selectedComponentId={selectedComponentId}
-        onSelectComponent={setSelectedComponentId}
         soundEnabled={v8SoundEnabled}
         onToggleSound={() => setV8SoundEnabled(!v8SoundEnabled)}
       />
