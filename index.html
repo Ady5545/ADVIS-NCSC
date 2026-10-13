@@ -19,7 +19,22 @@
       #advis-startup-detail { margin: 0 auto; max-width: 560px; color: #b6c7d9; font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.6; overflow-wrap: anywhere; }
       #advis-startup-subtitle { margin-top: 18px; color: #7895ac; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
       @keyframes advis-spin { to { transform: rotate(360deg); } }
-      @media (prefers-reduced-motion: reduce) { #advis-startup-orb { animation: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        #advis-startup-orb { animation: none; }
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+      html[data-advis-reduced-motion="true"] #advis-startup-orb { animation: none; }
+      html[data-advis-reduced-motion="true"] *, html[data-advis-reduced-motion="true"] *::before, html[data-advis-reduced-motion="true"] *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     </style>
   </head>
   <body>
