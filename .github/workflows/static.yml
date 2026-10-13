@@ -1,4 +1,4 @@
-name: Deploy A.D.V.I.S. to GitHub Pages
+name: A.D.V.I.S. validation
 
 on:
   push:
@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: "pages"
+  group: "advis-validation-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
   validate:
-    name: TypeScript and production build
+    name: Catalog, learning contracts, TypeScript and production build
     runs-on: ubuntu-latest
 
     steps:
@@ -49,49 +49,3 @@ jobs:
         env:
           VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
-
-  deploy:
-    name: Deploy to GitHub Pages
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Vite application
-        env:
-          VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
-        run: npm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload production build
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
