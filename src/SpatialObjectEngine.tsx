@@ -2030,6 +2030,33 @@ export function SpatialObjectEngine({
   const componentRefs = useRef<Record<string, THREE.Object3D>>({});
   const idleRotationRef = useRef(0);
 
+  useEffect(() => {
+    const focusComponent = (event: Event) => {
+      const componentId = (event as CustomEvent<{ componentId?: string }>).detail?.componentId;
+      if (!componentId) return;
+      const targetObject = componentRefs.current[componentId];
+      if (!targetObject) return;
+
+      targetObject.updateWorldMatrix(true, true);
+      const bounds = new THREE.Box3().setFromObject(targetObject);
+      if (bounds.isEmpty()) return;
+
+      const center = bounds.getCenter(new THREE.Vector3());
+      const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+      window.dispatchEvent(new CustomEvent('advis-focus-world-point', {
+        detail: {
+          componentId,
+          target: [center.x, center.y, center.z] as [number, number, number],
+          radius: Math.max(0.15, sphere.radius),
+        },
+      }));
+    };
+
+    window.addEventListener('advis-focus-component', focusComponent);
+    return () => window.removeEventListener('advis-focus-component', focusComponent);
+  }, []);
+
+
   // Transition and Level Of Detail States
   const transitionRef = useRef(0);
   const [lod, setLod] = useState<'FAR' | 'MEDIUM' | 'CLOSE'>('MEDIUM');
@@ -3124,6 +3151,11 @@ export function SpatialObjectEngine({
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedComponentId(comp.id);
+                            }}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedComponentId(comp.id);
+                              window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: comp.id } }));
                             }}
                             onPointerOver={(e) => {
                               e.stopPropagation();
