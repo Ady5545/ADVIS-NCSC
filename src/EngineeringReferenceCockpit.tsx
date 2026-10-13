@@ -59,6 +59,14 @@ const phaseLegend = [
 
 export function EngineeringReferenceCockpit({
   onClose,
+  canUndoTransform = false,
+  canRedoTransform = false,
+  onUndoTransform,
+  onRedoTransform,
+  onOpenInnovationLab,
+  onSaveWorkspace,
+  onLoadWorkspace,
+  workspaceSaveNotice = '',
   activeObject,
   selectedComponentId,
   onSelectComponent,
