@@ -30,6 +30,30 @@ import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
 import type { LessonAction } from './learning/LessonSchema';
+import {
+  canonicalTransformsForModel,
+  normalizeTransform,
+  type EditableModelProject,
+  type ProjectTransformCommand,
+  type WorkshopComponentTransform,
+} from './workshop/ProjectSchema';
+import {
+  createEditableProject,
+  deleteEditableProject,
+  exportEditableProjectJson,
+  importEditableProjectJson,
+  listEditableProjects,
+  loadEditableProject,
+  saveEditableProject,
+} from './workshop/ProjectStore';
+import {
+  clearProjectHistory,
+  createProjectHistory,
+  recordTransformCommand,
+  redoTransformCommand,
+  undoTransformCommand,
+  type ProjectHistory,
+} from './workshop/ProjectHistory';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
@@ -277,13 +301,30 @@ function AppContent() {
   const [showLessonRunner, setShowLessonRunner] = useState<boolean>(false);
 
   useEffect(() => {
+    if (preserveLoadedWorkspaceRef.current) {
+      preserveLoadedWorkspaceRef.current = false;
+      return;
+    }
     setHiddenComponentIds([]);
     setIsolatedComponentId(null);
     setHighlightedComponentId(null);
+    setComponentTransforms({});
+    setActiveEditableProject(null);
+    setProjectHistory((current) => clearProjectHistory(current));
+    setProjectStatus('');
   }, [currentSpatialObject]);
+
+  useEffect(() => {
+    setSavedEditableProjects(listEditableProjects());
+  }, []);
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
-  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [componentTransforms, setComponentTransforms] = useState<Record<string, WorkshopComponentTransform>>({});
+  const [activeEditableProject, setActiveEditableProject] = useState<EditableModelProject | null>(null);
+  const [savedEditableProjects, setSavedEditableProjects] = useState<ReturnType<typeof listEditableProjects>>([]);
+  const [projectStatus, setProjectStatus] = useState('');
+  const [projectHistory, setProjectHistory] = useState<ProjectHistory>(() => createProjectHistory(100));
+  const preserveLoadedWorkspaceRef = useRef(false);
   const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
   const [explodedFactor, setExplodedFactor] = useState<number>(0);
   const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
@@ -388,11 +429,272 @@ function AppContent() {
     return () => window.removeEventListener('advis-v8-crank-angle', onV8CrankAngle);
   }, []);
 
-  const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
-    setComponentTransforms(prev => ({
-      ...prev,
-      [id]: transform
-    }));
+  const activeSpatialObjectId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const activeCatalogModel = activeSpatialObjectId ? SPATIAL_LIBRARY[activeSpatialObjectId] : undefined;
+
+  const handleUpdateComponentTransform = (id: string, transform: WorkshopComponentTransform) => {
+    if (!activeEditableProject) {
+      setProjectStatus('Create an editable copy before changing component transforms. The reference model is locked.');
+      return;
+    }
+    const normalized = normalizeTransform(transform);
+    if (!normalized || !activeEditableProject.componentTransforms[id]) {
+      setProjectStatus('Transform rejected: the component or transform is invalid.');
+      return;
+    }
+    const before = componentTransforms[id] || activeEditableProject.componentTransforms[id];
+    const unchanged = (['position', 'rotation', 'scale'] as const).every((field) =>
+      before[field].every((value, axis) => Math.abs(value - normalized[field][axis]) < 1e-9)
+    );
+    if (unchanged) return;
+
+    const command: ProjectTransformCommand = {
+      id: `transform:${id}:${Date.now().toString(36)}`,
+      componentId: id,
+      before: {
+        position: [...before.position] as [number, number, number],
+        rotation: [...before.rotation] as [number, number, number],
+        scale: [...before.scale] as [number, number, number],
+      },
+      after: normalized,
+      committedAt: new Date().toISOString(),
+    };
+    setProjectHistory((current) => recordTransformCommand(current, command));
+    setComponentTransforms((current) => ({ ...current, [id]: normalized }));
+    setActiveEditableProject((current) => current ? {
+      ...current,
+      componentTransforms: { ...current.componentTransforms, [id]: normalized },
+      updatedAt: new Date().toISOString(),
+    } : current);
+    setProjectStatus('Transform changed in your editable copy. Save to keep it after closing the browser.');
+  };
+
+  const snapshotActiveProject = (project: EditableModelProject): EditableModelProject => ({
+    ...project,
+    componentTransforms: { ...project.componentTransforms, ...componentTransforms },
+    hiddenComponentIds: [...hiddenComponentIds],
+    selectedComponentId,
+    isolatedComponentId,
+    explodedFactor: Math.max(0, Math.min(1, explodedFactor)),
+    viewMode: blueprintEnabled ? 'BLUEPRINT' : xrayEnabled ? 'GLASS' : 'SOLID',
+    simulationParameters: isV8Active
+      ? { rpm: v8Rpm, crankAngleDeg: v8CrankAngleDeg }
+      : isV12Active
+        ? { rpm: v12Rpm, crankAngleDeg: v12CrankAngleDeg }
+        : project.simulationParameters,
+    updatedAt: new Date().toISOString(),
+  });
+
+  const refreshSavedProjects = () => setSavedEditableProjects(listEditableProjects());
+
+  const handleCreateEditableCopy = () => {
+    const model = activeCatalogModel;
+    if (!model) {
+      setProjectStatus('This catalog/registry entry does not yet have a supported editable-project source definition.');
+      return;
+    }
+    const canonical = canonicalTransformsForModel(model);
+    const allowedCurrentTransforms = Object.fromEntries(
+      Object.entries(componentTransforms).filter(([id]) => id in canonical)
+    );
+    const project = createEditableProject(model, undefined, {
+      componentTransforms: { ...canonical, ...allowedCurrentTransforms },
+      hiddenComponentIds: hiddenComponentIds.filter((id) => id in canonical),
+      selectedComponentId,
+      isolatedComponentId,
+      explodedFactor,
+      viewMode: blueprintEnabled ? 'BLUEPRINT' : xrayEnabled ? 'GLASS' : 'SOLID',
+      simulationParameters: isV8Active ? { rpm: v8Rpm, crankAngleDeg: v8CrankAngleDeg } : isV12Active ? { rpm: v12Rpm, crankAngleDeg: v12CrankAngleDeg } : {},
+    });
+    setComponentTransforms(project.componentTransforms);
+    setActiveEditableProject(project);
+    setProjectHistory(createProjectHistory(100));
+    const saved = saveEditableProject(project);
+    refreshSavedProjects();
+    setProjectStatus(saved
+      ? 'Editable copy created and saved in this browser only. The catalog reference was not modified.'
+      : 'Editable copy created for this session, but browser storage is unavailable or full. Export the project JSON to keep a backup.');
+  };
+
+  const activateEditableProject = (project: EditableModelProject, model = SPATIAL_LIBRARY[project.sourceModelId]) => {
+    if (!model) {
+      setProjectStatus('Cannot open this project: its source model is not available in the current catalog.');
+      return false;
+    }
+    const canonical = canonicalTransformsForModel(model);
+    const validTransforms: Record<string, WorkshopComponentTransform> = { ...canonical };
+    for (const [id, value] of Object.entries(project.componentTransforms || {})) {
+      if (id in canonical) {
+        const normalized = normalizeTransform(value);
+        if (normalized) validTransforms[id] = normalized;
+      }
+    }
+    const validIds = new Set(model.components.map((component) => component.id));
+    const safeProject: EditableModelProject = {
+      ...project,
+      componentTransforms: validTransforms,
+      hiddenComponentIds: [...new Set(project.hiddenComponentIds.filter((id) => validIds.has(id)))],
+      selectedComponentId: project.selectedComponentId && validIds.has(project.selectedComponentId) ? project.selectedComponentId : null,
+      isolatedComponentId: project.isolatedComponentId && validIds.has(project.isolatedComponentId) ? project.isolatedComponentId : null,
+      explodedFactor: Math.max(0, Math.min(1, project.explodedFactor)),
+      constraints: project.constraints.filter((constraint) => validIds.has(constraint.componentAId) && validIds.has(constraint.componentBId)),
+      annotations: project.annotations.filter((annotation) => !annotation.componentId || validIds.has(annotation.componentId)),
+    };
+    if (activeSpatialObjectId !== model.id) {
+      preserveLoadedWorkspaceRef.current = true;
+      setCurrentSpatialObject(model.id);
+    }
+    setActiveEditableProject(safeProject);
+    setComponentTransforms(safeProject.componentTransforms);
+    setHiddenComponentIds(safeProject.hiddenComponentIds);
+    setSelectedComponentId(safeProject.selectedComponentId);
+    setIsolatedComponentId(safeProject.isolatedComponentId);
+    setExplodedFactor(safeProject.explodedFactor);
+    setIsExploded(safeProject.explodedFactor > 0.001);
+    setSpatialMode(safeProject.explodedFactor > 0.001 ? 'EXPLODED' : 'INSPECTION');
+    setXrayEnabled(safeProject.viewMode === 'GLASS');
+    setBlueprintEnabled(safeProject.viewMode === 'BLUEPRINT');
+    setProjectHistory(createProjectHistory(100));
+    setProjectStatus(`Opened “${safeProject.name}”. Edits remain separate from the reference catalog.`);
+    return true;
+  };
+
+  const handleSaveEditableProject = () => {
+    if (!activeEditableProject) return;
+    const snapshot = snapshotActiveProject(activeEditableProject);
+    const saved = saveEditableProject(snapshot);
+    if (saved) {
+      setActiveEditableProject(snapshot);
+      setProjectStatus('Saved locally on this device. This project is not uploaded to an account or server.');
+      refreshSavedProjects();
+    } else {
+      setProjectStatus('Local save failed (storage may be unavailable or full). Export the project JSON as a backup.');
+    }
+  };
+
+  const handleLoadEditableProject = (projectId: string) => {
+    const project = loadEditableProject(projectId);
+    if (!project) {
+      setProjectStatus('Saved project not found in this browser.');
+      return;
+    }
+    activateEditableProject(project);
+  };
+
+  const handleDeleteEditableProject = () => {
+    if (!activeEditableProject) return;
+    const id = activeEditableProject.id;
+    const deleted = deleteEditableProject(id);
+    if (!deleted) {
+      setProjectStatus('Could not remove the local saved project.');
+      return;
+    }
+    setActiveEditableProject(null);
+    setComponentTransforms({});
+    setHiddenComponentIds([]);
+    setIsolatedComponentId(null);
+    setSelectedComponentId(null);
+    setExplodedFactor(0);
+    setIsExploded(false);
+    setProjectHistory(createProjectHistory(100));
+    refreshSavedProjects();
+    setProjectStatus('Saved copy deleted. The catalog reference remains unchanged.');
+  };
+
+  const handleResetProjectToSource = () => {
+    if (!activeEditableProject || !activeCatalogModel) return;
+    const canonical = canonicalTransformsForModel(activeCatalogModel);
+    const updated = { ...activeEditableProject, componentTransforms: canonical, hiddenComponentIds: [], selectedComponentId: null, isolatedComponentId: null, explodedFactor: 0, viewMode: 'SOLID' as const };
+    setComponentTransforms(canonical);
+    setActiveEditableProject(updated);
+    setHiddenComponentIds([]);
+    setSelectedComponentId(null);
+    setIsolatedComponentId(null);
+    setExplodedFactor(0);
+    setIsExploded(false);
+    setXrayEnabled(false);
+    setBlueprintEnabled(false);
+    setProjectHistory(createProjectHistory(100));
+    setProjectStatus('Transforms restored to source defaults in your copy. Save to persist the reset.');
+  };
+
+  const handleUndoProjectTransform = () => {
+    if (!activeEditableProject) return;
+    const transition = undoTransformCommand(projectHistory, componentTransforms);
+    if (!transition.command) return;
+    setProjectHistory(transition.history);
+    setComponentTransforms(transition.transforms);
+    setActiveEditableProject((current) => current ? { ...current, componentTransforms: { ...current.componentTransforms, [transition.command!.componentId]: transition.transforms[transition.command!.componentId] } } : current);
+    setProjectStatus('Undid the last transform edit.');
+  };
+
+  const handleRedoProjectTransform = () => {
+    if (!activeEditableProject) return;
+    const transition = redoTransformCommand(projectHistory, componentTransforms);
+    if (!transition.command) return;
+    setProjectHistory(transition.history);
+    setComponentTransforms(transition.transforms);
+    setActiveEditableProject((current) => current ? { ...current, componentTransforms: { ...current.componentTransforms, [transition.command!.componentId]: transition.transforms[transition.command!.componentId] } } : current);
+    setProjectStatus('Redid the last transform edit.');
+  };
+
+  const handleExportEditableProject = () => {
+    if (!activeEditableProject) return;
+    const snapshot = snapshotActiveProject(activeEditableProject);
+    const json = exportEditableProjectJson(snapshot);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${snapshot.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'advis-project'}.advis.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setProjectStatus('Exported a versioned editable-project JSON file.');
+  };
+
+  const handleImportEditableProjectFile = async (file: File) => {
+    try {
+      if (file.size > 5 * 1024 * 1024) {
+        setProjectStatus('Import rejected: project JSON is larger than the 5 MB safety limit.');
+        return;
+      }
+      const imported = importEditableProjectJson(await file.text());
+      if (!imported) {
+        setProjectStatus('Import rejected: this is not a supported A.D.V.I.S. editable-project JSON file.');
+        return;
+      }
+      const model = SPATIAL_LIBRARY[imported.sourceModelId];
+      if (!model) {
+        setProjectStatus('Import rejected: this project refers to a model not present in the current catalog.');
+        return;
+      }
+      const validIds = new Set(model.components.map((component) => component.id));
+      const canonical = canonicalTransformsForModel(model);
+      const validTransforms = { ...canonical };
+      for (const [id, value] of Object.entries(imported.componentTransforms)) {
+        if (id in canonical) {
+          const normalized = normalizeTransform(value);
+          if (normalized) validTransforms[id] = normalized;
+        }
+      }
+      imported.componentTransforms = validTransforms;
+      imported.hiddenComponentIds = imported.hiddenComponentIds.filter((id) => validIds.has(id));
+      imported.selectedComponentId = imported.selectedComponentId && validIds.has(imported.selectedComponentId) ? imported.selectedComponentId : null;
+      imported.isolatedComponentId = imported.isolatedComponentId && validIds.has(imported.isolatedComponentId) ? imported.isolatedComponentId : null;
+      imported.constraints = imported.constraints.filter((item) => validIds.has(item.componentAId) && validIds.has(item.componentBId));
+      imported.annotations = imported.annotations.filter((item) => !item.componentId || validIds.has(item.componentId));
+      if (!saveEditableProject(imported)) {
+        setProjectStatus('Imported project but could not persist it. Check browser storage availability.');
+        return;
+      }
+      refreshSavedProjects();
+      activateEditableProject(imported, model);
+      setProjectStatus('Imported a separate editable copy. Check source-model compatibility before continuing work.');
+    } catch {
+      setProjectStatus('Import failed while reading the file. No catalog model was changed.');
+    }
   };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
