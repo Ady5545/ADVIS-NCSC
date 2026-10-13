@@ -146,37 +146,57 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: '/models/procedural/v8_engine_scientific',
     assetPath: 'procedural/automotive/v8_engine_scientific',
     modelStatus: 'AVAILABLE',
+    modelVersion: '1.0.0-educational',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'KINEMATIC',
+      educationalLevel: 'HIGH_SCHOOL',
+      references: [],
+      limitations: [
+        'Representative educational visualization; not an identified OEM engine.',
+        'Physical dimensions, materials, and performance specifications are not source-verified.',
+        'The cycle indicator is illustrative and is not a validated thermodynamic simulation.'
+      ]
+    },
+    capabilities: {
+      inspect: true, componentHierarchy: true, hideShow: true, isolate: true, explode: true, kinematics: true,
+      validatedSimulation: false, parameterEditing: false, guidedLessons: false, saveProject: false,
+      exportGlb: false, exportStep: false, measure: false, sectionPlane: false, deepZoom: false, interiorGeometry: false
+    },
     category: 'Mechanical Engineering',
-    description: 'A structured, simulation-driven 4-stroke internal combustion engine with real thermodynamic cycle, rotating crankshaft, reciprocating piston, and synchronized double-overhead valvetrain.',
+    description: 'A procedural educational model showing crankshaft rotation, reciprocating piston motion, illustrative valve timing, and a simplified four-stroke cycle. It is not an identified OEM engine or a validated thermodynamic simulation.',
     defaultScale: 1.2,
     educationalInformation: {
-      overview: 'Demonstrates the Otto four-stroke cycle: Intake, Compression, Power, and Exhaust with real-time synchronized P-V indicator diagrams and governing equations.',
+      overview: 'Illustrates the four phases of a four-stroke cycle. The pressure/cycle indicator is qualitative and does not predict measured cylinder pressure or engine performance.',
       keyFeatures: [
-        'Forged Steel Crankshaft with 90° Crankpins',
+        'Illustrative crankshaft geometry with offset crankpins',
         'Reciprocating Piston with Wrist Pin & Compression Rings',
-        'Kinematic H-Beam Connecting Rod',
-        'Overhead Double Camshafts & Poppet Valves',
-        'High-Voltage Spark Plug Ignition Arc'
+        'Connecting-rod geometry for kinematic exploration',
+        'Illustrative valve and cam components',
+        'Illustrative spark/ignition visualization'
       ],
-      workingPrinciple: 'Chemical energy stored in hydrocarbon fuel is released during constant-volume combustion, expanding rapidly against the piston face to produce linear kinematic force, converted to rotational mechanical torque by the slider-crank linkage.',
+      workingPrinciple: 'In a four-stroke engine, piston and valve motion are coordinated over two crankshaft revolutions. This model illustrates linkage motion and cycle phases; it does not calculate combustion, torque, or thermodynamic performance.',
       applications: ['Automotive Powertrains', 'Aviation Piston Engines', 'Marine Propulsion', 'Industrial Power Generation'],
       specifications: {
         'Cycle': 'Four-Stroke Otto Cycle (720°)',
-        'Displacement': '500 cc / cyl',
-        'Compression Ratio': '10.5 : 1',
-        'Bore x Stroke': '88.0 mm x 82.0 mm',
-        'Governing Law': 'P * V^gamma = C (Isentropic)'
+        'Displacement': 'Not specified — no exact engine variant is defined',
+        'Compression Ratio': 'Not specified',
+        'Bore x Stroke': 'Not specified',
+        'Simulation status': 'Kinematic animation with a heuristic cycle indicator; not thermodynamically validated'
       }
     },
     components: [
-      { id: 'crankshaft_main', name: 'Forged Crankshaft', description: 'Primary rotational shaft converting linear piston reciprocating work into mechanical torque.', position: [0, -1.2, 0], size: [0.3, 0.3, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#64748b' },
+      { id: 'crankshaft_main', name: 'Crankshaft (illustrative)', description: 'Rotating shaft representation used to explore cranktrain motion; material and dimensions are not specified.', position: [0, -1.2, 0], size: [0.3, 0.3, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#64748b' },
       { id: 'flywheel', name: 'Flywheel', description: 'Heavy rotational inertia disc storing kinetic energy to smooth out cyclic torque pulsations.', position: [0, -1.2, 1.8], size: [1.6, 1.6, 0.18], explodedOffset: [0, -1.2, 1.2], shape: 'cylinder', color: '#475569' },
       { id: 'combustion_chamber_cyl1', name: 'Cylinder 1 Chamber', description: 'Rigid sealed enclosure containing explosive thermo-expansion.', position: [0, 0.4, 0], size: [1.1, 1.8, 1.1], explodedOffset: [0, 0.6, 0], shape: 'cylinder', color: '#334155' },
       { id: 'piston_cyl1', name: 'Piston Crown', description: 'Lightweight reciprocating piston with compression rings and wrist pin.', position: [0, 0.2, 0], size: [0.88, 0.62, 0.88], explodedOffset: [0, 0.8, 0], shape: 'cylinder', color: '#94a3b8' },
-      { id: 'conrod_cyl1', name: 'Connecting Rod', description: 'Forged H-beam rod linking piston wrist pin to crankshaft journal pin.', position: [0, -0.4, 0], size: [0.16, 1.2, 0.2], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#94a3b8' },
-      { id: 'spark_plug_cyl1', name: 'Spark Plug', description: 'Iridium electrode generating timed electrical arc to trigger combustion.', position: [0, 1.5, 0], size: [0.15, 0.6, 0.15], explodedOffset: [0, 1.8, 0], shape: 'cylinder', color: '#f8fafc' },
+      { id: 'conrod_cyl1', name: 'Connecting Rod (illustrative)', description: 'Link representation between a piston pin and crank pin; cross-section and material are not source-verified.', position: [0, -0.4, 0], size: [0.16, 1.2, 0.2], explodedOffset: [0, -0.2, 0], shape: 'box', color: '#94a3b8' },
+      { id: 'spark_plug_cyl1', name: 'Spark Plug (illustrative)', description: 'Ignition-system representation; electrode material and electrical performance are not specified.', position: [0, 1.5, 0], size: [0.15, 0.6, 0.15], explodedOffset: [0, 1.8, 0], shape: 'cylinder', color: '#f8fafc' },
       { id: 'intake_valve_cyl1', name: 'Intake Valve', description: 'Poppet valve metering incoming air-fuel charge into the cylinder.', position: [-0.3, 1.3, 0], size: [0.36, 0.7, 0.36], explodedOffset: [-0.6, 1.2, 0], shape: 'cylinder', color: '#38bdf8' },
-      { id: 'exhaust_valve_cyl1', name: 'Exhaust Valve', description: 'Sodium-cooled poppet valve scavenging combusted exhaust gases.', position: [0.3, 1.3, 0], size: [0.32, 0.7, 0.32], explodedOffset: [0.6, 1.2, 0], shape: 'cylinder', color: '#f59e0b' },
+      { id: 'exhaust_valve_cyl1', name: 'Exhaust Valve', description: 'Poppet exhaust-valve representation; cooling method and material are not specified.', position: [0.3, 1.3, 0], size: [0.32, 0.7, 0.32], explodedOffset: [0.6, 1.2, 0], shape: 'cylinder', color: '#f59e0b' },
       { id: 'intake_camshaft', name: 'Intake Camshaft', description: 'Overhead rotating shaft with precision lobe profiles driving intake valves.', position: [-0.3, 1.8, 0], size: [0.2, 0.2, 2.8], explodedOffset: [-1.0, 1.5, 0], shape: 'cylinder', color: '#cbd5e1' },
       { id: 'exhaust_camshaft', name: 'Exhaust Camshaft', description: 'Overhead rotating shaft driving exhaust valves timed to piston displacement.', position: [0.3, 1.8, 0], size: [0.2, 0.2, 2.8], explodedOffset: [1.0, 1.5, 0], shape: 'cylinder', color: '#cbd5e1' },
       { id: 'timing_chain', name: 'Timing Chain', description: 'Dual-roller synchronous chain maintaining exact 2:1 gear ratio between crankshaft and camshafts.', position: [0, 0.3, -1.5], size: [0.9, 3.2, 0.1], explodedOffset: [0, 0.3, -1.2], shape: 'torus', color: '#0284c7' }
@@ -927,8 +947,28 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     path: 'procedural/automotive/v12',
     assetPath: 'procedural/automotive/v12',
     modelStatus: 'AVAILABLE',
+    modelVersion: '1.0.0-educational',
+    modelKind: 'PROCEDURAL_EDUCATIONAL_MODEL',
+    unitSystem: 'UNSPECIFIED',
+    evidence: {
+      geometryAuthority: 'PROCEDURAL',
+      dimensionsStatus: 'UNSPECIFIED',
+      simulationStatus: 'PRESENTATION_ANIMATION',
+      educationalLevel: 'HIGH_SCHOOL',
+      references: [],
+      limitations: [
+        'Representative V12 visual assembly; not matched to a source-identified OEM variant.',
+        'Materials, dimensions, mass, tolerances, firing order, displacement, and rated performance are not source-verified.',
+        'Detailed-looking geometry does not establish CAD authority or manufacturing suitability.'
+      ]
+    },
+    capabilities: {
+      inspect: true, componentHierarchy: true, hideShow: true, isolate: true, explode: true,
+      validatedSimulation: false, parameterEditing: false, guidedLessons: false, saveProject: false,
+      exportGlb: false, exportStep: false, measure: false, deepZoom: false, interiorGeometry: false
+    },
     category: 'Automotive',
-    description: 'A high-performance twelve-cylinder engine arranged in two banks of six cylinders with a 60-degree V angle.',
+    description: 'A representative twelve-cylinder visual assembly with two banks of six. It is not tied to an exact OEM variant; V-angle, valvetrain, physical dimensions, materials, and performance figures are not source-verified.',
     defaultScale: 0.8,
     intelligence: {
       category: AssetCategory.MECHANICAL,
@@ -940,62 +980,62 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
         'hierarchy': 'Engine_Block > Cylinder_Bank > (Pistons, Rods, Valves)'
       }
     },
-    metadata: { displacement: '6.5 Liters', cylinderBank: '60 deg V12', valvetrain: 'DOHC 48-Valve' },
+    metadata: { displacement: 'Not specified — no source-identified variant', cylinderBank: 'Two banks of six; exact V-angle not source-verified', valvetrain: 'Not specified' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
     explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.cylinder_head', 'v12.intake_plenum', 'v12.exhaust_manifold'],
     educationalInformation: {
-      overview: 'A V12 engine is a twelve-cylinder piston engine where two banks of six cylinders are arranged in a V configuration around a common crankshaft. Known for naturally perfect primary and secondary balance.',
+      overview: 'A V12 piston engine has twelve cylinders arranged in two banks around a common crankshaft. Balance, firing sequence, dimensions, and valvetrain depend on the particular engine design.',
       keyFeatures: [
-        'Naturally Balanced Secondary Frequencies (No Balance Shaft Needed)',
-        '60-Degree Bank Angle for Even Firing Order every 60 degrees',
-        'Dual Overhead Camshafts (DOHC) with 48 Valves',
-        'High Specific Power Output & Smooth Torque Curve'
+        'Twelve-cylinder architecture arranged around a common crankshaft',
+        'Firing sequence and bank angle depend on the specific engine variant',
+        'Valvetrain configuration not specified for this generic visual model',
+        'Performance figures and torque curves are not modelled or specified'
       ],
-      workingPrinciple: 'Four-stroke cycle (Intake, Compression, Power, Exhaust) occurring sequentially across 12 cylinders, driving pistons connected to a forged alloy 7-bearing crankshaft.',
+      workingPrinciple: 'A four-stroke cycle occurs across twelve cylinders in a suitable V12 design. This model is a visual representation and does not validate an exact firing order, crankshaft design, torque, or performance.',
       functionalPaths: {
         'Power Path': ['combustion', 'piston', 'connecting_rod', 'crankshaft', 'rotational_output']
       },
       applications: ['Supercars & Luxury Gran Turismos', 'High-Speed Marine Propulsion', 'Aviation Engines'],
       specifications: {
-        'Configuration': '60° V12',
-        'Displacement': '6.5L (6,498 cc)',
-        'Max Power': '770 HP @ 8,500 RPM',
-        'Firing Order': '1-12-4-9-2-11-6-7-3-10-5-8'
+        'Configuration': 'Representative V12 layout; exact variant not identified',
+        'Displacement': 'Not specified',
+        'Max Power': 'Not specified',
+        'Firing Order': 'Not specified for this model'
       }
     },
     components: [
-      { id: 'v12.engine_block', name: '60° V12 Cast Aluminum Block', description: 'Rigid deep-skirt engine block with high-strength casting geometry and main bearing bulkheads.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
-        engineeringDetails: { material: 'A356-T6 Cast Aluminum', weight: '62.4 kg', tolerances: '±0.01 mm', stressThreshold: '240 MPa', specifications: { 'Cylinder Bores': '12', 'V-Angle': '60 degrees' } }
+      { id: 'v12.engine_block', name: 'V12 Engine Block and Crankcase', description: 'Visual block/crankcase representation; material, dimensions, and bearing design are not source-verified.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_left_bank', name: 'Bank 1 Forged Pistons (6x)', description: 'High-compression lightweight aluminum alloy pistons with low-friction PVD coated rings.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
+      { id: 'v12.piston_left_bank', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_right_bank', name: 'Bank 2 Forged Pistons (6x)', description: 'Opposing bank aluminum pistons driving shared crank pins with full-floating wrist pins.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { material: 'Forged 4032 Aluminum Alloy', weight: '340g each', tolerances: '±0.005 mm', specifications: { 'Skirt Coating': 'Moly Disulfide', 'Compression Ratio': '11.8:1 [DATA]' } }
+      { id: 'v12.piston_right_bank', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.connecting_rods', name: 'H-Beam Titanium Connecting Rods', description: 'Forged Ti-6Al-4V titanium rods engineered for ultra-high RPM reciprocating loads.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
-        engineeringDetails: { material: 'Ti-6Al-4V Titanium', weight: '450g each', tensileStrength: '950 MPa' }
+      { id: 'v12.connecting_rods', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.crankshaft', name: '7-Bearing Forged Steel Crankshaft', description: 'Nitrided alloy steel crankshaft with micro-polished journals and dynamic counterweights.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
-        engineeringDetails: { material: '4340 Chromoly Steel', weight: '28.5 kg', surfaceTreatment: 'Plasma Nitrided (HRC 58)' }
+      { id: 'v12.crankshaft', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.valvetrain', name: 'DOHC 48-Valve Valvetrain & Camshafts', description: 'Dual overhead camshafts with hollow lightweight valves and dual valve springs.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
-        engineeringDetails: { material: 'Billet Steel Camshafts & Titanium Valves', weight: '14.2 kg total' }
+      { id: 'v12.valvetrain', name: 'Valvetrain and Camshaft Representation', description: 'Valvetrain geometry is illustrative; cam count, valve count, materials, and timing profile are not source-verified.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.intake_plenum', name: 'Dual Plenum Intake Manifold', description: 'Twin carbon fiber intake plenums with individual runners and dual drive-by-wire throttle bodies.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
-        engineeringDetails: { material: 'Carbon Composite & Cast Aluminum', weight: '8.4 kg', airflow: '1,200 CFM @ 25 inH2O' }
+      { id: 'v12.intake_plenum', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.exhaust_manifold', name: 'Equal-Length Exhaust Headers', description: 'TIG-welded stainless steel 6-into-2-into-1 tuned exhaust headers for scavenging optimization.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
-        engineeringDetails: { material: '321 Stainless Steel / Inconel', weight: '11.2 kg', maxTemp: '950°C' }
+      { id: 'v12.exhaust_manifold', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.cooling_system', name: 'Front Accessory Drive & Water Pump', description: 'High-flow centrifugal water pump, 9-blade viscous fan, alternator, and serpentine drive.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
-        engineeringDetails: { flowRate: '140 L/min', pressureRating: '1.4 bar' }
+      { id: 'v12.cooling_system', name: 'Accessory Drive and Cooling Representation', description: 'Visual accessory/cooling assembly; pump design, fan geometry, flow rate, and pressure rating are not specified.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.lubrication_system', name: 'Dry-Sump Oil Pan & Scavenge Pump', description: 'Multi-stage dry sump oil pan maintaining continuous oil pressure under high cornering G-forces.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
-        engineeringDetails: { capacity: '10.5 Liters Mobil 1 Racing 0W-40', pumpStages: '1 Pressure, 4 Scavenge' }
+      { id: 'v12.lubrication_system', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.electronics_sensors', name: 'Engine Management Harness & Sensors', description: '12 direct coil-on-plug ignition modules, wiring harness, and dual Bosch ECU controllers.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
-        engineeringDetails: { processor: 'Dual Tri-Core Automotive ECU', communication: 'CAN Bus 2.0B / FlexRay' }
+      { id: 'v12.electronics_sensors', name: 'Engine Management Harness and Sensors', description: 'Visual wiring/sensor assembly; ECU manufacturer, control architecture, and ignition configuration are not specified.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
+        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       }
     ]
   },
@@ -1055,7 +1095,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     capabilities: {
       inspect: true, componentHierarchy: true, hideShow: true, isolate: true, explode: true,
       transparency: true, blueprint: true, sectionPlane: false, measure: false, kinematics: true,
-      validatedSimulation: false, parameterEditing: false, guidedLessons: false, saveProject: false,
+      validatedSimulation: false, parameterEditing: false, guidedLessons: true, saveProject: false,
       exportGlb: false, exportStep: false, deepZoom: false, interiorGeometry: false
     },
     category: 'Automotive',

@@ -3,9 +3,9 @@ import { ScientificSystemModel } from './ScientificSchema';
 export const FourStrokeEngineModel: ScientificSystemModel = {
   id: 'v8_engine_scientific',
   name: 'Internal Combustion Engine',
-  scientificTitle: 'Four-Stroke Otto Cycle Internal Combustion Powertrain',
+  scientificTitle: 'Four-Stroke Kinematic Learning Model',
   domain: 'MECHANICAL_ENGINEERING',
-  description: 'A component-level scientific simulation of a four-stroke internal combustion engine featuring synchronized crank kinematics, cam-driven valvetrain timing, and thermodynamic indicator cycle telemetry.',
+  description: 'An educational four-stroke visualization with equation-derived crank/piston kinematics, illustrative valve timing, and a heuristic cycle indicator. The model does not solve a validated thermodynamic pressure-volume cycle and is not tied to a specific OEM engine.',
   
   subsystems: [
     {
@@ -50,7 +50,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
     'crankshaft_main': {
       id: 'crankshaft_main',
       name: 'Crankshaft',
-      scientificName: 'Rotary Forged-Steel Crankshaft with Counterweights',
+      scientificName: 'Crankshaft with Counterweights (illustrative geometry)',
       category: 'Rotary Kinematics',
       subsystemId: 'crank_assembly',
       parentId: null,
@@ -99,12 +99,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         failureModes: ['Fatigue fracture across crankpins', 'Bearing surface scoring due to oil starvation', 'Harmonic torsional resonance failure'],
         operationalRole: 'Primary Rotary Power Takeoff'
       },
-      scientificProperties: {
-        'Material': { value: 'Forged 4340 Alloy Steel (Quenched & Tempered)', description: 'Yield strength > 900 MPa' },
-        'Crank Throw (Radius)': { value: 44.0, unit: 'mm', description: 'Half the engine stroke length (88mm total stroke)' },
-        'Max Rotational Velocity': { value: 7500, unit: 'RPM', description: 'Peak rotational redline' },
-        'Main Journal Diameter': { value: 65.0, unit: 'mm', description: 'Hydrodynamic Babbitt bearing journal' }
-      }
+      scientificProperties: {}
     },
 
     // 2. FLYWHEEL
@@ -153,17 +148,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         ],
         failureModes: ['Ring gear tooth wear', 'Surface clutch friction heat cracking']
       },
-      scientificProperties: {
-        'Moment of Inertia': { value: 0.142, unit: 'kg·m²', description: 'Dampens torsional torque peaks' },
-        'Ring Gear Teeth': { value: 168, unit: 'teeth', description: 'Engages starter pinion gear' }
-      }
+      scientificProperties: {}
     },
 
     // 3. CONNECTING ROD - CYLINDER 1
     'conrod_cyl1': {
       id: 'conrod_cyl1',
       name: 'Connecting Rod (Cyl 1)',
-      scientificName: 'Forged H-Beam Connecting Rod',
+      scientificName: 'Connecting Rod (illustrative geometry)',
       category: 'Reciprocating Kinematics',
       subsystemId: 'crank_assembly',
       parentId: 'crankshaft_main',
@@ -191,7 +183,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       },
       education: {
         name: 'Connecting Rod',
-        scientificName: 'Forged Steel Connecting Rod',
+        scientificName: 'Connecting Rod (illustrative geometry)',
         definition: 'The mechanical linkage connecting the reciprocating piston wrist-pin to the rotating crankshaft journal.',
         function: 'Converts reciprocating translation into rotation while oscillating through an angular swing angle beta.',
         importance: 'Undergoes extreme alternating tensile stress (exhaust TDC) and compressive stress (combustion power stroke).',
@@ -205,18 +197,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         ],
         failureModes: ['Buckling under hydraulic lock (water ingestion)', 'Fatigue at rod bolt threads', 'Wrist pin galling']
       },
-      scientificProperties: {
-        'Center-to-Center Length': { value: 142.5, unit: 'mm', description: 'Rod-to-stroke ratio = 1.62' },
-        'Peak Tensile Load': { value: 45.2, unit: 'kN', description: 'At 7500 RPM TDC exhaust' },
-        'Peak Compressive Load': { value: 78.4, unit: 'kN', description: 'At peak combustion pressure' }
-      }
+      scientificProperties: {}
     },
 
     // 4. PISTON - CYLINDER 1
     'piston_cyl1': {
       id: 'piston_cyl1',
       name: 'Piston (Cyl 1)',
-      scientificName: 'Hypereutectic Cast Aluminum Piston Crown & Skirt',
+      scientificName: 'Piston Crown and Skirt (illustrative geometry)',
       category: 'Reciprocating Dynamics',
       subsystemId: 'combustion_cylinder',
       parentId: 'conrod_cyl1',
@@ -258,12 +246,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         ],
         failureModes: ['Thermal detonation crown melt', 'Piston ring land collapse', 'Skirt scuffing against cylinder bore']
       },
-      scientificProperties: {
-        'Bore Diameter': { value: 88.0, unit: 'mm', description: 'Cylinder cross-sectional bore' },
-        'Compression Height': { value: 31.5, unit: 'mm', description: 'Wrist pin center to crown' },
-        'Operating Crown Temp': { value: 320, unit: '°C', description: 'Under continuous peak power' },
-        'Material Composition': { value: 'Al-Si12CuMgNi Alloy', description: 'Low thermal expansion hypereutectic aluminum' }
-      }
+      scientificProperties: {}
     },
 
     // 5. PISTON - CYLINDER 2 (Bank 2)
@@ -303,17 +286,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         function: 'Executes 4-stroke cycle staggered by 90 degrees of crank rotation to deliver continuous overlapping power strokes.',
         importance: 'Multi-cylinder staggering guarantees continuous torque delivery and eliminates dead spots in cycle rotation.'
       },
-      scientificProperties: {
-        'Bore Diameter': { value: 88.0, unit: 'mm', description: 'Matched cylinder bore' },
-        'Stroke Length': { value: 88.0, unit: 'mm', description: 'Square bore/stroke geometry' }
-      }
+      scientificProperties: {}
     },
 
     // 6. CYLINDER BLOCK
     'cylinder_block': {
       id: 'cylinder_block',
       name: 'Cylinder Block',
-      scientificName: 'Monobloc Cast Aluminum Crankcase with Sintered Iron Liners',
+      scientificName: 'Crankcase and Cylinder Block (illustrative geometry)',
       category: 'Structural Assembly',
       subsystemId: 'combustion_cylinder',
       parentId: null,
@@ -346,17 +326,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         realWorldRelevance: 'Cast with integrated cross-bolted main bearing caps to withstand over 150 bar internal cylinder pressures.',
         failureModes: ['Block distortion due to severe overheating', 'Cracking between cylinder bores', 'Cylinder bore glazing']
       },
-      scientificProperties: {
-        'Cooling Capacity': { value: 12.5, unit: 'kW / cylinder', description: 'Rejected heat through coolant jackets' },
-        'Total Mass': { value: 48.5, unit: 'kg', description: 'High-rigidity A356-T6 aluminum' }
-      }
+      scientificProperties: {}
     },
 
     // 7. CYLINDER HEAD
     'cylinder_head': {
       id: 'cylinder_head',
       name: 'Cylinder Head',
-      scientificName: 'DOHC Multi-Valve Crossflow Cylinder Head',
+      scientificName: 'Cylinder Head (illustrative geometry)',
       category: 'Structural Assembly',
       subsystemId: 'valvetrain_assembly',
       parentId: 'cylinder_block',
@@ -385,17 +362,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         importance: 'Defines volumetric efficiency through combustion chamber flow port aerodynamics.',
         realWorldRelevance: 'Sealed against the block using a multi-layer steel (MLS) head gasket engineered to prevent high-pressure gas blow-by and oil/coolant cross-contamination.'
       },
-      scientificProperties: {
-        'Valve Angle': { value: 24, unit: 'degrees', description: 'Included pent-roof angle' },
-        'Combustion Volume': { value: 45.2, unit: 'cc', description: 'Clearance volume per cylinder' }
-      }
+      scientificProperties: {}
     },
 
     // 8. INTAKE VALVES
     'intake_valve_cyl1': {
       id: 'intake_valve_cyl1',
       name: 'Intake Valve (Cyl 1)',
-      scientificName: 'Poppet Intake Valve with Heat-Treated Chrome-Silicon Spring',
+      scientificName: 'Intake Poppet Valve (illustrative)',
       category: 'Valvetrain Gas Exchange',
       subsystemId: 'valvetrain_assembly',
       parentId: 'cylinder_head',
@@ -437,18 +411,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         ],
         failureModes: ['Valve float (spring harmonics at redline)', 'Carbon deposition on valve seat', 'Stem seizure in guide']
       },
-      scientificProperties: {
-        'Head Diameter': { value: 34.5, unit: 'mm', description: 'High-flow induction area' },
-        'Max Valve Lift': { value: 11.2, unit: 'mm', description: 'Peak mechanical cam lift' },
-        'Seat Angle': { value: 45, unit: 'degrees', description: 'Gas-tight interference seat' }
-      }
+      scientificProperties: {}
     },
 
     // 9. EXHAUST VALVES
     'exhaust_valve_cyl1': {
       id: 'exhaust_valve_cyl1',
       name: 'Exhaust Valve (Cyl 1)',
-      scientificName: 'Sodium-Cooled Austenitic Stainless Exhaust Valve',
+      scientificName: 'Exhaust Poppet Valve (illustrative)',
       category: 'Valvetrain Gas Exchange',
       subsystemId: 'valvetrain_assembly',
       parentId: 'cylinder_head',
@@ -482,17 +452,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         importance: 'Must endure direct exposure to 850°C flame fronts while retaining tensile strength and seat sealing integrity.',
         realWorldRelevance: 'Hollow valve stem filled with metallic sodium that melts at 98°C and splashes upward to conduct heat away from the valve head into the water-jacketed guide.'
       },
-      scientificProperties: {
-        'Head Diameter': { value: 29.5, unit: 'mm', description: 'High-velocity scavenging area' },
-        'Operating Temperature': { value: 850, unit: '°C', description: 'Direct combustion flame contact' }
-      }
+      scientificProperties: {}
     },
 
     // 10. INTAKE CAMSHAFT
     'intake_camshaft': {
       id: 'intake_camshaft',
       name: 'Intake Camshaft',
-      scientificName: 'Chilled Cast-Iron Dual Overhead Intake Camshaft',
+      scientificName: 'Intake Camshaft (illustrative)',
       category: 'Valvetrain Actuation',
       subsystemId: 'valvetrain_assembly',
       parentId: 'cylinder_head',
@@ -525,17 +492,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         function: 'Synchronizes the exact opening and closing timing, duration, and maximum lift of the intake valves in phase with cylinder piston position.',
         importance: 'Operates at exactly half the rotational speed of the crankshaft (1:2 ratio) in all 4-stroke cycle engines.'
       },
-      scientificProperties: {
-        'Cam Duration': { value: 248, unit: 'degrees', description: 'Crankshaft degrees valve stays open' },
-        'Gear Reduction Ratio': { value: '1:2', description: 'Spins once for every two crankshaft rotations' }
-      }
+      scientificProperties: {}
     },
 
     // 11. EXHAUST CAMSHAFT
     'exhaust_camshaft': {
       id: 'exhaust_camshaft',
       name: 'Exhaust Camshaft',
-      scientificName: 'Overhead Exhaust Camshaft with Phased Lobes',
+      scientificName: 'Exhaust Camshaft (illustrative)',
       category: 'Valvetrain Actuation',
       subsystemId: 'valvetrain_assembly',
       parentId: 'cylinder_head',
@@ -567,16 +531,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         definition: 'Camshaft dedicated to actuating exhaust valves with cam lobe profile optimized for high-pressure blowdown and scavenging.',
         function: 'Opens exhaust valves before bottom dead center (BBDC) to initiate sonic pressure blowdown of combustion gases.'
       },
-      scientificProperties: {
-        'Cam Duration': { value: 252, unit: 'degrees', description: 'Exhaust opening duration' }
-      }
+      scientificProperties: {}
     },
 
     // 12. SPARK PLUG
     'spark_plug_cyl1': {
       id: 'spark_plug_cyl1',
       name: 'Spark Plug (Cyl 1)',
-      scientificName: 'Iridium-Tip High-Voltage Spark Plug with Alumina Insulator',
+      scientificName: 'Spark Plug (illustrative)',
       category: 'Combustion Ignition',
       subsystemId: 'ignition_system',
       parentId: 'cylinder_head',
@@ -613,18 +575,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         ],
         failureModes: ['Electrode bridging by conductive carbon', 'Ceramic insulator thermal crack', 'Electrode gap erosion']
       },
-      scientificProperties: {
-        'Discharge Voltage': { value: 32.0, unit: 'kV', description: 'Secondary coil firing pulse' },
-        'Electrode Gap': { value: 0.8, unit: 'mm', description: 'Precision spark gap' },
-        'Operating Heat Range': { value: 7, unit: 'index', description: 'Cold heat range for high boost' }
-      }
+      scientificProperties: {}
     },
 
     // 13. TIMING CHAIN
     'timing_chain': {
       id: 'timing_chain',
       name: 'Timing Chain Assembly',
-      scientificName: 'Inverted-Tooth Silent Roller Chain Drive',
+      scientificName: 'Timing Drive Chain (illustrative)',
       category: 'Synchronous Drive',
       subsystemId: 'ignition_system',
       parentId: 'crankshaft_main',
@@ -652,17 +610,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         function: 'Guarantees that camshaft lobes actuate the intake and exhaust valves at the exact millisecond required relative to piston stroke position.',
         importance: 'In interference engines, a skipped or broken timing chain results in catastrophic collision between pistons and open valves.'
       },
-      scientificProperties: {
-        'Drive Ratio': { value: '2:1', description: '2 crankshaft turns = 1 camshaft turn' },
-        'Tensile Breaking Strength': { value: 18.5, unit: 'kN', description: 'Case-hardened alloy steel links' }
-      }
+      scientificProperties: {}
     },
 
     // 14. INTAKE MANIFOLD
     'intake_manifold': {
       id: 'intake_manifold',
       name: 'Intake Manifold',
-      scientificName: 'Tuned-Length Composite Induction Plenum',
+      scientificName: 'Intake Plenum (illustrative geometry)',
       category: 'Fluid Induction',
       subsystemId: 'manifold_system',
       parentId: 'cylinder_head',
@@ -690,17 +645,14 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         function: 'Utilizes Helmholtz resonance acoustic wave tuning to ram higher air mass into cylinders just before intake valve closure.',
         importance: 'Optimizes engine volumetric efficiency across specific RPM bands.'
       },
-      scientificProperties: {
-        'Runner Length': { value: 240, unit: 'mm', description: 'Tuned for torque peak at 4200 RPM' },
-        'Plenum Volume': { value: 4.8, unit: 'L', description: 'Sized to prevent pressure pulsing starvation' }
-      }
+      scientificProperties: {}
     },
 
     // 15. EXHAUST HEADER
     'exhaust_header': {
       id: 'exhaust_header',
       name: 'Exhaust Header',
-      scientificName: 'Equal-Length 4-into-1 Tubular Stainless Steel Exhaust Header',
+      scientificName: 'Exhaust Header (illustrative geometry)',
       category: 'Fluid Scavenging',
       subsystemId: 'manifold_system',
       parentId: 'cylinder_head',
@@ -728,10 +680,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         function: 'Uses acoustic scavenging pulses: negative pressure reflection waves arrive at the exhaust valve just as it closes to pull residual exhaust out of the combustion chamber.',
         importance: 'Increases engine power and reduces cylinder charge dilution.'
       },
-      scientificProperties: {
-        'Primary Pipe Diameter': { value: 44.5, unit: 'mm', description: 'High-flow stainless steel tubing' },
-        'Peak Gas Velocity': { value: 110, unit: 'm/s', description: 'At 7500 RPM full throttle' }
-      }
+      scientificProperties: {}
     }
   },
 
@@ -837,6 +786,20 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
   ],
 
   simulation: {
+    validation: {
+      level: 'KINEMATIC',
+      assumptions: [
+        'Crank/piston motion uses a simplified slider-crank equation with normalized scene units.',
+        'Valve lift and spark timing are illustrative phase functions, not an OEM cam profile or ignition map.',
+        'The cycle indicator is a heuristic visual signal shaped by crank angle and selected parameters; it is not physical cylinder pressure.',
+        'No combustion chemistry, gas exchange solver, heat transfer, torque, power, emissions, or durability model is implemented.'
+      ],
+      limitations: [
+        'Not an exact OEM engine; physical dimensions, material grades, component masses, and operating limits are unspecified.',
+        'Indicator values must not be interpreted as measured or predicted pressure in bar.',
+        'This model is for education and kinematic exploration, not engineering design, repair, or performance prediction.'
+      ]
+    },
     variables: {
       'crankAngle': {
         id: 'crankAngle',
@@ -861,7 +824,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       'pistonHeight_cyl1': {
         id: 'pistonHeight_cyl1',
         name: 'Piston Position (Cyl 1)',
-        unit: 'mm',
+        unit: 'scene units',
         defaultValue: 0.35,
         min: -0.44,
         max: 0.44,
@@ -871,7 +834,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       'pistonHeight_cyl2': {
         id: 'pistonHeight_cyl2',
         name: 'Piston Position (Cyl 2)',
-        unit: 'mm',
+        unit: 'scene units',
         defaultValue: -0.35,
         min: -0.44,
         max: 0.44,
@@ -888,8 +851,8 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       },
       'intakeValveLift': {
         id: 'intakeValveLift',
-        name: 'Intake Valve Lift',
-        unit: 'mm',
+        name: 'Illustrative Intake Valve Lift',
+        unit: 'model units',
         defaultValue: 0,
         min: 0,
         max: 11.2,
@@ -898,8 +861,8 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       },
       'exhaustValveLift': {
         id: 'exhaustValveLift',
-        name: 'Exhaust Valve Lift',
-        unit: 'mm',
+        name: 'Illustrative Exhaust Valve Lift',
+        unit: 'model units',
         defaultValue: 0,
         min: 0,
         max: 11.2,
@@ -908,13 +871,13 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       },
       'cylinderPressure': {
         id: 'cylinderPressure',
-        name: 'Cylinder Pressure',
-        unit: 'bar',
+        name: 'Illustrative Cycle Indicator',
+        unit: 'relative index',
         defaultValue: 1.0,
         min: 0.8,
         max: 75.0,
         isDynamic: true,
-        description: 'Instantaneous thermodynamic gas pressure inside combustion chamber'
+        description: 'Heuristic phase indicator for visual teaching; not a physical cylinder-pressure prediction.'
       },
       'combustionFlame': {
         id: 'combustionFlame',
@@ -939,10 +902,16 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
     },
 
     parameters: {
-      'rpm': 1800,           // Rotations Per Minute
-      'compressionRatio': 10.5, // 10.5:1 Otto cycle compression ratio
-      'throttle': 65,        // 65% throttle plate position
-      'sparkAdvance': 14.0   // 14 deg Before TDC ignition timing
+      'rpm': 1800,
+      'compressionRatio': 10.5,
+      'throttle': 65,
+      'sparkAdvance': 14.0
+    },
+    parameterDefinitions: {
+      rpm: { name: 'Animation speed', unit: 'RPM', min: 0, max: 5000, step: 100, description: 'Controls rotational animation speed; this is not an engine redline or rated operating range.' },
+      compressionRatio: { name: 'Illustrative curve-shaping parameter', unit: 'relative ratio', min: 1, max: 16, step: 0.5, description: 'Shapes the heuristic indicator curve only; it is not a validated compression-ratio input for a real engine.', source: 'Illustrative model assumption; no OEM variant is specified.' },
+      throttle: { name: 'Throttle input', unit: '%', min: 0, max: 100, step: 5, description: 'A presentation parameter; no intake-flow or torque solver is implemented.', source: 'Illustrative model control.' },
+      sparkAdvance: { name: 'Illustrative spark phase', unit: 'deg', min: 0, max: 45, step: 1, description: 'Offsets the visual spark marker; not a validated ignition calibration.', source: 'Illustrative model control.' }
     },
 
     cyclePhases: [
@@ -954,7 +923,7 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         description: 'Piston moves downward from Top Dead Center (TDC) to Bottom Dead Center (BDC). Intake valve opens. Atmospheric air-fuel mixture is drawn into the low-pressure chamber.',
         color: '#38bdf8', // Blue
         activeValves: ['intake_valve_cyl1'],
-        thermoState: 'Isobaric / Polytropic Expansion (P ≈ 1.0 bar)'
+        thermoState: 'Illustrative intake phase; no pressure solver'
       },
       {
         id: 'COMPRESSION',
@@ -964,17 +933,17 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         description: 'Both valves are closed. Piston ascends from BDC to TDC, compressing the trapped fuel-air charge into the clearance volume. Temperature and pressure spike.',
         color: '#eab308', // Yellow
         activeValves: [],
-        thermoState: 'Isentropic Compression: P_final = P_initial · r^γ ≈ 24 bar'
+        thermoState: 'Illustrative compression indicator; value is not physical pressure'
       },
       {
         id: 'POWER',
         name: 'Power Stroke (Combustion Expansion)',
         startVal: 360,
         endVal: 540,
-        description: 'Spark plug ignites the compressed mixture near TDC. Rapid exothermic deflagration causes explosive pressure rise to 65 bar, forcing the piston down and delivering rotational torque.',
+        description: 'The power phase is shown after the compression phase. The cycle indicator rises according to a heuristic curve; combustion pressure and delivered torque are not calculated.',
         color: '#ef4444', // Red
         activeValves: [],
-        thermoState: 'Isochoric Heat Addition + Polytropic Expansion (Work Output)'
+        thermoState: 'Illustrative power phase; no combustion or expansion solver'
       },
       {
         id: 'EXHAUST',
@@ -984,14 +953,15 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
         description: 'Exhaust valve opens. Piston ascends from BDC back to TDC, pushing hot burned exhaust gases out through the exhaust port and into the header.',
         color: '#f97316', // Orange
         activeValves: ['exhaust_valve_cyl1'],
-        thermoState: 'Isobaric Exhaust Evacuation (P ≈ 1.2 bar)'
+        thermoState: 'Illustrative exhaust phase; no gas-exchange solver'
       }
     ],
 
     stepFunction: (state, dt, params) => {
       const rpm = params['rpm'] !== undefined ? params['rpm'] : 1800;
-      const compressionRatio = params['compressionRatio'] || 10.5;
-      const sparkAdvance = params['sparkAdvance'] || 14.0;
+      const compressionRatio = params['compressionRatio'] ?? 10.5;
+      const sparkAdvance = params['sparkAdvance'] ?? 14.0;
+      const throttleFraction = Math.max(0, Math.min(100, params['throttle'] ?? 65)) / 100;
 
       // Angular velocity in degrees per second:
       // (RPM / 60) * 360 deg/sec
@@ -1036,25 +1006,26 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
       const sparkWindow = 360 - sparkAdvance;
       const isSparkFiring = (newCrankAngle >= sparkWindow - 4 && newCrankAngle <= sparkWindow + 8) ? 1 : 0;
 
-      // Thermodynamic indicator pressure:
+      // Heuristic visual cycle indicator (relative index, not physical pressure):
       let pressure = 1.0;
       let flame = 0;
 
       if (newCrankAngle < 180) {
         // Intake stroke: near atmospheric (manifold depression)
-        pressure = 0.95 + 0.05 * Math.sin((newCrankAngle / 180) * Math.PI);
+        // Throttle changes only the qualitative display index; it does not model airflow or manifold pressure.
+        pressure = 0.85 + 0.10 * throttleFraction + 0.05 * Math.sin((newCrankAngle / 180) * Math.PI);
         flame = 0;
       } else if (newCrankAngle >= 180 && newCrankAngle < 360) {
-        // Compression stroke: adiabatic pressure increase P = P0 * (Vmax / V)^gamma
+        // Compression stroke: shape a qualitative indicator; no cylinder-volume or thermodynamic solve is performed.
         const compProgress = (newCrankAngle - 180) / 180; // 0 to 1
         const effectiveRatio = 1 + (compressionRatio - 1) * Math.pow(compProgress, 1.4);
         pressure = Math.min(26.0, 1.0 * Math.pow(effectiveRatio, 1.35));
         flame = isSparkFiring ? 50 : 0;
       } else if (newCrankAngle >= 360 && newCrankAngle < 540) {
-        // Power stroke: explosive deflagration peak then polytropic expansion
+        // Power stroke: shape a qualitative indicator; no combustion or heat-transfer model is evaluated.
         const powerProgress = (newCrankAngle - 360) / 180; // 0 to 1
         if (powerProgress < 0.15) {
-          // Rapid combustion pressure rise to peak 68 bar
+          // Rapid visual indicator rise to the relative index peak.
           const peakRise = powerProgress / 0.15;
           pressure = 24.0 + (68.0 - 24.0) * Math.sin(peakRise * (Math.PI / 2));
           flame = 100;
@@ -1090,9 +1061,9 @@ export const FourStrokeEngineModel: ScientificSystemModel = {
   diagrams: [
     {
       id: 'pv_indicator_diagram',
-      title: 'Thermodynamic P-V Indicator Diagram',
+      title: 'Illustrative Cycle Indicator (not a thermodynamic P–V solution)',
       type: 'PV_DIAGRAM',
-      description: 'Real-time trace of in-cylinder pressure versus chamber displacement volume over the 4-stroke thermodynamic cycle.',
+      description: 'Illustrative cycle indicator plotted against normalized piston position. It is not a physical pressure-volume diagram and must not be interpreted as engine test data.',
       parametersTracked: ['cylinderPressure', 'pistonHeight_cyl1', 'crankAngle']
     },
     {

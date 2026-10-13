@@ -36,6 +36,12 @@ jobs:
       - name: Validate model catalog and CAD evidence
         run: npm run validate:catalog
 
+      - name: Validate scientific claim metadata and simulation limits
+        run: npm run validate:science
+
+      - name: Validate advertised model capabilities
+        run: npm run validate:capabilities
+
       - name: Validate lesson catalog and assessment integrity
         run: npm run validate:lessons
 
@@ -54,6 +60,15 @@ jobs:
       - name: Test guided lesson progress persistence and resume
         run: npm run test:lesson-progress
 
+      - name: Test editable workshop command and storage contract
+        run: npm run test:workshop
+
+      - name: Test domain learning model contracts
+        run: npm run test:domains
+
+      - name: Test engine kinematics reference vectors
+        run: npm run test:kinematics
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
@@ -61,3 +76,9 @@ jobs:
         env:
           VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
+
+      - name: Install Chromium for browser smoke tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser startup and narrow-viewport smoke tests
+        run: npm run test:e2e
