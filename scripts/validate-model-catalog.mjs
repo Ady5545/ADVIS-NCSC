@@ -106,7 +106,13 @@ try {
     if (hierarchyComponentCount !== uniqueComponentCount) {
       fail(`[${modelLabel}] Component tree contains ${hierarchyComponentCount} components, expected ${uniqueComponentCount} unique component IDs.`);
     }
-    if (!model.modelKind) warn(`[${modelLabel}] Model kind has not yet been explicitly migrated into metadata.`);
+    if (!model.modelKind) fail(`[${modelLabel}] Model kind must be explicitly declared.`);
+    if (!model.evidence) fail(`[${modelLabel}] Geometry evidence and limitations must be explicitly recorded.`);
+    if (!model.evidence?.geometryAuthority) fail(`[${modelLabel}] Geometry authority must be explicit; do not infer it from rendering detail.`);
+    if (!model.evidence?.dimensionsStatus) fail(`[${modelLabel}] Dimensional authority must be explicit; use UNSPECIFIED when unknown.`);
+    if (!model.evidence?.simulationStatus) fail(`[${modelLabel}] Simulation validation level must be explicit; use NONE or PRESENTATION_ANIMATION when appropriate.`);
+    if (!Array.isArray(model.evidence?.limitations) || model.evidence.limitations.length === 0) fail(`[${modelLabel}] Model limitations must be documented.`);
+    if (model.evidence?.geometryAuthority === 'SCIENTIFIC_APPROXIMATION' && model.modelKind !== 'SCIENTIFIC_CONCEPT_MODEL') warn(`[${modelLabel}] Scientific approximation authority should be reviewed against modelKind.`);
     if (model.capabilities?.validatedSimulation === true && model.evidence?.simulationStatus !== 'BENCHMARK_VALIDATED') {
       fail(`[${modelLabel}] Advertises validated simulation without benchmark-validation evidence.`);
     }
@@ -115,7 +121,7 @@ try {
     }
 
     for (const componentId of model.explodedParts || []) {
-      if (!validIds.has(componentId)) warn(`[${modelLabel}] explodedParts references missing component id ${componentId}.`);
+      if (!validIds.has(componentId)) fail(`[${modelLabel}] explodedParts references missing component id ${componentId}.`);
     }
 
     const evidence = getCadCertificationForObject(catalogKey);
