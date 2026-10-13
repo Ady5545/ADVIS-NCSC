@@ -312,6 +312,17 @@ function AppContent() {
   const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
   const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
   const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
+  const [reducedMotionEnabled, setReducedMotionEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = window.localStorage.getItem('advis-ncsc.accessibility-preferences.v1');
+      if (saved) {
+        const parsed = JSON.parse(saved) as { reducedMotion?: unknown };
+        if (typeof parsed.reducedMotion === 'boolean') return parsed.reducedMotion;
+      }
+    } catch { /* use the OS preference when storage is unavailable */ }
+    return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  });
   const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>(() => {
     if (typeof window === 'undefined') return 'HIGH';
     try {
@@ -341,12 +352,21 @@ function AppContent() {
       if (typeof preferences.captionsEnabled !== 'boolean') preferences.captionsEnabled = true;
       if (typeof preferences.cameraFeaturesEnabled !== 'boolean') preferences.cameraFeaturesEnabled = false;
       if (typeof preferences.audioEnabled !== 'boolean') preferences.audioEnabled = false;
-      if (typeof preferences.reducedMotion !== 'boolean') {
-        preferences.reducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-      }
+      preferences.reducedMotion = reducedMotionEnabled;
+      document.documentElement.setAttribute('data-advis-reduced-motion', reducedMotionEnabled ? 'true' : 'false');
       window.localStorage.setItem(key, JSON.stringify(preferences));
     } catch { /* quality controls remain usable for this session without storage */ }
-  }, [lodTier]);
+  }, [lodTier, reducedMotionEnabled]);
+
+  useEffect(() => {
+    if (!reducedMotionEnabled) return;
+    setIsKinematicPlaying(false);
+    setIsV8KinematicPlaying(false);
+    setIsPresentationMode(false);
+    stopAllTheatrePresentations();
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch { /* speech APIs may be restricted */ }
+  }, [reducedMotionEnabled]);
+
   const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
   const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
   const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
@@ -2047,6 +2067,8 @@ function AppContent() {
         onToggleMagnifier={() => setIsMagnifierFocused(prev => !prev)}
         lodTier={lodTier}
         onUpdateLodTier={setLodTier}
+        reducedMotionEnabled={reducedMotionEnabled}
+        onToggleReducedMotion={() => setReducedMotionEnabled((value) => !value)}
       />
     )}
 
