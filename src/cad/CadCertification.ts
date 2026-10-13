@@ -1,10 +1,39 @@
 import type { ObjectMetadata } from '../SpatialLibrary';
 
+/**
+ * A CAD file extension only identifies the source format. It is never evidence
+ * that parsing, topology, dimensions, assembly structure, or release checks passed.
+ */
 export type CadCertificationStatus =
-  | 'SOURCE_CAD_VERIFIED'
-  | 'CAD_GRADE_PROCEDURAL'
+  | 'SOURCE_CAD_VERIFIED' // Legacy status retained for reading old saved metadata; never inferred here.
+  | 'CAD_VALIDATION_RECORDED'
+  | 'SOURCE_CAD_PRESENT_AWAITING_VALIDATION'
+  | 'CAD_GRADE_PROCEDURAL' // Legacy status retained for compatibility; no longer emitted.
+  | 'PROCEDURAL_EDUCATIONAL_GEOMETRY'
   | 'GLTF_ASSET_AWAITING_CAD_SOURCE'
   | 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE';
+
+export type CadValidationCheck =
+  | 'CAD_PARSE'
+  | 'TOPOLOGY'
+  | 'METRICS'
+  | 'ASSEMBLY_STRUCTURE'
+  | 'DIMENSIONAL_DEFINITION'
+  | 'REVISION_CONTROL'
+  | 'RELEASE_REVIEW';
+
+export interface CadValidationRecord {
+  check: CadValidationCheck;
+  result: 'PASSED' | 'FAILED' | 'NOT_RUN';
+  tool: string;
+  toolVersion: string;
+  runAt: string;
+  sourceHash: string;
+  modelRevision: string;
+  reviewer: string;
+  evidenceUri?: string;
+  notes?: string;
+}
 
 export interface CadCertificationEvidence {
   status: CadCertificationStatus;
@@ -17,6 +46,7 @@ export interface CadCertificationEvidence {
   assemblyStructureValidated: boolean;
   dimensionalDefinitionPresent: boolean;
   revisionControlled: boolean;
+  validationRecords?: CadValidationRecord[];
   limitations: string[];
   nextRequiredEvidence: string[];
 }
@@ -42,6 +72,50 @@ function isScientificConcept(id: string, category: string): boolean {
   return /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(value);
 }
 
+function isRecord(value: unknown): value is CadValidationRecord {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Partial<CadValidationRecord>;
+  return (
+    typeof record.check === 'string' &&
+    typeof record.result === 'string' &&
+    typeof record.tool === 'string' && record.tool.trim().length > 0 &&
+    typeof record.toolVersion === 'string' && record.toolVersion.trim().length > 0 &&
+    typeof record.runAt === 'string' && Number.isFinite(Date.parse(record.runAt)) &&
+    typeof record.sourceHash === 'string' && record.sourceHash.trim().length > 0 &&
+    typeof record.modelRevision === 'string' && record.modelRevision.trim().length > 0 &&
+    typeof record.reviewer === 'string' && record.reviewer.trim().length > 0
+  );
+}
+
+function getCurrentSourceHash(obj: ObjectMetadata): string | undefined {
+  const value = obj.metadata?.cadSourceHash ?? obj.metadata?.sourceHash;
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function getCurrentRevision(obj: ObjectMetadata): string | undefined {
+  const value = obj.metadata?.modelRevision ?? obj.metadata?.revision;
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function getCurrentValidationRecords(obj: ObjectMetadata): CadValidationRecord[] {
+  const raw = obj.metadata?.cadValidationRecords;
+  if (!Array.isArray(raw)) return [];
+
+  const sourceHash = getCurrentSourceHash(obj);
+  const revision = getCurrentRevision(obj);
+  if (!sourceHash || !revision) return [];
+
+  return raw.filter(isRecord).filter((record) =>
+    record.sourceHash === sourceHash &&
+    record.modelRevision === revision &&
+    record.result === 'PASSED'
+  );
+}
+
+function hasCheck(records: CadValidationRecord[], check: CadValidationCheck): boolean {
+  return records.some((record) => record.check === check);
+}
+
 export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence {
   const sourcePath = obj.cadAssetPath || obj.assetPath;
   const extension = getExtension(sourcePath);
@@ -49,23 +123,44 @@ export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence
   const hasGltfSource = extension === '.glb' || extension === '.gltf';
 
   if (hasCadSource) {
+    const validationRecords = getCurrentValidationRecords(obj);
+    const cadParsed = hasCheck(validationRecords, 'CAD_PARSE');
+    const topologyValidated = hasCheck(validationRecords, 'TOPOLOGY');
+    const metricsValidated = hasCheck(validationRecords, 'METRICS');
+    const assemblyStructureValidated = hasCheck(validationRecords, 'ASSEMBLY_STRUCTURE');
+    const dimensionalDefinitionPresent = hasCheck(validationRecords, 'DIMENSIONAL_DEFINITION');
+    const revisionControlled = hasCheck(validationRecords, 'REVISION_CONTROL');
+    const allRequiredChecksPassed =
+      cadParsed &&
+      topologyValidated &&
+      metricsValidated &&
+      assemblyStructureValidated &&
+      dimensionalDefinitionPresent &&
+      revisionControlled;
+
     return {
-      status: 'SOURCE_CAD_VERIFIED',
+      status: allRequiredChecksPassed ? 'CAD_VALIDATION_RECORDED' : 'SOURCE_CAD_PRESENT_AWAITING_VALIDATION',
       sourceFormat: extension === '.brep' || extension === '.brp' ? 'BREP' : extension === '.stp' ? 'STP' : 'STEP',
       sourcePath,
-      exactBRepEvidence: true,
-      occtValidated: true,
-      topologyValidated: true,
-      metricsValidated: true,
-      assemblyStructureValidated: true,
-      dimensionalDefinitionPresent: true,
-      revisionControlled: false,
-      limitations: [
-        'Repository metadata alone does not constitute external engineering approval or manufacturing certification.'
-      ],
-      nextRequiredEvidence: [
-        'Attach revision-controlled source CAD and, where applicable, released PMI/drawing and inspection evidence.'
-      ]
+      exactBRepEvidence: cadParsed,
+      occtValidated: cadParsed,
+      topologyValidated,
+      metricsValidated,
+      assemblyStructureValidated,
+      dimensionalDefinitionPresent,
+      revisionControlled,
+      validationRecords,
+      limitations: allRequiredChecksPassed
+        ? ['Recorded checks apply only to the source hash and model revision attached to the validation records; they are not blanket manufacturing certification.']
+        : ['A CAD source path is present, but its extension does not prove that the file parses or passes engineering checks.'],
+      nextRequiredEvidence: allRequiredChecksPassed
+        ? ['Review the recorded checks for fitness for the intended educational or engineering use.', 'Keep source hash, revision, tool versions, and review evidence current.']
+        : [
+            'Record the current CAD source hash and model revision.',
+            'Run and record CAD parsing, topology, metrics, and assembly-structure checks.',
+            'Record dimensional definition and revision-control evidence.',
+            'Include tool/version, timestamp, source hash, revision, reviewer, and a result for every check.'
+          ]
     };
   }
 
@@ -83,21 +178,23 @@ export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence
       revisionControlled: false,
       limitations: [
         'GLTF is a display/scene format and does not establish exact B-rep source geometry.',
-        'A rendered asset cannot be called CAD-certified from its mesh alone.'
+        'Deep zoom or apparent visual detail does not establish dimensional or topology validation.'
       ],
       nextRequiredEvidence: [
-        'Provide authoritative STEP/STP/BREP source geometry.',
-        'Import with OCCT and store validation metrics.',
-        'Record revision and release/approval metadata.'
+        'Provide authoritative STEP/STP/BREP source geometry if CAD authority is required.',
+        'Record actual validation outputs; do not infer validation from the filename or renderer.',
+        'Record revision and release/approval metadata where applicable.'
       ]
     };
   }
 
+  const scientificConcept = isScientificConcept(obj.id, obj.category);
   return {
-    status: isScientificConcept(obj.id, obj.category)
+    status: scientificConcept
       ? 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE'
-      : 'CAD_GRADE_PROCEDURAL',
-    sourceFormat: 'PROCEDURAL',
+      : 'PROCEDURAL_EDUCATIONAL_GEOMETRY',
+    sourceFormat: sourcePath ? 'PROCEDURAL' : 'NONE',
+    sourcePath,
     exactBRepEvidence: false,
     occtValidated: false,
     topologyValidated: false,
@@ -105,19 +202,19 @@ export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence
     assemblyStructureValidated: false,
     dimensionalDefinitionPresent: false,
     revisionControlled: false,
-    limitations: isScientificConcept(obj.id, obj.category)
+    limitations: scientificConcept
       ? [
           'This is a scientific visualization/concept model, not an authoritative manufactured-part definition.',
           'CAD certification is not implied by procedural geometry.'
         ]
       : [
-          'This is high-detail procedural geometry, not source CAD/B-rep.',
-          'The model may be used for educational visualization but is not manufacturing-certified.'
+          'This is procedural or otherwise non-CAD geometry, not source CAD/B-rep.',
+          'The model may be useful for educational visualization but is not manufacturing-certified.'
         ],
     nextRequiredEvidence: [
-      'Provide or author a source CAD model in STEP/STP/BREP.',
-      'Validate the source with OCCT topology and measurement checks.',
-      'Record revision-controlled engineering definition data.'
+      'Provide or author a source CAD model in STEP/STP/BREP only if the use case requires it.',
+      'Validate source geometry with recorded parser, topology, and measurement checks.',
+      'Record revision-controlled engineering definition data before making stronger claims.'
     ]
   };
 }
@@ -138,24 +235,33 @@ export function auditCadCatalog(catalog: Record<string, ObjectMetadata>): CadCat
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function isSourceCadVerified(evidence: CadCertificationEvidence): boolean {
+export function hasRequiredCadValidationEvidence(evidence: CadCertificationEvidence): boolean {
   return (
-    evidence.status === 'SOURCE_CAD_VERIFIED' &&
+    evidence.status === 'CAD_VALIDATION_RECORDED' &&
     evidence.exactBRepEvidence &&
     evidence.occtValidated &&
     evidence.topologyValidated &&
     evidence.metricsValidated &&
     evidence.assemblyStructureValidated &&
-    evidence.dimensionalDefinitionPresent
+    evidence.dimensionalDefinitionPresent &&
+    evidence.revisionControlled
   );
+}
+
+/** @deprecated Prefer the more precise hasRequiredCadValidationEvidence name. */
+export function isSourceCadVerified(evidence: CadCertificationEvidence): boolean {
+  return hasRequiredCadValidationEvidence(evidence);
 }
 
 export function getCadCertificationSummary(catalog: Record<string, ObjectMetadata>) {
   const rows = auditCadCatalog(catalog);
   return {
     total: rows.length,
-    sourceCadVerified: rows.filter((row) => row.status === 'SOURCE_CAD_VERIFIED').length,
-    cadGradeProcedural: rows.filter((row) => row.status === 'CAD_GRADE_PROCEDURAL').length,
+    sourceCadVerified: rows.filter((row) => row.status === 'CAD_VALIDATION_RECORDED').length,
+    cadValidationRecorded: rows.filter((row) => row.status === 'CAD_VALIDATION_RECORDED').length,
+    cadSourceAwaitingValidation: rows.filter((row) => row.status === 'SOURCE_CAD_PRESENT_AWAITING_VALIDATION').length,
+    cadGradeProcedural: rows.filter((row) => row.status === 'PROCEDURAL_EDUCATIONAL_GEOMETRY').length,
+    proceduralEducationalGeometry: rows.filter((row) => row.status === 'PROCEDURAL_EDUCATIONAL_GEOMETRY').length,
     gltfAwaitingSource: rows.filter((row) => row.status === 'GLTF_ASSET_AWAITING_CAD_SOURCE').length,
     scientificAwaitingSource: rows.filter((row) => row.status === 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE').length,
   };
