@@ -28,6 +28,8 @@ import { ScientificActionRouter } from './scientific/ScientificActionRouter';
 import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
+import { LessonRunner } from './learning/LessonRunner';
+import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
@@ -242,6 +244,7 @@ function AppContent() {
   const [presentationStep, setPresentationStep] = useState<number>(0);
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
+  const [showLessonRunner, setShowLessonRunner] = useState<boolean>(false);
 
   useEffect(() => {
     setHiddenComponentIds([]);
@@ -398,6 +401,70 @@ function AppContent() {
     }
   };
   
+  const handleOpenLessonModel = (modelId: string) => {
+    sessionMolecule.closeSession();
+    setActiveLearningSession(null);
+    setCurrentSpatialObject(modelId);
+    setSelectedComponentId(null);
+    setHiddenComponentIds([]);
+    setIsolatedComponentId(null);
+    setHighlightedComponentId(null);
+    setIsExploded(false);
+    setExplodedFactor(0);
+    setXrayEnabled(false);
+    setBlueprintEnabled(false);
+    changeSpatialMode('INSPECTION');
+  };
+
+  const handleLessonAction = (action: LessonAction) => {
+    switch (action.type) {
+      case 'SELECT_COMPONENT':
+        setSelectedComponentId(action.componentId);
+        setHighlightedComponentId(action.componentId);
+        break;
+      case 'SET_EXPLOSION': {
+        const factor = Math.max(0, Math.min(1, action.factor));
+        setExplodedFactor(factor);
+        setIsExploded(factor > 0);
+        setSpatialMode(factor > 0 ? 'EXPLODED' : 'INSPECTION');
+        break;
+      }
+      case 'SET_VIEW_MODE':
+        if (action.mode === 'GLASS') handleSetCutawayMode('GLASS');
+        else if (action.mode === 'BLUEPRINT') {
+          setBlueprintEnabled(true);
+          setXrayEnabled(false);
+        } else handleSetCutawayMode('SOLID');
+        break;
+      case 'SET_RPM':
+        if (isV8Active) setV8Rpm(Math.max(600, Math.min(7000, action.rpm)));
+        else if (isV12Active) setV12Rpm(Math.max(600, Math.min(8500, action.rpm)));
+        break;
+      case 'SCRUB_CYCLE':
+        if (isV8Active) handleScrubV8Angle(action.angleDeg);
+        else if (isV12Active) handleScrubAngle(action.angleDeg);
+        break;
+      case 'RESET_VIEW':
+        setIsExploded(false);
+        setExplodedFactor(0);
+        setSpatialMode('INSPECTION');
+        setSelectedComponentId(null);
+        setHighlightedComponentId(null);
+        setIsolatedComponentId(null);
+        setHiddenComponentIds([]);
+        setXrayEnabled(false);
+        setBlueprintEnabled(false);
+        setV8Rpm(600);
+        setV8KinematicTimeOffset(0);
+        setV8CrankAngleDeg(0);
+        break;
+      default: {
+        const exhaustive: never = action;
+        return exhaustive;
+      }
+    }
+  };
+
   const [barnDoorActive, setBarnDoorActive] = useState<boolean>(false);
   
   const [biometricActive, setBiometricActive] = useState<boolean>(false);
@@ -1586,6 +1653,7 @@ function AppContent() {
         blueprintEnabled={blueprintEnabled}
         onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
         onOpenEngineeringMode={() => setIsEngineeringMode(true)}
+        onOpenLessonRunner={() => setShowLessonRunner(true)}
         onExitSpatial={() => {
           sessionMolecule.closeSession();
           setCurrentSpatialObject(null);
@@ -1632,6 +1700,15 @@ function AppContent() {
         onSendMessage={handleSendMessage}
       />
     )}
+
+    <LessonRunner
+      open={showLessonRunner}
+      onClose={() => setShowLessonRunner(false)}
+      initialLessonId={currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer'}
+      selectedComponentId={selectedComponentId}
+      onOpenModel={handleOpenLessonModel}
+      onAction={handleLessonAction}
+    />
 
     {/* DEDICATED V12 ENGINE CONTROL & TELEMETRY SUITE */}
     {isV12Active && (

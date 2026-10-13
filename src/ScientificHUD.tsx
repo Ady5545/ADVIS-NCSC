@@ -152,6 +152,7 @@ interface ScientificHUDProps {
   blueprintEnabled?: boolean;
   onToggleBlueprint?: () => void;
   onOpenEngineeringMode?: () => void;
+  onOpenLessonRunner?: () => void;
   onExitSpatial: () => void;
   selectedComponentId: string | null;
   onSelectComponent: (id: string | null) => void;
@@ -188,6 +189,7 @@ export function ScientificHUD({
   blueprintEnabled = false,
   onToggleBlueprint,
   onOpenEngineeringMode,
+  onOpenLessonRunner,
   onExitSpatial,
   selectedComponentId,
   onSelectComponent,
@@ -440,6 +442,17 @@ export function ScientificHUD({
               )}
             </div>
           )}
+
+              {isEngineeringActive && onOpenLessonRunner && (
+                <button
+                  type="button"
+                  onClick={onOpenLessonRunner}
+                  className="w-full mt-2 py-2 px-3 rounded border border-amber-400/40 bg-amber-950/30 hover:bg-amber-900/40 text-amber-100 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5"
+                >
+                  <BookOpen size={12} />
+                  <span>Guided Lesson</span>
+                </button>
+              )}
 
           {/* MOLECULE CONTROLS */}
           {isMoleculeActive && activeLearningSession && (
