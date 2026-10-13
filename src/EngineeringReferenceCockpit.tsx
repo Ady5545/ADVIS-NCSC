@@ -451,9 +451,32 @@ export function EngineeringReferenceCockpit({
             <div className="px-2 pb-2 grid grid-cols-5 gap-1">
               <button onClick={() => onToggleMeasurement?.()} className={`py-1.5 border text-[8px] ${measurementMode ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Ruler size={11} className="mx-auto" /></button>
               <button onClick={() => onUpdateLodTier?.('ULTRA')} className={`py-1.5 border text-[8px] ${lodTier === 'ULTRA' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Sparkles size={11} className="mx-auto" /></button>
-              <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 0.85)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}><Maximize2 size={11} className="mx-auto" /></button>
+              <button onClick={() => onUpdateExplodedFactor?.(explodedFactor > 0.05 ? 0 : 1)} className={`py-1.5 border text-[8px] ${explodedFactor > 0.05 ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`} title="Toggle assembled/exploded layout" aria-label={explodedFactor > 0.05 ? 'Reassemble model' : 'Explode model'}><Maximize2 size={11} className="mx-auto" /></button>
               <button onClick={onToggleV12Direction} className="py-1.5 border border-slate-200 text-[8px]">DIR</button>
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
+            </div>
+            <div className="px-3 pb-3 border-t border-slate-200">
+              <div className="flex items-center justify-between pt-2 text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                <label htmlFor="advis-explosion-factor">Exploded assembly</label>
+                <span className="font-semibold text-slate-900">{Math.round(Math.max(0, Math.min(1, Number.isFinite(explodedFactor) ? explodedFactor : 0)) * 100)}%</span>
+              </div>
+              <input
+                id="advis-explosion-factor"
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={Math.max(0, Math.min(1, Number.isFinite(explodedFactor) ? explodedFactor : 0))}
+                onChange={(event) => onUpdateExplodedFactor?.(Number(event.target.value))}
+                aria-label="Exploded assembly factor"
+                className="w-full accent-rose-500 mt-1"
+              />
+              <div className="grid grid-cols-4 gap-1 mt-1">
+                <button onClick={() => onUpdateExplodedFactor?.(0)} className="border border-slate-200 py-1 text-[8px] hover:border-rose-400">Reassemble</button>
+                <button onClick={() => onUpdateExplodedFactor?.(Math.max(0, Math.round((explodedFactor - 0.1) * 100) / 100))} className="border border-slate-200 py-1 text-[8px] hover:border-rose-400" aria-label="Step explosion backward">−10%</button>
+                <button onClick={() => onUpdateExplodedFactor?.(Math.min(1, Math.round((explodedFactor + 0.1) * 100) / 100))} className="border border-slate-200 py-1 text-[8px] hover:border-rose-400" aria-label="Step explosion forward">+10%</button>
+                <button onClick={() => onUpdateExplodedFactor?.(1)} className="border border-slate-200 py-1 text-[8px] hover:border-rose-400">Explode</button>
+              </div>
             </div>
           </div>
           <div className="mt-2 text-[8px] text-right uppercase tracking-[0.14em] text-slate-400">
