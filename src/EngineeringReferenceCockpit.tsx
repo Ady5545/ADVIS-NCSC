@@ -8,13 +8,29 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
+import type { EditableProjectSummary, WorkshopComponentTransform } from './workshop/ProjectSchema';
 
 export interface EngineeringReferenceCockpitProps {
   onClose: () => void;
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
-  componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
-  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
+  componentTransforms?: Record<string, WorkshopComponentTransform>;
+  onUpdateComponentTransform?: (id: string, transform: WorkshopComponentTransform) => void;
+  activeProjectName?: string | null;
+  savedProjects?: EditableProjectSummary[];
+  projectStatus?: string;
+  canUndoTransform?: boolean;
+  canRedoTransform?: boolean;
+  onCreateProjectCopy?: () => void;
+  onSaveProject?: () => void;
+  onUndoTransform?: () => void;
+  onRedoTransform?: () => void;
+  onResetProjectToSource?: () => void;
+  onRenameProject?: (name: string) => void;
+  onLoadProject?: (projectId: string) => void;
+  onDeleteProject?: () => void;
+  onExportProject?: () => void;
+  onImportProjectFile?: (file: File) => void;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
@@ -86,6 +102,7 @@ export function EngineeringReferenceCockpit({
   const [showCharts, setShowCharts] = useState(true);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [activePreset, setActivePreset] = useState('HERO');
+  const [projectToLoad, setProjectToLoad] = useState('');
 
   const telemetry = useEngineTelemetry();
   const objectKey = Array.isArray(activeObject) ? activeObject[0] : activeObject;
@@ -118,6 +135,32 @@ export function EngineeringReferenceCockpit({
   const componentTree = useMemo(() => buildComponentHierarchy({ components: visibleComponents }), [visibleComponents]);
   const selectedComponent = components.find((component) => component.id === selectedComponentId) || null;
   const selectedComponentFidelity = selectedComponent ? resolveComponentFidelity(selectedComponent) : null;
+  const selectedTransform: WorkshopComponentTransform | null = selectedComponent
+    ? componentTransforms?.[selectedComponent.id] || {
+        position: [...selectedComponent.position] as [number, number, number],
+        rotation: [...(selectedComponent.rotation || [0, 0, 0])] as [number, number, number],
+        scale: [1, 1, 1],
+      }
+    : null;
+
+  const updateSelectedTransformField = (
+    field: keyof WorkshopComponentTransform,
+    axis: 0 | 1 | 2,
+    displayValue: string,
+  ) => {
+    if (!selectedComponent || !selectedTransform || !onUpdateComponentTransform || !activeProjectName) return;
+    if (displayValue.trim() === '') return;
+    const numericValue = Number(displayValue);
+    if (!Number.isFinite(numericValue)) return;
+    const value = field === 'rotation' ? numericValue * Math.PI / 180 : numericValue;
+    const next = {
+      position: [...selectedTransform.position] as [number, number, number],
+      rotation: [...selectedTransform.rotation] as [number, number, number],
+      scale: [...selectedTransform.scale] as [number, number, number],
+    };
+    next[field][axis] = field === 'scale' ? Math.max(0.01, Math.min(1000, value)) : value;
+    onUpdateComponentTransform(selectedComponent.id, next);
+  };
 
   const renderComponentTreeNode = (node: ComponentTreeNode, depth = 0): React.ReactNode => {
     const collapsed = collapsedTreeNodes[node.id] ?? false;
@@ -379,6 +422,37 @@ export function EngineeringReferenceCockpit({
                     className={`rounded border px-2 py-2 text-[9px] font-semibold ${isolatedComponentId === selectedComponent.id ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'}`}
                   >{isolatedComponentId === selectedComponent.id ? 'Restore assembly' : 'Isolate selected'}</button>
                 </div>
+
+                <div className="mt-3 border-t border-rose-200 pt-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-600">Editable transform</div>
+                    <span className={`text-[8px] uppercase ${activeProjectName ? 'text-emerald-700' : 'text-amber-700'}`}>{activeProjectName ? 'My copy' : 'Reference locked'}</span>
+                  </div>
+                  {selectedTransform && (['position', 'rotation', 'scale'] as const).map((field) => (
+                    <div key={field} className="grid grid-cols-[60px_repeat(3,minmax(0,1fr))] gap-1 items-center mb-1.5">
+                      <label className="text-[8px] uppercase text-slate-500">{field === 'rotation' ? 'Rotate °' : field === 'position' ? 'Position' : 'Scale'}</label>
+                      {([0, 1, 2] as const).map((axis) => {
+                        const raw = selectedTransform[field][axis];
+                        const displayValue = field === 'rotation' ? raw * 180 / Math.PI : raw;
+                        return (
+                          <label key={axis} className="min-w-0">
+                            <span className="sr-only">{field} {['X', 'Y', 'Z'][axis]}</span>
+                            <input
+                              type="number"
+                              step={field === 'rotation' ? 1 : field === 'scale' ? 0.1 : 0.01}
+                              value={Number(displayValue.toFixed(4))}
+                              disabled={!activeProjectName}
+                              onChange={(event) => updateSelectedTransformField(field, axis, event.currentTarget.value)}
+                              aria-label={`${field} ${['X', 'Y', 'Z'][axis]}`}
+                              className="w-full min-w-0 rounded border border-rose-200 bg-white px-1 py-1.5 text-[9px] tabular-nums disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  {!activeProjectName && <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Create an editable copy first. The catalog reference stays unchanged.</p>}
+                </div>
               </section>
             )}
 
@@ -453,8 +527,49 @@ export function EngineeringReferenceCockpit({
         )}
 
         {/* Bottom-right interaction deck */}
-        <div className="absolute right-5 bottom-5 w-[330px] pointer-events-auto">
+        <div className="absolute right-5 bottom-5 w-[min(370px,calc(100vw-40px))] max-h-[76vh] overflow-y-auto pointer-events-auto">
           <div className="bg-white/94 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)]">
+            <div className="border-b border-slate-200 px-3 py-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[9px] uppercase tracking-[0.15em] text-slate-400">Innovation workshop</div>
+                  <div className="text-[11px] font-semibold text-slate-900">{activeProjectName || 'Immutable reference model'}</div>
+                </div>
+                {!activeProjectName && <button type="button" onClick={onCreateProjectCopy} className="rounded bg-cyan-800 px-2.5 py-2 text-[9px] font-semibold text-white hover:bg-cyan-700">Create my copy</button>}
+              </div>
+              {activeProjectName && (
+                <>
+                  <label className="block text-[8px] uppercase text-slate-400">Project name</label>
+                  <input value={activeProjectName} onChange={(event) => onRenameProject?.(event.currentTarget.value)} aria-label="Editable project name" className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-[10px] text-slate-900" />
+                  <div className="grid grid-cols-4 gap-1">
+                    <button type="button" onClick={onSaveProject} className="rounded border border-emerald-700/30 bg-emerald-50 py-2 text-[9px] font-semibold text-emerald-800">Save</button>
+                    <button type="button" onClick={onUndoTransform} disabled={!canUndoTransform} className="rounded border border-slate-300 py-2 text-[9px] text-slate-700 disabled:opacity-35">Undo</button>
+                    <button type="button" onClick={onRedoTransform} disabled={!canRedoTransform} className="rounded border border-slate-300 py-2 text-[9px] text-slate-700 disabled:opacity-35">Redo</button>
+                    <button type="button" onClick={onResetProjectToSource} className="rounded border border-amber-500/50 bg-amber-50 py-2 text-[9px] text-amber-800">Reset</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    <button type="button" onClick={onExportProject} className="rounded border border-slate-300 py-2 text-[9px] text-slate-700">Export JSON</button>
+                    <button type="button" onClick={onDeleteProject} className="rounded border border-rose-300 bg-rose-50 py-2 text-[9px] text-rose-700">Delete copy</button>
+                  </div>
+                </>
+              )}
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1">
+                <select value={projectToLoad} onChange={(event) => setProjectToLoad(event.currentTarget.value)} aria-label="Saved local project" className="min-w-0 rounded border border-slate-300 bg-white px-2 py-2 text-[9px] text-slate-700">
+                  <option value="">Open a saved local copy…</option>
+                  {savedProjects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+                </select>
+                <button type="button" disabled={!projectToLoad} onClick={() => onLoadProject?.(projectToLoad)} className="rounded border border-slate-300 px-2 py-2 text-[9px] disabled:opacity-35">Load</button>
+              </div>
+              <label className="block text-[8px] text-slate-600">
+                Import project JSON
+                <input type="file" accept="application/json,.json" aria-label="Import an ADVIS editable project JSON file" className="mt-1 block w-full text-[8px] file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-1.5 file:text-[8px]" onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (file) onImportProjectFile?.(file);
+                  event.currentTarget.value = '';
+                }} />
+              </label>
+              {projectStatus && <p role="status" className="text-[8px] leading-relaxed text-slate-600">{projectStatus}</p>}
+            </div>
             <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.15em] text-slate-400">Camera</div>
             <div className="grid grid-cols-5 gap-1 p-2">
               {activeCameraPresets.map((preset) => (
