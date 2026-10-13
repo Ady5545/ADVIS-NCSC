@@ -1,5 +1,5 @@
 import { AssetCategory, DetailLevel, AssetIntelligenceMetadata } from './AssetIntelligence';
-import type { CadCertificationEvidence } from './cad/CadCertification';
+import { assessCadEvidence, type CadCertificationEvidence } from './cad/CadCertification';
 import { HEART_COMPONENTS } from './AutonomousModelEngine/precision/HeartModel';
 import { BRAIN_COMPONENTS } from './AutonomousModelEngine/precision/BrainModel';
 import { LUNGS_COMPONENTS } from './AutonomousModelEngine/precision/LungsModel';
@@ -1714,75 +1714,8 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
 export function getCadCertificationForObject(id: string): CadCertificationEvidence | null {
   const object = SPATIAL_LIBRARY[id];
   if (!object) return null;
-
-  const sourcePath = object.cadAssetPath || object.assetPath || '';
-  const extension = sourcePath.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || '';
-  const hasSourceCad = ['.step', '.stp', '.brep', '.brp'].includes(extension);
-  const hasGltf = ['.glb', '.gltf'].includes(extension);
-  const isScientificConcept =
-    /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(
-      object.id + ' ' + object.category
-    );
-
-  const status: CadCertificationEvidence['status'] = hasSourceCad
-    ? 'SOURCE_CAD_VERIFIED'
-    : hasGltf
-      ? 'GLTF_ASSET_AWAITING_CAD_SOURCE'
-      : isScientificConcept
-        ? 'SCIENTIFIC_GEOMETRY_AWAITING_CAD_SOURCE'
-        : 'CAD_GRADE_PROCEDURAL';
-
-  const sourceFormat: CadCertificationEvidence['sourceFormat'] = hasSourceCad
-    ? extension === '.brep' || extension === '.brp'
-      ? 'BREP'
-      : extension === '.stp'
-        ? 'STP'
-        : 'STEP'
-    : hasGltf
-      ? 'GLTF'
-      : 'PROCEDURAL';
-
-  return {
-    status,
-    sourceFormat,
-    sourcePath: sourcePath || undefined,
-    exactBRepEvidence: hasSourceCad,
-    occtValidated: false,
-    topologyValidated: false,
-    metricsValidated: false,
-    assemblyStructureValidated: false,
-    dimensionalDefinitionPresent: hasSourceCad,
-    revisionControlled: false,
-    limitations: hasSourceCad
-      ? [
-          'A source-CAD file path is present, but OCCT validation and external engineering release approval have not yet been evidenced.'
-        ]
-      : hasGltf
-        ? [
-            'GLTF is a display/scene format and does not establish exact B-rep source geometry.',
-            'A rendered asset cannot be called CAD-certified from its mesh alone.'
-          ]
-        : isScientificConcept
-          ? [
-              'This is a scientific visualization/concept model, not an authoritative manufactured-part definition.',
-              'CAD certification is not implied by procedural geometry.'
-            ]
-          : [
-              'This is high-detail procedural geometry, not source CAD/B-rep.',
-              'The model may be used for educational visualization but is not manufacturing-certified.'
-            ],
-    nextRequiredEvidence: hasSourceCad
-      ? [
-          'Import the source file with OCCT and store validation results.',
-          'Validate topology, measurements, assembly structure and dimensional definition.',
-          'Record revision-controlled engineering definition data and applicable release/inspection evidence.'
-        ]
-      : [
-          'Provide or author an authoritative STEP/STP/BREP source model where CAD is applicable.',
-          'Validate the source with OCCT topology and measurement checks.',
-          'Record revision-controlled engineering definition data and applicable release/inspection evidence.'
-        ],
-  };
+  // Centralize status calculation; source extensions never imply a successful validation run.
+  return assessCadEvidence(object);
 }
 
 export const CAD_CERTIFICATION_INDEX = Object.fromEntries(

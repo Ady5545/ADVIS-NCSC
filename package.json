@@ -7,7 +7,8 @@
     "start": "node dist/server.cjs",
     "dev": "node server.js",
     "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "lint": "echo 'Linting complete'"
+    "lint": "npm run validate:catalog",
+    "validate:catalog": "node scripts/validate-model-catalog.mjs"
   },
   "keywords": [
     "browser",
