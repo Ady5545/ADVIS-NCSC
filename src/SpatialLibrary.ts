@@ -218,7 +218,7 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       references: [],
       limitations: [
         'Scientific concept visualization; the geometry is an educational representation, not a validated scientific field or dimensionally authoritative model.',
-        'No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification.'
+        "No model-specific source URL, revision, or asset license is recorded in this entry's evidence metadata; exact material, dimension, performance, and tolerance claims need separate verification."
       ]
     },
     capabilities: { guidedLessons: true },
