@@ -304,6 +304,36 @@ function AppContent() {
   const [showPrivacyDataPanel, setShowPrivacyDataPanel] = useState(false);
   const [showAuthoringWorkbench, setShowAuthoringWorkbench] = useState(false);
   const [showModelCapabilityPanel, setShowModelCapabilityPanel] = useState(false);
+  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
+  const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
+  const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
+  const [explodedFactor, setExplodedFactor] = useState<number>(0);
+  const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
+  const [blueprintEnabled, setBlueprintEnabled] = useState<boolean>(false);
+  const [highlightedComponentId, setHighlightedComponentId] = useState<string | null>(null);
+  const [isolatedComponentId, setIsolatedComponentId] = useState<string | null>(null);
+  const toggleComponentVisibility = (componentId: string) => setHiddenComponentIds((current) => current.includes(componentId) ? current.filter((id) => id !== componentId) : [...current, componentId]);
+  const [tracedFunctionKey, setTracedFunctionKey] = useState<string | null>(null);
+  const [isKinematicPlaying, setIsKinematicPlaying] = useState<boolean>(true);
+  const [kinematicSpeed, setKinematicSpeed] = useState<number>(1.0);
+  const [kinematicTimeOffset, setKinematicTimeOffset] = useState<number>(0);
+  const [measurementMode, setMeasurementMode] = useState<boolean>(false);
+  const [v12Rpm, setV12Rpm] = useState<number>(600);
+  const [v12Direction, setV12Direction] = useState<number>(1);
+  // The V8 has independent RPM, play state, animation speed, crank scrubber and audio mute.
+  const [v8Rpm, setV8Rpm] = useState<number>(600);
+  const [isV8KinematicPlaying, setIsV8KinematicPlaying] = useState<boolean>(true);
+  const [v8KinematicSpeed, setV8KinematicSpeed] = useState<number>(1.0);
+  const [v8KinematicTimeOffset, setV8KinematicTimeOffset] = useState<number>(0);
+  const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
+  const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
+  const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
+  const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
+  const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
+  const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
+  const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
+
   const [accessibilityPreferences, setAccessibilityPreferences] = useState<AccessibilityPreferences>({ ...DEFAULT_ACCESSIBILITY_PREFERENCES });
   const [accessibilityPreferencesLoaded, setAccessibilityPreferencesLoaded] = useState(false);
   const qualityPreset: QualityPreset = accessibilityPreferences.quality;
@@ -356,35 +386,7 @@ function AppContent() {
   const updateAccessibilityPreferences = (patch: Partial<AccessibilityPreferences>) => {
     setAccessibilityPreferences((current) => ({ ...current, ...patch }));
   };
-  const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
-  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
-  const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
-  const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
-  const [explodedFactor, setExplodedFactor] = useState<number>(0);
-  const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
-  const [blueprintEnabled, setBlueprintEnabled] = useState<boolean>(false);
-  const [highlightedComponentId, setHighlightedComponentId] = useState<string | null>(null);
-  const [isolatedComponentId, setIsolatedComponentId] = useState<string | null>(null);
-  const toggleComponentVisibility = (componentId: string) => setHiddenComponentIds((current) => current.includes(componentId) ? current.filter((id) => id !== componentId) : [...current, componentId]);
-  const [tracedFunctionKey, setTracedFunctionKey] = useState<string | null>(null);
-  const [isKinematicPlaying, setIsKinematicPlaying] = useState<boolean>(true);
-  const [kinematicSpeed, setKinematicSpeed] = useState<number>(1.0);
-  const [kinematicTimeOffset, setKinematicTimeOffset] = useState<number>(0);
-  const [measurementMode, setMeasurementMode] = useState<boolean>(false);
-  const [v12Rpm, setV12Rpm] = useState<number>(600);
-  const [v12Direction, setV12Direction] = useState<number>(1);
-  // The V8 has independent RPM, play state, animation speed, crank scrubber and audio mute.
-  const [v8Rpm, setV8Rpm] = useState<number>(600);
-  const [isV8KinematicPlaying, setIsV8KinematicPlaying] = useState<boolean>(true);
-  const [v8KinematicSpeed, setV8KinematicSpeed] = useState<number>(1.0);
-  const [v8KinematicTimeOffset, setV8KinematicTimeOffset] = useState<number>(0);
-  const [v8CrankAngleDeg, setV8CrankAngleDeg] = useState<number>(0);
-  const [v8SoundEnabled, setV8SoundEnabled] = useState<boolean>(true);
-  const [isMagnifierFocused, setIsMagnifierFocused] = useState<boolean>(false);
-  const [lodTier, setLodTier] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA'>('HIGH');
-  const [focusedCylinder, setFocusedCylinder] = useState<number>(1);
-  const [chargeFlowEnabled, setChargeFlowEnabled] = useState<boolean>(true);
-  const [vectorsEnabled, setVectorsEnabled] = useState<boolean>(false);
+
 
   useEffect(() => {
     const handleCylSelect = (e: any) => {
