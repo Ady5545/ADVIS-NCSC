@@ -14,7 +14,7 @@ export interface EngineeringReferenceCockpitProps {
   activeObject?: string | string[] | null;
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
-  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;\n  onOpenInnovationLab?: () => void;
+  onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;\n  canUndoTransform?: boolean;\n  canRedoTransform?: boolean;\n  onUndoTransform?: () => void;\n  onRedoTransform?: () => void;\n  onOpenInnovationLab?: () => void;\n  onSaveWorkspace?: () => void;\n  onLoadWorkspace?: () => void;\n  workspaceSaveNotice?: string;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
@@ -202,6 +202,7 @@ export function EngineeringReferenceCockpit({
               {objectMeta?.category || 'SPATIAL SYSTEM'} · {qualityLabel}
             </div>
           </div>
+          {workspaceSaveNotice && <div role="status" aria-live="polite" className="text-[10px] text-slate-500 text-right">{workspaceSaveNotice}</div>}
 
           <div className="flex items-start gap-8">
             <div className="hidden md:flex flex-col items-end pt-1">
@@ -224,6 +225,8 @@ export function EngineeringReferenceCockpit({
               >
                 <Lightbulb size={14} /> WORKSHOP
               </button>
+              <button type="button" onClick={onSaveWorkspace} aria-label="Save editable workspace locally" title="Save current model transforms on this device" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold">SAVE</button>
+              <button type="button" onClick={onLoadWorkspace} aria-label="Load editable workspace from this device" title="Load saved transforms for this model" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold">LOAD</button>
               <button
                 type="button"
                 onClick={onUndoTransform}
