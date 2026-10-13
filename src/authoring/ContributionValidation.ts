@@ -32,6 +32,9 @@ const nonEmpty = (value: unknown): value is string => typeof value === 'string' 
 
 export function validateModelSubmission(model: ObjectMetadata): ContributionValidationIssue[] {
   const issues: ContributionValidationIssue[] = [];
+  if (!model || typeof model !== 'object' || Array.isArray(model)) {
+    return [{ severity: 'ERROR', code: 'MODEL_OBJECT', message: 'Model submission must be a JSON object.' }];
+  }
   if (!nonEmpty(model.id) || !/^[a-z0-9][a-z0-9._-]*$/.test(model.id)) {
     issues.push({ severity: 'ERROR', code: 'MODEL_ID', message: 'Model ID must be a stable lowercase identifier using letters, numbers, dots, underscores or hyphens.' });
   }
@@ -88,6 +91,9 @@ export function validateLessonSubmission(
   availableModelIds: ReadonlySet<string>,
 ): ContributionValidationIssue[] {
   const issues: ContributionValidationIssue[] = [];
+  if (!lesson || typeof lesson !== 'object' || Array.isArray(lesson)) {
+    return [{ severity: 'ERROR', code: 'LESSON_OBJECT', message: 'Lesson submission must be a JSON object.' }];
+  }
   if (!nonEmpty(lesson.id) || !/^[a-z0-9][a-z0-9-]*$/.test(lesson.id)) {
     issues.push({ severity: 'ERROR', code: 'LESSON_ID', message: 'Lesson ID must be a stable lowercase kebab-case identifier.' });
   }
@@ -97,10 +103,11 @@ export function validateLessonSubmission(
   if (!availableModelIds.has(lesson.modelId)) {
     issues.push({ severity: 'ERROR', code: 'LESSON_MODEL', message: `Lesson model "${lesson.modelId}" is not registered.` });
   }
-  if (!lesson.learningObjectives?.length || !lesson.steps?.length) {
+  if (!Array.isArray(lesson.learningObjectives) || lesson.learningObjectives.length === 0 || !Array.isArray(lesson.steps) || lesson.steps.length === 0) {
     issues.push({ severity: 'ERROR', code: 'LEARNING_CONTENT', message: 'At least one learning objective and one lesson step are required.' });
   }
-  if (!lesson.sourceReferences?.length) {
+  const sourceReferences = Array.isArray(lesson.sourceReferences) ? lesson.sourceReferences : [];
+  if (sourceReferences.length === 0) {
     issues.push({ severity: 'WARNING', code: 'LESSON_SOURCES', message: 'Attach teaching references or explicitly label the lesson as illustrative/draft.' });
   }
   if (lesson.authoringStatus === 'EVIDENCE_REVIEWED' &&
@@ -110,7 +117,7 @@ export function validateLessonSubmission(
   const stepIds = new Set<string>();
   const steps = Array.isArray(lesson.steps) ? lesson.steps : [];
   for (const step of steps) {
-    if (!step || typeof step !== 'object') {
+    if (!step || typeof step !== 'object' || Array.isArray(step)) {
       issues.push({ severity: 'ERROR', code: 'STEP_OBJECT', message: 'Every lesson step must be an object.' });
       continue;
     }
@@ -118,12 +125,19 @@ export function validateLessonSubmission(
       issues.push({ severity: 'ERROR', code: 'STEP_ID', message: `Step ID "${step?.id || '(missing)'}" is missing or duplicated.` });
     }
     if (step?.id) stepIds.add(step.id);
+    if (!step.completionRule || typeof step.completionRule !== 'object' || !['ACKNOWLEDGE', 'SELECT_COMPONENT', 'ANSWER_QUESTION'].includes(step.completionRule.type)) {
+      issues.push({ severity: 'ERROR', code: 'COMPLETION_RULE', message: `Step "${step.id}" has a missing or unsupported completion rule.` });
+    }
     if (step?.completionRule?.type === 'SELECT_COMPONENT' && !step.completionRule.componentId) {
       issues.push({ severity: 'ERROR', code: 'STEP_TARGET', message: `Step "${step.id}" has an empty component target.` });
     }
     if (step?.question) {
+      if (typeof step.question !== 'object' || Array.isArray(step.question)) {
+        issues.push({ severity: 'ERROR', code: 'QUESTION_OBJECT', message: `Step "${step.id}" question must be an object.` });
+        continue;
+      }
       const choices = Array.isArray(step.question.choices) ? step.question.choices : [];
-      const choiceIds = new Set(choices.map((choice) => choice.id));
+      const choiceIds = new Set(choices.filter((choice) => choice && typeof choice === 'object').map((choice) => choice.id));
       if (choices.length < 2 || choiceIds.size !== choices.length || !choiceIds.has(step.question.correctChoiceId)) {
         issues.push({ severity: 'ERROR', code: 'QUESTION_CHOICES', message: `Question "${step.question.id}" has invalid choices or correctChoiceId.` });
       }
