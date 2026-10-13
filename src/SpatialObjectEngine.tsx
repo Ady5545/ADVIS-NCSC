@@ -205,11 +205,15 @@ function ProceduralAssemblyAutoFitter({
   obj,
   offsetX,
   isMultiObject,
+  explodedFactor = 0,
+  isExploded = false,
   children
 }: {
   obj: ObjectMetadata;
   offsetX: number;
   isMultiObject: boolean;
+  explodedFactor?: number;
+  isExploded?: boolean;
   children: React.ReactNode;
 }) {
   const containerRef = useRef<THREE.Group>(null);
@@ -219,8 +223,10 @@ function ProceduralAssemblyAutoFitter({
     (obj.components && obj.components.length > 0 && obj.components.some(c => c.assetPath && c.assetPath.endsWith('.glb')))
   );
   
-  // Give the V8 a more substantial on-screen footprint while preserving the shared fitter for all other assets.
-  const targetViewportFraction = obj.id === 'v8_engine' ? 0.90 : 0.75;
+  // Fit the V8 as a substantial whole in normal mode and fit its wider bounds when exploded.
+  const targetViewportFraction = obj.id === 'v8_engine'
+    ? (explodedFactor > 0 || isExploded ? 0.76 : 0.90)
+    : 0.75;
 
   // Use defaultScale as fallback initial scale
   const [fittedScale, setFittedScale] = useState<number>(() => {
@@ -276,7 +282,7 @@ function ProceduralAssemblyAutoFitter({
       if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('resize', measureAndFit);
     };
-  }, [obj.id, camera, isMultiObject, isGltf]);
+  }, [obj.id, camera, isMultiObject, isGltf, explodedFactor, isExploded]);
 
   return (
     <group position={[offsetX, 0, 0]}>
@@ -2141,20 +2147,25 @@ export function SpatialObjectEngine({
 
   // Render-time Theatre adapter: presentation-only transforms never enter React state.
   useFrame(() => {
+    // One authoritative transform path: the old second useFrame also moved these groups
+    // toward isExploded while this loop reset them from explodedFactor (normally zero),
+    // effectively cancelling almost the entire explosion.
+    const manualFactor = THREE.MathUtils.clamp(explodedFactorRef.current || 0, 0, 1);
+    const modeFactor = manualFactor > 0 ? manualFactor : (isExplodedRef.current ? 1 : 0);
     const theatreFactor = v12PresentationFrame.active
       ? THREE.MathUtils.clamp(v12PresentationFrame.values.explodedFactor, 0, 1)
-      : THREE.MathUtils.clamp(explodedFactorRef.current || 0, 0, 1);
+      : modeFactor;
 
-    Object.entries(componentRefs.current).forEach(([id, object]) => {
+    Object.entries(componentRefs.current).forEach(([, object]) => {
       const base = object.userData.__advisBasePosition as [number, number, number] | undefined;
       const offset = object.userData.explodedOffset as [number, number, number] | undefined;
       if (!base || !offset) return;
-
-      object.position.set(
+      const target = new THREE.Vector3(
         base[0] + offset[0] * theatreFactor,
         base[1] + offset[1] * theatreFactor,
         base[2] + offset[2] * theatreFactor
       );
+      object.position.lerp(target, 0.16);
     });
   });
 
@@ -2939,11 +2950,7 @@ export function SpatialObjectEngine({
         activeObject.components.forEach(comp => {
           const meshObj = componentRefs.current[comp.id];
           if (meshObj) {
-            const targetOffset = isExplodedRef.current ? comp.explodedOffset : [0, 0, 0];
-            meshObj.position.x += ((comp.position[0] + targetOffset[0]) - meshObj.position.x) * 0.08;
-            meshObj.position.y += ((comp.position[1] + targetOffset[1]) - meshObj.position.y) * 0.08;
-            meshObj.position.z += ((comp.position[2] + targetOffset[2]) - meshObj.position.z) * 0.08;
-
+            // Component positions are controlled only by the authoritative explosion interpolator above.
             if (objId === 'human_heart') {
               const heartPulseSpeed = isKinematicPlayingRef.current ? kinematicSpeedRef.current : 0;
               const pulse = 1 + Math.sin(state.clock.elapsedTime * 4.5 * (heartPulseSpeed > 0 ? heartPulseSpeed : 1)) * 0.06;
@@ -2994,7 +3001,7 @@ export function SpatialObjectEngine({
           const offsetX = (idx * spacing) - (totalWidth / 2);
 
           return (
-            <ProceduralAssemblyAutoFitter key={objId} obj={obj} offsetX={offsetX} isMultiObject={objectIds.length > 1}>
+            <ProceduralAssemblyAutoFitter key={objId} obj={obj} offsetX={offsetX} isMultiObject={objectIds.length > 1} explodedFactor={explodedFactor} isExploded={isExploded}>
               {obj.modelStatus === 'AWAITING_ASSET' ? (
                 <Html position={[0, 0, 0]} center transform distanceFactor={12}>
                   <div className="flex flex-col items-center justify-center border border-cyan-500/20 bg-cyan-950/30 px-10 py-8 rounded-2xl backdrop-blur-lg shadow-[0_0_30px_rgba(6,182,212,0.1)]">
