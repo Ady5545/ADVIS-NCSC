@@ -36,13 +36,43 @@ export function buildComponentHierarchy(
   }
 
   const childIds = new Set<string>();
-  for (const component of valid) {
-    if (!component.parentId || component.parentId === component.id) continue;
-    const parent = componentNodes.get(component.parentId);
-    const child = componentNodes.get(component.id);
-    if (!parent || !child || childIds.has(component.id)) continue;
+  const parentOf = new Map<string, string>();
+
+  const wouldCreateCycle = (parentId: string, childId: string): boolean => {
+    let cursor: string | undefined = parentId;
+    const visited = new Set<string>();
+    while (cursor && !visited.has(cursor)) {
+      if (cursor === childId) return true;
+      visited.add(cursor);
+      cursor = parentOf.get(cursor);
+    }
+    return false;
+  };
+
+  const attach = (parentId: string, childId: string) => {
+    const parent = componentNodes.get(parentId);
+    const child = componentNodes.get(childId);
+    if (!parent || !child || parentId === childId || childIds.has(childId)) return;
+    if (wouldCreateCycle(parentId, childId)) return;
     parent.children.push(child);
-    childIds.add(component.id);
+    childIds.add(childId);
+    parentOf.set(childId, parentId);
+  };
+
+  // Honor explicit parent pointers first; they are the most direct declaration.
+  for (const component of valid) {
+    if (component.parentId) attach(component.parentId, component.id);
+  }
+
+  // Older/author-provided data may declare the relationship only on the parent's childrenIds.
+  // Use those declarations only when they do not conflict with a child's explicit parentId.
+  for (const component of valid) {
+    for (const childId of component.childrenIds || []) {
+      const child = componentNodes.get(childId);
+      if (!child) continue;
+      if (child.component?.parentId && child.component.parentId !== component.id) continue;
+      attach(component.id, childId);
+    }
   }
 
   const topLevelBySubsystem = new Map<string, ComponentTreeNode>();
