@@ -480,7 +480,7 @@ function AppContent() {
     simulationParameters: isV8Active
       ? { rpm: v8Rpm, crankAngleDeg: v8CrankAngleDeg }
       : isV12Active
-        ? { rpm: v12Rpm, crankAngleDeg: v12CrankAngleDeg }
+        ? { rpm: v12Rpm, crankAngleDeg: (engineTelemetry.focusedTelemetry?.cycleAngleDeg ?? 0) }
         : project.simulationParameters,
     updatedAt: new Date().toISOString(),
   });
@@ -504,7 +504,7 @@ function AppContent() {
       isolatedComponentId,
       explodedFactor,
       viewMode: blueprintEnabled ? 'BLUEPRINT' : xrayEnabled ? 'GLASS' : 'SOLID',
-      simulationParameters: isV8Active ? { rpm: v8Rpm, crankAngleDeg: v8CrankAngleDeg } : isV12Active ? { rpm: v12Rpm, crankAngleDeg: v12CrankAngleDeg } : {},
+      simulationParameters: isV8Active ? { rpm: v8Rpm, crankAngleDeg: v8CrankAngleDeg } : isV12Active ? { rpm: v12Rpm, crankAngleDeg: (engineTelemetry.focusedTelemetry?.cycleAngleDeg ?? 0) } : {},
     });
     setComponentTransforms(project.componentTransforms);
     setActiveEditableProject(project);
