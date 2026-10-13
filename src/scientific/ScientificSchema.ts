@@ -151,6 +151,38 @@ export interface ScientificDiagramDefinition {
   parametersTracked: string[];
 }
 
+export interface SimulationParameterDefinition {
+  name: string;
+  unit?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  description: string;
+  source?: string;
+}
+
+export type SimulationValidationLevel =
+  | 'PRESENTATION_ANIMATION'
+  | 'KINEMATIC'
+  | 'ANALYTICAL'
+  | 'NUMERICAL'
+  | 'BENCHMARK_VALIDATED';
+
+export interface SimulationValidationMetadata {
+  level: SimulationValidationLevel;
+  assumptions: string[];
+  referenceCases?: Array<{
+    label: string;
+    inputs: Record<string, number>;
+    expectedOutputs: Record<string, number>;
+    tolerance?: number;
+    source?: string;
+  }>;
+  limitations?: string[];
+  reviewedBy?: string;
+  reviewedAt?: string;
+}
+
 export interface ScientificSystemModel {
   id: string;
   name: string;
@@ -163,6 +195,14 @@ export interface ScientificSystemModel {
   simulation: {
     variables: Record<string, SimulationStateVariable>;
     parameters: Record<string, number>;
+    /** Optional units/range/provenance for editable inputs; values remain in parameters for compatibility. */
+    parameterDefinitions?: Record<string, SimulationParameterDefinition>;
+    /** Cycle length for a cycle-angle variable such as a 720-degree four-stroke cycle. */
+    cycleLengthDeg?: number;
+    /** Optional fixed step for deterministic simulations; rendering remains frame-rate independent. */
+    fixedTimeStepSeconds?: number;
+    maxStepSeconds?: number;
+    validation?: SimulationValidationMetadata;
     cyclePhases?: CyclePhase[];
     stepFunction: (
       currentState: Record<string, number>,
