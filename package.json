@@ -13,7 +13,8 @@
     "validate:lessons": "node scripts/validate-lessons.mjs",
     "test:simulation": "node scripts/test-simulation-engine.mjs",
     "test:explosion": "node scripts/test-explosion-math.mjs",
-    "test:roadmap-foundations": "node scripts/test-roadmap-foundations.mjs"
+    "test:roadmap-foundations": "node scripts/test-roadmap-foundations.mjs",
+    "test:http-smoke": "node scripts/test-production-http-smoke.mjs"
   },
   "keywords": [
     "browser",
