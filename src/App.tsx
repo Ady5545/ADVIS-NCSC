@@ -13,7 +13,8 @@ import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
-import { Fingerprint, Lock } from 'lucide-react';
+import { Fingerprint, Lock, X } from 'lucide-react';
+import { ParametricInnovationLab } from './cad/ParametricInnovationLab';
 import { motion } from 'framer-motion';
 import { useHandTracking, HandTrackingData } from './useHandTracking';
 import { MediaPipeAdapter } from './MediaPipeAdapter';
@@ -35,6 +36,9 @@ import { CameraPreset } from './scientific/V12ScientificConfig';
 import { useV12EngineAudio } from './scientific/V12EngineAudioEngine';
 import { useV8EngineAudio } from './scientific/V8EngineAudioEngine';
 import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentations } from './theatre/TheatrePresentationController';
+
+type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };
+type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -283,7 +287,10 @@ function AppContent() {
   }, [currentSpatialObject]);
   const [showLabels, setShowLabels] = useState<boolean>(false);
   const [isEngineeringMode, setIsEngineeringMode] = useState<boolean>(false);
+  const [showInnovationLab, setShowInnovationLab] = useState<boolean>(false);
   const [componentTransforms, setComponentTransforms] = useState<Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>>({});
+  const [transformHistory, setTransformHistory] = useState<TransformHistoryEntry[]>([]);
+  const [transformFuture, setTransformFuture] = useState<TransformHistoryEntry[]>([]);
   const [hiddenComponentIds, setHiddenComponentIds] = useState<string[]>([]);
   const [explodedFactor, setExplodedFactor] = useState<number>(0);
   const [xrayEnabled, setXrayEnabled] = useState<boolean>(false);
@@ -388,11 +395,106 @@ function AppContent() {
     return () => window.removeEventListener('advis-v8-crank-angle', onV8CrankAngle);
   }, []);
 
-  const handleUpdateComponentTransform = (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => {
-    setComponentTransforms(prev => ({
-      ...prev,
-      [id]: transform
-    }));
+  const handleUpdateComponentTransform = (id: string, transform: ComponentTransform) => {
+    const before = componentTransforms[id] ?? null;
+    if (before && JSON.stringify(before) === JSON.stringify(transform)) return;
+    setTransformHistory((items) => [...items.slice(-49), { id, before, after: transform }]);
+    setTransformFuture([]);
+    setComponentTransforms((prev) => ({ ...prev, [id]: transform }));
+  };
+
+  const undoComponentTransform = () => {
+    const entry = transformHistory[transformHistory.length - 1];
+    if (!entry) return;
+    setComponentTransforms((prev) => {
+      const next = { ...prev };
+      if (entry.before) next[entry.id] = entry.before;
+      else delete next[entry.id];
+      return next;
+    });
+    setTransformHistory((items) => items.slice(0, -1));
+    setTransformFuture((items) => [entry, ...items].slice(0, 50));
+  };
+
+  const redoComponentTransform = () => {
+    const entry = transformFuture[0];
+    if (!entry) return;
+    setComponentTransforms((prev) => ({ ...prev, [entry.id]: entry.after }));
+    setTransformFuture((items) => items.slice(1));
+    setTransformHistory((items) => [...items.slice(-49), entry]);
+  };
+
+  const [workspaceSaveNotice, setWorkspaceSaveNotice] = useState('');
+  const activeTransformModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const saveEngineeringWorkspace = () => {
+    if (!activeTransformModelId || !SPATIAL_LIBRARY[activeTransformModelId]) {
+      setWorkspaceSaveNotice('Open a catalog model before saving workspace edits.');
+      return;
+    }
+    try {
+      const componentIds = new Set((SPATIAL_LIBRARY[activeTransformModelId].components || []).map((component) => component.id));
+      const transforms = Object.fromEntries(Object.entries(componentTransforms).filter(([id]) => componentIds.has(id)));
+      window.localStorage.setItem('advis-ncsc.workspace-transforms.v1', JSON.stringify({
+        version: 1,
+        modelId: activeTransformModelId,
+        transforms,
+        savedAt: new Date().toISOString(),
+      }));
+      setWorkspaceSaveNotice('Workspace edits saved on this device.');
+    } catch {
+      setWorkspaceSaveNotice('Local save unavailable; current workspace remains unchanged.');
+    }
+  };
+
+  const loadEngineeringWorkspace = () => {
+    if (!activeTransformModelId || !SPATIAL_LIBRARY[activeTransformModelId]) {
+      setWorkspaceSaveNotice('Open the same catalog model before loading its workspace edits.');
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem('advis-ncsc.workspace-transforms.v1');
+      if (!raw) { setWorkspaceSaveNotice('No saved workspace edits found on this device.'); return; }
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setWorkspaceSaveNotice('Saved workspace data is invalid; current edits were kept.');
+        return;
+      }
+      const payload = parsed as { version?: unknown; modelId?: unknown; transforms?: unknown };
+      if (payload.version !== 1 || payload.modelId !== activeTransformModelId || !payload.transforms || typeof payload.transforms !== 'object' || Array.isArray(payload.transforms)) {
+        setWorkspaceSaveNotice('Saved edits belong to another model or an unsupported version; current edits were kept.');
+        return;
+      }
+      const componentIds = new Set((SPATIAL_LIBRARY[activeTransformModelId].components || []).map((component) => component.id));
+      const restored: Record<string, ComponentTransform> = {};
+      for (const [id, candidate] of Object.entries(payload.transforms as Record<string, unknown>)) {
+        if (!componentIds.has(id) || !candidate || typeof candidate !== 'object') {
+          setWorkspaceSaveNotice('Saved edits failed validation; current edits were kept.');
+          return;
+        }
+        const transform = candidate as Partial<ComponentTransform>;
+        const validTriple = (value: unknown) => Array.isArray(value) && value.length === 3 && value.every((n) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= 1000);
+        if (!validTriple(transform.position) || !validTriple(transform.rotation) || !validTriple(transform.scale) ||
+            (transform.scale as number[]).some((n) => n <= 0)) {
+          setWorkspaceSaveNotice('Saved edits failed transform validation; current edits were kept.');
+          return;
+        }
+        restored[id] = {
+          position: [...(transform.position as [number, number, number])],
+          rotation: [...(transform.rotation as [number, number, number])],
+          scale: [...(transform.scale as [number, number, number])],
+        };
+      }
+      setComponentTransforms((prev) => {
+        const next = { ...prev };
+        for (const id of componentIds) delete next[id];
+        return { ...next, ...restored };
+      });
+      setTransformHistory([]);
+      setTransformFuture([]);
+      setWorkspaceSaveNotice('Workspace edits loaded.');
+    } catch {
+      setWorkspaceSaveNotice('Could not load saved edits; current workspace was kept.');
+    }
   };
 
   const changeSpatialMode = (newMode: SpatialMode) => {
@@ -1038,12 +1140,47 @@ function AppContent() {
           ? (isEngineeringMode ? 'ENGINEERING' : 'SPATIAL') 
           : 'HUD'));
 
+    const tutorModelId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+    const tutorModel = tutorModelId ? SPATIAL_LIBRARY[tutorModelId] : null;
+    const tutorComponent = tutorModel?.components?.find((component) => component.id === selectedComponentId) || null;
+    const activeModelEvidence = tutorModel ? {
+      id: tutorModel.id,
+      name: tutorModel.name,
+      category: tutorModel.category,
+      description: tutorModel.description,
+      modelKind: tutorModel.modelKind || null,
+      modelVersion: tutorModel.modelVersion || null,
+      unitSystem: tutorModel.unitSystem || 'UNSPECIFIED',
+      evidence: {
+        geometryAuthority: tutorModel.evidence?.geometryAuthority || null,
+        dimensionsStatus: tutorModel.evidence?.dimensionsStatus || null,
+        simulationStatus: tutorModel.evidence?.simulationStatus || null,
+        educationalLevel: tutorModel.evidence?.educationalLevel || null,
+        references: (tutorModel.evidence?.references || []).slice(0, 5).map((reference) => ({
+          label: reference.label,
+          url: reference.url || '',
+          citation: reference.citation || '',
+          applicability: reference.applicability || 'ILLUSTRATIVE',
+        })),
+        limitations: (tutorModel.evidence?.limitations || []).slice(0, 6),
+      },
+      capabilities: tutorModel.capabilities || {},
+      selectedComponent: tutorComponent ? {
+        id: tutorComponent.id,
+        name: tutorComponent.name,
+        description: tutorComponent.description,
+        category: tutorComponent.category || '',
+        specifications: Object.fromEntries(Object.entries(tutorComponent.specifications || {}).slice(0, 8)),
+      } : null,
+    } : null;
+
     const butlerContext = {
       activeProjectId,
       activeWorkspace,
       activeSpatialObject: currentSpatialObject,
       activeScientificVisualization: activeLearningSession?.context?.entity || activeLearningSession?.context?.topic || (sessionMolecule.isSessionActive && sessionMolecule.molecule ? sessionMolecule.molecule.metadata?.name : null),
       activeMolecule: sessionMolecule.getMolecularContextForAI(),
+      activeModelEvidence,
       selectedComponentId,
       hoveredComponentId,
       spatialMode,
@@ -1958,6 +2095,14 @@ function AppContent() {
         onFocusComponent={(id) => window.dispatchEvent(new CustomEvent('advis-focus-component', { detail: { componentId: id } }))}
         componentTransforms={componentTransforms}
         onUpdateComponentTransform={handleUpdateComponentTransform}
+        canUndoTransform={transformHistory.length > 0}
+        canRedoTransform={transformFuture.length > 0}
+        onUndoTransform={undoComponentTransform}
+        onRedoTransform={redoComponentTransform}
+        onOpenInnovationLab={() => setShowInnovationLab(true)}
+        onSaveWorkspace={saveEngineeringWorkspace}
+        onLoadWorkspace={loadEngineeringWorkspace}
+        workspaceSaveNotice={workspaceSaveNotice}
         explodedFactor={explodedFactor}
         onUpdateExplodedFactor={(factor) => {
           const next = Math.max(0, Math.min(1, factor));
@@ -1982,6 +2127,20 @@ function AppContent() {
         lodTier={lodTier}
         onUpdateLodTier={setLodTier}
       />
+    )}
+
+    {showInnovationLab && (
+      <div className="fixed inset-0 z-[95] bg-slate-950/95 backdrop-blur-md p-3 md:p-6 flex flex-col">
+        <div className="flex items-center justify-between gap-3 mb-3 border-b border-cyan-500/20 pb-3">
+          <div className="font-mono text-xs md:text-sm tracking-[0.16em] text-cyan-200">ADVIS // INNOVATION WORKSHOP</div>
+          <button type="button" onClick={() => setShowInnovationLab(false)} aria-label="Close innovation workshop" className="flex items-center gap-2 rounded-lg border border-cyan-500/30 px-3 py-2 text-cyan-200 hover:bg-cyan-500/10">
+            <X size={15} /> CLOSE WORKSHOP
+          </button>
+        </div>
+        <div className="min-h-0 flex-1">
+          <ParametricInnovationLab />
+        </div>
+      </div>
     )}
 
     {/* Connection Screen / Cinematic Boot Loader */}

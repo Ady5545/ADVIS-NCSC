@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Check, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, X } from 'lucide-react';
+import { BookOpen, Check, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, X, Download } from 'lucide-react';
 import { LEARNING_LESSONS, getLessonById } from './LessonCatalog';
 import { clearLessonProgress, loadLessonProgress, saveLessonProgress } from './LessonProgress';
 import type { LearningLesson, LessonAction, LessonProgress, LessonStep } from './LessonSchema';
@@ -169,6 +169,24 @@ export function LessonRunner({
     setLessonId(nextLesson.id);
   };
 
+  const downloadLearningPack = () => {
+    const pack = {
+      schemaVersion: 1,
+      product: 'ADVIS-NCSC',
+      packType: 'AUTHORED_LESSONS_ONLY',
+      exportedAt: new Date().toISOString(),
+      lessons: LEARNING_LESSONS,
+      note: 'Contains authored lesson text and assessment metadata only. It does not bundle 3D assets, external references, AI services, or guarantee offline model rendering. Lessons marked EDUCATIONAL_DRAFT have not completed subject-matter review.',
+    };
+    const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'advis-ncsc-learning-pack.json';
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   return (
     <div className="absolute inset-0 z-[90] pointer-events-auto flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Guided learning lesson">
       <section className="w-full max-w-3xl max-h-[92vh] overflow-hidden rounded-2xl border border-cyan-500/40 bg-slate-950 text-cyan-50 shadow-[0_20px_80px_rgba(0,0,0,0.55)] flex flex-col">
@@ -179,6 +197,9 @@ export function LessonRunner({
             <h2 className="text-lg sm:text-xl font-semibold mt-1">{lesson.title}</h2>
             <p className="text-xs leading-relaxed text-slate-400 mt-1">{lesson.summary}</p>
           </div>
+          <button type="button" onClick={downloadLearningPack} className="min-h-9 rounded-lg border border-cyan-500/30 px-2.5 text-[10px] uppercase tracking-wide text-cyan-200 hover:bg-cyan-950/60 flex items-center gap-1.5" aria-label="Download authored lesson pack">
+            <Download size={14} /> <span className="hidden sm:inline">Lesson pack</span>
+          </button>
           <button type="button" onClick={onClose} aria-label="Close lesson" className="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 flex items-center justify-center"><X size={16} /></button>
         </header>
 

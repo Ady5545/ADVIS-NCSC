@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb, Save, FolderOpen } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
 import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
@@ -15,6 +15,14 @@ export interface EngineeringReferenceCockpitProps {
   selectedComponentId?: string | null;
   componentTransforms?: Record<string, { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }>;
   onUpdateComponentTransform?: (id: string, transform: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }) => void;
+  canUndoTransform?: boolean;
+  canRedoTransform?: boolean;
+  onUndoTransform?: () => void;
+  onRedoTransform?: () => void;
+  onOpenInnovationLab?: () => void;
+  onSaveWorkspace?: () => void;
+  onLoadWorkspace?: () => void;
+  workspaceSaveNotice?: string;
   onSelectComponent?: (id: string | null) => void;
   hiddenComponentIds?: string[];
   onToggleComponentVisibility?: (id: string) => void;
@@ -51,6 +59,14 @@ const phaseLegend = [
 
 export function EngineeringReferenceCockpit({
   onClose,
+  canUndoTransform = false,
+  canRedoTransform = false,
+  onUndoTransform,
+  onRedoTransform,
+  onOpenInnovationLab,
+  onSaveWorkspace,
+  onLoadWorkspace,
+  workspaceSaveNotice = '',
   activeObject,
   selectedComponentId,
   onSelectComponent,
@@ -191,8 +207,8 @@ export function EngineeringReferenceCockpit({
         <div className="absolute inset-0 bg-[#f4f5f6]/86 backdrop-blur-[1px]" />
 
         {/* Header */}
-        <div className="absolute top-4 left-5 right-5 flex items-start justify-between gap-4">
-          <div className="pointer-events-auto min-w-[250px]">
+        <div className="absolute top-4 left-3 right-3 md:left-5 md:right-5 flex flex-wrap items-start justify-between gap-3">
+          <div className="pointer-events-auto min-w-0 flex-1 basis-[220px]">
             <div className="flex items-center gap-2 text-[10px] tracking-[0.20em] uppercase text-slate-500 mb-1">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
               ADVIS / ENGINEERING STUDY
@@ -202,6 +218,7 @@ export function EngineeringReferenceCockpit({
               {objectMeta?.category || 'SPATIAL SYSTEM'} · {qualityLabel}
             </div>
           </div>
+          {workspaceSaveNotice && <div role="status" aria-live="polite" className="text-[10px] text-slate-500 text-right">{workspaceSaveNotice}</div>}
 
           <div className="flex items-start gap-8">
             <div className="hidden md:flex flex-col items-end pt-1">
@@ -214,13 +231,47 @@ export function EngineeringReferenceCockpit({
                 ))}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="pointer-events-auto w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
-              aria-label="Exit engineering study"
-            >
-              <X size={16} />
-            </button>
+            <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5 max-w-full">
+              <button
+                type="button"
+                onClick={onOpenInnovationLab}
+                className="h-9 px-3 rounded-full border border-cyan-300/60 bg-cyan-50/95 text-cyan-800 hover:bg-cyan-100 transition-all flex items-center justify-center gap-1.5 shadow-sm text-[10px] font-semibold tracking-wide"
+                aria-label="Open innovation workshop"
+                title="Create and experiment with an editable study"
+              >
+                <Lightbulb size={14} /> <span className="hidden sm:inline">WORKSHOP</span>
+              </button>
+              <button type="button" onClick={onSaveWorkspace} aria-label="Save editable workspace locally" title="Save current model transforms on this device" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><Save size={13} /><span className="hidden sm:inline">SAVE</span></button>
+              <button type="button" onClick={onLoadWorkspace} aria-label="Load editable workspace from this device" title="Load saved transforms for this model" className="h-9 px-2.5 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 text-[10px] font-semibold flex items-center gap-1"><FolderOpen size={13} /><span className="hidden sm:inline">LOAD</span></button>
+              <button
+                type="button"
+                onClick={onUndoTransform}
+                disabled={!canUndoTransform}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-sm"
+                aria-label="Undo component transform"
+                title="Undo transform"
+              >
+                <Undo2 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onRedoTransform}
+                disabled={!canRedoTransform}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-sm"
+                aria-label="Redo component transform"
+                title="Redo transform"
+              >
+                <Redo2 size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-9 h-9 rounded-full border border-slate-300 bg-white/90 text-slate-600 hover:text-slate-900 hover:border-slate-500 transition-all flex items-center justify-center shadow-sm"
+                aria-label="Exit engineering study"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
         </div>
 

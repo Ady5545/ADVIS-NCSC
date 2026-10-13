@@ -1,16 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment } from '@react-three/drei';
 import * as THREE from 'three';
-import { RotateCcw, Lightbulb, Gauge, Cog, Ruler, Download } from 'lucide-react';
-
-type StudyParams = {
-  sunTeeth: number;
-  planetTeeth: number;
-  moduleMm: number;
-  inputRpm: number;
-  inputTorqueNm: number;
-};
+import { DEFAULT_STUDY_PARAMS, STUDY_STORAGE_KEY, parseStudyProject, createStudyProject, type StudyParams } from './StudyProject';
+import { RotateCcw, Lightbulb, Gauge, Cog, Ruler, Download, Undo2, Redo2, Save, Upload, GitCompare } from 'lucide-react';
 
 function Gear({ radius, teeth, thickness, y, color }: { radius: number; teeth: number; thickness: number; y: number; color: string }) {
   return (
@@ -66,13 +59,13 @@ function PlanetaryPreview({ params }: { params: StudyParams }) {
 }
 
 export function ParametricInnovationLab() {
-  const [params, setParams] = useState<StudyParams>({
-    sunTeeth: 24,
-    planetTeeth: 18,
-    moduleMm: 2.0,
-    inputRpm: 3000,
-    inputTorqueNm: 150,
-  });
+  const [params, setParams] = useState<StudyParams>(DEFAULT_STUDY_PARAMS);
+  const [history, setHistory] = useState<StudyParams[]>([]);
+  const [future, setFuture] = useState<StudyParams[]>([]);
+  const [baseline, setBaseline] = useState<StudyParams>(DEFAULT_STUDY_PARAMS);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [notice, setNotice] = useState('');
+  const importRef = useRef<HTMLInputElement>(null);
 
   const derived = useMemo(() => {
     const ringTeeth = params.sunTeeth + params.planetTeeth * 2;
@@ -94,24 +87,78 @@ export function ParametricInnovationLab() {
     };
   }, [params]);
 
-  const setValue = <K extends keyof StudyParams>(key: K, value: StudyParams[K]) => {
-    setParams((prev) => ({ ...prev, [key]: value }));
+  const commitParams = (next: StudyParams) => {
+    setHistory((items) => [...items.slice(-49), params]);
+    setFuture([]);
+    setParams(next);
+    setNotice('Unsaved changes');
   };
 
-  const reset = () => setParams({
-    sunTeeth: 24,
-    planetTeeth: 18,
-    moduleMm: 2.0,
-    inputRpm: 3000,
-    inputTorqueNm: 150,
-  });
+  const setValue = <K extends keyof StudyParams>(key: K, value: StudyParams[K]) => {
+    const next = { ...params, [key]: value };
+    if (next[key] === params[key]) return;
+    commitParams(next);
+  };
+
+  const undo = () => {
+    const previous = history[history.length - 1];
+    if (!previous) return;
+    setFuture((items) => [params, ...items].slice(0, 50));
+    setHistory((items) => items.slice(0, -1));
+    setParams(previous);
+    setNotice('Change undone');
+  };
+
+  const redo = () => {
+    const next = future[0];
+    if (!next) return;
+    setHistory((items) => [...items.slice(-49), params]);
+    setFuture((items) => items.slice(1));
+    setParams(next);
+    setNotice('Change restored');
+  };
+
+  const reset = () => commitParams(DEFAULT_STUDY_PARAMS);
+
+  const saveLocally = () => {
+    try {
+      window.localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(createStudyProject(params, baseline)));
+      setBaseline(params);
+      setNotice('Study saved on this device');
+    } catch {
+      setNotice('Local save unavailable in this browser');
+    }
+  };
+
+  const loadLocally = () => {
+    try {
+      const raw = window.localStorage.getItem(STUDY_STORAGE_KEY);
+      if (!raw) { setNotice('No saved study on this device'); return; }
+      const parameters = parseStudyProject(raw);
+      if (!parameters) { setNotice('Saved study is invalid; current work was kept'); return; }
+      commitParams(parameters);
+      setBaseline(parameters);
+      setNotice('Saved study loaded');
+    } catch {
+      setNotice('Could not read saved study; current work was kept');
+    }
+  };
+
+  const importStudy = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 1024 * 1024) { setNotice('Import rejected: file exceeds 1 MB'); return; }
+    const parameters = parseStudyProject(await file.text());
+    if (!parameters) { setNotice('Import rejected: unsupported or out-of-range study data'); return; }
+    commitParams(parameters);
+    setNotice('Study imported');
+  };
 
   const exportStudy = () => {
     const payload = {
-      study: 'Planetary Gearset Innovation Study',
-      parameters: params,
+      ...createStudyProject(params, baseline),
       derived,
-      note: 'This preview exposes the design equations; it is not a certified manufacturing drawing.'
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -119,7 +166,7 @@ export function ParametricInnovationLab() {
     anchor.href = url;
     anchor.download = 'advis-planetary-design-study.json';
     anchor.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -134,17 +181,49 @@ export function ParametricInnovationLab() {
             Change a design variable, watch the geometry update, and see the resulting kinematic relationship. This is the bridge from viewing a model to experimenting with one.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <button onClick={undo} disabled={!history.length} aria-label="Undo last parameter change" className="px-2 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
+            <Undo2 size={14} />
+          </button>
+          <button onClick={redo} disabled={!future.length} aria-label="Redo parameter change" className="px-2 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
+            <Redo2 size={14} />
+          </button>
+          <button onClick={saveLocally} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
+            <Save size={13} /> SAVE
+          </button>
+          <button onClick={loadLocally} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs">
+            LOAD
+          </button>
+          <button onClick={() => { setBaseline(params); setNotice('Current design marked as comparison baseline'); }} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs">
+            MARK BASELINE
+          </button>
+          <button onClick={() => setCompareOpen((open) => !open)} aria-expanded={compareOpen} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs flex items-center gap-1.5">
+            <GitCompare size={13} /> COMPARE
+          </button>
+          <button onClick={() => importRef.current?.click()} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
+            <Upload size={13} /> IMPORT
+          </button>
+          <input ref={importRef} type="file" accept="application/json,.json" className="hidden" aria-label="Import study JSON" onChange={importStudy} />
           <button onClick={reset} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
-            <RotateCcw size={13} />
-            RESET
+            <RotateCcw size={13} /> RESET
           </button>
           <button onClick={exportStudy} className="px-2.5 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs flex items-center gap-1.5">
-            <Download size={13} />
-            EXPORT STUDY
+            <Download size={13} /> EXPORT
           </button>
         </div>
       </div>
+      {notice && <div role="status" aria-live="polite" className="text-[11px] font-mono text-cyan-200/80">{notice}</div>}
+      {compareOpen && <div className="grid grid-cols-2 md:grid-cols-5 gap-2" aria-label="Current design compared with baseline">
+        {([
+          ['Sun teeth', 'sunTeeth'], ['Planet teeth', 'planetTeeth'], ['Module (mm)', 'moduleMm'],
+          ['Input RPM', 'inputRpm'], ['Input torque (N·m)', 'inputTorqueNm']
+        ] as const).map(([label, key]) => (
+          <div key={key} className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-2">
+            <div className="text-[9px] text-violet-200/70">{label}</div>
+            <div className="text-xs text-white">{params[key]} <span className="text-violet-200/50">← baseline {baseline[key]}</span></div>
+          </div>
+        ))}
+      </div>}
 
       <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_300px] gap-3 flex-1 min-h-0">
         <div className="rounded-xl border border-cyan-500/20 bg-slate-950/75 p-4 overflow-y-auto">
