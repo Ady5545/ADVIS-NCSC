@@ -8,7 +8,7 @@ import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12Scien
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { VisualInspectionModal } from './VisualInspectionModal';
-import { QUALITY_PROFILES, type AccessibilityPreferences, type QualityPreset } from './accessibility/QualityProfiles';
+import { QUALITY_PROFILES, type QualityPreset } from './accessibility/QualityProfiles';
 import { InnovationWorkshop } from './workshop/InnovationWorkshop';
 
 export interface EngineeringReferenceCockpitProps {
@@ -29,8 +29,6 @@ export interface EngineeringReferenceCockpitProps {
   onQualityPresetChange?: (preset: QualityPreset) => void;
   reducedMotion?: boolean;
   onReducedMotionChange?: (enabled: boolean) => void;
-  captionsEnabled?: boolean;
-  onCaptionsEnabledChange?: (enabled: boolean) => void;
   audioPreferenceEnabled?: boolean;
   onAudioPreferenceChange?: (enabled: boolean) => void;
   onSaveWorkspace?: () => void;
@@ -84,8 +82,6 @@ export function EngineeringReferenceCockpit({
   onQualityPresetChange,
   reducedMotion = false,
   onReducedMotionChange,
-  captionsEnabled = true,
-  onCaptionsEnabledChange,
   audioPreferenceEnabled = false,
   onAudioPreferenceChange,
   onSaveWorkspace,
@@ -600,10 +596,6 @@ export function EngineeringReferenceCockpit({
                 <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
                   <input type="checkbox" checked={reducedMotion} onChange={(event) => onReducedMotionChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
                   Reduced motion
-                </label>
-                <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
-                  <input type="checkbox" checked={captionsEnabled} onChange={(event) => onCaptionsEnabledChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
-                  Captions
                 </label>
                 <label className="flex items-center gap-1.5 text-[9px] text-slate-600">
                   <input type="checkbox" checked={audioPreferenceEnabled} onChange={(event) => onAudioPreferenceChange?.(event.currentTarget.checked)} className="accent-cyan-700" />
