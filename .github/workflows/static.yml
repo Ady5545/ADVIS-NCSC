@@ -51,6 +51,9 @@ jobs:
       - name: Test model-grounded tutor context and capability boundaries
         run: npm run test:tutor-context
 
+      - name: Test guided lesson progress persistence and resume
+        run: npm run test:lesson-progress
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
