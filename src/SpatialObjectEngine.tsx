@@ -191,6 +191,7 @@ function RealisticGLTFModel({
 
 // 3D Spatial Metadata library with components and offsets
 import { ComponentMetadata, ObjectMetadata, SPATIAL_LIBRARY } from './SpatialLibrary';
+import { resolveExplodedPosition } from './models/assemblies/ExplosionMath';
 import { useGestureEngine } from './GestureContext';
 
 /**
@@ -2189,17 +2190,10 @@ export function SpatialObjectEngine({
       const base = object.userData.__advisBasePosition as [number, number, number] | undefined;
       const offset = object.userData.explodedOffset as [number, number, number] | undefined;
       if (!base || !offset) return;
-      const stage = THREE.MathUtils.clamp(Number(object.userData.explosionStage) || 0, 0, 0.95);
-      // Components with a later stage start moving only as the slider reaches that stage.
-      // At 100%, every part reaches its full, deterministic exploded offset.
-      const localFactor = stage > 0
-        ? THREE.MathUtils.clamp((theatreFactor - stage) / (1 - stage), 0, 1)
-        : theatreFactor;
-      const target = new THREE.Vector3(
-        base[0] + offset[0] * localFactor,
-        base[1] + offset[1] * localFactor,
-        base[2] + offset[2] * localFactor
-      );
+      // All component offsets flow through this single, testable transform resolver.
+      const stage = Number(object.userData.explosionStage) || 0;
+      const position = resolveExplodedPosition(base, offset, theatreFactor, stage);
+      const target = new THREE.Vector3(position[0], position[1], position[2]);
       object.position.lerp(target, 0.16);
     });
   });
