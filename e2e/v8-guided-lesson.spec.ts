@@ -32,7 +32,15 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
   await launchLesson.click();
 
   const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
-  await expect(dialog).toBeVisible({ timeout: 30_000 });
+  await expect(dialog).toBeVisible({ timeout: 30_000 }).catch(async (assertionError) => {
+    const visibleText = (await page.locator('body').innerText()).slice(-2500);
+    throw new Error(
+      'The Guided Lesson button was clicked but the lesson dialog did not appear. ' +
+      'Browser errors: ' + (pageErrors.join(' | ') || '(none captured)') +
+      '\\nVisible page text tail: ' + (visibleText || '(empty)') +
+      '\\nOriginal Playwright assertion: ' + String(assertionError),
+    );
+  });
   await expect(dialog.getByRole('heading', { name: 'Inside a Cross-Plane V8' })).toBeVisible();
 
   // 1. Meet the engine.
