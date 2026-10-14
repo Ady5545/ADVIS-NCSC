@@ -11,7 +11,7 @@
     "validate:catalog": "node scripts/validate-model-catalog.mjs",
     "validate:lessons": "node scripts/validate-lessons.mjs",
     "test:simulation": "node scripts/test-simulation-engine.mjs",
-    "test:explosion": "node scripts/test-explosion-math.mjs",
+    "test:explosion": "node scripts/test-explosion-math.mjs && node scripts/test-model-explosion-contract.mjs",
     "test:study-project": "node scripts/test-study-project.mjs",
     "test:tutor-context": "node scripts/test-tutor-context.mjs",
     "test:lesson-progress": "node scripts/test-lesson-progress.mjs",
