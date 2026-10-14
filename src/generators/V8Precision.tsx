@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Box, Cylinder, RoundedBox, Sphere, Torus, Tube } from '@react-three/drei';
 import type { AdvancedEngineeringModelProps } from './AdvancedEngineeringModels';
-import { V8_BANK_ANGLE as BANK, V8_CYLINDER_Z as Z, V8_THROW_PHASES as THROW_PHASES, resolveV8PistonKinematics } from '../scientific/V8Kinematics';
+import { V8_BANK_ANGLE as BANK, V8_CYLINDER_Z as Z, V8_THROW_PHASES as THROW_PHASES, resolveV8PistonKinematics, resolveV8ValveLift } from '../scientific/V8Kinematics';
 
 type State = AdvancedEngineeringModelProps & {
   crankAngleRef?: React.MutableRefObject<number> | null;
@@ -395,10 +395,8 @@ function V8ValveAssembly({
 
   useFrame(() => {
     const crankAngle = state.crankAngleRef?.current ?? 0;
-    const phase = THROW_PHASES[index] + (valveIndex === 0 ? 0.4 : 2.05) + (side < 0 ? 0 : 0.22);
-    // A smooth phase-linked demonstration curve, not OEM valve-timing data.
-    const camAngle = crankAngle * 0.5 + phase;
-    const lift = Math.max(0, Math.sin(camAngle)) ** 1.4 * 0.027;
+    // Valve lift follows the same 720-degree cylinder cycle as the HUD's firing reference.
+    const lift = resolveV8ValveLift(crankAngle, side, index, valveIndex);
 
     // Valve opens down toward the combustion chamber. Keep the spring seat fixed and
     // compress the visible coil stack progressively toward the moving retainer.
