@@ -94,6 +94,12 @@ try {
   // Ensure the final in-product action really restores the active engine simulation,
   // rather than merely marking the lesson complete or hiding the exploded parts.
   const appSource = await readFile(resolve('src/App.tsx'), 'utf8');
+  const launchpadSource = await readFile(resolve('src/ScientificLaunchpad.tsx'), 'utf8');
+  assert.match(
+    launchpadSource,
+    /label: '4-Stroke Engine', id: 'v8_engine', type: 'eng'/,
+    'The four-stroke entry point must open the canonical V8 model that this guided lesson teaches.',
+  );
   const resetStart = appSource.indexOf("case 'RESET_VIEW':");
   const resetEnd = appSource.indexOf("default: {", resetStart);
   assert.ok(resetStart >= 0 && resetEnd > resetStart,
