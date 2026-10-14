@@ -31,6 +31,7 @@ try {
     getV8CylinderPosition,
     getV8FiringAngleDeg,
     resolveV8PistonKinematics,
+    resolveV8ValveLift,
   } = require(bundledModule);
 
   assert.equal(V8_BANK_ANGLE, Math.PI / 4);
@@ -65,6 +66,20 @@ try {
       'Cylinder ' + cylinder + ' crank throw should be vertically aligned at TDC.');
     assert.ok(Number.isFinite(tdc.rodAngle), 'Connecting-rod angle must remain finite.');
 
+    // Firing TDC is the closed-valve reference. Idealized exhaust and intake lifts occur in their own strokes.
+    assert.ok(Math.abs(resolveV8ValveLift((firingAngle * Math.PI) / 180, position.side, position.index, 0)) <= EPSILON);
+    assert.ok(Math.abs(resolveV8ValveLift((firingAngle * Math.PI) / 180, position.side, position.index, 1)) <= EPSILON);
+    const exhaustPeakAngle = (firingAngle + 270) % 720;
+    const intakePeakAngle = (firingAngle + 450) % 720;
+    assert.ok(Math.abs(resolveV8ValveLift((exhaustPeakAngle * Math.PI) / 180, position.side, position.index, 1) - 0.027) <= EPSILON,
+      'Cylinder ' + cylinder + ' exhaust-valve lift should peak midway through its exhaust teaching window.');
+    assert.ok(Math.abs(resolveV8ValveLift((intakePeakAngle * Math.PI) / 180, position.side, position.index, 0) - 0.027) <= EPSILON,
+      'Cylinder ' + cylinder + ' intake-valve lift should peak midway through its intake teaching window.');
+    assert.equal(resolveV8ValveLift((exhaustPeakAngle * Math.PI) / 180, position.side, position.index, 0), 0,
+      'The intake valve must remain closed in the exhaust stroke window.');
+    assert.equal(resolveV8ValveLift((intakePeakAngle * Math.PI) / 180, position.side, position.index, 1), 0,
+      'The exhaust valve must remain closed in the intake stroke window.');
+
     const bdc = resolveV8PistonKinematics(((tdcDegrees + 180) * Math.PI) / 180, position.side, position.index);
     assert.ok(Math.abs(bdc.pistonY - BDC_Y) <= EPSILON,
       'Cylinder ' + cylinder + ' must reach BDC 180 crank degrees after its TDC.');
@@ -85,6 +100,11 @@ try {
     for (const side of [-1, 1]) {
       for (let index = 0; index < 4; index += 1) {
         const motion = resolveV8PistonKinematics((deg * Math.PI) / 180, side, index);
+        for (let valveIndex = 0; valveIndex <= 1; valveIndex += 1) {
+          const lift = resolveV8ValveLift((deg * Math.PI) / 180, side, index, valveIndex);
+          assert.ok(Number.isFinite(lift) && lift >= 0 && lift <= 0.027 + EPSILON,
+            'Valve lift must stay finite and bounded at ' + deg + '°.');
+        }
         for (const [key, value] of Object.entries(motion)) {
           assert.ok(Number.isFinite(value), key + ' must stay finite at ' + deg + '°.');
         }
