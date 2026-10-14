@@ -15,7 +15,7 @@ The work described below is proposed on isolated pull requests against the recor
 | Model explosion manifests | **Automated contract added** | PR #35; last checked head `197090c5c8a22ad6ce49525a2a2fc3b033bbf029`; GitHub Actions run #236 passed. |
 | CAD evidence / fidelity claims | **Evidence contract hardened** | PR #36; last checked head `3a48954497f461543f60ae3702580dcad51a2b68`; GitHub Actions run #237 passed. The positive test fixture is synthetic and does not certify a catalog model. |
 | V8 audio and motion | **Automated contracts added** | PR #37; last checked head `05a5ca2c420eac81899e9edf2767baa2f2dd6288`; GitHub Actions run #248 passed, including TypeScript, app build, and browser startup/narrow-viewport smoke checks. |
-| V8 guided lesson and reset action | **Implementation present; final head awaiting CI** | PR #38; current head `91e6e16aa99f2430af9d674bb6cade491413b7b0`; Actions run #257 is in progress; run #254 failed to find the lesson dialog after clicking the visible launch button. The lesson remains labelled `EDUCATIONAL_DRAFT` pending subject-matter review. |
+| V8 guided lesson and reset action | **Implementation present; final head awaiting CI** | PR #38; current head `91e6e16aa99f2430af9d674bb6cade491413b7b0`; Actions run #257 failed while waiting for the first lesson step to render. The latest head `e884b2a0260d2df153cda15cf7804ebe2e4c5c69` aligns the launchpad with the canonical V8 model and adds diagnostics; its new CI result is pending. The lesson remains labelled `EDUCATIONAL_DRAFT` pending subject-matter review. |
 | Actual learner effectiveness | **Not tested** | No observed learner session or measured learning outcome was completed during this implementation pass. |
 | Protected-preview browser inspection | **Blocked** | This pass did not bypass or alter deployment protection. |
 
@@ -51,7 +51,7 @@ The work described below is proposed on isolated pull requests against the recor
 - Versions the V8 lesson to invalidate saved progress from the older content.
 - Adds three answer-gated checks: four-stroke order, simplified valve phases, and model limitations.
 - Resets the lesson view and V8 playback/RPM/speed/crank phase at the final reset action while preserving the user's sound-mute preference.
-- Adds a lesson/runtime contract. The latest head has not yet passed the browser walkthrough; the current run adds diagnostics and a longer timeout after run #254 failed while waiting for the dialog.
+- Adds a lesson/runtime contract. The latest head has not yet passed the browser walkthrough. Run #257 exposed a stall at the first lesson step after the shell opened; the latest code aligns the model entry point and captures diagnostics if rendering stalls again.
 
 ## Roadmap tracking
 
