@@ -1,17 +1,20 @@
 import { test, expect, type Page } from '@playwright/test';
 
 async function clickNext(page: Page) {
-  await page.getByRole('button', { name: /Next step|Finish lesson/i }).click();
+  const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
+  await dialog.getByRole('button', { name: /Next step|Finish lesson/i }).click();
 }
 
 async function acknowledgeStep(page: Page) {
-  await page.getByRole('button', { name: /Mark step complete/i }).click();
+  const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
+  await dialog.getByRole('button', { name: /Mark step complete/i }).click();
   await clickNext(page);
 }
 
 async function answerQuestion(page: Page, option: RegExp | string) {
-  await page.getByRole('radio', { name: option }).check();
-  await page.getByRole('button', { name: 'Check answer' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
+  await dialog.getByRole('radio', { name: option }).check();
+  await dialog.getByRole('button', { name: 'Check answer' }).click();
 }
 
 test('V8 guided lesson enforces correct answers, teaches the cycle, and restores the assembly', async ({ page }) => {
