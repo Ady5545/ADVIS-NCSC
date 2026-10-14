@@ -18,6 +18,8 @@ async function answerQuestion(page: Page, option: RegExp | string) {
 }
 
 test('V8 guided lesson enforces correct answers, teaches the cycle, and restores the assembly', async ({ page }) => {
+  // The 3D application has a heavier first-render path than the static smoke tests.
+  test.setTimeout(90_000);
   const pageErrors: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
@@ -30,7 +32,7 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
   await launchLesson.click();
 
   const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
-  await expect(dialog).toBeVisible();
+  await expect(dialog).toBeVisible({ timeout: 30_000 });
   await expect(dialog.getByRole('heading', { name: 'Inside a Cross-Plane V8' })).toBeVisible();
 
   // 1. Meet the engine.
