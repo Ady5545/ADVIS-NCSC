@@ -7,7 +7,7 @@ import { build } from 'esbuild';
 const temporaryDirectory = await mkdtemp(join(process.cwd(), '.advis-model-explosion-contract-'));
 const spatialModule = join(temporaryDirectory, 'spatial-library.cjs');
 const explosionModule = join(temporaryDirectory, 'explosion-math.cjs');
-const MODEL_IDS = ['v8_engine', 'v12_engine', 'esp32'];
+const REQUIRED_MODEL_IDS = ['v8_engine', 'v12_engine', 'esp32'];
 const FACTORS = [0, 0.125, 0.25, 0.5, 0.75, 1];
 
 function isFiniteTriple(value) {
@@ -55,8 +55,18 @@ try {
   const { SPATIAL_LIBRARY } = require(spatialModule);
   const { resolveStagedExplosionProgress, resolveExplodedPosition } = require(explosionModule);
 
-  for (const modelId of MODEL_IDS) {
-    const model = SPATIAL_LIBRARY[modelId];
+  for (const requiredId of REQUIRED_MODEL_IDS) {
+    assert.ok(SPATIAL_LIBRARY[requiredId], 'Required regression model "' + requiredId + '" must exist.');
+    assert.ok(Array.isArray(SPATIAL_LIBRARY[requiredId].explodedParts) &&
+      SPATIAL_LIBRARY[requiredId].explodedParts.length > 0,
+    'Required regression model "' + requiredId + '" must declare explodedParts.');
+  }
+
+  const modelsToCheck = Object.entries(SPATIAL_LIBRARY)
+    .filter(([, model]) => Array.isArray(model.explodedParts) && model.explodedParts.length > 0);
+  assert.ok(modelsToCheck.length > 0, 'The catalog must contain at least one exploded-part manifest.');
+
+  for (const [modelId, model] of modelsToCheck) {
     assert.ok(model, '[' + modelId + '] model must exist in the canonical catalog.');
     assert.ok(Array.isArray(model.components) && model.components.length > 0,
       '[' + modelId + '] model must contain components.');
@@ -130,7 +140,7 @@ try {
       ' components, ' + explodedParts.length + ' valid exploded parts.');
   }
 
-  console.log('Model explosion contract passed for V8, V12, and ESP32: stable IDs, complete manifest references, staged progress, assembled/exploded endpoints, and immutable source metadata.');
+  console.log('Model explosion contract passed for ' + modelsToCheck.length + ' catalog models (including V8, V12, and ESP32): stable IDs, complete manifest references, staged progress, assembled/exploded endpoints, and immutable source metadata.');
 } catch (error) {
   console.error('Model explosion contract failed:', error);
   process.exitCode = 1;
