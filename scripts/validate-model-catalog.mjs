@@ -114,8 +114,16 @@ try {
       fail(`[${modelLabel}] Advertises STEP export without an authoritative source-CAD geometry declaration.`);
     }
 
-    for (const componentId of model.explodedParts || []) {
-      if (!validIds.has(componentId)) warn(`[${modelLabel}] explodedParts references missing component id ${componentId}.`);
+    const explodedParts = Array.isArray(model.explodedParts) ? model.explodedParts : [];
+    const seenExplodedPartIds = new Set();
+    for (const componentId of explodedParts) {
+      if (seenExplodedPartIds.has(componentId)) {
+        fail(`[${modelLabel}] explodedParts contains duplicate component id ${componentId}.`);
+      }
+      seenExplodedPartIds.add(componentId);
+      if (!validIds.has(componentId)) {
+        fail(`[${modelLabel}] explodedParts references missing component id ${componentId}.`);
+      }
     }
 
     const evidence = getCadCertificationForObject(catalogKey);
