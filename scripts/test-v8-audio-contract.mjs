@@ -55,7 +55,8 @@ try {
   assert.equal(maximum.exhaustFilterHz, 3240);
   assert.equal(maximum.intakeResonatorHz, 1570);
   assert.equal(maximum.intakeResonatorGainDb, 10);
-  assert.equal(maximum.mechanicalFilterHz, 4500);
+  assert.equal(maximum.mechanicalFilterHz, maximum.mechanicalHz, 'The mechanical filter cap should only apply above its configured ceiling.');
+  assert.ok(maximum.mechanicalFilterHz < 4500);
   assert.ok(maximum.masterGain <= 0.38);
   assert.ok(maximum.masterGain >= 0);
 
