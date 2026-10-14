@@ -38,7 +38,7 @@ class V8EngineAudioEngineClass {
   private gainScream: GainNode | null = null;
   private gainMechanical: GainNode | null = null;
 
-  // Mechanical Whine / Valvetrain DOHC Chain Noise
+  // Mechanical accessory and OHV valvetrain/timing-drive texture (illustrative, not OEM-specific)
   private oscMechanical: OscillatorNode | null = null;
   private filterMechanical: BiquadFilterNode | null = null;
 
