@@ -176,6 +176,9 @@ try {
   assert.doesNotThrow(() => cad.assessCadEvidence(malformedRecord),
     'Malformed validation evidence should fail closed rather than crash catalog inspection.');
   assert.equal(cad.assessCadEvidence(malformedRecord).status, 'SOURCE_CAD_AVAILABLE_AWAITING_VALIDATION');
+  assert.doesNotThrow(() => cad.isSourceCadVerified(malformedRecord.cadCertification),
+    'The exported CAD verification predicate should also tolerate malformed nested checks.');
+  assert.equal(cad.isSourceCadVerified(malformedRecord.cadCertification), false);
 
   const missingHash = makeVerifiedCandidate();
   missingHash.cadCertification.validationRecord.sourceHash = '';
