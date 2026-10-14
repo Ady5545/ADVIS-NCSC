@@ -328,14 +328,11 @@ function V8MovingCylinder({
 }) {
   const pistonRef = useRef<THREE.Group>(null);
   const rodRef = useRef<THREE.Group>(null);
-  const crankRadius = 0.108;
-  const rodLength = 0.32;
-  const crankAxisOffset = -0.325;
 
   useFrame(() => {
     // Keep the piston TDC positions synchronized with the example firing order in the HUD.
     const motion = resolveV8PistonKinematics(state.crankAngleRef?.current ?? 0, side, index);
-    const { crankX, crankY, verticalRodLength, pistonY, rodAngle } = motion;
+    const { crankX, crankY, pistonY, rodAngle } = motion;
 
     if (pistonRef.current) pistonRef.current.position.y = pistonY;
     if (rodRef.current) {
