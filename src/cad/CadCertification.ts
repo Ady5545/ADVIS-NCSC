@@ -58,6 +58,15 @@ function getExtension(path = ''): string {
   return match?.[0] || '';
 }
 
+function hasNonEmptyText(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+/** CAD paths can be authored on Windows or POSIX; normalize separators before comparison. */
+function normalizeSourcePath(path: string): string {
+  return path.replace(/\\/g, '/');
+}
+
 function isScientificConcept(id: string, category: string): boolean {
   const value = id + ' ' + category;
   return /(dna|quantum|electron|atom|nucleus|magnetic|earth|moon|solar_system|iss|satellite|anatomy|brain|heart|lungs|eye|skeleton)/i.test(value);
@@ -70,27 +79,41 @@ export function assessCadEvidence(obj: ObjectMetadata): CadCertificationEvidence
   const hasGltfSource = extension === '.glb' || extension === '.gltf';
   const recorded = obj.cadCertification;
   const validationRecord = recorded?.validationRecord;
+  const checks = validationRecord?.checks;
   const hasValidRecord = Boolean(
     validationRecord &&
-    validationRecord.sourceHash.trim() &&
-    validationRecord.sourceRevision.trim() &&
-    validationRecord.toolName.trim() &&
-    validationRecord.toolVersion.trim() &&
-    validationRecord.validator.trim() &&
-    validationRecord.reportPath.trim() &&
+    hasNonEmptyText(validationRecord.sourceHash) &&
+    hasNonEmptyText(validationRecord.sourceRevision) &&
+    hasNonEmptyText(validationRecord.toolName) &&
+    hasNonEmptyText(validationRecord.toolVersion) &&
+    hasNonEmptyText(validationRecord.validator) &&
+    hasNonEmptyText(validationRecord.reportPath) &&
+    hasNonEmptyText(validationRecord.validatedAt) &&
     !Number.isNaN(Date.parse(validationRecord.validatedAt)) &&
-    validationRecord.checks.sourceParsed &&
-    validationRecord.checks.topologyPassed &&
-    validationRecord.checks.metricsPassed &&
-    validationRecord.checks.assemblyStructurePassed &&
-    validationRecord.checks.dimensionalDefinitionPresent
+    checks &&
+    checks.sourceParsed === true &&
+    checks.topologyPassed === true &&
+    checks.metricsPassed === true &&
+    checks.assemblyStructurePassed === true &&
+    checks.dimensionalDefinitionPresent === true
+  );
+  const sourceHashMatchesEvidence = Boolean(
+    validationRecord &&
+    (obj.evidence?.sourceHash === undefined ||
+      (hasNonEmptyText(obj.evidence.sourceHash) && obj.evidence.sourceHash === validationRecord.sourceHash))
+  );
+  const sourceRevisionMatchesEvidence = Boolean(
+    validationRecord &&
+    (obj.evidence?.revision === undefined ||
+      (hasNonEmptyText(obj.evidence.revision) && obj.evidence.revision === validationRecord.sourceRevision))
   );
   const sameSource = Boolean(
-    sourcePath &&
-    recorded?.sourcePath &&
-    sourcePath.replace(/\\\\/g, '/') === recorded.sourcePath.replace(/\\\\/g, '/') &&
-    recorded.validationRecord?.sourceHash &&
-    hasValidRecord
+    hasNonEmptyText(sourcePath) &&
+    hasNonEmptyText(recorded?.sourcePath) &&
+    normalizeSourcePath(sourcePath) === normalizeSourcePath(recorded.sourcePath) &&
+    hasValidRecord &&
+    sourceHashMatchesEvidence &&
+    sourceRevisionMatchesEvidence
   );
   const fullyVerified = Boolean(
     hasCadSource &&
