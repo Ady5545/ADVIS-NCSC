@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'esbuild';
 
@@ -90,6 +90,39 @@ try {
   assert.match(assessments[2].question.prompt, /visualization and synthesized sound/i);
   assert.ok(assessments[2].question.choices.find((choice) => choice.id === assessments[2].question.correctChoiceId)
     .text.includes('not validated engine performance'));
+
+  // Ensure the final in-product action really restores the active engine simulation,
+  // rather than merely marking the lesson complete or hiding the exploded parts.
+  const appSource = await readFile(resolve('src/App.tsx'), 'utf8');
+  const resetStart = appSource.indexOf("case 'RESET_VIEW':");
+  const resetEnd = appSource.indexOf("default: {", resetStart);
+  assert.ok(resetStart >= 0 && resetEnd > resetStart,
+    'The lesson action router must retain a RESET_VIEW branch.');
+  const resetBranch = appSource.slice(resetStart, resetEnd);
+  for (const requiredReset of [
+    'setIsExploded(false)',
+    'setExplodedFactor(0)',
+    "setSpatialMode('INSPECTION')",
+    'setSelectedComponentId(null)',
+    'setHoveredComponentId(null)',
+    'setHiddenComponentIds([])',
+    'setXrayEnabled(false)',
+    'setBlueprintEnabled(false)',
+    'setV8Rpm(600)',
+    'setIsV8KinematicPlaying(true)',
+    'setV8KinematicSpeed(1)',
+    'setV8KinematicTimeOffset(0)',
+    'setV8CrankAngleDeg(0)',
+    'setV12Rpm(600)',
+    'setIsKinematicPlaying(true)',
+    'setKinematicSpeed(1)',
+    'setKinematicTimeOffset(0)',
+  ]) {
+    assert.ok(resetBranch.includes(requiredReset),
+      'RESET_VIEW must restore the required baseline state: ' + requiredReset);
+  }
+  assert.ok(!resetBranch.includes('setV8SoundEnabled('),
+    'Restoring a lesson should respect the learner’s sound-mute preference.');
 
   console.log('V8 guided lesson contract passed: versioned progress reset, three answer-gated assessment questions, 720-degree learning objective, explicit model limitations, and reassembly reset.');
 } catch (error) {
