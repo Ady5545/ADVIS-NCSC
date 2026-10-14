@@ -235,20 +235,23 @@ export function auditCadCatalog(catalog: Record<string, ObjectMetadata>): CadCat
 }
 
 export function isSourceCadVerified(evidence: CadCertificationEvidence): boolean {
+  const record = evidence.validationRecord;
+  const checks = record?.checks;
   return (
     evidence.status === 'SOURCE_CAD_VERIFIED' &&
-    Boolean(evidence.validationRecord) &&
-    Boolean(evidence.validationRecord?.sourceHash) &&
-    Boolean(evidence.validationRecord?.sourceRevision) &&
-    Boolean(evidence.validationRecord?.toolName) &&
-    Boolean(evidence.validationRecord?.toolVersion) &&
-    Boolean(evidence.validationRecord?.validator) &&
-    Boolean(evidence.validationRecord?.reportPath) &&
-    Boolean(evidence.validationRecord?.checks.sourceParsed) &&
-    Boolean(evidence.validationRecord?.checks.topologyPassed) &&
-    Boolean(evidence.validationRecord?.checks.metricsPassed) &&
-    Boolean(evidence.validationRecord?.checks.assemblyStructurePassed) &&
-    Boolean(evidence.validationRecord?.checks.dimensionalDefinitionPresent) &&
+    hasNonEmptyText(record?.sourceHash) &&
+    hasNonEmptyText(record?.sourceRevision) &&
+    hasNonEmptyText(record?.toolName) &&
+    hasNonEmptyText(record?.toolVersion) &&
+    hasNonEmptyText(record?.validator) &&
+    hasNonEmptyText(record?.reportPath) &&
+    hasNonEmptyText(record?.validatedAt) &&
+    !Number.isNaN(Date.parse(record?.validatedAt || '')) &&
+    checks?.sourceParsed === true &&
+    checks.topologyPassed === true &&
+    checks.metricsPassed === true &&
+    checks.assemblyStructurePassed === true &&
+    checks.dimensionalDefinitionPresent === true &&
     evidence.revisionControlled &&
     evidence.exactBRepEvidence &&
     evidence.occtValidated &&
@@ -258,7 +261,6 @@ export function isSourceCadVerified(evidence: CadCertificationEvidence): boolean
     evidence.dimensionalDefinitionPresent
   );
 }
-
 export function getCadCertificationSummary(catalog: Record<string, ObjectMetadata>) {
   const rows = auditCadCatalog(catalog);
   return {
