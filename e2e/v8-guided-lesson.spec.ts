@@ -43,8 +43,16 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
   });
   await expect(dialog.getByRole('heading', { name: 'Inside a Cross-Plane V8' })).toBeVisible();
 
-  // 1. Meet the engine.
-  await expect(dialog.getByRole('heading', { name: 'Meet the engine' })).toBeVisible();
+  // 1. Meet the engine. Capture the live page state if the first-step panel stalls after the model is selected.
+  await expect(dialog.getByRole('heading', { name: 'Meet the engine' })).toBeVisible({ timeout: 20_000 }).catch(async (assertionError) => {
+    const visibleText = (await page.locator('body').innerText({ timeout: 5_000 }).catch(() => '')).slice(-3000);
+    throw new Error(
+      'The lesson shell opened, but its first step did not render. Browser errors: ' +
+      (pageErrors.join(' | ') || '(none captured)') +
+      '\\nVisible page text tail: ' + (visibleText || '(empty or renderer unresponsive)') +
+      '\\nOriginal Playwright assertion: ' + String(assertionError),
+    );
+  });
   await acknowledgeStep(page);
 
   // 2. The lesson's action selects the block, satisfying the component-selection requirement.
