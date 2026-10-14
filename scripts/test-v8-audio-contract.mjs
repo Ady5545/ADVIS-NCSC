@@ -37,7 +37,7 @@ try {
   assert.equal(idle.rpmNormalized, 0);
   assert.equal(idle.exhaustFilterHz, 240);
   assert.equal(idle.intakeResonatorHz, 320);
-  assert.equal(idle.masterGain, 0.044800000000000006);
+  assert.ok(Math.abs(idle.masterGain - 0.0448) <= 1e-12);
 
   const midrange = resolveV8AudioSynthesisProfile(3000, 1.5, 0.4);
   assert.equal(midrange.crankFrequencyHz, 75);
