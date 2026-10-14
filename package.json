@@ -8,7 +8,7 @@
     "dev": "node server.js",
     "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "lint": "npm run validate:catalog && npm run validate:science && npm run validate:capabilities && npm run validate:lessons && npm run test:simulation && npm run test:explosion && npm run test:study-project && npm run test:tutor-context && npm run test:lesson-progress && npm run test:workshop && npm run test:domains && npm run test:kinematics",
-    "validate:catalog": "node scripts/validate-model-catalog.mjs",
+    "validate:catalog": "node scripts/validate-model-catalog.mjs && node scripts/test-cad-certification-evidence.mjs",
     "validate:lessons": "node scripts/validate-lessons.mjs",
     "test:simulation": "node scripts/test-simulation-engine.mjs",
     "test:explosion": "node scripts/test-explosion-math.mjs",
