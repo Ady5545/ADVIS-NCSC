@@ -62,6 +62,39 @@ export function getV8FiringAngleDeg(cylinder: number): number | null {
   return index < 0 ? null : index * 90;
 }
 
+/**
+ * Simplified two-valve lift profile synchronized to each cylinder's example firing event.
+ * Valve 0 represents intake (360–540° after firing TDC); valve 1 represents exhaust (180–360°).
+ * These are idealized stroke windows, not OEM camshaft timing or a validated gas-exchange simulation.
+ */
+export function resolveV8ValveLift(
+  crankAngleRad: number,
+  side: V8BankSide,
+  cylinderIndex: number,
+  valveIndex: number,
+  maxLift = 0.027,
+): number {
+  if (!Number.isFinite(maxLift) || maxLift <= 0 || (valveIndex !== 0 && valveIndex !== 1)) return 0;
+  const position = getV8CylinderPositionFromBank(side, cylinderIndex);
+  const firingAngle = getV8FiringAngleDeg(position.cylinder);
+  if (firingAngle === null) return 0;
+
+  const angle = Number.isFinite(crankAngleRad) ? crankAngleRad : 0;
+  const cycleDegrees = (((angle * 180 / Math.PI - firingAngle) % 720) + 720) % 720;
+  const start = valveIndex === 0 ? 360 : 180;
+  const end = start + 180;
+  if (cycleDegrees < start || cycleDegrees > end) return 0;
+
+  const strokeProgress = (cycleDegrees - start) / 180;
+  return Math.min(maxLift, Math.max(0, Math.sin(Math.PI * strokeProgress) ** 1.4 * maxLift));
+}
+
+function getV8CylinderPositionFromBank(side: V8BankSide, cylinderIndex: number): { cylinder: number } {
+  const index = Number.isInteger(cylinderIndex) && cylinderIndex >= 0 && cylinderIndex < 4 ? cylinderIndex : 0;
+  const cylinders = side === -1 ? [1, 3, 5, 7] : [2, 4, 6, 8];
+  return { cylinder: cylinders[index] };
+}
+
 /** Bank and bore index represented by a cylinder number in this educational layout. */
 export function getV8CylinderPosition(cylinder: number): { side: V8BankSide; index: number } | null {
   if (!Number.isInteger(cylinder) || cylinder < 1 || cylinder > 8) return null;
