@@ -3,6 +3,7 @@ import {
   Camera, Layers, Play, Pause, Volume2, VolumeX, Zap, Tag, Wind, Activity, RotateCcw
 } from 'lucide-react';
 import type { CameraPreset, CutawayMode } from '../../scientific/V12ScientificConfig';
+import { V8_CYLINDER_BANK, V8_FIRING_ORDER } from '../../scientific/V8Kinematics';
 
 export interface V8EngineControllerProps {
   onApplyCameraPreset: (preset: CameraPreset) => void;
@@ -40,9 +41,9 @@ export const V8_CAMERA_PRESETS: CameraPreset[] = [
   { id: 'CYL', name: 'Cylinder Focus', subtitle: 'Piston & valve train', description: 'Close inspection view of an individual cylinder, piston, valves and rocker gear.', theta: 0.92, phi: 0.98, radius: 5.6, target: [-0.22, 0.2, 0.1] }
 ];
 
-const FIRING_ORDER = [1, 8, 4, 3, 6, 5, 7, 2];
-// Representative GM-style numbering map for the educational cross-plane V8 layout.
-const CYLINDER_BANK: Record<number, 'L' | 'R'> = { 1: 'L', 2: 'R', 3: 'L', 4: 'R', 5: 'L', 6: 'R', 7: 'L', 8: 'R' };
+// The HUD and 3D piston renderer share one educational bank/throw reference.
+const FIRING_ORDER = V8_FIRING_ORDER;
+const CYLINDER_BANK = V8_CYLINDER_BANK;
 const SPEEDS = [0.25, 0.5, 1, 2] as const;
 const cyanButton = 'rounded-md border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all';
 const inactiveButton = 'border-cyan-500/20 bg-slate-900/70 text-cyan-400/70 hover:border-cyan-400/50 hover:text-cyan-100';
