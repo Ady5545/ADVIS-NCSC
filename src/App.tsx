@@ -581,14 +581,29 @@ function AppContent() {
         setExplodedFactor(0);
         setSpatialMode('INSPECTION');
         setSelectedComponentId(null);
+        setHoveredComponentId(null);
         setHighlightedComponentId(null);
         setIsolatedComponentId(null);
         setHiddenComponentIds([]);
         setXrayEnabled(false);
         setBlueprintEnabled(false);
+
+        // Restore the V8 lesson's motion controls as well as its view. Keep the user's
+        // sound-mute preference unchanged, but return playback, speed, RPM and crank
+        // phase to a predictable starting state.
         setV8Rpm(600);
+        setIsV8KinematicPlaying(true);
+        setV8KinematicSpeed(1);
         setV8KinematicTimeOffset(0);
         setV8CrankAngleDeg(0);
+
+        // Keep the action reusable for a later V12 lesson without leaving stale controls.
+        if (isV12Active) {
+          setV12Rpm(600);
+          setIsKinematicPlaying(true);
+          setKinematicSpeed(1);
+          setKinematicTimeOffset(0);
+        }
         break;
       default: {
         const exhaustive: never = action;
