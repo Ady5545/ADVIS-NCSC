@@ -7,7 +7,7 @@ import type { LearningLesson } from './LessonSchema';
 export const LEARNING_LESSONS: LearningLesson[] = [
   {
     id: 'v8-four-stroke-explorer',
-    version: 1,
+    version: 2,
     title: 'Inside a Cross-Plane V8',
     domain: 'MECHANICAL_ENGINEERING',
     learnerLevel: 'HIGH_SCHOOL',
@@ -20,7 +20,7 @@ export const LEARNING_LESSONS: LearningLesson[] = [
       'Describe a four-stroke cycle across 720 crank degrees.',
       'Distinguish illustrative kinematics from a validated thermodynamic performance simulation.'
     ],
-    estimatedMinutes: 8,
+    estimatedMinutes: 11,
     authoringStatus: 'EDUCATIONAL_DRAFT',
     sourceReferences: [],
     limitations: [
@@ -115,6 +115,69 @@ export const LEARNING_LESSONS: LearningLesson[] = [
         action: { type: 'SET_RPM', rpm: 1000 },
         completionRule: { type: 'ACKNOWLEDGE' },
         hint: 'Compare the time taken to complete the same angular interval at both settings.',
+        estimatedMinutes: 1
+      },
+      {
+        id: 'assessment-four-strokes',
+        title: 'Knowledge check: four-stroke order',
+        objective: 'Recall the correct order of the four strokes.',
+        explanation: 'The intake stroke draws in the charge, compression raises its pressure, the power stroke contributes work, and exhaust clears the cylinder. This sequence describes the idealized teaching cycle; exact valve events vary by engine.',
+        learnerTask: 'Choose the stroke sequence that matches the system you just explored.',
+        completionRule: { type: 'ANSWER_QUESTION', questionId: 'v8-assessment-four-strokes' },
+        question: {
+          id: 'v8-assessment-four-strokes',
+          prompt: 'What is the correct order of the four strokes?',
+          choices: [
+            { id: 'a', text: 'Intake → compression → power → exhaust' },
+            { id: 'b', text: 'Power → intake → exhaust → compression' },
+            { id: 'c', text: 'Compression → exhaust → intake → power' }
+          ],
+          correctChoiceId: 'a',
+          explanation: 'Correct. The conventional teaching order is intake, compression, power and exhaust.',
+          hint: 'Start with the stroke that draws the fresh charge into the cylinder.'
+        },
+        estimatedMinutes: 1
+      },
+      {
+        id: 'assessment-valve-phases',
+        title: 'Knowledge check: valve timing',
+        objective: 'Relate the idealized valve-lift windows to the four-stroke sequence.',
+        explanation: 'This educational animation uses simplified 180-degree valve windows: the exhaust valve is illustrated during the exhaust stroke and the intake valve during intake. A real engine uses cam profiles with advance, delay and valve overlap, so this is not a service-timing specification.',
+        learnerTask: 'Use the shared cycle reference to identify which valve is active during the exhaust stroke.',
+        completionRule: { type: 'ANSWER_QUESTION', questionId: 'v8-assessment-valve-phases' },
+        question: {
+          id: 'v8-assessment-valve-phases',
+          prompt: 'In the lesson’s simplified stroke windows, which valve opens during the exhaust stroke?',
+          choices: [
+            { id: 'intake', text: 'Intake valve' },
+            { id: 'exhaust', text: 'Exhaust valve' },
+            { id: 'both', text: 'Both remain fully open for the entire cycle' }
+          ],
+          correctChoiceId: 'exhaust',
+          explanation: 'Correct. The illustrative model opens the exhaust valve during the exhaust window and the intake valve during the intake window.',
+          hint: 'The exhaust stroke moves spent gases out of the cylinder.'
+        },
+        estimatedMinutes: 1
+      },
+      {
+        id: 'assessment-model-limits',
+        title: 'Knowledge check: model limits',
+        objective: 'Separate a useful engineering visualization from unsupported performance claims.',
+        explanation: 'The V8 is a representative, generic educational assembly. Its motion and sound help demonstrate relationships, but the model is not a validated thermodynamic, torque, power, fuel-consumption or durability simulation.',
+        learnerTask: 'Choose the statement that correctly describes what this model can and cannot tell you.',
+        completionRule: { type: 'ANSWER_QUESTION', questionId: 'v8-assessment-model-limits' },
+        question: {
+          id: 'v8-assessment-model-limits',
+          prompt: 'What should you infer from this V8 visualization and synthesized sound?',
+          choices: [
+            { id: 'measured', text: 'It predicts real horsepower and fuel economy from the animation.' },
+            { id: 'oem', text: 'It proves the geometry matches a particular manufacturer’s engine.' },
+            { id: 'illustrative', text: 'It demonstrates illustrative kinematics and sound, not validated engine performance or OEM accuracy.' }
+          ],
+          correctChoiceId: 'illustrative',
+          explanation: 'Correct. An educational animation can explain system relationships without proving dimensions or predicting performance.',
+          hint: 'Distinguish what the interface demonstrates from what would require validated geometry and measured or validated physics.'
+        },
         estimatedMinutes: 1
       },
       {
