@@ -3139,7 +3139,7 @@ export function SpatialObjectEngine({
                       const scl = transform ? transform.scale : [1, 1, 1];
                       
                       return (
-                        <group visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
+                        <group key={comp.id} visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
                             ref={(el) => {
                               if (el) componentRefs.current[comp.id] = el;
                               else delete componentRefs.current[comp.id];
