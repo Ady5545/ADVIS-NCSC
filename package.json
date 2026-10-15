@@ -19,8 +19,10 @@
     "validate:capabilities": "node scripts/validate-capabilities.mjs",
     "test:workshop": "node scripts/test-workshop-store.mjs",
     "test:domains": "node scripts/test-domain-models.mjs",
-    "test:kinematics": "node scripts/test-kinematics-reference.mjs",
-    "test:e2e": "playwright test"
+    "test:kinematics": "node scripts/test-kinematics-reference.mjs && npm run test:v8-motion && npm run test:v8-audio",
+    "test:e2e": "playwright test",
+    "test:v8-audio": "node scripts/test-v8-audio-contract.mjs",
+    "test:v8-motion": "node scripts/test-v8-kinematics-contract.mjs"
   },
   "keywords": [
     "browser",
