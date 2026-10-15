@@ -17,6 +17,20 @@ async function answerQuestion(page: Page, option: RegExp | string) {
   await dialog.getByRole('button', { name: 'Check answer' }).click();
 }
 
+async function captureWithin<T>(probe: Promise<T>, fallback: T, timeoutMs = 1_500): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      probe.catch(() => fallback),
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
 test('V8 guided lesson enforces correct answers, teaches the cycle, and restores the assembly', async ({ page }) => {
   // The 3D application has a heavier first-render path than the static smoke tests.
   test.setTimeout(90_000);
@@ -33,11 +47,13 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
 
   const launchLesson = page.getByRole('button', { name: /Guided Lesson/i });
   const failWithLauncherDiagnostics = async (phase: string, cause: unknown): Promise<never> => {
+    // A frozen WebGL/React renderer can stall DOM protocol probes as well as locator actions.
+    // Race each diagnostic against a hard wall-clock cap so diagnostics cannot hang the test.
     const [bodyText, count, visible, bounds] = await Promise.all([
-      page.locator('body').innerText({ timeout: 5_000 }).catch(() => ''),
-      launchLesson.count().catch(() => 0),
-      launchLesson.isVisible().catch(() => false),
-      launchLesson.boundingBox().catch(() => null),
+      captureWithin(page.locator('body').innerText({ timeout: 1_000 }), '[page probe timed out]', 1_500),
+      captureWithin(launchLesson.count(), -1, 1_500),
+      captureWithin(launchLesson.isVisible(), false, 1_500),
+      captureWithin(launchLesson.boundingBox(), null, 1_500),
     ]);
     throw new Error([
       'Guided Lesson launcher failed during ' + phase + ' after selecting canonical model v8_engine.',
@@ -52,8 +68,12 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
   await launchLesson.click({ timeout: 15_000 }).catch((error) => failWithLauncherDiagnostics('click', error));
 
   const dialog = page.getByRole('dialog', { name: 'Guided learning lesson' });
-  await expect(dialog).toBeVisible({ timeout: 30_000 }).catch(async (assertionError) => {
-    const visibleText = (await page.locator('body').innerText()).slice(-2500);
+  await expect(dialog).toBeVisible({ timeout: 15_000 }).catch(async (assertionError) => {
+    const visibleText = (await captureWithin(
+      page.locator('body').innerText({ timeout: 1_000 }),
+      '[page probe timed out]',
+      1_500,
+    )).slice(-2500);
     throw new Error(
       'The Guided Lesson button was clicked but the lesson dialog did not appear. ' +
       'Browser errors: ' + (pageErrors.join(' | ') || '(none captured)') +
