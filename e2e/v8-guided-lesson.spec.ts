@@ -36,7 +36,13 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
   test.setTimeout(90_000);
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
+  const browserEvents: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
+  page.on('crash', () => browserEvents.push('page crash'));
+  page.on('close', () => browserEvents.push('page close'));
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) browserEvents.push('main frame navigated: ' + frame.url());
+  });
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text());
   });
@@ -60,6 +66,8 @@ test('V8 guided lesson enforces correct answers, teaches the cycle, and restores
       'Launcher count=' + count + '; visible=' + visible + '; bounds=' + JSON.stringify(bounds),
       'Page errors: ' + (pageErrors.slice(-12).join(' | ') || '(none)'),
       'Console errors: ' + (consoleErrors.slice(-20).join(' | ') || '(none)'),
+      'Browser lifecycle/navigation events: ' + (browserEvents.slice(-20).join(' | ') || '(none)'),
+      'Current URL: ' + page.url(),
       'Visible page text tail: ' + (bodyText.slice(-3000) || '(empty)'),
       'Original Playwright error: ' + String(cause),
     ].join('\n'));
