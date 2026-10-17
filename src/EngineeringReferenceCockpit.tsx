@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, ChevronDown, ChevronRight, Maximize2, Play, Ruler, Sparkles, X, Layers3, Eye, EyeOff, Search, Undo2, Redo2, Lightbulb, Save, FolderOpen } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveComponentFidelity, resolveObjectFidelity } from './cad/GeometryFidelity';
-import { buildComponentHierarchy, ComponentTreeNode } from './models/assemblies/ComponentHierarchy';
+import { buildComponentHierarchy, ComponentTreeNode, resolveVisibleComponentIds } from './models/assemblies/ComponentHierarchy';
 import { V8_CAMERA_PRESETS } from './components/v8/V8EngineController';
 import { V12_CAMERA_PRESETS, V12_INSPECTION_CONFIG } from './scientific/V12ScientificConfig';
 import { V12SynchronizedDiagrams } from './scientific/V12SynchronizedDiagrams';
@@ -111,6 +111,10 @@ export function EngineeringReferenceCockpit({
   const objectKey = Array.isArray(activeObject) ? activeObject[0] : activeObject;
   const objectMeta = objectKey ? SPATIAL_LIBRARY[objectKey] : null;
   const components = objectMeta?.components || [];
+  const effectiveVisibleComponentIds = useMemo(
+    () => resolveVisibleComponentIds({ components }, hiddenComponentIds, isolatedComponentId),
+    [components, hiddenComponentIds, isolatedComponentId],
+  );
   const fidelity = objectMeta ? resolveObjectFidelity(objectMeta) : null;
   const isV12 = objectKey === 'v12_engine';
   const isV8 = objectKey === 'v8_engine';
@@ -161,7 +165,9 @@ export function EngineeringReferenceCockpit({
     const component = node.component;
     if (!component) return null;
     const active = selectedComponentId === component.id;
-    const hidden = hiddenComponentIds.includes(component.id);
+    const explicitlyHidden = hiddenComponentIds.includes(component.id);
+    const hidden = !effectiveVisibleComponentIds.has(component.id);
+    const hiddenByParentOrIsolation = hidden && !explicitlyHidden;
     const subCollapsed = collapsedTreeNodes[node.id] ?? false;
     return (
       <div key={node.id} style={{ paddingLeft: Math.min(depth * 8, 24) }} className="flex items-stretch gap-1">
@@ -179,11 +185,12 @@ export function EngineeringReferenceCockpit({
         </button>
         <button
           type="button"
-          aria-label={hidden ? `Show ${component.name}` : `Hide ${component.name}`}
+          aria-label={explicitlyHidden ? `Show ${component.name}` : hiddenByParentOrIsolation ? `${component.name} hidden by parent or isolation` : `Hide ${component.name}`}
           aria-pressed={!hidden}
-          title={hidden ? 'Show component' : 'Hide component'}
+          title={explicitlyHidden ? 'Show component' : hiddenByParentOrIsolation ? 'This component is hidden by a parent or active isolation. Restore visibility at that level.' : 'Hide component'}
+          disabled={hiddenByParentOrIsolation}
           onClick={() => onToggleComponentVisibility?.(component.id)}
-          className={`w-8 shrink-0 flex items-center justify-center border ${hidden ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:text-slate-900'}`}
+          className={`w-8 shrink-0 flex items-center justify-center border ${hidden ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:text-slate-900'} disabled:cursor-not-allowed disabled:opacity-60`}
         >{hidden ? <EyeOff size={12} /> : <Eye size={12} />}</button>
       </div>
     );
