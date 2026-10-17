@@ -569,3 +569,50 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Legacy scientific controls use Tailwind cyan/slate utilities; normalize them to the same instrument-surface tokens. */
+.advis-root :is(
+  [class*="bg-slate-950/"], [class*="bg-slate-900/"], [class*="bg-slate-800/"],
+  [class*="bg-cyan-950/"], [class*="bg-cyan-900/"], [class*="bg-cyan-800/"]
+) {
+  background-color: var(--advis-surface) !important;
+  color: var(--advis-ink) !important;
+  border-color: var(--advis-line) !important;
+  backdrop-filter: blur(16px);
+}
+.advis-root :is([class*="bg-cyan-500/"], [class*="bg-cyan-400/"]) {
+  background-color: #edf2ff !important;
+}
+.advis-root :is(
+  [class*="border-cyan-"], [class*="border-sky-"]
+) { border-color: var(--advis-line) !important; }
+.advis-root :is(
+  [class~="border-cyan-400"], [class~="border-cyan-400/80"], [class~="border-cyan-400/70"],
+  [class~="border-cyan-300"], [class~="border-cyan-300/50"], [class~="border-sky-400"]
+) { border-color: #cbd8f8 !important; }
+.advis-root :is(
+  [class~="text-cyan-600"], [class~="text-cyan-700"], [class~="text-cyan-800"], [class~="text-cyan-900"],
+  [class~="text-cyan-600/70"], [class~="text-cyan-600/60"]
+) { color: #536b92 !important; }
+.advis-root [class~="bg-black/80"] { color: #f1f5fb !important; }
+.advis-root [class~="bg-black/80"] [class~="text-white"] { color: #f1f5fb !important; }
+
+/* Consistent keyboard and touch feedback across the 3D control surface. */
+.advis-root :where(.advis-pathway-card, .advis-featured-model, .advis-nav-item, .advis-mobile-item, .advis-camera-toggle) {
+  -webkit-tap-highlight-color: transparent;
+}
+.advis-root :where(.advis-pathway-card, .advis-featured-model, .advis-nav-item, .advis-mobile-item, .advis-camera-toggle):active {
+  transform: translateY(0);
+}
+.advis-root :where(.advis-pathway-card, .advis-featured-model, .advis-nav-item, .advis-mobile-item, .advis-camera-toggle):disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+@media (max-width: 400px) {
+  .advis-mobile-nav { gap: 7px; padding-inline: 8px; }
+  .advis-mobile-brand { gap: 5px; }
+  .advis-mobile-brand > span:last-child { font-size: 11px; }
+  .advis-mobile-items { gap: 4px; }
+  .advis-mobile-item { width: 34px; height: 34px; min-width: 34px; }
+}
