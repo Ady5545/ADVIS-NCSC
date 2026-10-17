@@ -232,7 +232,7 @@ function AppContent() {
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [themeColor, setThemeColor] = useState('#22d3ee');
+  const [themeColor, setThemeColor] = useState('#4f7cff');
   const [speechRate, setSpeechRate] = useState(1.05);
 
   const sessionMolecule = useSessionMolecule();
@@ -1571,7 +1571,7 @@ function AppContent() {
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
-      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f5f6] text-slate-900 selection:bg-rose-500/20' : 'bg-black text-white selection:bg-cyan-500/30'}`}>
+      <div ref={containerRef} className={`advis-root relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f5f6] text-slate-900 selection:bg-blue-500/20' : 'bg-black text-white selection:bg-blue-500/30'}`}>
       
       {/* Action Preview Overlay */}
       {actionPreview && (
@@ -1643,7 +1643,7 @@ function AppContent() {
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
-          <color attach="background" args={[isEngineeringMode ? '#f4f5f6' : '#020617']} />
+          <color attach="background" args={[isEngineeringMode ? '#f4f5f6' : '#0b1324']} />
           {!isEngineeringMode && (
             <HologramCore
               systemState={systemState}
@@ -1734,10 +1734,40 @@ function AppContent() {
     />
 
     {/* UI Layer */}
-    <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
+    <div className="advis-ui-layer absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
       <div className={`transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
         <MobileNav currentView={currentView} setView={setCurrentView} />
       </div>
+      {!isSpatial && (
+        <header className="advis-workspace-topbar" aria-label="Workspace status and input controls">
+          <div className="advis-topbar-title">
+            <span className="advis-topbar-crumb">A.D.V.I.S. / Spatial studio</span>
+            <strong className="advis-topbar-heading">{currentView === 'home' ? 'Workspace overview' : currentView.replace(/-/g, ' ')}</strong>
+          </div>
+          <div className="advis-topbar-tools">
+            <span className="advis-status-chip" aria-live="polite">
+              <span className="advis-state-dot" data-state={systemState} />
+              {systemState === 'ONLINE' ? 'System ready' : systemState.toLowerCase().replace(/_/g, ' ')}
+            </span>
+            <span className={`advis-gesture-status ${cvEnabled ? 'is-active' : ''}`}>
+              <span className="advis-state-dot" data-state={cvEnabled ? 'ONLINE' : 'OFFLINE'} />
+              {cvEnabled ? ((handTracking.handsDetected || 0) > 0 ? 'Hand detected' : 'Camera active') : 'Hand input off'}
+            </span>
+            <button
+              type="button"
+              className={`advis-camera-toggle ${cvEnabled ? 'is-active' : ''}`}
+              aria-pressed={cvEnabled}
+              onClick={() => {
+                setCameraPermissionError(null);
+                setCvEnabled(!cvEnabled);
+              }}
+            >
+              <span aria-hidden="true">{cvEnabled ? '◉' : '◎'}</span>
+              {cvEnabled ? 'Disable hand input' : 'Enable hand input'}
+            </button>
+          </div>
+        </header>
+      )}
       <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
         <div className={`hidden lg:block transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
           <Sidebar currentView={currentView} setView={setCurrentView} />

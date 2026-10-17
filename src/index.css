@@ -13,67 +13,239 @@
 
 @layer base {
   :root {
-    --background: 200 100% 2%;
-    --foreground: 0 0% 100%;
-    --primary: #22d3ee;
-    --primary-dark: 190 100% 30%;
+    color-scheme: dark;
+    --background: 220 35% 8%;
+    --foreground: 220 20% 96%;
+    --primary: #4f7cff;
+    --primary-dark: 225 70% 40%;
+    --advis-accent: #4f7cff;
+    --advis-accent-strong: #315bd4;
+    --advis-ink: #1b2b43;
+    --advis-muted: #67768c;
+    --advis-line: #d9e1ed;
+    --advis-paper: rgba(249, 251, 254, 0.96);
   }
-
+  * { box-sizing: border-box; }
+  html, body, #root { width: 100%; height: 100%; min-height: 100%; margin: 0; }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    overflow: hidden;
-    font-family: ui-sans-serif, system-ui, sans-serif;
+    background: #0b1324; color: #e2e8f0; overflow: hidden;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
+  button, input, textarea, select { font: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
 }
 
 @layer utilities {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 255, 255, 0.05);
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.2);
-    border-radius: 4px;
-  }
-  .mask-image-bottom {
-    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-  }
-  .mask-image-both {
-    mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100,116,139,.3); border-radius: 20px; }
+  .mask-image-bottom { mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+  .mask-image-both { mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
-@keyframes scan {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(150px); opacity: 0; }
+.advis-root { isolation: isolate; background: #0b1324; color: #eef3fb; --primary: #4f7cff; }
+.advis-root .font-mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+.advis-root [class*="drop-shadow"] { filter: none !important; }
+.advis-root [class*="shadow-[0_0_"] { box-shadow: 0 12px 30px rgba(7,20,43,.14) !important; }
+
+/* Restyle legacy DOM panels while leaving Three.js materials and model geometry untouched. */
+.advis-root [class~="bg-black/60"],
+.advis-root [class~="bg-black/40"],
+.advis-root [class~="bg-black/50"],
+.advis-root [class~="bg-slate-950/80"],
+.advis-root [class~="bg-slate-950/95"],
+.advis-root [class~="bg-slate-950/90"],
+.advis-root [class~="bg-cyan-950/40"],
+.advis-root [class~="bg-cyan-950/60"],
+.advis-root [class~="bg-cyan-950/80"],
+.advis-root [class~="bg-cyan-950"] {
+  background-color: rgba(249,251,254,.96) !important;
+  color: #26364f !important; backdrop-filter: blur(18px);
 }
+.advis-root [class~="bg-cyan-500/10"],
+.advis-root [class~="bg-cyan-500/20"],
+.advis-root [class~="bg-cyan-500/30"],
+.advis-root [class~="bg-cyan-500/40"] { background-color: rgba(79,124,255,.09) !important; }
+.advis-root [class~="text-white"],
+.advis-root [class~="text-cyan-50"],
+.advis-root [class~="text-cyan-100"] { color: #243650 !important; }
+.advis-root [class~="text-cyan-200"] { color: #344b6c !important; }
+.advis-root [class~="text-cyan-300"] { color: #3c62b7 !important; }
+.advis-root [class~="text-cyan-400"] { color: #315fd5 !important; }
+.advis-root [class~="text-cyan-500"],
+.advis-root [class~="text-cyan-500/70"],
+.advis-root [class~="text-cyan-500/60"],
+.advis-root [class~="text-cyan-400/70"],
+.advis-root [class~="text-cyan-400/60"],
+.advis-root [class~="text-cyan-400/50"] { color: #687990 !important; }
+.advis-root [class~="border-cyan-500/10"],
+.advis-root [class~="border-cyan-500/15"],
+.advis-root [class~="border-cyan-500/20"],
+.advis-root [class~="border-cyan-500/30"],
+.advis-root [class~="border-cyan-500/40"],
+.advis-root [class~="border-cyan-400"],
+.advis-root [class~="border-cyan-400/50"] { border-color: #d8e2f0 !important; }
+.advis-root [class~="placeholder-cyan-500/30"]::placeholder,
+.advis-root [class~="placeholder:text-cyan-600"]::placeholder { color: #8a98ad !important; }
+.advis-root [class~="bg-black/80"] { background-color: rgba(12,20,36,.88) !important; }
 
+.advis-ui-layer { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; pointer-events: none; }
+.advis-workspace-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 76px;
+  margin: 14px 18px 0; padding: 14px 22px; border: 1px solid rgba(201,214,232,.9); border-radius: 18px;
+  background: rgba(248,250,254,.96); color: #1b2b43; box-shadow: 0 14px 44px rgba(2,11,29,.18);
+  backdrop-filter: blur(24px); pointer-events: auto;
+}
+.advis-topbar-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.advis-topbar-crumb { color: #78869a; font-size: 9px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+.advis-topbar-heading { color: #1b2b43; font-size: 19px; font-weight: 750; line-height: 1.2; letter-spacing: -.035em; text-transform: capitalize; }
+.advis-topbar-tools { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 9px; }
+.advis-status-chip, .advis-gesture-status {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 7px 11px;
+  border-radius: 999px; border: 1px solid #dce4f0; background: #fff; color: #53637a;
+  font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+}
+.advis-state-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a675; box-shadow: 0 0 0 3px rgba(22,166,117,.12); }
+.advis-state-dot[data-state="THINKING"], .advis-state-dot[data-state="ANALYZING"], .advis-state-dot[data-state="SEARCHING"] { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.13); }
+.advis-state-dot[data-state="ERROR"], .advis-state-dot[data-state="OFFLINE"] { background: #e04f5f; box-shadow: 0 0 0 3px rgba(224,79,95,.13); }
+.advis-gesture-status.is-active { background: #eef4ff; border-color: #c8d7ff; color: #315bd4; }
+.advis-camera-toggle {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 9px 14px;
+  border: 1px solid #315fd5; border-radius: 11px; background: #315fd5; color: #fff;
+  font-size: 11px; font-weight: 750; cursor: pointer; transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  box-shadow: 0 5px 14px rgba(49,95,213,.18);
+}
+.advis-camera-toggle:hover { background: #254fc0; box-shadow: 0 8px 20px rgba(49,95,213,.23); transform: translateY(-1px); }
+.advis-camera-toggle.is-active { background: #eaf8f2; border-color: #b5e4d0; color: #137653; box-shadow: none; }
 
-/* Respect operating-system motion preferences and make keyboard focus unmistakable. */
+.advis-sidebar {
+  width: 236px; min-height: calc(100vh - 122px); margin: 18px 0 18px 18px; padding: 17px 13px 13px;
+  display: flex; flex-direction: column; gap: 15px; color: #253650;
+  background: rgba(249,251,254,.97); border: 1px solid rgba(208,219,234,.95); border-radius: 19px;
+  box-shadow: 0 18px 48px rgba(2,11,29,.22); backdrop-filter: blur(24px); overflow: hidden;
+}
+.advis-brand { display: flex; align-items: center; gap: 10px; padding: 6px 7px 14px; border-bottom: 1px solid #e6ebf3; }
+.advis-brand-mark { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; color: #fff; background: linear-gradient(145deg,#648bff,#315bd4); box-shadow: 0 7px 16px rgba(49,91,212,.22); }
+.advis-brand-name { color: #182a45; font-size: 16px; font-weight: 850; line-height: 1; letter-spacing: .04em; }
+.advis-brand-caption { margin-top: 5px; color: #7a879a; font-size: 8px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.advis-sidebar-label { padding: 3px 9px 0; color: #9aa5b5; font-size: 9px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.advis-sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.advis-nav-item {
+  position: relative; display: flex; align-items: center; gap: 11px; width: 100%; min-height: 39px; padding: 9px 10px;
+  border: 1px solid transparent; border-radius: 11px; color: #6a7890; background: transparent; text-align: left;
+  cursor: pointer; transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.advis-nav-item svg { flex: 0 0 auto; }
+.advis-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 650; letter-spacing: -.01em; }
+.advis-nav-item:hover { color: #2e58c2; background: #f0f4fc; }
+.advis-nav-item.is-active { color: #315bd4; background: #edf2ff; border-color: #dce6ff; box-shadow: inset 3px 0 0 #426bf0; }
+.advis-nav-item.is-active svg { color: #315bd4; }
+.advis-sidebar-footer { margin-top: auto; padding: 12px 11px; border: 1px solid #e0e7f1; border-radius: 13px; background: #f4f7fb; }
+.advis-footer-title { display: flex; align-items: center; gap: 8px; color: #41526b; font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.advis-footer-dot { width: 6px; height: 6px; border-radius: 50%; background: #20a779; box-shadow: 0 0 0 3px rgba(32,167,121,.12); }
+.advis-footer-copy { margin-top: 6px; color: #8794a7; font-size: 9px; line-height: 1.5; }
+
+.advis-home { width: min(100%,930px); max-height: calc(100vh - 218px); overflow-y: auto; margin: auto; padding: 25px 24px 150px; color: #e9effb; scrollbar-width: thin; scrollbar-color: rgba(148,163,184,.35) transparent; }
+.advis-home-hero { max-width: 690px; margin: 0 auto 21px; text-align: center; }
+.advis-home-kicker {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 13px; padding: 6px 10px; border: 1px solid rgba(143,173,235,.26);
+  border-radius: 999px; color: #c5d7ff; background: rgba(27,48,83,.44); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+}
+.advis-home-title { margin: 0; color: #f8fbff; font-size: clamp(29px,4vw,46px); font-weight: 750; letter-spacing: -.055em; line-height: 1.06; }
+.advis-home-title span { color: #80a4ff; }
+.advis-home-description { max-width: 610px; margin: 13px auto 0; color: #a8b7ce; font-size: 13px; line-height: 1.7; }
+.advis-home-label-row { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: #d7e2f4; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.advis-home-label-row::after { content: ""; height: 1px; flex: 1; background: rgba(148,163,184,.19); }
+.advis-pathway-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.advis-pathway-card {
+  min-height: 136px; padding: 14px; border: 1px solid rgba(162,184,224,.23); border-radius: 15px;
+  background: linear-gradient(155deg,rgba(26,42,67,.92),rgba(16,28,47,.93)); color: #ecf3ff; text-align: left;
+  cursor: pointer; transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.advis-pathway-card:hover { transform: translateY(-3px); border-color: rgba(116,153,255,.72); background: linear-gradient(155deg,rgba(35,55,87,.96),rgba(19,34,57,.96)); }
+.advis-pathway-icon { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 14px; border-radius: 10px; background: rgba(108,145,255,.14); color: #94b1ff; }
+.advis-pathway-title { color: #f4f7ff; font-size: 12px; font-weight: 750; line-height: 1.35; }
+.advis-pathway-copy { margin-top: 6px; color: #a3b3cb; font-size: 10px; line-height: 1.55; }
+.advis-featured-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.advis-featured-model {
+  display: flex; align-items: center; gap: 10px; min-width: 0; padding: 11px 12px; border: 1px solid rgba(156,178,219,.20);
+  border-radius: 12px; background: rgba(19,32,53,.84); color: #e9f0ff; text-align: left; cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.advis-featured-model:hover { background: rgba(38,57,89,.93); border-color: rgba(128,164,255,.55); transform: translateY(-1px); }
+.advis-featured-icon { display: grid; place-items: center; width: 31px; height: 31px; flex: 0 0 auto; border-radius: 9px; color: #a5bdff; background: rgba(88,124,221,.14); }
+.advis-featured-name { min-width: 0; color: #ecf3ff; font-size: 10px; font-weight: 750; line-height: 1.3; }
+.advis-featured-category { margin-top: 3px; color: #91a4c0; font-size: 9px; }
+.advis-home-hint { margin: 14px 0 0; color: #7e91ae; text-align: center; font-size: 10px; line-height: 1.6; }
+
+.advis-command-dock { width: min(100%,760px) !important; bottom: 16px !important; }
+.advis-command-dock .relative.group > div:first-child { display: none; }
+.advis-command-dock .relative.group > div:nth-child(2) {
+  padding: 7px !important; gap: 8px !important; border: 1px solid rgba(202,215,235,.95) !important; border-radius: 18px !important;
+  background: rgba(249,251,254,.97) !important; color: #273850 !important; box-shadow: 0 18px 48px rgba(2,11,29,.25) !important; backdrop-filter: blur(22px);
+}
+.advis-command-dock input[type="text"] {
+  min-width: 0; padding: 10px 4px !important; color: #1e2e47 !important;
+  font-family: Inter,ui-sans-serif,system-ui,sans-serif !important; font-size: 13px !important; letter-spacing: 0 !important; font-weight: 550;
+}
+.advis-command-dock input[type="text"]::placeholder { color: #8795aa !important; }
+.advis-command-dock button { cursor: pointer; transition: background .16s ease, color .16s ease, transform .16s ease; }
+.advis-command-dock .relative.group > div:nth-child(2) > button {
+  min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 12px; color: #6f7f97 !important;
+}
+.advis-command-dock .relative.group > div:nth-child(2) > button:last-child { background: #315fd5 !important; color: #fff !important; box-shadow: 0 5px 12px rgba(49,95,213,.22); }
+.advis-command-dock .relative.group > div:nth-child(2) > button:last-child:hover { background: #254fc0 !important; transform: translateY(-1px); }
+.advis-command-dock .relative.group > div:nth-child(2) > button:hover { background: #edf2fc !important; color: #315fd5 !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 { padding: 0 7px; color: #a9b8cd; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="bg-black/40"] { background: rgba(17,31,52,.9) !important; color: #b7c7e1 !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="border-cyan-500/30"] { border-color: rgba(148,163,184,.25) !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="text-cyan-500/70"] { color: #a6b5ca !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="text-cyan-400"] { color: #9eb8ff !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="text-cyan-300"] { color: #c1d1ff !important; }
+.advis-command-dock .flex.justify-between.items-center.mt-2 [class~="bg-black/40"] { border-radius: 999px; }
+
+.advis-mobile-nav {
+  position: absolute; z-index: 30; inset: 0 0 auto; display: flex; align-items: center; gap: 12px; padding: 11px 13px;
+  border-bottom: 1px solid rgba(189,205,230,.16); background: rgba(12,20,36,.82); backdrop-filter: blur(22px); pointer-events: auto;
+}
+.advis-mobile-brand { display: flex; align-items: center; gap: 8px; color: #f1f5ff; flex: 0 0 auto; font-weight: 850; font-size: 13px; letter-spacing: .04em; }
+.advis-mobile-mark { display: grid; place-items: center; width: 29px; height: 29px; color: #fff; background: #4169eb; border-radius: 9px; }
+.advis-mobile-items { display: flex; gap: 5px; overflow-x: auto; margin-left: auto; }
+.advis-mobile-item { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid rgba(176,194,224,.16); border-radius: 10px; color: #9aacc9; background: rgba(27,41,63,.85); cursor: pointer; }
+.advis-mobile-item.is-active { color: #c2d2ff; border-color: rgba(125,158,255,.65); background: rgba(62,96,186,.38); }
+
+.advis-root :where(button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])):focus-visible { outline: 2px solid #80a4ff; outline-offset: 3px; }
+
+@media (max-width: 1279px) {
+  .advis-pathway-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .advis-home { max-width: 760px; }
+}
+@media (max-width: 1023px) {
+  .advis-workspace-topbar { display: none; }
+  .advis-sidebar { display: none; }
+  .advis-home { max-height: calc(100vh - 200px); padding: 18px 13px 160px; }
+  .advis-home-title { font-size: clamp(28px,7vw,38px); }
+  .advis-home-description { font-size: 12px; }
+  .advis-featured-row { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .advis-command-dock { bottom: 8px !important; padding-left: 10px !important; padding-right: 10px !important; }
+  .advis-command-dock .relative.group > div:nth-child(2) { border-radius: 15px !important; }
+}
+@media (max-width: 560px) {
+  .advis-pathway-grid { gap: 7px; }
+  .advis-pathway-card { min-height: 122px; padding: 11px; }
+  .advis-pathway-icon { width: 30px; height: 30px; margin-bottom: 10px; }
+  .advis-pathway-title { font-size: 11px; }
+  .advis-pathway-copy { font-size: 9px; }
+  .advis-featured-row { grid-template-columns: 1fr; }
+  .advis-home { padding-top: 15px; }
+  .advis-home-hero { margin-bottom: 17px; }
+  .advis-command-dock .relative.group > div:nth-child(2) > button { min-width: 34px; min-height: 36px; padding: 8px !important; }
+  .advis-command-dock input[type="text"] { font-size: 12px !important; }
+}
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-:where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--primary, #22d3ee);
-  outline-offset: 3px;
+  *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
