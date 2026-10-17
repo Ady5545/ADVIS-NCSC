@@ -142,8 +142,12 @@ export function resolveVisibleComponentIds(
         continue;
       }
 
-      const hiddenHere = hiddenByAncestor || hidden.has(node.id);
-      const insideSelectedSubtree = insideIsolation || node.id === isolationTarget;
+      const startsIsolationHere = node.id === isolationTarget;
+      const insideSelectedSubtree = insideIsolation || startsIsolationHere;
+      // Isolation is an explicit inspection command: make the selected root visible
+      // even when a higher ancestor was hidden, but continue respecting hidden
+      // descendants inside the isolated subtree.
+      const hiddenHere = startsIsolationHere ? false : hiddenByAncestor || hidden.has(node.id);
       if (!hiddenHere && (!isolationTarget || insideSelectedSubtree)) {
         visible.add(node.id);
       }
