@@ -103,6 +103,58 @@ export function buildComponentHierarchy(
   return roots;
 }
 
+/**
+ * Calculates effective component visibility from canonical hierarchy metadata.
+ * Hiding a parent hides its descendants. Isolating a component shows that component
+ * and its descendants, while keeping unrelated siblings out of view. The returned
+ * set is derived state; this function never mutates the catalog.
+ */
+export function resolveVisibleComponentIds(
+  object: Pick<ObjectMetadata, 'components'>,
+  hiddenComponentIds: readonly string[] = [],
+  isolatedComponentId: string | null = null,
+): Set<string> {
+  const roots = buildComponentHierarchy(object);
+  const allComponentIds = new Set<string>();
+  const collectIds = (nodes: ComponentTreeNode[]) => {
+    for (const node of nodes) {
+      if (node.kind === 'component') allComponentIds.add(node.id);
+      collectIds(node.children);
+    }
+  };
+  collectIds(roots);
+
+  // A stale isolation target should not blank the entire assembly.
+  const isolationTarget = isolatedComponentId && allComponentIds.has(isolatedComponentId)
+    ? isolatedComponentId
+    : null;
+  const hidden = new Set(hiddenComponentIds);
+  const visible = new Set<string>();
+
+  const visit = (
+    nodes: ComponentTreeNode[],
+    hiddenByAncestor: boolean,
+    insideIsolation: boolean,
+  ) => {
+    for (const node of nodes) {
+      if (node.kind === 'subsystem') {
+        visit(node.children, hiddenByAncestor, insideIsolation);
+        continue;
+      }
+
+      const hiddenHere = hiddenByAncestor || hidden.has(node.id);
+      const insideSelectedSubtree = insideIsolation || node.id === isolationTarget;
+      if (!hiddenHere && (!isolationTarget || insideSelectedSubtree)) {
+        visible.add(node.id);
+      }
+      visit(node.children, hiddenHere, insideSelectedSubtree);
+    }
+  };
+
+  visit(roots, false, false);
+  return visible;
+}
+
 /** Validates hierarchy metadata without treating the legacy one-level catalog as invalid. */
 export function validateComponentHierarchy(
   object: Pick<ObjectMetadata, 'components'>,
