@@ -174,6 +174,11 @@ try {
     'Explicitly hidden descendants must stay hidden when an ancestor is isolated.',
   );
   assert.deepEqual(
+    visibleIds(['root'], 'branch'),
+    ['branch', 'leaf'],
+    'Explicitly isolating a child must reveal its subtree even if an ancestor was hidden.',
+  );
+  assert.deepEqual(
     visibleIds([], 'no-such-component'),
     ['branch', 'leaf', 'other', 'root', 'sibling'],
     'A stale isolation ID must fail open to normal visibility, not blank the assembly.',
