@@ -3221,7 +3221,7 @@ export function SpatialObjectEngine({
                             </Html>
                           )}
                           
-                           {(isHovered || isSelected || (showLabels && isIsolated)) && (
+                           {(isHovered || isSelected || (showLabels && isVisibleInAssembly)) && (
                             <Html distanceFactor={8} position={[comp.size[0]/2 + 0.5, comp.size[1]/2 + 0.5, 0]} center zIndexRange={[100, 0]}>
                               <div className="flex flex-row items-center pointer-events-none animate-fade-in mix-blend-screen transition-opacity duration-300">
                                 <div className="w-16 h-[1px] bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
