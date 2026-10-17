@@ -102,7 +102,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
   };
 
   return (
-    <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-2 md:px-4 pointer-events-auto flex flex-col gap-2 z-20">
+    <div className="advis-command-dock absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-2 md:px-4 pointer-events-auto flex flex-col gap-2 z-20">
       {attachedFile && (
         <div className="self-start flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/50 rounded-lg px-3 py-1 text-xs font-mono text-cyan-300">
           <Paperclip size={12} />
