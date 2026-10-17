@@ -11,6 +11,9 @@
 3. **V8 hierarchy made explicit.** Added parent/child relationships for the V8's major subsystems while retaining the existing 22 legacy component records and stable IDs. Existing hierarchy utilities remain the shared implementation.
 4. **Representative model explosion contract added.** Regression checks cover the V8, V12 and ESP32 board, catalog entries declaring exploded parts, ID integrity, finite offsets, stage bounds and progress, assembled/exploded endpoints, and protection against mutating canonical catalog transforms.
 5. **V8 tree contract added.** Checks that all 22 V8 components are represented, parent-child declarations agree, IDs remain unique and expected nesting exists.
+7. **Browser interaction regression added.** `e2e/model-exploration.spec.ts` opens the catalog V12 in the running application, opens the engineering workstation, searches/selects the crankshaft, exercises isolate/restore and hide/show, then checks staged separation, full explosion and reassembly through the actual controls. The UI exposes the current factor as a polite live status for robust assertions. This checks the interactive application path, but not pixel-level or world-space geometry separation.
+8. **Invalid hierarchy and transform inputs covered.** Hierarchy contracts now assert that duplicate IDs, missing parents/children, self-parenting, contradictory parent/child declarations and cycles are detected. Explosion contracts also check a deterministic intermediate position, a staged midpoint, exact assembled return and non-finite factor/stage handling.
+
 6. **CI wiring updated.** The existing `test:explosion` command runs its original math tests plus the new model explosion and V8 hierarchy contracts. This remains compatible with Quarter 1's CAD evidence test under `validate:catalog`.
 
 ## Verification gate
