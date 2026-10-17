@@ -54,9 +54,9 @@ function createParticleCloud(
 function createSphereGrid(): Float32Array {
   const points: number[] = [];
   const radius = 1.78;
-  const latitudes = 17;
-  const longitudes = 26;
-  const samples = 96;
+  const latitudes = 13;
+  const longitudes = 18;
+  const samples = 64;
 
   for (let i = 1; i < latitudes; i++) {
     const phi = Math.PI * (i / latitudes);
@@ -94,7 +94,7 @@ function createSphereGrid(): Float32Array {
 function createRadialDataGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0x51a7);
-  const spokes = 92;
+  const spokes = 52;
 
   for (let i = 0; i < spokes; i++) {
     const theta = (i / spokes) * TAU + random() * 0.03;
@@ -118,7 +118,7 @@ function createRadialDataGeometry(): Float32Array {
 function createEnergyFilamentGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xB17E5);
-  const filaments = 420;
+  const filaments = 130;
 
   for (let i = 0; i < filaments; i++) {
     const theta = random() * TAU;
@@ -166,7 +166,7 @@ function createEnergyFilamentGeometry(): Float32Array {
 function createSurfaceCircuitGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xC1AC7);
-  const traces = 150;
+  const traces = 70;
 
   for (let i = 0; i < traces; i++) {
     const theta = random() * TAU;
@@ -201,8 +201,8 @@ function createSurfaceCircuitGeometry(): Float32Array {
 function createArcNetwork(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xA71F);
-  const layers = 10;
-  const segmentsPerLayer = 9;
+  const layers = 7;
+  const segmentsPerLayer = 6;
 
   for (let layer = 0; layer < layers; layer++) {
     const radius = 2.05 + layer * 0.13;
@@ -273,10 +273,10 @@ export function HologramCore({
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(2200, 2.7, 5.0, 0x48D7FF, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(1500, 2.05, 3.9, 0x1677FF, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(760, 1.02, 2.45, 0x2AC5FF, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(1200, 0.74, 1.82, 0xF2FDFF, 0.30), []);
+  const outerParticles = useMemo(() => createParticleCloud(440, 2.7, 5.0, 0x48D7FF, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(260, 2.05, 3.9, 0x1677FF, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(130, 1.02, 2.45, 0x2AC5FF, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(72, 0.74, 1.82, 0xF2FDFF, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -290,14 +290,11 @@ export function HologramCore({
   }, []);
 
   const ringConfigs = useMemo(() => [
-    { radius: 1.94, tube: 0.010, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.72 },
-    { radius: 2.10, tube: 0.012, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.46 },
-    { radius: 2.30, tube: 0.008, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.62 },
-    { radius: 2.52, tube: 0.010, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.50 },
-    { radius: 2.78, tube: 0.008, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.56 },
-    { radius: 3.02, tube: 0.007, rotation: [0.78, 0.46, -0.92] as [number, number, number], opacity: 0.34 },
-    { radius: 3.30, tube: 0.006, rotation: [1.12, -0.28, 0.32] as [number, number, number], opacity: 0.28 },
-    { radius: 3.56, tube: 0.005, rotation: [-0.72, 0.44, 1.04] as [number, number, number], opacity: 0.22 },
+    { radius: 1.98, tube: 0.011, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.60 },
+    { radius: 2.34, tube: 0.010, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.43 },
+    { radius: 2.76, tube: 0.008, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.34 },
+    { radius: 3.18, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.27 },
+    { radius: 3.58, tube: 0.006, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.20 },
   ], []);
 
   // JARVIS-inspired blue-white spatial core: cool blue only, with a white-hot center.
@@ -324,10 +321,10 @@ export function HologramCore({
       new THREE.LineBasicMaterial({ color: '#46d7ff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
       new THREE.LineBasicMaterial({ color: '#237dff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#dff9ff', transparent: true, opacity: 0.78, size: 0.030, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#6edfff', transparent: true, opacity: 0.64, size: 0.024, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#269cff', transparent: true, opacity: 0.76, size: 0.019, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#f1fdff', transparent: true, opacity: 0.92, size: 0.015, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    particles: new THREE.PointsMaterial({ color: '#dff9ff', transparent: true, opacity: 0.56, size: 0.022, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#6edfff', transparent: true, opacity: 0.48, size: 0.018, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#269cff', transparent: true, opacity: 0.46, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#f1fdff', transparent: true, opacity: 0.48, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
     pulse: new THREE.MeshBasicMaterial({ color: '#8ceaff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
   }), [ringConfigs]);
 
@@ -463,8 +460,8 @@ export function HologramCore({
         child.rotation.z += delta * authoredSpeed * (index % 2 === 0 ? 0.22 : -0.16);
         child.rotation.x += delta * authoredSpeed * (index % 3 === 0 ? 0.05 : -0.027);
         materials.ring[index].opacity = Math.min(
-          0.86,
-          ringConfigs[index].opacity + curBass * 0.25 + voice * 0.18 + activity * 0.06
+          0.68,
+          ringConfigs[index].opacity + curBass * 0.14 + voice * 0.10 + activity * 0.035
         ) * opacityFactor;
       });
     }
@@ -474,7 +471,7 @@ export function HologramCore({
       gridRef.current.rotation.y = -time * 0.065 * authoredSpeed;
       gridRef.current.rotation.z = time * 0.025 * authoredSpeed;
       gridRef.current.scale.setScalar((0.95 + theatre.ringSpread * 0.09 + curBass * 0.05) * collapse);
-      materials.grid.opacity = (0.025 + gridControl * 0.34 + curTreble * 0.08) * opacityFactor;
+      materials.grid.opacity = (0.018 + gridControl * 0.22 + curTreble * 0.045) * opacityFactor;
     }
 
     if (radialRef.current) {
@@ -482,7 +479,7 @@ export function HologramCore({
       radialRef.current.rotation.y += delta * 0.075 * authoredSpeed;
       radialRef.current.rotation.z += delta * 0.02;
       radialRef.current.scale.setScalar((0.92 + theatre.ringSpread * 0.08) * collapse);
-      materials.radial.opacity = (0.04 + radialControl * 0.52 + curTreble * 0.22) * opacityFactor;
+      materials.radial.opacity = (0.03 + radialControl * 0.30 + curTreble * 0.10) * opacityFactor;
     }
 
     if (arcRef.current) {
@@ -490,14 +487,14 @@ export function HologramCore({
       arcRef.current.rotation.y -= delta * 0.11 * authoredSpeed;
       arcRef.current.rotation.z += delta * 0.018 * (1 + curBass);
       arcRef.current.scale.setScalar((0.94 + theatre.ringSpread * 0.1 + activity * 0.035) * collapse);
-      materials.arc.opacity = (0.08 + arcControl * 0.62 + curTreble * 0.25 + voice * 0.08) * opacityFactor;
+      materials.arc.opacity = (0.055 + arcControl * 0.40 + curTreble * 0.14 + voice * 0.045) * opacityFactor;
     }
 
     if (filamentRef.current) {
       filamentRef.current.rotation.y -= delta * 0.10 * scanSpeed;
       filamentRef.current.rotation.z += delta * 0.018;
       filamentRef.current.scale.setScalar((0.96 + activity * 0.05) * collapse);
-      materials.radial.opacity = (0.07 + radialControl * 0.58 + curTreble * 0.28) * opacityFactor;
+      materials.radial.opacity = (0.035 + radialControl * 0.32 + curTreble * 0.12) * opacityFactor;
     }
 
     if (circuitRef.current) {
@@ -505,7 +502,7 @@ export function HologramCore({
       circuitRef.current.rotation.y += delta * 0.08 * scanSpeed;
       circuitRef.current.rotation.z += delta * 0.025;
       circuitRef.current.scale.setScalar((0.99 + depthControl * 0.06) * collapse);
-      materials.circuit.opacity = (0.05 + circuitControl * 0.3 + curTreble * 0.2) * opacityFactor;
+      materials.circuit.opacity = (0.035 + circuitControl * 0.20 + curTreble * 0.10) * opacityFactor;
     }
 
     if (arcOrbitRef.current) {
@@ -542,8 +539,8 @@ export function HologramCore({
       outerParticlesRef.current.rotation.z += delta * 0.006;
       outerParticlesRef.current.scale.setScalar((1 + theatre.particleEnergy * 0.16 + activity * 0.05) * collapse);
       const mat = outerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.22 + theatre.particleEnergy * 0.42 + curTreble * 0.3) * opacityFactor;
-      mat.size = 0.018 + curTreble * 0.038 + voice * 0.009;
+      mat.opacity = (0.13 + theatre.particleEnergy * 0.24 + curTreble * 0.16) * opacityFactor;
+      mat.size = 0.014 + curTreble * 0.024 + voice * 0.006;
     }
 
     if (midParticlesRef.current) {
@@ -551,8 +548,8 @@ export function HologramCore({
       midParticlesRef.current.rotation.z += delta * 0.018;
       midParticlesRef.current.scale.setScalar((1 + activity * 0.08) * collapse);
       const mat = midParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.17 + theatre.particleEnergy * 0.34 + curBass * 0.22) * opacityFactor;
-      mat.size = 0.014 + curTreble * 0.032;
+      mat.opacity = (0.10 + theatre.particleEnergy * 0.20 + curBass * 0.13) * opacityFactor;
+      mat.size = 0.010 + curTreble * 0.020;
     }
 
     if (innerParticlesRef.current) {
@@ -560,8 +557,8 @@ export function HologramCore({
       innerParticlesRef.current.rotation.x += delta * 0.025;
       innerParticlesRef.current.scale.setScalar((0.98 + curBass * 0.1) * collapse);
       const mat = innerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.18 + theatre.particleEnergy * 0.4 + curBass * 0.22) * opacityFactor;
-      mat.size = 0.011 + curTreble * 0.022;
+      mat.opacity = (0.085 + theatre.particleEnergy * 0.18 + curBass * 0.12) * opacityFactor;
+      mat.size = 0.008 + curTreble * 0.014;
     }
 
     if (microParticlesRef.current) {
@@ -569,8 +566,8 @@ export function HologramCore({
       microParticlesRef.current.rotation.z += delta * 0.055;
       microParticlesRef.current.scale.setScalar((1.02 + curBass * 0.13) * collapse);
       const mat = microParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.18 + theatre.particleEnergy * 0.4 + microControl * 0.16 + voice * 0.12 + curTreble * 0.16) * opacityFactor;
-      mat.size = 0.008 + microControl * 0.004 + curTreble * 0.018 + voice * 0.006;
+      mat.opacity = (0.06 + theatre.particleEnergy * 0.18 + microControl * 0.08 + voice * 0.06 + curTreble * 0.08) * opacityFactor;
+      mat.size = 0.006 + microControl * 0.003 + curTreble * 0.012 + voice * 0.004;
     }
 
     pulseRefs.current.forEach((pulseRef, index) => {
@@ -595,14 +592,14 @@ export function HologramCore({
       <Octahedron ref={outerShellRef} args={[1.72, 3]} material={materials.shellOuter} />
       <Sphere ref={haloRef} args={[1.56, 48, 48]} material={materials.halo} />
 
-      {/* 2 — six precision orbital bands */}
+      {/* 2 — five spaced precision orbital bands */}
       <group ref={orbitalRef}>
         {ringConfigs.map((ring, index) => (
           <Torus key={index} args={[ring.radius, ring.tube, 10, 96]} rotation={ring.rotation} material={materials.ring[index]} />
         ))}
       </group>
 
-      {/* 3 — dense spherical technical lattice */}
+      {/* 3 — restrained spherical technical lattice */}
       <lineSegments ref={gridRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[sphereGrid, 3]} />
@@ -626,7 +623,7 @@ export function HologramCore({
         <primitive object={materials.arc} attach="material" />
       </lineSegments>
 
-      {/* 5a — dense white-hot energy filaments surrounding the field */}
+      {/* 5a — sparse white-hot energy filaments for clean depth cues */}
       <lineSegments ref={filamentRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[energyFilaments, 3]} />
@@ -644,7 +641,7 @@ export function HologramCore({
 
       {/* 5c — independently oriented arc fragments */}
       <group ref={arcOrbitRef}>
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+        {[0, 1, 2, 3, 4].map((index) => (
           <Torus
             key={index}
             args={[2.25 + (index % 4) * 0.22, 0.006 + (index % 2) * 0.002, 8, 64, Math.PI * (0.28 + (index % 3) * 0.08)]}
@@ -676,7 +673,7 @@ export function HologramCore({
         </lineLoop>
       ))}
 
-      {/* 7 — multi-scale particulate computation field */}
+      {/* 7 — sparse multi-scale particulate computation field */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
         <primitive object={materials.particles} attach="material" />
       </Points>
@@ -691,7 +688,7 @@ export function HologramCore({
       </Points>
 
       {/* 8 — subtle propagating energy shells */}
-      {[0, 1, 2, 3].map((index) => (
+      {[0, 1, 2].map((index) => (
         <Sphere
           key={index}
           ref={(ref) => { pulseRefs.current[index] = ref; }}
