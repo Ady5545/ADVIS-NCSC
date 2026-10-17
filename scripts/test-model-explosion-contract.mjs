@@ -140,6 +140,41 @@ try {
       ' components, ' + explodedParts.length + ' valid exploded parts.');
   }
 
+
+  // Deterministic midpoint, staged midpoint, and exact reassembly behavior.
+  const sampleBase = [2, -4, 1];
+  const sampleOffset = [-3, 8, 5];
+  const midpoint = resolveExplodedPosition(sampleBase, sampleOffset, 0.5);
+  assertVectorClose(midpoint, [0.5, 0, 3.5],
+    'A stage-zero component must be exactly halfway through its offset at factor 0.5.');
+  assertVectorClose(
+    resolveExplodedPosition(sampleBase, sampleOffset, 0.25, 0.5),
+    sampleBase,
+    'A staged component must remain assembled before its departure stage.',
+  );
+  assertVectorClose(
+    resolveExplodedPosition(sampleBase, sampleOffset, 0.75, 0.5),
+    midpoint,
+    'A stage-0.5 component must be halfway through its offset at global factor 0.75.',
+  );
+  const fullyExploded = resolveExplodedPosition(sampleBase, sampleOffset, 1);
+  assertVectorClose(fullyExploded, [ -1, 4, 6 ],
+    'Factor 1 must move a component to the full offset.');
+  assertVectorClose(resolveExplodedPosition(sampleBase, sampleOffset, 0), sampleBase,
+    'Reassembly must restore the exact canonical position.');
+  for (const invalidFactor of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const safePosition = resolveExplodedPosition(sampleBase, sampleOffset, invalidFactor, 0.4);
+    assertVectorClose(safePosition, sampleBase,
+      'Non-finite factor ' + String(invalidFactor) + ' must fail closed to the assembled position.');
+    assert.ok(safePosition.every(Number.isFinite),
+      'Invalid explosion input must never produce a non-finite component position.');
+  }
+  for (const invalidStage of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const safeProgress = resolveStagedExplosionProgress(0.5, invalidStage);
+    assert.ok(Number.isFinite(safeProgress) && safeProgress >= 0 && safeProgress <= 1,
+      'Non-finite stage ' + String(invalidStage) + ' must resolve to bounded progress.');
+  }
+
   console.log('Model explosion contract passed for ' + modelsToCheck.length + ' catalog models (including V8, V12, and ESP32): stable IDs, complete manifest references, staged progress, assembled/exploded endpoints, and immutable source metadata.');
 } catch (error) {
   console.error('Model explosion contract failed:', error);
