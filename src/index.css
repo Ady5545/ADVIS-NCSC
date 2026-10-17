@@ -616,3 +616,282 @@
   .advis-mobile-items { gap: 4px; }
   .advis-mobile-item { width: 34px; height: 34px; min-width: 34px; }
 }
+
+
+/* ADVIS identity home: let the Core own the right side of the stage. */
+.advis-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(270px, .96fr);
+  align-items: stretch;
+  gap: clamp(20px, 3vw, 42px);
+  width: min(100%, 1340px);
+  max-height: calc(100dvh - 132px);
+  margin: auto;
+  padding: 10px clamp(14px, 2.5vw, 34px) 112px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--advis-ink);
+}
+.advis-home-main {
+  align-self: center;
+  min-width: 0;
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+  padding: clamp(20px, 2.4vw, 30px);
+  border: 1px solid rgba(218, 228, 241, .97);
+  border-radius: 24px;
+  background: rgba(249, 251, 254, .97);
+  box-shadow: 0 24px 64px rgba(2, 11, 29, .24), 0 2px 8px rgba(2, 11, 29, .04);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(105, 121, 144, .3) transparent;
+}
+.advis-home-hero {
+  max-width: none;
+  margin: 0 0 23px;
+  text-align: left;
+}
+.advis-home-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 8px 11px;
+  border: 1px solid #dce6ff;
+  border-radius: 999px;
+  color: #3158bd;
+  background: #edf2ff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .11em;
+}
+.advis-home-title {
+  max-width: 580px;
+  margin: 0;
+  color: #1b2b43;
+  font-size: clamp(32px, 3.2vw, 45px);
+  font-weight: 800;
+  letter-spacing: -.058em;
+  line-height: 1.04;
+}
+.advis-home-title span {
+  display: block;
+  color: #315fd5;
+}
+.advis-home-description {
+  max-width: 530px;
+  margin: 15px 0 0;
+  color: #687990;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.advis-core-statusline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 17px;
+  color: #60718a;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .075em;
+}
+.advis-core-statusdot, .advis-core-label-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #2eae82;
+  box-shadow: 0 0 0 3px rgba(46, 174, 130, .12);
+}
+.advis-core-status-divider {
+  width: 1px;
+  height: 12px;
+  margin-inline: 2px;
+  background: #d8e1ed;
+}
+.advis-home-label-row {
+  margin: 0 0 10px;
+  color: #62738b;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+.advis-home-label-row::after { background: #e2e9f3; }
+.advis-pathway-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.advis-pathway-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 126px;
+  padding: 13px 14px;
+  border: 1px solid #e0e7f1;
+  border-radius: 15px;
+  background: #fff;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(18, 39, 71, .025);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.advis-pathway-card:hover {
+  transform: translateY(-2px);
+  border-color: #b9caf8;
+  background: #fff;
+  box-shadow: 0 9px 22px rgba(26, 59, 125, .09);
+}
+.advis-pathway-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #edf2ff;
+  color: #315fd5;
+}
+.advis-pathway-title { padding-right: 10px; color: #233650; font-size: 11px; font-weight: 800; line-height: 1.4; }
+.advis-pathway-copy { margin-top: 5px; color: #748198; font-size: 9px; line-height: 1.55; }
+.advis-pathway-arrow {
+  position: absolute;
+  top: 13px;
+  right: 12px;
+  color: #91a1b8;
+  transition: color .18s ease, transform .18s ease;
+}
+.advis-pathway-card:hover .advis-pathway-arrow { color: #315fd5; transform: translate(1px, -1px); }
+.advis-home-model-label { margin-top: 21px; }
+.advis-featured-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.advis-featured-model {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 52px;
+  gap: 9px;
+  padding: 8px 9px;
+  border: 1px solid #e1e8f1;
+  border-radius: 12px;
+  background: #fff;
+  color: #243650;
+  text-align: left;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.advis-featured-model:hover {
+  transform: translateY(-1px);
+  border-color: #bfcefa;
+  background: #fbfcff;
+  box-shadow: 0 6px 17px rgba(26, 59, 125, .07);
+}
+.advis-featured-icon {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: #315fd5;
+  background: #edf2ff;
+}
+.advis-featured-model-copy { display: block; min-width: 0; flex: 1; }
+.advis-featured-name { display: block; overflow: hidden; color: #263952; font-size: 10px; font-weight: 800; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.advis-featured-category { display: block; margin-top: 3px; overflow: hidden; color: #7d8ba0; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.advis-featured-arrow { flex: 0 0 auto; color: #91a1b8; }
+.advis-home-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 15px 0 0;
+  color: #7a879a;
+  font-size: 9px;
+  line-height: 1.6;
+  text-align: left;
+}
+.advis-home-hint button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  color: #315fd5 !important;
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.advis-home-hint button:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.advis-core-presence {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  align-self: stretch;
+  padding: 30px 8px 42px;
+  color: #dbe9ff;
+  pointer-events: none;
+}
+.advis-core-label, .advis-core-readout {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(184, 207, 245, .78);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .16em;
+}
+.advis-core-label-dot { width: 5px; height: 5px; background: #5dd9ff; box-shadow: 0 0 12px rgba(93, 217, 255, .75); }
+.advis-core-caption { margin-top: auto; padding-bottom: 35px; text-align: center; text-shadow: 0 2px 16px rgba(3, 12, 34, .8); }
+.advis-core-caption-title { color: #e3f3ff; font-size: 17px; font-weight: 800; letter-spacing: .26em; }
+.advis-core-caption-subtitle { margin-top: 7px; color: rgba(161, 199, 255, .8); font-size: 10px; letter-spacing: .08em; }
+.advis-core-readout { justify-content: center; gap: 10px; color: rgba(164, 194, 239, .68); font-size: 8px; }
+.advis-core-readout-line { width: 54px; height: 1px; background: linear-gradient(90deg, transparent, rgba(95, 166, 255, .8), transparent); }
+
+@media (max-width: 1023px) {
+  .advis-home {
+    display: block;
+    width: min(100%, 780px);
+    max-height: calc(100dvh - 76px);
+    padding: 210px 14px 130px;
+    overflow-y: auto;
+  }
+  .advis-home-main {
+    max-height: none;
+    overflow: visible;
+    padding: 20px;
+    border-radius: 21px;
+  }
+  .advis-core-presence { display: none; }
+  .advis-home-title { font-size: clamp(30px, 5.5vw, 40px); }
+}
+@media (max-width: 560px) {
+  .advis-home { padding: 190px 10px 125px; }
+  .advis-home-main { padding: 17px 14px; border-radius: 18px; }
+  .advis-home-kicker { margin-bottom: 12px; font-size: 8px; letter-spacing: .08em; }
+  .advis-home-title { font-size: clamp(28px, 8vw, 35px); }
+  .advis-home-description { margin-top: 11px; font-size: 11px; line-height: 1.65; }
+  .advis-core-statusline { margin-top: 13px; gap: 6px; font-size: 8px; }
+  .advis-pathway-grid { gap: 7px; }
+  .advis-pathway-card { min-height: 121px; padding: 11px 10px; }
+  .advis-pathway-icon { width: 29px; height: 29px; margin-bottom: 9px; }
+  .advis-pathway-title { font-size: 10px; }
+  .advis-pathway-copy { font-size: 9px; }
+  .advis-featured-row { gap: 6px; }
+  .advis-featured-model { min-height: 48px; gap: 7px; padding: 7px; }
+  .advis-featured-icon { width: 27px; height: 27px; }
+  .advis-featured-name { font-size: 9px; }
+  .advis-featured-category { font-size: 8px; }
+  .advis-home-hint { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .advis-core-statusdot, .advis-core-label-dot { box-shadow: none; }
+}
