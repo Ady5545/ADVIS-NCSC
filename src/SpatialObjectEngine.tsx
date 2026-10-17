@@ -192,6 +192,7 @@ function RealisticGLTFModel({
 // 3D Spatial Metadata library with components and offsets
 import { ComponentMetadata, ObjectMetadata, SPATIAL_LIBRARY } from './SpatialLibrary';
 import { resolveExplodedPosition } from './models/assemblies/ExplosionMath';
+import { resolveVisibleComponentIds } from './models/assemblies/ComponentHierarchy';
 import { useGestureEngine } from './GestureContext';
 
 /**
@@ -3024,6 +3025,23 @@ export function SpatialObjectEngine({
           const obj = SPATIAL_LIBRARY[objId] || ModelRegistry.getSpatialObject(objId);
           if (!obj) return null;
 
+          // Resolve hide/isolate against the catalog hierarchy once per render, rather
+          // than letting each flat-rendered mesh ignore its parent's visibility.
+          const visibleComponentIds = SPATIAL_LIBRARY[objId]
+            ? resolveVisibleComponentIds(
+                SPATIAL_LIBRARY[objId],
+                hiddenComponentIds || [],
+                isolatedComponentId || null,
+              )
+            : new Set(
+                (obj.components || [])
+                  .filter((component) =>
+                    !(hiddenComponentIds || []).includes(component.id) &&
+                    (!isolatedComponentId || component.id === isolatedComponentId),
+                  )
+                  .map((component) => component.id),
+              );
+
           const baseSpacing = 6.0;
           const spacing = Math.max(baseSpacing, (obj.defaultScale || 1.0) * 4.5 + (objectIds.length > 2 ? 2.0 : 0));
           const totalWidth = (objectIds.length - 1) * spacing;
@@ -3124,10 +3142,8 @@ export function SpatialObjectEngine({
                       
                       const isHighlighted = highlightedComponentId === comp.id || isSelected || isFunctionTraced;
                       
-                      // Isolation mode check
-                      const isIsolated = isolatedComponentId ? (comp.id === isolatedComponentId) : true;
-                      const isHidden = hiddenComponentIds.includes(comp.id);
-                      const compXray = !isIsolated || xrayEnabled;
+                      const isVisibleInAssembly = visibleComponentIds.has(comp.id);
+                      const compXray = !isVisibleInAssembly || xrayEnabled;
 
                       const transform = componentTransforms?.[comp.id];
                       const basePos = transform ? transform.position : comp.position;
@@ -3139,7 +3155,7 @@ export function SpatialObjectEngine({
                       const scl = transform ? transform.scale : [1, 1, 1];
                       
                       return (
-                        <group visible={!isHidden && isIsolated} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
+                        <group visible={isVisibleInAssembly} position={pos} rotation={rot as [number, number, number]} scale={scl as [number, number, number]} 
                             ref={(el) => {
                               if (el) componentRefs.current[comp.id] = el;
                               else delete componentRefs.current[comp.id];
