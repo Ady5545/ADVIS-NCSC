@@ -554,7 +554,7 @@ export function EngineeringReferenceCockpit({
                     disabled={explodedFactor <= 0}
                     className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-600 disabled:opacity-35"
                   >−</button>
-                  <span className="min-w-[36px] text-center tabular-nums">{Math.round(explodedFactor * 100)}%</span>
+                  <span data-testid="assembly-explosion-progress" aria-live="polite" aria-atomic="true" className="min-w-[36px] text-center tabular-nums">{Math.round(explodedFactor * 100)}%</span>
                   <button
                     type="button"
                     aria-label="Next exploded-view stage"
