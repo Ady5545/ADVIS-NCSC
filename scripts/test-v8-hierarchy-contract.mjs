@@ -50,7 +50,7 @@ try {
 
   const require = createRequire(import.meta.url);
   const { SPATIAL_LIBRARY } = require(spatialModule);
-  const { buildComponentHierarchy, validateComponentHierarchy } = require(hierarchyModule);
+  const { buildComponentHierarchy, validateComponentHierarchy, resolveVisibleComponentIds } = require(hierarchyModule);
   const v8 = SPATIAL_LIBRARY.v8_engine;
 
   assert.ok(v8, 'The V8 benchmark model must exist.');
@@ -134,6 +134,54 @@ try {
     ],
     'CYCLE',
     'Cyclic parent relationships',
+  );
+
+
+  const visibilityFixture = [
+    fixtureComponent('root', { subsystemId: 'Powertrain', childrenIds: ['branch', 'sibling'] }),
+    fixtureComponent('branch', { subsystemId: 'Powertrain', parentId: 'root', childrenIds: ['leaf'] }),
+    fixtureComponent('leaf', { subsystemId: 'Powertrain', parentId: 'branch' }),
+    fixtureComponent('sibling', { subsystemId: 'Powertrain', parentId: 'root' }),
+    fixtureComponent('other', { subsystemId: 'Electrical' }),
+  ];
+  const fixtureBeforeVisibilityChecks = JSON.stringify(visibilityFixture);
+  const visibleIds = (hiddenIds = [], isolateId = null) =>
+    [...resolveVisibleComponentIds({ components: visibilityFixture }, hiddenIds, isolateId)].sort();
+
+  assert.deepEqual(
+    visibleIds(),
+    ['branch', 'leaf', 'other', 'root', 'sibling'],
+    'All components should be visible in the normal assembled state.',
+  );
+  assert.deepEqual(
+    visibleIds(['branch']),
+    ['other', 'root', 'sibling'],
+    'Hiding a parent subsystem component must also hide every descendant.',
+  );
+  assert.deepEqual(
+    visibleIds([], 'root'),
+    ['branch', 'leaf', 'root', 'sibling'],
+    'Isolating a parent must keep its subtree while hiding unrelated components.',
+  );
+  assert.deepEqual(
+    visibleIds([], 'branch'),
+    ['branch', 'leaf'],
+    'Isolating a nested component must keep its descendants, but not its ancestors or siblings.',
+  );
+  assert.deepEqual(
+    visibleIds(['branch'], 'root'),
+    ['root', 'sibling'],
+    'Explicitly hidden descendants must stay hidden when an ancestor is isolated.',
+  );
+  assert.deepEqual(
+    visibleIds([], 'no-such-component'),
+    ['branch', 'leaf', 'other', 'root', 'sibling'],
+    'A stale isolation ID must fail open to normal visibility, not blank the assembly.',
+  );
+  assert.equal(
+    JSON.stringify(visibilityFixture),
+    fixtureBeforeVisibilityChecks,
+    'Visibility resolution must not mutate the canonical component hierarchy.',
   );
 
   console.log('V8 hierarchy contract passed: 22 unique components, validated parent/child references, and nested head, intake, crankshaft, and block relationships.');
