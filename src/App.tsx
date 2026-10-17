@@ -1653,6 +1653,7 @@ function AppContent() {
               hologramIntensity={hologramIntensity}
               themeColor={themeColor}
               isSpatial={isSpatial}
+              isHome={currentView === 'home'}
             />
           )}
         
