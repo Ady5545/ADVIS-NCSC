@@ -182,9 +182,9 @@ export function HologramCore({
 
     if (groupRef.current) {
       const breathing = 1 + (theatre.breathing - 0.5) * 0.065 + Math.sin(time * 0.72) * 0.01;
-      const compact = viewportWidth < 640 ? 1.28 : 1.82;
-      const homeOffsetX = isHome && viewportWidth >= 640 ? 2.45 : 0;
-      const homeOffsetY = isHome && viewportWidth < 640 ? 1.85 : (isHome ? 0.12 : 0);
+      const compact = viewportWidth < 640 ? 1.12 : (viewportWidth < 1024 ? 1.45 : 1.82);
+      const homeOffsetX = isHome && viewportWidth >= 1024 ? 2.45 : 0;
+      const homeOffsetY = isHome && viewportWidth < 1024 ? 2.6 : (isHome ? 0.12 : 0);
       groupRef.current.position.set(gestureState.pos.x + homeOffsetX, gestureState.pos.y + homeOffsetY, 0);
       groupRef.current.rotation.set(gestureState.rot.x, gestureState.rot.y, gestureState.rot.z);
       groupRef.current.scale.setScalar(Math.max(
