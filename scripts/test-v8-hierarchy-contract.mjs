@@ -77,6 +77,65 @@ try {
   assertParent(rows, 'v8_fuel_system', 'v8_intake');
   assertParent(rows, 'v8_flywheel', 'v8_crankshaft');
 
+
+  // Malformed assemblies must be diagnosed explicitly instead of appearing as valid trees.
+  const fixtureComponent = (id, overrides = {}) => ({
+    id,
+    name: id,
+    description: 'Synthetic hierarchy-test fixture.',
+    position: [0, 0, 0],
+    size: [1, 1, 1],
+    explodedOffset: [0, 0, 0],
+    shape: 'box',
+    ...overrides,
+  });
+  const assertIssue = (components, expectedCode, label) => {
+    const issuesForFixture = validateComponentHierarchy({ components });
+    assert.ok(
+      issuesForFixture.some((issue) => issue.code === expectedCode),
+      label + ' should be flagged as ' + expectedCode + '; got ' +
+        JSON.stringify(issuesForFixture.map((issue) => issue.code)),
+    );
+  };
+
+  assertIssue(
+    [fixtureComponent('duplicate'), fixtureComponent('duplicate')],
+    'DUPLICATE_ID',
+    'Duplicate component IDs',
+  );
+  assertIssue(
+    [fixtureComponent('orphan', { parentId: 'missing-parent' })],
+    'MISSING_PARENT',
+    'Missing parent references',
+  );
+  assertIssue(
+    [fixtureComponent('self', { parentId: 'self' })],
+    'SELF_PARENT',
+    'Self-parent relationships',
+  );
+  assertIssue(
+    [fixtureComponent('parent', { childrenIds: ['missing-child'] })],
+    'MISSING_CHILD',
+    'Dangling child references',
+  );
+  assertIssue(
+    [
+      fixtureComponent('declared-parent', { childrenIds: ['child'] }),
+      fixtureComponent('actual-parent'),
+      fixtureComponent('child', { parentId: 'actual-parent' }),
+    ],
+    'PARENT_CHILD_MISMATCH',
+    'Contradictory parent/child declarations',
+  );
+  assertIssue(
+    [
+      fixtureComponent('cycle-a', { parentId: 'cycle-b' }),
+      fixtureComponent('cycle-b', { parentId: 'cycle-a' }),
+    ],
+    'CYCLE',
+    'Cyclic parent relationships',
+  );
+
   console.log('V8 hierarchy contract passed: 22 unique components, validated parent/child references, and nested head, intake, crankshaft, and block relationships.');
 } catch (error) {
   console.error('V8 hierarchy contract failed:', error);
