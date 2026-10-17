@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Torus, Points, Icosahedron, Octahedron } from '@react-three/drei';
 import * as THREE from 'three';
 import { SystemState } from './App';
 import { useGestureEngine } from './GestureContext';
@@ -17,216 +16,92 @@ interface HologramProps {
   isSpatial?: boolean;
 }
 
-const TAU = Math.PI * 2;
+const orbVertexShader = /* glsl */ `
+  varying vec3 vLocalPosition;
+  varying vec3 vViewNormal;
+  varying vec3 vViewPosition;
 
-function deterministicRandom(seed: number) {
-  let state = seed >>> 0;
-  return () => {
-    state = (1664525 * state + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
+  void main() {
+    vLocalPosition = position;
+    vViewNormal = normalize(normalMatrix * normal);
 
-function createParticleCloud(
-  count: number,
-  minRadius: number,
-  maxRadius: number,
-  seed: number,
-  shellBias = 0.5
-): Float32Array {
-  const random = deterministicRandom(seed);
-  const positions = new Float32Array(count * 3);
-
-  for (let i = 0; i < count; i++) {
-    const theta = random() * TAU;
-    const phi = Math.acos(2 * random() - 1);
-    const bias = Math.pow(random(), shellBias);
-    const radius = THREE.MathUtils.lerp(minRadius, maxRadius, bias);
-    const wobble = (random() - 0.5) * 0.05;
-
-    positions[i * 3] = Math.sin(phi) * Math.cos(theta) * (radius + wobble);
-    positions[i * 3 + 1] = Math.cos(phi) * (radius + wobble);
-    positions[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * (radius + wobble);
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = -viewPosition.xyz;
+    gl_Position = projectionMatrix * viewPosition;
   }
-  return positions;
-}
+`;
 
-function createSphereGrid(): Float32Array {
-  const points: number[] = [];
-  const radius = 1.78;
-  const latitudes = 13;
-  const longitudes = 18;
-  const samples = 64;
+const orbFragmentShader = /* glsl */ `
+  precision highp float;
 
-  for (let i = 1; i < latitudes; i++) {
-    const phi = Math.PI * (i / latitudes);
-    for (let j = 0; j < samples; j++) {
-      const a0 = TAU * (j / samples);
-      const a1 = TAU * ((j + 1) / samples);
-      const x0 = radius * Math.sin(phi) * Math.cos(a0);
-      const y0 = radius * Math.cos(phi);
-      const z0 = radius * Math.sin(phi) * Math.sin(a0);
-      const x1 = radius * Math.sin(phi) * Math.cos(a1);
-      const y1 = radius * Math.cos(phi);
-      const z1 = radius * Math.sin(phi) * Math.sin(a1);
-      points.push(x0, y0, z0, x1, y1, z1);
-    }
+  uniform float uTime;
+  uniform float uPulse;
+  uniform float uVoice;
+  uniform float uActivity;
+  uniform float uVisibility;
+
+  varying vec3 vLocalPosition;
+  varying vec3 vViewNormal;
+  varying vec3 vViewPosition;
+
+  void main() {
+    vec3 normal = normalize(vViewNormal);
+    vec3 viewDirection = normalize(vViewPosition);
+    vec3 lightDirection = normalize(vec3(-0.42, 0.48, 0.78));
+
+    float diffuse = max(dot(normal, lightDirection), 0.0);
+    float facing = max(dot(normal, viewDirection), 0.0);
+    float rim = pow(1.0 - facing, 3.0);
+    float specular = pow(max(dot(reflect(-lightDirection, normal), viewDirection), 0.0), 28.0);
+
+    vec3 midnight = vec3(0.006, 0.018, 0.075);
+    vec3 cobalt = vec3(0.018, 0.105, 0.48);
+    vec3 electricBlue = vec3(0.025, 0.30, 0.96);
+    vec3 iceBlue = vec3(0.20, 0.79, 1.0);
+
+    float illumination = smoothstep(0.0, 0.95, diffuse);
+    vec3 color = mix(midnight, cobalt, illumination);
+    color = mix(color, electricBlue, pow(illumination, 1.7) * 0.72);
+
+    // A single slow, soft current gives the surface life without adding geometry.
+    float currentWave = sin(
+      vLocalPosition.y * 4.1
+      + sin(vLocalPosition.x * 3.0 + uTime * 0.18) * 0.52
+      + vLocalPosition.z * 2.0
+      - uTime * 0.14
+    );
+    float current = smoothstep(0.68, 0.98, currentWave) * 0.075;
+    color = mix(color, vec3(0.035, 0.34, 0.92), current);
+
+    color += iceBlue * rim * (0.30 + uPulse * 0.22);
+    color += vec3(0.54, 0.88, 1.0) * specular * (0.55 + uVoice * 0.35);
+    color *= 0.94 + uPulse * 0.10 + uActivity * 0.045;
+
+    gl_FragColor = vec4(color, uVisibility);
   }
+`;
 
-  for (let i = 0; i < longitudes; i++) {
-    const theta = TAU * (i / longitudes);
-    for (let j = 0; j < samples; j++) {
-      const p0 = Math.PI * (j / samples);
-      const p1 = Math.PI * ((j + 1) / samples);
-      const x0 = radius * Math.sin(p0) * Math.cos(theta);
-      const y0 = radius * Math.cos(p0);
-      const z0 = radius * Math.sin(p0) * Math.sin(theta);
-      const x1 = radius * Math.sin(p1) * Math.cos(theta);
-      const y1 = radius * Math.cos(p1);
-      const z1 = radius * Math.sin(p1) * Math.sin(theta);
-      points.push(x0, y0, z0, x1, y1, z1);
-    }
+const auraFragmentShader = /* glsl */ `
+  precision highp float;
+
+  uniform float uPulse;
+  uniform float uVisibility;
+
+  varying vec3 vViewNormal;
+  varying vec3 vViewPosition;
+
+  void main() {
+    vec3 normal = normalize(vViewNormal);
+    vec3 viewDirection = normalize(vViewPosition);
+    float facing = max(dot(normal, viewDirection), 0.0);
+    float rim = pow(1.0 - facing, 3.4);
+    float alpha = rim * (0.19 + uPulse * 0.12) * uVisibility;
+    vec3 deepBlue = vec3(0.012, 0.08, 0.46);
+    vec3 brightBlue = vec3(0.025, 0.32, 1.0);
+    vec3 color = mix(deepBlue, brightBlue, smoothstep(0.12, 0.95, rim));
+    gl_FragColor = vec4(color, alpha);
   }
-
-  return new Float32Array(points);
-}
-
-function createRadialDataGeometry(): Float32Array {
-  const points: number[] = [];
-  const random = deterministicRandom(0x51a7);
-  const spokes = 52;
-
-  for (let i = 0; i < spokes; i++) {
-    const theta = (i / spokes) * TAU + random() * 0.03;
-    const phi = Math.acos(2 * random() - 1);
-    const inner = 1.35 + random() * 0.25;
-    const outer = 2.95 + random() * 1.1;
-
-    const sx = Math.sin(phi) * Math.cos(theta) * inner;
-    const sy = Math.cos(phi) * inner;
-    const sz = Math.sin(phi) * Math.sin(theta) * inner;
-
-    const ex = Math.sin(phi + (random() - 0.5) * 0.12) * Math.cos(theta) * outer;
-    const ey = Math.cos(phi + (random() - 0.5) * 0.12) * outer;
-    const ez = Math.sin(phi + (random() - 0.5) * 0.12) * Math.sin(theta) * outer;
-
-    points.push(sx, sy, sz, ex, ey, ez);
-  }
-  return new Float32Array(points);
-}
-
-function createEnergyFilamentGeometry(): Float32Array {
-  const points: number[] = [];
-  const random = deterministicRandom(0xB17E5);
-  const filaments = 130;
-
-  for (let i = 0; i < filaments; i++) {
-    const theta = random() * TAU;
-    const phi = Math.acos(2 * random() - 1);
-    const inner = 0.86 + random() * 0.52;
-    const outer = 2.25 + random() * 2.35;
-
-    const direction = new THREE.Vector3(
-      Math.sin(phi) * Math.cos(theta),
-      Math.cos(phi),
-      Math.sin(phi) * Math.sin(theta)
-    ).normalize();
-
-    const tangent = new THREE.Vector3(-direction.z, 0.22, direction.x).normalize();
-    const bitangent = new THREE.Vector3().crossVectors(direction, tangent).normalize();
-    const wobbleA = (random() - 0.5) * 0.20;
-    const wobbleB = (random() - 0.5) * 0.34;
-    const wobbleC = (random() - 0.5) * 0.18;
-
-    const start = direction.clone().multiplyScalar(inner);
-    const end = direction.clone().multiplyScalar(outer);
-    const p1 = start.clone().lerp(end, 0.20)
-      .addScaledVector(tangent, wobbleA)
-      .addScaledVector(bitangent, wobbleB * 0.40);
-    const p2 = start.clone().lerp(end, 0.43)
-      .addScaledVector(tangent, wobbleB)
-      .addScaledVector(bitangent, wobbleC);
-    const p3 = start.clone().lerp(end, 0.68)
-      .addScaledVector(tangent, -wobbleA * 1.55)
-      .addScaledVector(bitangent, wobbleB * 0.75);
-    const p4 = end.clone()
-      .addScaledVector(tangent, wobbleC)
-      .addScaledVector(bitangent, -wobbleA * 0.55);
-
-    points.push(start.x, start.y, start.z, p1.x, p1.y, p1.z);
-    points.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
-    points.push(p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
-    points.push(p3.x, p3.y, p3.z, p4.x, p4.y, p4.z);
-    points.push(p4.x, p4.y, p4.z, end.x, end.y, end.z);
-  }
-
-  return new Float32Array(points);
-}
-
-function createSurfaceCircuitGeometry(): Float32Array {
-  const points: number[] = [];
-  const random = deterministicRandom(0xC1AC7);
-  const traces = 70;
-
-  for (let i = 0; i < traces; i++) {
-    const theta = random() * TAU;
-    const phi = Math.acos(2 * random() - 1);
-    const radius = 1.82 + random() * 0.16;
-
-    const normal = new THREE.Vector3(
-      Math.sin(phi) * Math.cos(theta),
-      Math.cos(phi),
-      Math.sin(phi) * Math.sin(theta)
-    ).normalize();
-
-    const tangent = new THREE.Vector3(-normal.z, 0.18, normal.x).normalize();
-    const bitangent = new THREE.Vector3().crossVectors(normal, tangent).normalize();
-
-    const start = normal.clone().multiplyScalar(radius)
-      .addScaledVector(tangent, (random() - 0.5) * 0.34)
-      .addScaledVector(bitangent, (random() - 0.5) * 0.22);
-    const middle = start.clone()
-      .addScaledVector(tangent, THREE.MathUtils.lerp(0.035, 0.14, random()))
-      .addScaledVector(bitangent, (random() - 0.5) * 0.08);
-    const end = middle.clone()
-      .addScaledVector(bitangent, THREE.MathUtils.lerp(0.035, 0.12, random()));
-
-    points.push(start.x, start.y, start.z, middle.x, middle.y, middle.z);
-    points.push(middle.x, middle.y, middle.z, end.x, end.y, end.z);
-  }
-
-  return new Float32Array(points);
-}
-
-function createArcNetwork(): Float32Array {
-  const points: number[] = [];
-  const random = deterministicRandom(0xA71F);
-  const layers = 7;
-  const segmentsPerLayer = 6;
-
-  for (let layer = 0; layer < layers; layer++) {
-    const radius = 2.05 + layer * 0.13;
-    const tilt = [
-      (random() - 0.5) * 1.4,
-      (random() - 0.5) * 1.1,
-      (random() - 0.5) * 1.6,
-    ] as [number, number, number];
-
-    for (let s = 0; s < segmentsPerLayer; s++) {
-      const start = random() * TAU;
-      const span = THREE.MathUtils.lerp(0.12, 0.55, random());
-      const a0 = start;
-      const a1 = start + span;
-
-      const euler = new THREE.Euler(...tilt);
-      const p0 = new THREE.Vector3(Math.cos(a0) * radius, Math.sin(a0) * radius, 0).applyEuler(euler);
-      const p1 = new THREE.Vector3(Math.cos(a1) * radius, Math.sin(a1) * radius, 0).applyEuler(euler);
-      points.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
-    }
-  }
-
-  return new Float32Array(points);
-}
+`;
 
 export function HologramCore({
   systemState,
@@ -234,468 +109,143 @@ export function HologramCore({
   bass = 0,
   treble = 0,
   hologramIntensity = 1,
-  themeColor = '#0088ff',
-  handTracking: _handTracking,
-  isSpatial = false
+  isSpatial = false,
 }: HologramProps) {
   const gestureState = useGestureEngine();
   const theatrePresentationRef = useTheatreOrbPresentation(!isSpatial);
 
   const groupRef = useRef<THREE.Group>(null);
-  const nucleusRef = useRef<THREE.Mesh>(null);
-  const nucleusGlowRef = useRef<THREE.Mesh>(null);
-  const innerShellRef = useRef<THREE.Mesh>(null);
-  const outerShellRef = useRef<THREE.Mesh>(null);
-  const haloRef = useRef<THREE.Mesh>(null);
-  const orbitalRef = useRef<THREE.Group>(null);
-  const waveRef = useRef<THREE.Group>(null);
-  const gridRef = useRef<THREE.LineSegments>(null);
-  const radialRef = useRef<THREE.LineSegments>(null);
-  const arcRef = useRef<THREE.LineSegments>(null);
-  const circuitRef = useRef<THREE.LineSegments>(null);
-  const filamentRef = useRef<THREE.LineSegments>(null);
-  const arcOrbitRef = useRef<THREE.Group>(null);
-  const outerParticlesRef = useRef<THREE.Points>(null);
-  const midParticlesRef = useRef<THREE.Points>(null);
-  const innerParticlesRef = useRef<THREE.Points>(null);
-  const microParticlesRef = useRef<THREE.Points>(null);
-  const pulseRefs = useRef<Array<THREE.Mesh | null>>([]);
-  const waveformRefs = useRef<Array<THREE.LineLoop | null>>([]);
+  const coreRef = useRef<THREE.Mesh>(null);
+  const auraRef = useRef<THREE.Mesh>(null);
   const spatialTransitionRef = useRef(0);
-  const smoothedBassRef = useRef(0);
-  const smoothedTrebleRef = useRef(0);
-  const eventPulseRef = useRef(0);
-  const previousStateRef = useRef<SystemState>(systemState);
   const bootProgressRef = useRef(systemState === 'BOOTING' ? 0 : 1);
 
-  const sphereGrid = useMemo(() => createSphereGrid(), []);
-  const radialData = useMemo(() => createRadialDataGeometry(), []);
-  const arcNetwork = useMemo(() => createArcNetwork(), []);
-  const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
-  const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(440, 2.7, 5.0, 0x48D7FF, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(260, 2.05, 3.9, 0x1677FF, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(130, 1.02, 2.45, 0x2AC5FF, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(72, 0.74, 1.82, 0xF2FDFF, 0.30), []);
-
-  const pointsCount = 192;
-  const initialWavePoints = useMemo(() => {
-    const arr = new Float32Array(pointsCount * 3);
-    for (let i = 0; i < pointsCount; i++) {
-      const a = (i / pointsCount) * TAU;
-      arr[i * 3] = Math.cos(a) * 2.1;
-      arr[i * 3 + 1] = Math.sin(a) * 2.1;
-    }
-    return arr;
-  }, []);
-
-  const ringConfigs = useMemo(() => [
-    { radius: 1.98, tube: 0.011, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.60 },
-    { radius: 2.34, tube: 0.010, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.43 },
-    { radius: 2.76, tube: 0.008, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.34 },
-    { radius: 3.18, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.27 },
-    { radius: 3.58, tube: 0.006, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.20 },
-  ], []);
-
-  // JARVIS-inspired blue-white spatial core: cool blue only, with a white-hot center.
-  const colors = useMemo(() => ({
-    core: new THREE.Color('#eafcff'),
-    technical: new THREE.Color('#48d7ff'),
-    plasma: new THREE.Color('#1677ff'),
-    hot: new THREE.Color('#f4fdff'),
+  const coreUniforms = useMemo(() => ({
+    uTime: { value: 0 },
+    uPulse: { value: 0.3 },
+    uVoice: { value: 0 },
+    uActivity: { value: 0 },
+    uVisibility: { value: 1 },
   }), []);
 
-  const materials = useMemo(() => ({
-    core: new THREE.MeshBasicMaterial({ color: '#f2fdff', transparent: true, opacity: 0.99, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#2ac5ff', transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#58dcff', transparent: true, opacity: 0.35, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#2b75ff', transparent: true, opacity: 0.25, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#168fff', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#43dcff', transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#66e3ff', transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#dcfbff', transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#4fd7ff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
-    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#1db8ff', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
-    wave: [
-      new THREE.LineBasicMaterial({ color: '#f1fdff', transparent: true, opacity: 0.84, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#46d7ff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#237dff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
-    ],
-    particles: new THREE.PointsMaterial({ color: '#dff9ff', transparent: true, opacity: 0.56, size: 0.022, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#6edfff', transparent: true, opacity: 0.48, size: 0.018, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#269cff', transparent: true, opacity: 0.46, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#f1fdff', transparent: true, opacity: 0.48, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#8ceaff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-  }), [ringConfigs]);
+  const auraUniforms = useMemo(() => ({
+    uPulse: { value: 0.3 },
+    uVisibility: { value: 1 },
+  }), []);
 
-  useEffect(() => {
-    // Keep the orb chromatically blue in every operating state; state changes affect motion/intensity elsewhere.
-    const base = colors.technical.clone();
-    materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.42));
-    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.22));
-    materials.grid.color.copy(base.clone().lerp(colors.technical, 0.35));
-    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.18));
-    materials.arc.color.copy(colors.hot);
-    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.22));
-    materials.ring.forEach((m, index) => m.color.copy(base.clone().lerp(colors.plasma, index / (materials.ring.length * 1.8))));
-    materials.wave[1].color.copy(base);
-    materials.wave[2].color.copy(colors.plasma);
-    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.35));
-    materials.midParticles.color.copy(base.clone().lerp(colors.technical, 0.18));
-    materials.microParticles.color.copy(colors.hot);
-  }, [systemState, themeColor, materials, colors]);
+  useFrame(({ clock }, delta) => {
+    const time = clock.getElapsedTime();
+    const theatre = theatrePresentationRef.current;
 
-  useEffect(() => () => {
-    Object.values(materials).forEach((material) => {
-      if (Array.isArray(material)) material.forEach((m) => m.dispose());
-      else material.dispose();
-    });
-  }, [materials]);
-
-  useFrame((state, delta) => {
-    const time = state.clock.getElapsedTime();
-
-    if (previousStateRef.current !== systemState) {
-      previousStateRef.current = systemState;
-      eventPulseRef.current = 1;
-    }
-    eventPulseRef.current = THREE.MathUtils.damp(eventPulseRef.current, 0, 4.8, delta);
-
-    const spatialTarget = isSpatial ? 1 : 0;
-    spatialTransitionRef.current = THREE.MathUtils.damp(spatialTransitionRef.current, spatialTarget, 6, delta);
+    spatialTransitionRef.current = THREE.MathUtils.damp(
+      spatialTransitionRef.current,
+      isSpatial ? 1 : 0,
+      5.5,
+      delta
+    );
     const spatial = spatialTransitionRef.current;
-    const collapse = Math.max(0.012, 1 - spatial);
-    const opacityFactor = Math.max(0.03, 1 - spatial * 0.97);
+    const collapse = Math.max(0.001, 1 - spatial);
+    const visibility = Math.max(0, 1 - spatial * 0.98);
 
-    const curEnergy = gestureState.energy.current;
-    const momentum = Math.min(1, (Math.abs(gestureState.rot.x) + Math.abs(gestureState.rot.y)) * 0.1);
-    const targetBass = bass + curEnergy * 0.5 + (systemState === 'THINKING' ? 0.18 : 0) + (systemState === 'SEARCHING' ? 0.25 : 0);
-    const targetTreble = treble + curEnergy * 0.3 + (systemState === 'SEARCHING' ? 0.14 : 0) + (systemState === 'ANALYZING' ? 0.11 : 0);
-
-    smoothedBassRef.current = THREE.MathUtils.damp(smoothedBassRef.current, Math.max(0, targetBass), 7, delta);
-    smoothedTrebleRef.current = THREE.MathUtils.damp(smoothedTrebleRef.current, Math.max(0, targetTreble), 8, delta);
-
-    let stateActivity = 0.16;
-    let stateSpeed = 0.72;
-    if (systemState === 'LISTENING') { stateActivity = 0.64; stateSpeed = 1.0; }
-    if (systemState === 'THINKING') { stateActivity = 0.94; stateSpeed = 1.8; }
-    if (systemState === 'SEARCHING') { stateActivity = 1.0; stateSpeed = 2.25; }
-    if (systemState === 'ANALYZING') { stateActivity = 0.92; stateSpeed = 1.55; }
-    if (systemState === 'SPEAKING') { stateActivity = 0.8; stateSpeed = 1.15; }
-    if (systemState === 'ERROR') { stateActivity = 0.92; stateSpeed = 1.7; }
-
-    const idleBass = systemState === 'BOOTING' ? 0 : 0.03 + 0.06 * (0.5 + 0.5 * Math.sin(time * (systemState === 'ONLINE' ? 1.35 : 2.5)));
-    const idleTreble = systemState === 'BOOTING' ? 0 : 0.01 + 0.03 * (0.5 + 0.5 * Math.sin(time * (systemState === 'SEARCHING' ? 18 : 9)));
-    const curBass = Math.max(idleBass, smoothedBassRef.current + momentum * 0.55);
-    const curTreble = Math.max(idleTreble, smoothedTrebleRef.current + momentum * 0.35);
+    bootProgressRef.current = THREE.MathUtils.damp(
+      bootProgressRef.current,
+      systemState === 'BOOTING' ? 0 : 1,
+      4.5,
+      delta
+    );
 
     const voice = THREE.MathUtils.smoothstep(audioLevel, 0.02, 0.35);
-    const activity = THREE.MathUtils.clamp(curBass * 0.95 + curTreble * 0.5 + stateActivity * 0.3 + voice * 0.65, 0, 1.7);
+    const gestureEnergy = THREE.MathUtils.clamp(gestureState.energy.current, 0, 1);
 
-    const theatre = theatrePresentationRef.current;
-    const authoredBreath = 1 + (theatre.breathing - 0.5) * 0.075;
-    const authoredCore = theatre.coreScale * (1 + curBass * 0.22 + voice * 0.08);
-    const authoredShell = theatre.shellScale * (1 + curTreble * 0.12);
-    const authoredRings = theatre.ringSpread * (1 + curBass * 0.18);
-    const authoredSpeed = Math.max(0.08, theatre.ringSpeed * stateSpeed);
-    const technicalOpacity = THREE.MathUtils.clamp(theatre.technicalOpacity + activity * 0.08, 0, 1);
-    const gridControl = THREE.MathUtils.clamp(theatre.gridOpacity + activity * 0.05, 0, 1.2);
-    const radialControl = THREE.MathUtils.clamp(theatre.radialIntensity + curTreble * 0.12, 0, 1.5);
-    const arcControl = THREE.MathUtils.clamp(theatre.arcIntensity + activity * 0.08, 0, 1.5);
-    const microControl = THREE.MathUtils.clamp(theatre.microEnergy + voice * 0.18 + curTreble * 0.16, 0, 1.5);
-    const depthControl = THREE.MathUtils.clamp(theatre.depthActivity + activity * 0.08, 0, 1);
-    const circuitControl = THREE.MathUtils.clamp(theatre.circuitOpacity + depthControl * 0.1, 0, 1.4);
-    const scanSpeed = Math.max(0.08, theatre.scanSpeed * (0.7 + authoredSpeed * 0.45));
+    let stateActivity = 0.16;
+    if (systemState === 'LISTENING') stateActivity = 0.48;
+    if (systemState === 'THINKING') stateActivity = 0.72;
+    if (systemState === 'SEARCHING') stateActivity = 0.82;
+    if (systemState === 'ANALYZING') stateActivity = 0.68;
+    if (systemState === 'SPEAKING') stateActivity = 0.58;
+    if (systemState === 'ERROR') stateActivity = 0.70;
 
-    bootProgressRef.current = THREE.MathUtils.damp(bootProgressRef.current, systemState === 'BOOTING' ? 0 : 1, 4.5, delta);
-    const boot = bootProgressRef.current;
+    const audioMotion = THREE.MathUtils.clamp(bass * 0.20 + treble * 0.12, 0, 0.3);
+    const activity = THREE.MathUtils.clamp(
+      stateActivity * 0.12 + audioMotion + voice * 0.30 + gestureEnergy * 0.24,
+      0,
+      1
+    );
+    const pulse = THREE.MathUtils.clamp(
+      0.24 + theatre.halo * 0.18 + Math.sin(time * 0.82) * 0.045 + activity * 0.12,
+      0.12,
+      0.78
+    );
+
+    coreUniforms.uTime.value = time;
+    coreUniforms.uPulse.value = pulse;
+    coreUniforms.uVoice.value = voice;
+    coreUniforms.uActivity.value = activity;
+    coreUniforms.uVisibility.value = visibility;
+
+    auraUniforms.uPulse.value = pulse;
+    auraUniforms.uVisibility.value = visibility;
 
     if (groupRef.current) {
+      const breathing = 1 + (theatre.breathing - 0.5) * 0.055 + Math.sin(time * 0.72) * 0.008;
       groupRef.current.position.set(gestureState.pos.x, gestureState.pos.y, 0);
-      groupRef.current.rotation.set(gestureState.rot.x, gestureState.rot.y, gestureState.rot.z);
+      groupRef.current.rotation.set(
+        gestureState.rot.x,
+        gestureState.rot.y,
+        gestureState.rot.z
+      );
       groupRef.current.scale.setScalar(
-        Math.max(0.001, boot * hologramIntensity * gestureState.scale.current * authoredBreath * (1 + curBass * 0.12))
+        Math.max(
+          0.001,
+          bootProgressRef.current
+            * hologramIntensity
+            * gestureState.scale.current
+            * breathing
+            * (1 + activity * 0.018)
+            * collapse
+        )
       );
     }
 
-    if (nucleusRef.current) {
-      nucleusRef.current.rotation.y += delta * (0.34 + curTreble * 1.1);
-      nucleusRef.current.rotation.x -= delta * (0.1 + curBass * 0.18);
-      nucleusRef.current.scale.setScalar(authoredCore * (0.98 + (Math.sin(time * 2.2) * 0.035)) * collapse);
-      materials.core.opacity = Math.min(1, (0.75 + voice * 0.22 + theatre.halo * 0.08 + eventPulseRef.current * 0.1) * hologramIntensity) * opacityFactor;
+    if (coreRef.current) {
+      coreRef.current.rotation.y = time * 0.045;
+      coreRef.current.rotation.x = Math.sin(time * 0.31) * 0.018;
     }
 
-    if (nucleusGlowRef.current) {
-      nucleusGlowRef.current.scale.setScalar((1.36 + curBass * 0.42 + theatre.halo * 0.22) * collapse);
-      materials.coreGlow.opacity = Math.min(0.62, (0.1 + activity * 0.09 + voice * 0.18 + theatre.halo * 0.1 + depthControl * 0.04) * hologramIntensity) * opacityFactor;
+    if (auraRef.current) {
+      const breathing = Math.sin(time * 0.82) * 0.012;
+      auraRef.current.scale.setScalar(1.15 + breathing + pulse * 0.018);
     }
-
-    if (innerShellRef.current) {
-      innerShellRef.current.rotation.x += delta * 0.18 * authoredSpeed;
-      innerShellRef.current.rotation.y -= delta * 0.28 * authoredSpeed;
-      innerShellRef.current.rotation.z += delta * 0.13 * authoredSpeed;
-      innerShellRef.current.scale.setScalar(1.22 * authoredShell * collapse);
-      materials.shellInner.opacity = (0.18 + technicalOpacity * 0.16 + curTreble * 0.2 + momentum * 0.1) * opacityFactor;
-    }
-
-    if (outerShellRef.current) {
-      outerShellRef.current.rotation.x -= delta * 0.12 * authoredSpeed;
-      outerShellRef.current.rotation.y += delta * 0.19 * authoredSpeed;
-      outerShellRef.current.rotation.z -= delta * 0.09 * authoredSpeed;
-      outerShellRef.current.scale.setScalar(1.46 * authoredShell * collapse);
-      materials.shellOuter.opacity = (0.08 + technicalOpacity * 0.11 + curBass * 0.11) * opacityFactor;
-    }
-
-    if (haloRef.current) {
-      haloRef.current.scale.setScalar((1.58 + theatre.halo * 0.65 + curBass * 0.22) * collapse);
-      materials.halo.opacity = (0.024 + theatre.halo * 0.06 + voice * 0.03) * opacityFactor;
-    }
-
-    if (orbitalRef.current) {
-      orbitalRef.current.scale.setScalar(authoredRings * collapse);
-      orbitalRef.current.rotation.x += delta * 0.085 * authoredSpeed;
-      orbitalRef.current.rotation.y -= delta * 0.14 * authoredSpeed;
-      orbitalRef.current.rotation.z += delta * 0.03 * authoredSpeed;
-      orbitalRef.current.children.forEach((child, index) => {
-        child.rotation.z += delta * authoredSpeed * (index % 2 === 0 ? 0.22 : -0.16);
-        child.rotation.x += delta * authoredSpeed * (index % 3 === 0 ? 0.05 : -0.027);
-        materials.ring[index].opacity = Math.min(
-          0.68,
-          ringConfigs[index].opacity + curBass * 0.14 + voice * 0.10 + activity * 0.035
-        ) * opacityFactor;
-      });
-    }
-
-    if (gridRef.current) {
-      gridRef.current.rotation.x = time * 0.045 * authoredSpeed;
-      gridRef.current.rotation.y = -time * 0.065 * authoredSpeed;
-      gridRef.current.rotation.z = time * 0.025 * authoredSpeed;
-      gridRef.current.scale.setScalar((0.95 + theatre.ringSpread * 0.09 + curBass * 0.05) * collapse);
-      materials.grid.opacity = (0.018 + gridControl * 0.22 + curTreble * 0.045) * opacityFactor;
-    }
-
-    if (radialRef.current) {
-      radialRef.current.rotation.x -= delta * 0.045 * authoredSpeed;
-      radialRef.current.rotation.y += delta * 0.075 * authoredSpeed;
-      radialRef.current.rotation.z += delta * 0.02;
-      radialRef.current.scale.setScalar((0.92 + theatre.ringSpread * 0.08) * collapse);
-      materials.radial.opacity = (0.03 + radialControl * 0.30 + curTreble * 0.10) * opacityFactor;
-    }
-
-    if (arcRef.current) {
-      arcRef.current.rotation.x += delta * 0.035 * authoredSpeed;
-      arcRef.current.rotation.y -= delta * 0.11 * authoredSpeed;
-      arcRef.current.rotation.z += delta * 0.018 * (1 + curBass);
-      arcRef.current.scale.setScalar((0.94 + theatre.ringSpread * 0.1 + activity * 0.035) * collapse);
-      materials.arc.opacity = (0.055 + arcControl * 0.40 + curTreble * 0.14 + voice * 0.045) * opacityFactor;
-    }
-
-    if (filamentRef.current) {
-      filamentRef.current.rotation.y -= delta * 0.10 * scanSpeed;
-      filamentRef.current.rotation.z += delta * 0.018;
-      filamentRef.current.scale.setScalar((0.96 + activity * 0.05) * collapse);
-      materials.radial.opacity = (0.035 + radialControl * 0.32 + curTreble * 0.12) * opacityFactor;
-    }
-
-    if (circuitRef.current) {
-      circuitRef.current.rotation.x -= delta * 0.11 * scanSpeed;
-      circuitRef.current.rotation.y += delta * 0.08 * scanSpeed;
-      circuitRef.current.rotation.z += delta * 0.025;
-      circuitRef.current.scale.setScalar((0.99 + depthControl * 0.06) * collapse);
-      materials.circuit.opacity = (0.035 + circuitControl * 0.20 + curTreble * 0.10) * opacityFactor;
-    }
-
-    if (arcOrbitRef.current) {
-      arcOrbitRef.current.rotation.y += delta * 0.18 * scanSpeed;
-      arcOrbitRef.current.rotation.x -= delta * 0.045 * scanSpeed;
-      arcOrbitRef.current.children.forEach((child, index) => {
-        child.rotation.z += delta * scanSpeed * (index % 2 === 0 ? 0.26 : -0.2);
-        child.scale.setScalar((0.96 + theatre.ringSpread * 0.06 + activity * 0.03) * collapse);
-      });
-    }
-
-    for (let i = 0; i < waveformRefs.current.length; i++) {
-      const ref = waveformRefs.current[i];
-      if (!ref) continue;
-      const position = ref.geometry.attributes.position as THREE.BufferAttribute;
-      for (let j = 0; j < pointsCount; j++) {
-        const angle = (j / pointsCount) * TAU;
-        const low = Math.sin(angle * (2 + i) - time * (2.5 + i * 0.65)) * curBass * (0.92 + i * 0.16);
-        const high = Math.sin(angle * (11 + i * 4) + time * (9 + i * 1.9)) * curTreble * (0.24 + i * 0.06);
-        const interference = Math.sin(angle * (5 + i * 2) - time * 0.85) * activity * 0.045;
-        const r = 2.08 + low + high + interference;
-        position.setX(j, Math.cos(angle) * r);
-        position.setY(j, Math.sin(angle) * r);
-      }
-      position.needsUpdate = true;
-      ref.rotation.z += delta * (i % 2 === 0 ? 0.065 : -0.085) * authoredSpeed;
-      ref.scale.setScalar((0.96 + theatre.ringSpread * 0.06) * collapse);
-    }
-
-    const particleSpin = 0.5 + authoredSpeed * 0.25;
-    if (outerParticlesRef.current) {
-      outerParticlesRef.current.rotation.y += delta * (0.032 + curTreble * 0.22) * particleSpin;
-      outerParticlesRef.current.rotation.x -= delta * 0.01;
-      outerParticlesRef.current.rotation.z += delta * 0.006;
-      outerParticlesRef.current.scale.setScalar((1 + theatre.particleEnergy * 0.16 + activity * 0.05) * collapse);
-      const mat = outerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.13 + theatre.particleEnergy * 0.24 + curTreble * 0.16) * opacityFactor;
-      mat.size = 0.014 + curTreble * 0.024 + voice * 0.006;
-    }
-
-    if (midParticlesRef.current) {
-      midParticlesRef.current.rotation.y -= delta * (0.07 + curBass * 0.28) * particleSpin;
-      midParticlesRef.current.rotation.z += delta * 0.018;
-      midParticlesRef.current.scale.setScalar((1 + activity * 0.08) * collapse);
-      const mat = midParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.10 + theatre.particleEnergy * 0.20 + curBass * 0.13) * opacityFactor;
-      mat.size = 0.010 + curTreble * 0.020;
-    }
-
-    if (innerParticlesRef.current) {
-      innerParticlesRef.current.rotation.y += delta * (0.11 + curTreble * 0.42) * particleSpin;
-      innerParticlesRef.current.rotation.x += delta * 0.025;
-      innerParticlesRef.current.scale.setScalar((0.98 + curBass * 0.1) * collapse);
-      const mat = innerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.085 + theatre.particleEnergy * 0.18 + curBass * 0.12) * opacityFactor;
-      mat.size = 0.008 + curTreble * 0.014;
-    }
-
-    if (microParticlesRef.current) {
-      microParticlesRef.current.rotation.y -= delta * (0.15 + curTreble * 0.7) * particleSpin;
-      microParticlesRef.current.rotation.z += delta * 0.055;
-      microParticlesRef.current.scale.setScalar((1.02 + curBass * 0.13) * collapse);
-      const mat = microParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.06 + theatre.particleEnergy * 0.18 + microControl * 0.08 + voice * 0.06 + curTreble * 0.08) * opacityFactor;
-      mat.size = 0.006 + microControl * 0.003 + curTreble * 0.012 + voice * 0.004;
-    }
-
-    pulseRefs.current.forEach((pulseRef, index) => {
-      if (!pulseRef) return;
-      const cycle = (time * (0.52 + stateSpeed * 0.16) + index * 0.72) % 2.2;
-      const t = cycle / 2.2;
-      pulseRef.scale.setScalar((1 + t * (1.0 + curBass * 0.5)) * collapse);
-      materials.pulse.opacity = cycle < 1.65
-        ? (1 - t) * (0.07 + voice * 0.1 + eventPulseRef.current * 0.22) * opacityFactor
-        : 0;
-    });
   });
 
   return (
     <group ref={groupRef}>
-      {/* 0 — concentrated luminous computation core */}
-      <Sphere ref={nucleusGlowRef} args={[1.18, 48, 48]} material={materials.coreGlow} />
-      <Sphere ref={nucleusRef} args={[0.84, 56, 56]} material={materials.core} />
-
-      {/* 1 — nested high-resolution faceted shells */}
-      <Icosahedron ref={innerShellRef} args={[1.5, 3]} material={materials.shellInner} />
-      <Octahedron ref={outerShellRef} args={[1.72, 3]} material={materials.shellOuter} />
-      <Sphere ref={haloRef} args={[1.56, 48, 48]} material={materials.halo} />
-
-      {/* 2 — five spaced precision orbital bands */}
-      <group ref={orbitalRef}>
-        {ringConfigs.map((ring, index) => (
-          <Torus key={index} args={[ring.radius, ring.tube, 10, 96]} rotation={ring.rotation} material={materials.ring[index]} />
-        ))}
-      </group>
-
-      {/* 3 — restrained spherical technical lattice */}
-      <lineSegments ref={gridRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[sphereGrid, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.grid} attach="material" />
-      </lineSegments>
-
-      {/* 4 — radial computational filaments */}
-      <lineSegments ref={radialRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[radialData, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.radial} attach="material" />
-      </lineSegments>
-
-      {/* 5 — segmented orbital/data arc network */}
-      <lineSegments ref={arcRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[arcNetwork, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.arc} attach="material" />
-      </lineSegments>
-
-      {/* 5a — sparse white-hot energy filaments for clean depth cues */}
-      <lineSegments ref={filamentRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[energyFilaments, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.radial} attach="material" />
-      </lineSegments>
-
-      {/* 5b — ultra-fine surface circuit traces visible at close range */}
-      <lineSegments ref={circuitRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[surfaceCircuit, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.circuit} attach="material" />
-      </lineSegments>
-
-      {/* 5c — independently oriented arc fragments */}
-      <group ref={arcOrbitRef}>
-        {[0, 1, 2, 3, 4].map((index) => (
-          <Torus
-            key={index}
-            args={[2.25 + (index % 4) * 0.22, 0.006 + (index % 2) * 0.002, 8, 64, Math.PI * (0.28 + (index % 3) * 0.08)]}
-            rotation={[
-              index * 0.31,
-              (index % 4) * 0.44,
-              index * 0.17
-            ]}
-            material={materials.ring[index % materials.ring.length]}
-          />
-        ))}
-      </group>
-
-      {/* 6 — three orthogonal data wavefields */}
-      {[0, 1, 2].map((index) => (
-        <lineLoop
-          key={index}
-          ref={(ref) => { waveformRefs.current[index] = ref; }}
-          rotation={
-            index === 0 ? [0, 0, 0]
-              : index === 1 ? [0, Math.PI / 2, 0]
-              : [Math.PI / 2, 0, 0]
-          }
-        >
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[initialWavePoints, 3]} />
-          </bufferGeometry>
-          <primitive object={materials.wave[index]} attach="material" />
-        </lineLoop>
-      ))}
-
-      {/* 7 — sparse multi-scale particulate computation field */}
-      <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
-        <primitive object={materials.particles} attach="material" />
-      </Points>
-      <Points ref={midParticlesRef} positions={midParticles} stride={3} frustumCulled={false}>
-        <primitive object={materials.midParticles} attach="material" />
-      </Points>
-      <Points ref={innerParticlesRef} positions={innerParticles} stride={3} frustumCulled={false}>
-        <primitive object={materials.innerParticles} attach="material" />
-      </Points>
-      <Points ref={microParticlesRef} positions={microParticles} stride={3} frustumCulled={false}>
-        <primitive object={materials.microParticles} attach="material" />
-      </Points>
-
-      {/* 8 — subtle propagating energy shells */}
-      {[0, 1, 2].map((index) => (
-        <Sphere
-          key={index}
-          ref={(ref) => { pulseRefs.current[index] = ref; }}
-          args={[1.92 + index * 0.16, 28, 28]}
-          material={materials.pulse}
+      {/* One sculpted blue energy sphere. Its light and surface current live in the shader. */}
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[0.9, 96, 96]} />
+        <shaderMaterial
+          uniforms={coreUniforms}
+          vertexShader={orbVertexShader}
+          fragmentShader={orbFragmentShader}
+          transparent
+          depthWrite={false}
+          side={THREE.FrontSide}
         />
-      ))}
+      </mesh>
+
+      {/* A single feather-light rim gives the sphere depth without surrounding clutter. */}
+      <mesh ref={auraRef}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <shaderMaterial
+          uniforms={auraUniforms}
+          vertexShader={orbVertexShader}
+          fragmentShader={auraFragmentShader}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          side={THREE.FrontSide}
+        />
+      </mesh>
     </group>
   );
 }
