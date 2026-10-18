@@ -118,7 +118,7 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-200/90 bg-white/88 p-3 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_20px_46px_rgba(45,87,147,0.15)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
+              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-200/90 bg-white/88 p-3 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_22px_48px_rgba(45,75,126,0.2)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
             >
               <span className="mb-2 flex w-full items-center justify-between gap-1.5 sm:mb-3 sm:gap-2">
                 <span className="advis-icon-surface h-10 w-10 transition-transform group-hover:scale-[1.04]">
@@ -138,7 +138,7 @@ export function ScientificLaunchpad({
       </div>
 
       {directStarts.length > 0 && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white/82 px-3.5 py-3 shadow-[0_12px_36px_rgba(45,87,147,0.08)] backdrop-blur-xl sm:px-4">
+        <div className="rounded-2xl border border-slate-300/90 bg-white/96 px-3.5 py-3 shadow-[0_14px_38px_rgba(45,75,126,0.13)] backdrop-blur-xl sm:px-4">
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-slate-800">Quick starts</h2>
@@ -156,7 +156,7 @@ export function ScientificLaunchpad({
                   if (item.type === 'molecule') onSelectMolecule(item.id);
                   else onSelectSpatialObject(item.id);
                 }}
-                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-[color,border-color,background-color,box-shadow] hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-800 hover:shadow-sm focus-visible:outline-offset-2"
+                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-xs font-medium text-slate-800 transition-[color,border-color,background-color,box-shadow] hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-800 hover:shadow-sm focus-visible:outline-offset-2"
               >
                 {item.type === 'molecule' ? (
                   <Atom size={13} className="shrink-0 text-blue-600" aria-hidden="true" />
