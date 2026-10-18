@@ -231,7 +231,7 @@ function AppContent() {
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [themeColor, setThemeColor] = useState('#18d5e2');
+  const [themeColor, setThemeColor] = useState('#e20246');
   const [speechRate, setSpeechRate] = useState(1.05);
 
   const sessionMolecule = useSessionMolecule();
@@ -1570,7 +1570,7 @@ function AppContent() {
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
-      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f7fb] text-slate-900 selection:bg-blue-500/20' : 'bg-[#f5f9ff] text-slate-800 selection:bg-blue-500/20'}`}>
+      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#101013] text-slate-900 selection:bg-red-500/20' : 'bg-[#080809] text-slate-800 selection:bg-red-500/20'}`}>
       
       {/* Action Preview Overlay */}
       {actionPreview && (
@@ -1642,7 +1642,7 @@ function AppContent() {
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
-          {isEngineeringMode && <color attach="background" args={['#f4f7fb']} />}
+          {isEngineeringMode && <color attach="background" args={['#101013']} />}
           {!isEngineeringMode && (
             <HologramCore
               systemState={systemState}
