@@ -1,39 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cyan-100: color-mix(in srgb, var(--primary) 18%, #eaffff);
-  --color-cyan-200: color-mix(in srgb, var(--primary) 34%, #d7ffff);
-  --color-cyan-300: color-mix(in srgb, var(--primary) 58%, #bafcff);
+  --color-cyan-100: color-mix(in srgb, var(--primary) 14%, #ffffff);
+  --color-cyan-200: color-mix(in srgb, var(--primary) 30%, #fff0f4);
+  --color-cyan-300: color-mix(in srgb, var(--primary) 58%, #ffd4e0);
   --color-cyan-400: var(--primary);
-  --color-cyan-500: color-mix(in srgb, var(--primary) 82%, #003b7b);
-  --color-cyan-600: color-mix(in srgb, var(--primary) 62%, #002b50);
-  --color-cyan-900: #0a2946;
-  --color-cyan-950: #041426;
+  --color-cyan-500: color-mix(in srgb, var(--primary) 82%, #3b0012);
+  --color-cyan-600: color-mix(in srgb, var(--primary) 62%, #190008);
+  --color-cyan-900: #5b001c;
+  --color-cyan-950: #27000c;
 }
 
 @layer base {
   :root {
-    --background: 216 78% 7%;
-    --foreground: 194 100% 96%;
-    --primary: #18d5e2;
-    --primary-dark: #0070f2;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --primary: #e20246;
+    --primary-dark: #ae0036;
 
-    /* ADVIS: deep SAP-blue atmosphere with a luminous cyan/teal intelligence accent. */
-    --advis-canvas: #041321;
-    --advis-canvas-raised: #0a2038;
-    --advis-surface: rgba(7, 27, 49, 0.86);
-    --advis-surface-raised: rgba(9, 34, 60, 0.96);
-    --advis-border: rgba(77, 165, 205, 0.25);
-    --advis-border-strong: rgba(35, 214, 232, 0.58);
-    --advis-text: #ecf9ff;
-    --advis-text-secondary: #c1dce9;
-    --advis-text-muted: #83a9c4;
-    --advis-blue: #168cff;
-    --advis-blue-deep: #0064d8;
-    --advis-cyan: #20dce5;
-    --advis-teal: #16cbb8;
-    --advis-lavender: #79a2ff;
-    --advis-shadow: 0 22px 56px rgba(0, 7, 18, 0.36);
+    /* ADVIS: Rittal-inspired industrial black, sharp white typography, signal red. */
+    --advis-canvas: #080809;
+    --advis-canvas-raised: #121215;
+    --advis-surface: rgba(18, 18, 21, 0.9);
+    --advis-surface-raised: rgba(25, 25, 29, 0.97);
+    --advis-border: rgba(255, 255, 255, 0.14);
+    --advis-border-strong: rgba(226, 2, 70, 0.72);
+    --advis-text: #f3f3f5;
+    --advis-text-secondary: #d0d0d5;
+    --advis-text-muted: #a0a0a9;
+    --advis-red: #e20246;
+    --advis-red-bright: #ff315f;
+    --advis-red-deep: #9b0031;
+    --advis-shadow: 0 22px 56px rgba(0, 0, 0, 0.48);
     --advis-motion-fast: 160ms;
     --advis-motion-normal: 240ms;
     color-scheme: dark;
@@ -47,9 +45,9 @@
   body {
     min-height: 100%;
     background:
-      radial-gradient(ellipse at 50% 42%, rgba(0, 113, 220, 0.2), transparent 43%),
-      radial-gradient(ellipse at 74% 72%, rgba(0, 201, 202, 0.09), transparent 36%),
-      linear-gradient(135deg, #020d1a 0%, #061b31 48%, #031322 100%);
+      radial-gradient(ellipse at 50% 43%, rgba(226, 2, 70, 0.11), transparent 42%),
+      radial-gradient(ellipse at 80% 82%, rgba(126, 0, 36, 0.08), transparent 35%),
+      linear-gradient(135deg, #070708 0%, #101013 48%, #060607 100%);
     color: var(--advis-text);
     overflow: hidden;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -62,13 +60,13 @@
   }
 
   input::placeholder, textarea::placeholder {
-    color: var(--advis-text-muted);
-    opacity: 0.9;
+    color: #96969f;
+    opacity: 0.95;
   }
 
   ::selection {
-    color: #001827;
-    background: rgba(32, 220, 229, 0.5);
+    color: #ffffff;
+    background: rgba(226, 2, 70, 0.48);
   }
 }
 
@@ -78,13 +76,13 @@
     background: var(--advis-surface);
     border: 1px solid var(--advis-border);
     border-radius: 1.25rem;
-    box-shadow: var(--advis-shadow), inset 0 1px 0 rgba(144, 224, 255, 0.04);
-    backdrop-filter: blur(24px) saturate(1.2);
-    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    box-shadow: var(--advis-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(24px) saturate(1.12);
+    -webkit-backdrop-filter: blur(24px) saturate(1.12);
   }
 
   .advis-eyebrow {
-    color: #67e8f2;
+    color: #ff476f;
     font-size: 0.64rem;
     font-weight: 750;
     letter-spacing: 0.15em;
@@ -128,117 +126,136 @@
   }
 
   .advis-nav-link:hover {
-    color: #b6fbff;
-    background: rgba(18, 135, 190, 0.16);
-    border-color: rgba(57, 195, 225, 0.28);
+    color: #ffffff;
+    background: rgba(226, 2, 70, 0.14);
+    border-color: rgba(226, 2, 70, 0.36);
   }
 
   .advis-nav-link[aria-current="page"] {
-    color: #d4feff;
-    background: linear-gradient(100deg, rgba(0, 127, 242, 0.24), rgba(20, 220, 214, 0.10));
-    border-color: rgba(35, 214, 232, 0.34);
-    box-shadow: inset 3px 0 0 var(--advis-cyan), 0 8px 24px rgba(0, 125, 210, 0.12);
+    color: #ffffff;
+    background: linear-gradient(100deg, rgba(226, 2, 70, 0.2), rgba(226, 2, 70, 0.055));
+    border-color: rgba(226, 2, 70, 0.44);
+    box-shadow: inset 3px 0 0 var(--advis-red), 0 8px 24px rgba(102, 0, 29, 0.2);
   }
 
   .advis-mobile-more-menu {
     color: var(--advis-text);
-    background: rgba(5, 21, 39, 0.97);
+    background: rgba(13, 13, 16, 0.98);
     border: 1px solid var(--advis-border-strong);
     border-radius: 1rem;
-    box-shadow: 0 24px 64px rgba(0, 5, 15, 0.55), 0 0 26px rgba(0, 179, 215, 0.08);
-    backdrop-filter: blur(24px) saturate(1.25);
-    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.68), 0 0 22px rgba(226, 2, 70, 0.09);
+    backdrop-filter: blur(24px) saturate(1.15);
+    -webkit-backdrop-filter: blur(24px) saturate(1.15);
   }
 
   .advis-icon-surface {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(45, 194, 226, 0.32);
+    border: 1px solid rgba(226, 2, 70, 0.42);
     border-radius: 0.9rem;
-    color: #63edfa;
-    background: linear-gradient(145deg, rgba(19, 78, 119, 0.7), rgba(7, 34, 61, 0.94));
-    box-shadow: inset 0 1px 0 rgba(160, 241, 255, 0.08), 0 8px 24px rgba(0, 8, 20, 0.28);
+    color: #ff5379;
+    background: linear-gradient(145deg, rgba(55, 12, 26, 0.92), rgba(20, 18, 22, 0.96));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 8px 22px rgba(0, 0, 0, 0.32);
   }
 }
 
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(43, 123, 160, 0.12); }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 171, 200, 0.42); border-radius: 999px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.045); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(226, 2, 70, 0.45); border-radius: 999px; }
   .mask-image-bottom { mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
   .mask-image-both { mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); }
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Light utility classes from legacy modules are recast as deep, glassy SAP-blue surfaces. */
-  [class~="bg-white"] { background-color: #081d34 !important; }
+  /* Legacy light surfaces become quiet charcoal panels, not white cards. */
+  [class~="bg-white"] { background-color: #121215 !important; }
   [class~="bg-white/88"],
   [class~="bg-white/85"],
   [class~="bg-white/92"],
   [class~="bg-white/96"],
   [class~="bg-white/98"],
-  [class~="bg-white/90"] { background-color: rgba(7, 27, 49, 0.93) !important; }
-  [class~="bg-white/95"] { background-color: rgba(4, 17, 32, 0.96) !important; }
-  [class~="bg-white/65"] { background-color: rgba(3, 15, 28, 0.82) !important; }
-  [class~="bg-white/40"] { background-color: rgba(6, 26, 47, 0.44) !important; }
-  [class~="bg-white/20"] { background-color: rgba(111, 209, 245, 0.04) !important; }
+  [class~="bg-white/90"] { background-color: rgba(18, 18, 21, 0.95) !important; }
+  [class~="bg-white/95"] { background-color: rgba(10, 10, 12, 0.97) !important; }
+  [class~="bg-white/65"] { background-color: rgba(8, 8, 10, 0.86) !important; }
+  [class~="bg-white/40"] { background-color: rgba(24, 13, 17, 0.54) !important; }
+  [class~="bg-white/20"] { background-color: rgba(255, 255, 255, 0.035) !important; }
+
   [class~="bg-blue-50"],
   [class~="bg-blue-50/80"],
-  [class~="bg-blue-50/90"] { background-color: rgba(13, 83, 132, 0.28) !important; }
-  [class~="bg-blue-50/40"] { background-color: rgba(10, 77, 122, 0.26) !important; }
-  [class~="bg-blue-100"] { background-color: rgba(21, 113, 169, 0.30) !important; }
-  [class~="bg-blue-600/10"] { background-color: rgba(0, 112, 242, 0.18) !important; }
-  [class~="bg-blue-600/15"] { background-color: rgba(0, 112, 242, 0.24) !important; }
-  [class~="bg-slate-50"],
-  [class~="bg-slate-100"],
-  [class~="bg-gray-50"],
+  [class~="bg-blue-50/90"],
   [class~="bg-indigo-50"],
   [class~="bg-sky-50"],
-  [class~="bg-cyan-50"] { background-color: rgba(14, 52, 82, 0.46) !important; }
+  [class~="bg-cyan-50"] { background-color: rgba(92, 0, 28, 0.25) !important; }
+  [class~="bg-blue-50/40"] { background-color: rgba(110, 0, 32, 0.22) !important; }
+  [class~="bg-blue-100"] { background-color: rgba(142, 0, 42, 0.28) !important; }
+  [class~="bg-blue-600/10"] { background-color: rgba(226, 2, 70, 0.17) !important; }
+  [class~="bg-blue-600/15"] { background-color: rgba(226, 2, 70, 0.24) !important; }
+  [class~="bg-slate-50"],
+  [class~="bg-slate-100"],
+  [class~="bg-gray-50"] { background-color: rgba(25, 25, 29, 0.72) !important; }
 
-  /* Make the handful of white-to-blue utility gradients fit the dark atmosphere. */
-  [class~="from-white"] { --tw-gradient-from: #0b2b49 !important; --tw-gradient-to: rgb(11 43 73 / 0) !important; }
-  [class~="to-white"] { --tw-gradient-to: #0b213a !important; }
-  [class~="to-blue-50"] { --tw-gradient-to: #0b2a47 !important; }
-  [class~="from-blue-50"] { --tw-gradient-from: #0a2947 !important; --tw-gradient-to: rgb(10 41 71 / 0) !important; }
-  [class~="via-white/20"] { --tw-gradient-via: rgba(117, 205, 239, 0.04) !important; }
-  [class~="to-indigo-50"] { --tw-gradient-to: #102246 !important; }
+  /* Legacy white/blue gradients become a black-to-crimson technical finish. */
+  [class~="from-white"] { --tw-gradient-from: #211017 !important; --tw-gradient-to: rgb(33 16 23 / 0) !important; }
+  [class~="to-white"] { --tw-gradient-to: #111114 !important; }
+  [class~="to-blue-50"] { --tw-gradient-to: #250b14 !important; }
+  [class~="from-blue-50"] { --tw-gradient-from: #260a14 !important; --tw-gradient-to: rgb(38 10 20 / 0) !important; }
+  [class~="via-white/20"] { --tw-gradient-via: rgba(255, 255, 255, 0.025) !important; }
+  [class~="to-indigo-50"] { --tw-gradient-to: #1b1017 !important; }
 
-  [class~="text-[#172b4d]"] { color: #eaf8ff !important; }
-  [class~="text-slate-900"], [class~="text-slate-800"] { color: #edfaff !important; }
-  [class~="text-slate-700"] { color: #d3e8f5 !important; }
-  [class~="text-slate-600"] { color: #b6d0e1 !important; }
-  [class~="text-slate-500"] { color: #91b1c8 !important; }
-  [class~="text-slate-400"] { color: #82a5be !important; }
-  [class~="text-slate-300"] { color: #c9e3f1 !important; }
-  [class~="text-blue-900"], [class~="text-blue-800"] { color: #aaf7ff !important; }
-  [class~="text-blue-700"] { color: #75e8f5 !important; }
-  [class~="text-blue-600"] { color: #48bbff !important; }
-  [class~="text-blue-500"], [class~="text-cyan-800"] { color: #52ddec !important; }
-  [class~="text-indigo-900"], [class~="text-indigo-800"] { color: #d0dcff !important; }
-  [class~="text-indigo-700"], [class~="text-indigo-600"] { color: #9ebaff !important; }
-  [class~="text-sky-800"], [class~="text-sky-700"] { color: #81e3ff !important; }
-  [class~="text-cyan-700"], [class~="text-cyan-600"] { color: #49eee8 !important; }
+  [class~="text-[#172b4d]"] { color: #f0f0f2 !important; }
+  [class~="text-slate-950"], [class~="text-slate-900"], [class~="text-slate-800"] { color: #f2f2f4 !important; }
+  [class~="text-slate-700"] { color: #ddddE2 !important; }
+  [class~="text-slate-600"] { color: #c4c4cc !important; }
+  [class~="text-slate-500"] { color: #a3a3ad !important; }
+  [class~="text-slate-400"] { color: #92929c !important; }
+  [class~="text-slate-300"] { color: #ddddE2 !important; }
+
+  [class~="text-blue-950"], [class~="text-blue-900"], [class~="text-blue-800"] { color: #ffb5c8 !important; }
+  [class~="text-blue-700"] { color: #ff527b !important; }
+  [class~="text-blue-600"] { color: #ff315f !important; }
+  [class~="text-blue-500"], [class~="text-blue-400"], [class~="text-cyan-800"], [class~="text-cyan-700"], [class~="text-cyan-600"] { color: #ff6487 !important; }
+  [class~="text-indigo-900"], [class~="text-indigo-800"] { color: #ffd1dd !important; }
+  [class~="text-indigo-700"], [class~="text-indigo-600"] { color: #ff7695 !important; }
+  [class~="text-sky-800"], [class~="text-sky-700"] { color: #ff91aa !important; }
+  [class~="text-purple-500"], [class~="text-purple-400"] { color: #e8a3ff !important; }
 
   [class*="border-slate-200"],
   [class*="border-slate-300"],
+  [class*="border-gray-200"] { border-color: rgba(255, 255, 255, 0.18) !important; }
   [class*="border-blue-100"],
   [class*="border-blue-200"],
-  [class*="border-sky-200"] { border-color: rgba(81, 166, 205, 0.30) !important; }
-  [class~="border-blue-300"] { border-color: rgba(35, 214, 232, 0.48) !important; }
-  [class~="border-blue-200/30"], [class~="border-blue-200/20"] { border-color: rgba(69, 163, 201, 0.24) !important; }
+  [class*="border-sky-200"],
+  [class*="border-cyan-200"],
+  [class*="border-indigo-200"] { border-color: rgba(226, 2, 70, 0.34) !important; }
+  [class*="border-blue-300"],
+  [class*="border-cyan-300"] { border-color: rgba(255, 49, 95, 0.62) !important; }
   [class~="border-transparent"] { border-color: transparent; }
-  [class~="hover:bg-white"]:hover { background-color: #0d2a49 !important; }
+
+  [class~="hover:bg-white"]:hover { background-color: #211017 !important; }
   [class~="hover:bg-blue-50"]:hover,
-  [class~="hover:bg-blue-50/80"]:hover { background-color: rgba(17, 114, 163, 0.24) !important; }
+  [class~="hover:bg-blue-50/80"]:hover { background-color: rgba(142, 0, 42, 0.28) !important; }
   [class~="hover:border-blue-100"]:hover,
-  [class~="hover:border-blue-200"]:hover { border-color: rgba(41, 199, 224, 0.34) !important; }
-  [class~="hover:border-blue-300"]:hover { border-color: rgba(35, 214, 232, 0.72) !important; }
+  [class~="hover:border-blue-200"]:hover { border-color: rgba(226, 2, 70, 0.45) !important; }
+  [class~="hover:border-blue-300"]:hover { border-color: rgba(255, 49, 95, 0.78) !important; }
+  [class~="group-hover:text-blue-700"]:hover,
+  .group:hover [class~="group-hover:text-blue-700"] { color: #ff527b !important; }
+
+  button[class*="border-"]:not([class*="rounded-full"]),
+  input[class*="border-"]:not([type="checkbox"]):not([type="radio"]),
+  select[class*="border-"],
+  textarea[class*="border-"] {
+    border-radius: 1rem;
+  }
+
+  :is(div, span, section, article, aside)[class*="border-"][class*="bg-"]:not([class*="rounded-full"]):not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]) {
+    border-radius: 1rem;
+  }
 
   :where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
     border-radius: inherit;
-    outline: 2px solid var(--primary, #18d5e2);
+    outline: 2px solid var(--primary, #e20246);
     outline-offset: 3px;
   }
 }
@@ -251,9 +268,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
