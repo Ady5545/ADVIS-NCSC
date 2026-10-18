@@ -189,7 +189,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
                   title={preset.description}
                   className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-cyan-500/30 border border-blue-200 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                      ? 'bg-blue-50 border border-blue-200 text-blue-800 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                       : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
                   }`}
                 >
@@ -213,7 +213,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
               title="Full PBR alloy, carbon fiber, and titanium exterior solid assembly"
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'SOLID'
-                  ? 'bg-cyan-500/30 border border-blue-200 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                  ? 'bg-blue-50 border border-blue-200 text-blue-800 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                   : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
               }`}
             >
@@ -261,7 +261,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsChartsMinimized(!isChartsMinimized)}
-                className="text-blue-700 hover:text-white p-1 transition-colors cursor-pointer"
+                className="text-blue-700 hover:text-blue-900 p-1 transition-colors cursor-pointer"
                 title={isChartsMinimized ? 'Expand diagram' : 'Minimize diagram'}
               >
                 {isChartsMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -324,7 +324,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
                   title={`Cylinder ${cylNum} (Bank ${bank}) - Stroke: ${stroke} - Click to focus chart & model`}
                   className={`relative flex flex-col items-center justify-center py-1.5 px-0.5 rounded-lg border transition-all cursor-pointer ${
                     isFiring
-                      ? 'bg-amber-500/40 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse scale-105'
+                      ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse scale-105'
                       : isSelected
                       ? 'bg-cyan-500/30 border-blue-200 text-slate-800 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                       : 'bg-white/60 border-blue-200/20 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
