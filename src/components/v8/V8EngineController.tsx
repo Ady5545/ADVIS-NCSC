@@ -104,7 +104,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
         <div className="flex items-center gap-1.5 rounded-xl border border-blue-200/30 bg-white/90 p-2 shadow-lg backdrop-blur-xl">
           <span className="flex items-center gap-1.5 border-r border-blue-200/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-blue-700"><Layers size={12} /> View mode:</span>
           {(['SOLID', 'GLASS', 'SECTION'] as const).map((mode) => (
-            <button key={mode} onClick={() => cutaway(mode)} className={`${cyanButton} ${currentCutawayMode === mode ? 'border-blue-200 bg-cyan-500/25 text-white shadow-[0_0_10px_rgba(6,182,212,0.25)]' : inactiveButton}`}>
+            <button key={mode} onClick={() => cutaway(mode)} className={`${cyanButton} ${currentCutawayMode === mode ? 'border-blue-200 bg-blue-50 text-blue-800 shadow-[0_0_10px_rgba(6,182,212,0.25)]' : inactiveButton}`}>
               {mode === 'SECTION' ? 'Blueprint' : mode === 'GLASS' ? 'Glass' : 'Solid'}
             </button>
           ))}
@@ -123,7 +123,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
               const phase = cycleByCylinder[cylinder];
               const chosen = focusedCylinder === cylinder;
               return (
-                <button key={cylinder} onClick={() => onSelectCylinder(cylinder)} title={`Cylinder ${cylinder} · Bank ${CYLINDER_BANK[cylinder]} · ${phase.stroke} · Select cylinder`} className={`relative flex flex-col items-center justify-center rounded-lg border px-1 py-1.5 transition-all ${phase.isFiring ? 'scale-105 border-amber-400 bg-amber-500/35 text-white shadow-[0_0_14px_rgba(245,158,11,0.45)]' : chosen ? 'border-blue-200 bg-cyan-500/25 text-slate-800' : 'border-blue-200/20 bg-white/70 text-blue-700 hover:border-blue-200/50'}`}>
+                <button key={cylinder} onClick={() => onSelectCylinder(cylinder)} title={`Cylinder ${cylinder} · Bank ${CYLINDER_BANK[cylinder]} · ${phase.stroke} · Select cylinder`} className={`relative flex flex-col items-center justify-center rounded-lg border px-1 py-1.5 transition-all ${phase.isFiring ? 'scale-105 border-amber-400 bg-amber-100 text-amber-900 shadow-[0_0_14px_rgba(245,158,11,0.45)]' : chosen ? 'border-blue-200 bg-cyan-500/25 text-slate-800' : 'border-blue-200/20 bg-white/70 text-blue-700 hover:border-blue-200/50'}`}>
                   <span className="text-[10px] font-bold">C{cylinder}</span>
                   <span className="flex items-center gap-1 text-[7px] opacity-80"><span>{CYLINDER_BANK[cylinder]}</span><span>·</span><span>{phase.stroke}</span></span>
                   {phase.isFiring && <span className="absolute -right-1 -top-1 h-2 w-2 animate-ping rounded-full bg-amber-400" />}
@@ -141,7 +141,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
               </button>
               <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700">Speed:</span>
               {SPEEDS.map((speed) => (
-                <button key={speed} onClick={() => onChangeSpeed(speed)} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${kinematicSpeed === speed ? 'border-blue-200 bg-cyan-400/25 text-white' : 'border-blue-200/20 text-blue-700 hover:bg-blue-50/50'}`}>{speed}x</button>
+                <button key={speed} onClick={() => onChangeSpeed(speed)} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${kinematicSpeed === speed ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-blue-200/20 text-blue-700 hover:bg-blue-50/50'}`}>{speed}x</button>
               ))}
             </div>
 
