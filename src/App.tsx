@@ -231,7 +231,7 @@ function AppContent() {
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [themeColor, setThemeColor] = useState('#2864e8');
+  const [themeColor, setThemeColor] = useState('#18d5e2');
   const [speechRate, setSpeechRate] = useState(1.05);
 
   const sessionMolecule = useSessionMolecule();
