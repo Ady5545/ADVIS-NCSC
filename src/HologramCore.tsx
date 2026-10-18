@@ -206,12 +206,12 @@ function createSurfaceCircuitGeometry(): Float32Array {
 function createArcNetwork(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xA71F);
-  const arcCount = 5;
-  const segmentsPerArc = 18;
+  const arcCount = 3;
+  const segmentsPerArc = 22;
 
   // Build a handful of smooth, continuous orbital fragments instead of disconnected random chords.
   for (let arc = 0; arc < arcCount; arc++) {
-    const radius = 2.12 + arc * 0.14;
+    const radius = 2.24 + arc * 0.18;
     const tilt = [
       (random() - 0.5) * 0.82,
       (random() - 0.5) * 0.92,
@@ -270,7 +270,6 @@ export function HologramCore({
   const midParticlesRef = useRef<THREE.Points>(null);
   const innerParticlesRef = useRef<THREE.Points>(null);
   const microParticlesRef = useRef<THREE.Points>(null);
-  const pulseRefs = useRef<Array<THREE.Mesh | null>>([]);
   const waveformRefs = useRef<Array<THREE.LineLoop | null>>([]);
   const spatialTransitionRef = useRef(0);
   const smoothedBassRef = useRef(0);
@@ -302,9 +301,8 @@ export function HologramCore({
   }, []);
 
   const ringConfigs = useMemo(() => [
-    { radius: 1.92, tube: 0.011, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.52 },
-    { radius: 2.30, tube: 0.008, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.31 },
-    { radius: 2.72, tube: 0.006, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.18 },
+    { radius: 1.96, tube: 0.010, rotation: [0.28, 0.16, 0.08] as [number, number, number], opacity: 0.40 },
+    { radius: 2.68, tube: 0.006, rotation: [0.92, -0.35, 0.52] as [number, number, number], opacity: 0.18 },
   ], []);
 
   // The UI stays industrial red/black; the Core follows the reference's rose, blue, cyan and warm-star palette.
@@ -449,7 +447,6 @@ export function HologramCore({
     midParticles: new THREE.PointsMaterial({ color: '#ff5c98', transparent: true, opacity: 0.18, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
     innerParticles: new THREE.PointsMaterial({ color: '#449eff', transparent: true, opacity: 0.18, size: 0.009, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
     microParticles: new THREE.PointsMaterial({ color: '#d7f5ff', transparent: true, opacity: 0.16, size: 0.007, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#84caff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false })
   }), [ringConfigs]);
 
   useEffect(() => {
@@ -707,15 +704,6 @@ export function HologramCore({
       mat.size = 0.006 + microControl * 0.002 + curTreble * 0.006 + voice * 0.004;
     }
 
-    pulseRefs.current.forEach((pulseRef, index) => {
-      if (!pulseRef) return;
-      const cycle = (time * (0.52 + stateSpeed * 0.16) + index * 0.72) % 2.2;
-      const t = cycle / 2.2;
-      pulseRef.scale.setScalar((1 + t * (1.0 + curBass * 0.5)) * collapse);
-      materials.pulse.opacity = cycle < 1.65
-        ? (1 - t) * (0.07 + voice * 0.1 + eventPulseRef.current * 0.22) * opacityFactor
-        : 0;
-    });
   });
 
   return (
@@ -745,22 +733,19 @@ export function HologramCore({
       </lineSegments>
 
       <group ref={arcOrbitRef}>
-        {[0, 1].map((index) => (
-          <Torus
-            key={index}
-            args={[2.28 + index * 0.27, 0.006, 8, 80, Math.PI * (0.42 + (index % 2) * 0.1)]}
-            rotation={[index * 0.43, (index % 3) * 0.52, index * 0.24]}
-            material={materials.ring[index]}
-          />
-        ))}
+        <Torus
+          args={[2.42, 0.005, 8, 96, Math.PI * 0.64]}
+          rotation={[0.62, -0.48, 0.35]}
+          material={materials.ring[1]}
+        />
       </group>
 
-      {/* Two quiet, orthogonal signal waves respond to voice and system activity. */}
-      {[0, 1].map((index) => (
+      {/* One clean, slightly tilted signal wave responds to voice without drawing a line through the core. */}
+      {[0].map((index) => (
         <lineLoop
           key={index}
           ref={(ref) => { waveformRefs.current[index] = ref; }}
-          rotation={index === 0 ? [0, 0, 0] : [0, Math.PI / 2, 0]}
+          rotation={[0.18, 0.12, 0.05]}
         >
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[initialWavePoints, 3]} />
@@ -783,9 +768,6 @@ export function HologramCore({
         <primitive object={materials.microParticles} attach="material" />
       </Points>
 
-      {[0, 1].map((index) => (
-        <Sphere key={index} ref={(ref) => { pulseRefs.current[index] = ref; }} args={[1.92 + index * 0.28, 40, 40]} material={materials.pulse} />
-      ))}
     </group>
   );
 }
