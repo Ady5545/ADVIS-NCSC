@@ -17,6 +17,20 @@
     --foreground: 0 0% 100%;
     --primary: #22d3ee;
     --primary-dark: 190 100% 30%;
+
+    /* ADVIS semantic surfaces: shared by home, navigation and scientific panels. */
+    --advis-canvas: #020617;
+    --advis-surface: rgba(7, 17, 31, 0.78);
+    --advis-surface-raised: rgba(12, 27, 46, 0.92);
+    --advis-border: rgba(125, 211, 252, 0.18);
+    --advis-border-strong: rgba(103, 232, 249, 0.4);
+    --advis-text: #f1f8ff;
+    --advis-text-secondary: #b7c8dc;
+    --advis-text-muted: #8499b3;
+    --advis-blue: #60a5fa;
+    --advis-cyan: #22d3ee;
+    --advis-motion-fast: 160ms;
+    --advis-motion-normal: 240ms;
   }
 
   body {
@@ -24,6 +38,84 @@
     color: hsl(var(--foreground));
     overflow: hidden;
     font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .advis-surface {
+    color: var(--advis-text);
+    background: var(--advis-surface);
+    border: 1px solid var(--advis-border);
+    border-radius: 1.25rem;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+  }
+
+  .advis-eyebrow {
+    color: rgba(103, 232, 249, 0.82);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .advis-nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .advis-nav-section-label {
+    padding: 0.2rem 0.75rem;
+    color: var(--advis-text-muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .advis-nav-link {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    padding: 0.62rem 0.75rem;
+    color: var(--advis-text-secondary);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      color var(--advis-motion-fast) ease,
+      background-color var(--advis-motion-fast) ease,
+      border-color var(--advis-motion-fast) ease;
+  }
+
+  .advis-nav-link:hover {
+    color: var(--advis-text);
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(125, 211, 252, 0.14);
+  }
+
+  .advis-nav-link[aria-current="page"] {
+    color: #e0fbff;
+    background: rgba(34, 211, 238, 0.11);
+    border-color: var(--advis-border-strong);
+    box-shadow: inset 2px 0 0 var(--advis-cyan);
+  }
+
+  .advis-mobile-more-menu {
+    color: var(--advis-text);
+    background: rgba(3, 10, 22, 0.96);
+    border: 1px solid var(--advis-border-strong);
+    border-radius: 1rem;
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 }
 
@@ -59,7 +151,6 @@
   90% { opacity: 1; }
   100% { transform: translateY(150px); opacity: 0; }
 }
-
 
 /* Respect operating-system motion preferences and make keyboard focus unmistakable. */
 @media (prefers-reduced-motion: reduce) {
