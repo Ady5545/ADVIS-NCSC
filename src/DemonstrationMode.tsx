@@ -307,7 +307,7 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
       {/* Script Summary */}
       <div className="bg-white/60 p-3 rounded-xl border border-blue-200/20 flex items-center justify-between">
         <div>
-          <div className="text-sm font-bold text-white">{activeScript.title}</div>
+          <div className="text-sm font-bold text-slate-800">{activeScript.title}</div>
           <div className="text-xs text-blue-700 font-sans mt-0.5">{activeScript.overview}</div>
         </div>
         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 border border-blue-200/40 text-blue-700 uppercase whitespace-nowrap">
@@ -344,7 +344,7 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
             <div className="text-xs font-bold text-blue-700 tracking-widest uppercase">
               PHASE {currentStepIndex + 1} OF {activeScript.steps.length}
             </div>
-            <div className="text-base font-bold text-white mt-0.5">{currentStep.title}</div>
+            <div className="text-base font-bold text-slate-800 mt-0.5">{currentStep.title}</div>
             <div className="text-xs text-blue-700 font-sans">{currentStep.subtitle}</div>
           </div>
 
