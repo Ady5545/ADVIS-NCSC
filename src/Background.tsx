@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { SystemState } from './App';
 
-export function Background({ systemState, themeColor = '#22d3ee' }: { systemState: SystemState, themeColor?: string }) {
+export function Background({ systemState, themeColor = '#e20246' }: { systemState: SystemState, themeColor?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -25,8 +25,8 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const w = canvas.width;
       const h = canvas.height;
 
-      // 1. Deep SAP-blue canvas with a restrained cyan/teal atmosphere.
-      ctx.fillStyle = '#041321';
+      // 1. Deep industrial-black canvas with restrained Rittal-red atmosphere.
+      ctx.fillStyle = '#080809';
       ctx.fillRect(0, 0, w, h);
 
       // 2. Subtle Radial Gradient with Soft Lighting Center
@@ -35,14 +35,14 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         w / 2, h * 0.5, Math.max(w, h) * 0.85
       );
       if (systemState === 'ERROR') {
-        bgGrad.addColorStop(0, 'rgba(75, 18, 43, 0.94)');
-        bgGrad.addColorStop(0.5, 'rgba(33, 14, 36, 0.96)');
-        bgGrad.addColorStop(1, '#100f20');
+        bgGrad.addColorStop(0, 'rgba(110, 0, 35, 0.46)');
+        bgGrad.addColorStop(0.5, 'rgba(35, 8, 17, 0.92)');
+        bgGrad.addColorStop(1, '#080809');
       } else {
-        bgGrad.addColorStop(0, 'rgba(0, 112, 242, 0.25)'); // SAP blue central glow
-        bgGrad.addColorStop(0.38, 'rgba(5, 59, 104, 0.48)');
-        bgGrad.addColorStop(0.7, 'rgba(3, 29, 51, 0.9)');
-        bgGrad.addColorStop(1, '#041321');
+        bgGrad.addColorStop(0, 'rgba(226, 2, 70, 0.19)'); // Rittal red focal glow
+        bgGrad.addColorStop(0.34, 'rgba(74, 9, 26, 0.38)');
+        bgGrad.addColorStop(0.68, 'rgba(19, 13, 16, 0.92)');
+        bgGrad.addColorStop(1, '#080809');
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
@@ -52,7 +52,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       ctx.lineWidth = 1;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.025)' 
-        : 'rgba(59, 162, 202, 0.12)'; // Very faint cyan-slate grid
+        : 'rgba(226, 2, 70, 0.12)'; // Very faint cyan-slate grid
 
       ctx.beginPath();
       for (let x = 0; x < w; x += gridSize) {
@@ -69,7 +69,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const majorGrid = gridSize * 4;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.06)' 
-        : 'rgba(51, 190, 218, 0.2)';
+        : 'rgba(255, 49, 95, 0.22)';
       ctx.lineWidth = 1;
 
       for (let x = majorGrid; x < w; x += majorGrid) {
@@ -84,12 +84,12 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         }
       }
 
-      // 4. Sparse cyan/teal energy points — luminous, not noisy.
+      // 4. Sparse signal-red energy points — luminous, not noisy.
       ctx.fillStyle = systemState === 'ERROR' 
-        ? 'rgba(248, 91, 115, 0.26)' 
-        : 'rgba(45, 224, 229, 0.62)';
+        ? 'rgba(255, 91, 117, 0.3)' 
+        : 'rgba(255, 49, 95, 0.72)';
       ctx.shadowBlur = systemState === 'ERROR' ? 0 : 10;
-      ctx.shadowColor = 'rgba(28, 213, 230, 0.58)';
+      ctx.shadowColor = 'rgba(226, 2, 70, 0.65)';
       for (let i = 0; i < 8; i++) {
         const px = (Math.sin(time * 0.4 + i * 1.5) * 0.45 + 0.5) * w;
         const py = (Math.cos(time * 0.3 + i * 2.1) * 0.45 + 0.5) * h;
@@ -100,7 +100,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       }
       ctx.shadowBlur = 0;
 
-      // 5. Deep navy vignette preserves contrast around bright center details.
+      // 5. Carbon-black vignette preserves contrast around the illuminated Core.
       const vignette = ctx.createRadialGradient(
         w / 2, h / 2, h * 0.35,
         w / 2, h / 2, Math.max(w, h) * 0.75
