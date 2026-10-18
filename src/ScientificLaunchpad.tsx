@@ -12,7 +12,7 @@ import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { CHEMISTRY_DATABASE } from './LearnEngine/ChemistryDatabase';
 
 interface ScientificLaunchpadProps {
-  onOpenView: (view: 'molecules' | 'engineering' | 'learning' | 'compare' | 'demonstration') => void;
+  onOpenView: (view: 'molecules' | 'engineering' | 'lessons' | 'compare' | 'demonstration') => void;
   onSelectMolecule: (formulaOrKey: string) => void;
   onSelectSpatialObject: (objectId: string) => void;
 }
@@ -40,7 +40,7 @@ const destinations = [
     category: 'GUIDED LEARNING',
     description: 'Build understanding step by step.',
     icon: GraduationCap,
-    view: 'learning',
+    view: 'lessons',
   },
   {
     id: 'compare',
