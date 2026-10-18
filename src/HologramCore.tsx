@@ -273,10 +273,10 @@ export function HologramCore({
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(2200, 2.7, 5.0, 0x48D7FF, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(1500, 2.05, 3.9, 0x1677FF, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(760, 1.02, 2.45, 0x2AC5FF, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(1200, 0.74, 1.82, 0xF2FDFF, 0.30), []);
+  const outerParticles = useMemo(() => createParticleCloud(900, 2.7, 4.2, 0x48D7FF, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(560, 2.05, 3.45, 0x1677FF, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(320, 1.02, 2.35, 0x2AC5FF, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(240, 0.74, 1.78, 0xF2FDFF, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -290,45 +290,49 @@ export function HologramCore({
   }, []);
 
   const ringConfigs = useMemo(() => [
-    { radius: 1.94, tube: 0.010, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.72 },
-    { radius: 2.10, tube: 0.012, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.46 },
-    { radius: 2.30, tube: 0.008, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.62 },
-    { radius: 2.52, tube: 0.010, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.50 },
-    { radius: 2.78, tube: 0.008, rotation: [-0.36, -0.76, 0.46] as [number, number, number], opacity: 0.56 },
-    { radius: 3.02, tube: 0.007, rotation: [0.78, 0.46, -0.92] as [number, number, number], opacity: 0.34 },
-    { radius: 3.30, tube: 0.006, rotation: [1.12, -0.28, 0.32] as [number, number, number], opacity: 0.28 },
-    { radius: 3.56, tube: 0.005, rotation: [-0.72, 0.44, 1.04] as [number, number, number], opacity: 0.22 },
+    { radius: 1.92, tube: 0.014, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.7 },
+    { radius: 2.18, tube: 0.010, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.48 },
+    { radius: 2.50, tube: 0.009, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.35 },
+    { radius: 2.82, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.24 },
   ], []);
 
   // JARVIS-inspired blue-white spatial core: cool blue only, with a white-hot center.
   const colors = useMemo(() => ({
-    core: new THREE.Color('#eafcff'),
-    technical: new THREE.Color('#48d7ff'),
-    plasma: new THREE.Color('#1677ff'),
-    hot: new THREE.Color('#f4fdff'),
+    core: new THREE.Color('#d9e7ff'),
+    technical: new THREE.Color('#2864e8'),
+    plasma: new THREE.Color('#7a82f7'),
+    hot: new THREE.Color('#ffffff'),
   }), []);
 
   const materials = useMemo(() => ({
-    core: new THREE.MeshBasicMaterial({ color: '#f2fdff', transparent: true, opacity: 0.99, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#2ac5ff', transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#58dcff', transparent: true, opacity: 0.35, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#2b75ff', transparent: true, opacity: 0.25, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#168fff', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#43dcff', transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#66e3ff', transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#dcfbff', transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#4fd7ff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
-    ring: ringConfigs.map((r) => new THREE.MeshBasicMaterial({ color: '#1db8ff', transparent: true, opacity: r.opacity, blending: THREE.AdditiveBlending, depthWrite: false })),
+    core: new THREE.MeshPhysicalMaterial({
+      color: '#91baff', metalness: 0.2, roughness: 0.16, clearcoat: 1,
+      clearcoatRoughness: 0.12, emissive: '#2f5fdd', emissiveIntensity: 0.22,
+      transparent: true, opacity: 0.98, depthWrite: false,
+    }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#6daeff', transparent: true, opacity: 0.23, blending: THREE.NormalBlending, depthWrite: false }),
+    coreHighlight: new THREE.MeshBasicMaterial({ color: '#f8fcff', transparent: true, opacity: 0.96, blending: THREE.NormalBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#3677e8', transparent: true, opacity: 0.3, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#858af6', transparent: true, opacity: 0.17, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#a6d2ff', transparent: true, opacity: 0.13, blending: THREE.NormalBlending, depthWrite: false, side: THREE.DoubleSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#9bc1f4', transparent: true, opacity: 0.12, blending: THREE.NormalBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#77aaf0', transparent: true, opacity: 0.2, blending: THREE.NormalBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#2e68d2', transparent: true, opacity: 0.45, blending: THREE.NormalBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#7da9ec', transparent: true, opacity: 0.25, blending: THREE.NormalBlending, depthWrite: false }),
+    ring: ringConfigs.map((r, index) => new THREE.MeshBasicMaterial({
+      color: index === 2 ? '#858af6' : '#3d78e8', transparent: true, opacity: r.opacity,
+      blending: THREE.NormalBlending, depthWrite: false,
+    })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#f1fdff', transparent: true, opacity: 0.84, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#46d7ff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#237dff', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#eff7ff', transparent: true, opacity: 0.92, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#3980ea', transparent: true, opacity: 0.78, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#8b8cf5', transparent: true, opacity: 0.7, blending: THREE.NormalBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#dff9ff', transparent: true, opacity: 0.78, size: 0.030, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#6edfff', transparent: true, opacity: 0.64, size: 0.024, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#269cff', transparent: true, opacity: 0.76, size: 0.019, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#f1fdff', transparent: true, opacity: 0.92, size: 0.015, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#8ceaff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    particles: new THREE.PointsMaterial({ color: '#6e9ce9', transparent: true, opacity: 0.5, size: 0.021, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#91b9f6', transparent: true, opacity: 0.38, size: 0.017, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#7e94f0', transparent: true, opacity: 0.48, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#ffffff', transparent: true, opacity: 0.65, size: 0.012, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#86baff', transparent: true, opacity: 0, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
   }), [ringConfigs]);
 
   useEffect(() => {
@@ -586,39 +590,24 @@ export function HologramCore({
 
   return (
     <group ref={groupRef}>
-      {/* 0 — concentrated luminous computation core */}
-      <Sphere ref={nucleusGlowRef} args={[1.18, 48, 48]} material={materials.coreGlow} />
-      <Sphere ref={nucleusRef} args={[0.84, 56, 56]} material={materials.core} />
+      {/* ADVIS pearl core: a calm luminous nucleus framed by precision orbital geometry. */}
+      <Sphere ref={haloRef} args={[1.68, 48, 48]} material={materials.halo} />
+      <Sphere ref={nucleusGlowRef} args={[1.08, 56, 56]} material={materials.coreGlow} />
+      <Sphere ref={nucleusRef} args={[0.78, 64, 64]} material={materials.core} />
+      <Sphere args={[0.38, 48, 48]} material={materials.coreHighlight} />
 
-      {/* 1 — nested high-resolution faceted shells */}
-      <Icosahedron ref={innerShellRef} args={[1.5, 3]} material={materials.shellInner} />
-      <Octahedron ref={outerShellRef} args={[1.72, 3]} material={materials.shellOuter} />
-      <Sphere ref={haloRef} args={[1.56, 48, 48]} material={materials.halo} />
+      {/* Two nested crystalline lattices create depth without the old dense visual noise. */}
+      <Icosahedron ref={innerShellRef} args={[1.5, 2]} material={materials.shellInner} />
+      <Octahedron ref={outerShellRef} args={[1.76, 2]} material={materials.shellOuter} />
 
-      {/* 2 — six precision orbital bands */}
+      {/* Four fine orbital ribbons; each occupies a distinct plane around the nucleus. */}
       <group ref={orbitalRef}>
         {ringConfigs.map((ring, index) => (
-          <Torus key={index} args={[ring.radius, ring.tube, 10, 96]} rotation={ring.rotation} material={materials.ring[index]} />
+          <Torus key={index} args={[ring.radius, ring.tube, 12, 128]} rotation={ring.rotation} material={materials.ring[index]} />
         ))}
       </group>
 
-      {/* 3 — dense spherical technical lattice */}
-      <lineSegments ref={gridRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[sphereGrid, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.grid} attach="material" />
-      </lineSegments>
-
-      {/* 4 — radial computational filaments */}
-      <lineSegments ref={radialRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[radialData, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.radial} attach="material" />
-      </lineSegments>
-
-      {/* 5 — segmented orbital/data arc network */}
+      {/* A sparse technical arc constellation adds the engineered ADVIS signature. */}
       <lineSegments ref={arcRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[arcNetwork, 3]} />
@@ -626,48 +615,23 @@ export function HologramCore({
         <primitive object={materials.arc} attach="material" />
       </lineSegments>
 
-      {/* 5a — dense white-hot energy filaments surrounding the field */}
-      <lineSegments ref={filamentRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[energyFilaments, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.radial} attach="material" />
-      </lineSegments>
-
-      {/* 5b — ultra-fine surface circuit traces visible at close range */}
-      <lineSegments ref={circuitRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[surfaceCircuit, 3]} />
-        </bufferGeometry>
-        <primitive object={materials.circuit} attach="material" />
-      </lineSegments>
-
-      {/* 5c — independently oriented arc fragments */}
       <group ref={arcOrbitRef}>
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+        {[0, 1, 2, 3].map((index) => (
           <Torus
             key={index}
-            args={[2.25 + (index % 4) * 0.22, 0.006 + (index % 2) * 0.002, 8, 64, Math.PI * (0.28 + (index % 3) * 0.08)]}
-            rotation={[
-              index * 0.31,
-              (index % 4) * 0.44,
-              index * 0.17
-            ]}
-            material={materials.ring[index % materials.ring.length]}
+            args={[2.26 + index * 0.19, 0.008, 8, 80, Math.PI * (0.38 + (index % 2) * 0.1)]}
+            rotation={[index * 0.43, (index % 3) * 0.52, index * 0.24]}
+            material={materials.ring[index]}
           />
         ))}
       </group>
 
-      {/* 6 — three orthogonal data wavefields */}
-      {[0, 1, 2].map((index) => (
+      {/* Two quiet, orthogonal signal waves respond to voice and system activity. */}
+      {[0, 1].map((index) => (
         <lineLoop
           key={index}
           ref={(ref) => { waveformRefs.current[index] = ref; }}
-          rotation={
-            index === 0 ? [0, 0, 0]
-              : index === 1 ? [0, Math.PI / 2, 0]
-              : [Math.PI / 2, 0, 0]
-          }
+          rotation={index === 0 ? [0, 0, 0] : [0, Math.PI / 2, 0]}
         >
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[initialWavePoints, 3]} />
@@ -676,7 +640,7 @@ export function HologramCore({
         </lineLoop>
       ))}
 
-      {/* 7 — multi-scale particulate computation field */}
+      {/* Light, restrained data motes—not a cloud of competing particles. */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
         <primitive object={materials.particles} attach="material" />
       </Points>
@@ -690,14 +654,8 @@ export function HologramCore({
         <primitive object={materials.microParticles} attach="material" />
       </Points>
 
-      {/* 8 — subtle propagating energy shells */}
-      {[0, 1, 2, 3].map((index) => (
-        <Sphere
-          key={index}
-          ref={(ref) => { pulseRefs.current[index] = ref; }}
-          args={[1.92 + index * 0.16, 28, 28]}
-          material={materials.pulse}
-        />
+      {[0, 1, 2].map((index) => (
+        <Sphere key={index} ref={(ref) => { pulseRefs.current[index] = ref; }} args={[1.96 + index * 0.18, 32, 32]} material={materials.pulse} />
       ))}
     </group>
   );
