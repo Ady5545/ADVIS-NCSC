@@ -23,16 +23,16 @@
     --advis-canvas-raised: #ffffff;
     --advis-surface: rgba(255, 255, 255, 0.84);
     --advis-surface-raised: rgba(255, 255, 255, 0.96);
-    --advis-border: rgba(83, 122, 179, 0.18);
-    --advis-border-strong: rgba(40, 100, 232, 0.42);
+    --advis-border: rgba(62, 91, 139, 0.30);
+    --advis-border-strong: rgba(40, 100, 232, 0.58);
     --advis-text: #172b4d;
-    --advis-text-secondary: #415675;
-    --advis-text-muted: #6f819d;
+    --advis-text-secondary: #344966;
+    --advis-text-muted: #536984;
     --advis-blue: #2864e8;
     --advis-blue-deep: #1749b4;
     --advis-cyan: #15a9c7;
     --advis-lavender: #7d8bff;
-    --advis-shadow: 0 24px 70px rgba(47, 88, 151, 0.12);
+    --advis-shadow: 0 18px 44px rgba(39, 70, 120, 0.14);
     --advis-motion-fast: 160ms;
     --advis-motion-normal: 240ms;
     color-scheme: light;
@@ -73,7 +73,7 @@
   }
 
   .advis-eyebrow {
-    color: #4267a8;
+    color: #2e5599;
     font-size: 0.64rem;
     font-weight: 750;
     letter-spacing: 0.15em;
@@ -118,15 +118,15 @@
 
   .advis-nav-link:hover {
     color: #1749b4;
-    background: rgba(76, 125, 233, 0.07);
-    border-color: rgba(83, 122, 179, 0.16);
+    background: rgba(76, 125, 233, 0.11);
+    border-color: rgba(62, 91, 139, 0.28);
   }
 
   .advis-nav-link[aria-current="page"] {
     color: #1749b4;
     background: linear-gradient(100deg, rgba(70, 122, 240, 0.14), rgba(70, 180, 240, 0.06));
-    border-color: rgba(40, 100, 232, 0.22);
-    box-shadow: inset 3px 0 0 var(--advis-blue), 0 6px 20px rgba(47, 88, 151, 0.06);
+    border-color: rgba(40, 100, 232, 0.36);
+    box-shadow: inset 3px 0 0 var(--advis-blue), 0 8px 22px rgba(47, 88, 151, 0.10);
   }
 
   .advis-mobile-more-menu {
@@ -143,22 +143,53 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(49, 103, 207, 0.16);
+    border: 1px solid rgba(49, 103, 207, 0.30);
     border-radius: 0.9rem;
     color: #2d66ca;
     background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(225,239,255,0.8));
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 8px 20px rgba(64,105,169,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.98), 0 8px 22px rgba(44,81,142,0.12);
   }
 }
 
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(83, 122, 179, 0.06); }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(65, 112, 190, 0.23); border-radius: 999px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(83, 122, 179, 0.09); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(54, 91, 153, 0.34); border-radius: 999px; }
   .mask-image-bottom { mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
   .mask-image-both { mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); }
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /*
+   * Border geometry contract: outlined controls and cards must share the same
+   * rounded silhouette. Higher specificity than isolated Tailwind radius classes
+   * prevents a square border from sitting on top of a rounded surface.
+   */
+  button[class*="border-"]:not([class*="rounded-full"]),
+  input[class*="border-"]:not([type="checkbox"]):not([type="radio"]),
+  select[class*="border-"],
+  textarea[class*="border-"] {
+    border-radius: 0.9rem;
+  }
+
+  div[class*="border-"][class*="bg-"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]) {
+    border-radius: 1rem;
+  }
+
+  /* Stronger neutral outlines keep light cards visibly separate from one another. */
+  [class*="border-slate-200"],
+  [class*="border-slate-300"],
+  [class*="border-blue-100"],
+  [class*="border-blue-200"],
+  [class*="border-sky-200"] {
+    border-color: rgba(62, 91, 139, 0.28);
+  }
+
+  :where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+    border-radius: inherit;
+    outline: 2px solid var(--primary, #2864e8);
+    outline-offset: 3px;
+  }
 }
 
 @keyframes scan {
@@ -179,7 +210,3 @@
   }
 }
 
-:where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--primary, #2864e8);
-  outline-offset: 3px;
-}
