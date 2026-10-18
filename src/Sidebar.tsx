@@ -58,14 +58,14 @@ export function Sidebar({
         type="button"
         onClick={() => setView('home')}
         aria-label="ADVIS Home"
-        className="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-offset-4"
+        className="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-blue-50/80 focus-visible:outline-offset-4"
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-400/10 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.1)]">
-          <span className="h-3 w-3 rounded-full border-2 border-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.7)]" />
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-100 text-blue-600 shadow-[0_8px_24px_rgba(56,105,189,0.12)]">
+          <span className="h-3 w-3 rounded-full border-2 border-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.24)]" />
         </span>
         <span className="min-w-0">
-          <span className="block text-lg font-semibold tracking-[0.16em] text-white">ADVIS</span>
-          <span className="mt-0.5 block text-[10px] tracking-wide text-slate-400">Spatial intelligence</span>
+          <span className="block text-lg font-semibold tracking-[0.16em] text-slate-800">ADVIS</span>
+          <span className="mt-0.5 block text-[10px] tracking-wide text-slate-500">Spatial intelligence</span>
         </span>
       </button>
 
@@ -93,7 +93,7 @@ export function Sidebar({
                   >
                     <Icon size={17} strokeWidth={1.8} className="shrink-0" aria-hidden="true" />
                     <span className="truncate text-[13px] font-medium tracking-normal">{item.label}</span>
-                    {isActive && <span aria-hidden="true" className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.7)]" />}
+                    {isActive && <span aria-hidden="true" className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(40,100,232,0.35)]" />}
                   </motion.button>
                 );
               })}
