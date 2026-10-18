@@ -205,6 +205,7 @@
   [class~="via-white/20"] { --tw-gradient-via: rgba(117, 205, 239, 0.04) !important; }
   [class~="to-indigo-50"] { --tw-gradient-to: #102246 !important; }
 
+  [class~="text-[#172b4d]"] { color: #eaf8ff !important; }
   [class~="text-slate-900"], [class~="text-slate-800"] { color: #edfaff !important; }
   [class~="text-slate-700"] { color: #d3e8f5 !important; }
   [class~="text-slate-600"] { color: #b6d0e1 !important; }
@@ -220,11 +221,11 @@
   [class~="text-sky-800"], [class~="text-sky-700"] { color: #81e3ff !important; }
   [class~="text-cyan-700"], [class~="text-cyan-600"] { color: #49eee8 !important; }
 
-  [class~="border-slate-200"],
-  [class~="border-slate-300"],
-  [class~="border-blue-100"],
-  [class~="border-blue-200"],
-  [class~="border-sky-200"] { border-color: rgba(81, 166, 205, 0.30) !important; }
+  [class*="border-slate-200"],
+  [class*="border-slate-300"],
+  [class*="border-blue-100"],
+  [class*="border-blue-200"],
+  [class*="border-sky-200"] { border-color: rgba(81, 166, 205, 0.30) !important; }
   [class~="border-blue-300"] { border-color: rgba(35, 214, 232, 0.48) !important; }
   [class~="border-blue-200/30"], [class~="border-blue-200/20"] { border-color: rgba(69, 163, 201, 0.24) !important; }
   [class~="border-transparent"] { border-color: transparent; }
