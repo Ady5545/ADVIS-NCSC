@@ -220,7 +220,7 @@ export function ParametricInnovationLab() {
         ] as const).map(([label, key]) => (
           <div key={key} className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-2">
             <div className="text-[9px] text-violet-200/70">{label}</div>
-            <div className="text-xs text-white">{params[key]} <span className="text-violet-200/50">← baseline {baseline[key]}</span></div>
+            <div className="text-xs text-slate-800">{params[key]} <span className="text-violet-700/70">← baseline {baseline[key]}</span></div>
           </div>
         ))}
       </div>}
