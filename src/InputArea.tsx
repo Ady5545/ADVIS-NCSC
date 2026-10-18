@@ -102,7 +102,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
   };
 
   return (
-    <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-2 md:px-4 pointer-events-auto flex flex-col gap-2 z-20">
+    <div className="absolute bottom-2 sm:bottom-4 lg:bottom-7 left-1/2 -translate-x-1/2 w-full max-w-3xl px-3 sm:px-4 pointer-events-auto flex flex-col gap-2 z-20">
       {attachedFile && (
         <div className="self-start flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/50 rounded-lg px-3 py-1 text-xs font-mono text-cyan-300">
           <Paperclip size={12} />
@@ -114,11 +114,11 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
       )}
       <div className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-cyan-400/10 to-cyan-500/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
-        <div className="relative flex items-center gap-2 bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-2 shadow-[0_0_30px_rgba(0,255,255,0.1)]">
+        <div className="relative flex items-center gap-2 bg-slate-950/80 backdrop-blur-xl border border-sky-200/20 rounded-2xl p-2 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
           
-          <button 
+          <button type="button" aria-label="Attach a file" title="Attach a file"
             onClick={() => fileInputRef.current?.click()}
-            className="p-3 text-cyan-400/50 hover:text-cyan-400 transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-cyan-100/70 transition-colors hover:bg-white/[0.06] hover:text-cyan-100"
           >
             <Paperclip size={20} />
           </button>
@@ -136,7 +136,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="ENTER SCIENTIFIC QUERY OR COMMAND..."
+            aria-label="Ask ADVIS" placeholder="Ask ADVIS to explore, explain, or investigate…"
             className="flex-1 bg-transparent border-none outline-none text-cyan-50 placeholder-cyan-500/30 tracking-wider text-sm font-mono"
             disabled={systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING'}
           />
@@ -148,9 +148,9 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
                 style={{ opacity: Math.min(wakeWordEnergy / 100, 0.8) }}
               />
             )}
-            <button 
+            <button type="button" aria-label={systemState === 'LISTENING' ? 'Stop voice input' : 'Start voice input'} title={systemState === 'LISTENING' ? 'Stop voice input' : 'Start voice input'} aria-pressed={systemState === 'LISTENING'}
               onClick={toggleMic}
-              className={`relative z-10 p-3 rounded-lg transition-all duration-300 ${
+              className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 ${
                 systemState === 'LISTENING' 
                   ? 'bg-cyan-500/20 text-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.5)] animate-pulse' 
                   : 'text-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-500/10'
@@ -160,7 +160,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
             </button>
           </div>
 
-          <button 
+          <button type="button" aria-label="Send command" title="Send command"
             onClick={handleSend}
             disabled={(!input.trim() && !attachedFile) || systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING'}
             className="p-3 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/40 hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -201,9 +201,9 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
           )}
         </div>
 
-        <button 
+        <button type="button" aria-label="Open settings" title="Open settings"
           onClick={() => setView('settings')}
-          className="text-cyan-500/50 hover:text-cyan-400 transition-colors"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-cyan-100"
         >
           <Settings size={16} />
         </button>
