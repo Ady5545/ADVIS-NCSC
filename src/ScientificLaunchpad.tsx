@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Atom,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
   Cpu,
   GitCompare,
   GraduationCap,
   PlayCircle,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
 import { CHEMISTRY_DATABASE } from './LearnEngine/ChemistryDatabase';
@@ -91,25 +94,66 @@ export function ScientificLaunchpad({
   onSelectMolecule,
   onSelectSpatialObject,
 }: ScientificLaunchpadProps) {
+  const [isExpanded, setIsExpanded] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  );
+  const [showQuickStarts, setShowQuickStarts] = useState(false);
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    const syncToViewport = () => setIsExpanded(desktopQuery.matches);
+    desktopQuery.addEventListener('change', syncToViewport);
+    return () => desktopQuery.removeEventListener('change', syncToViewport);
+  }, []);
+
+  if (!isExpanded) {
+    return (
+      <div className="pointer-events-auto">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          aria-label="Open ADVIS explorer"
+          aria-expanded={false}
+          className="flex items-center gap-2.5 rounded-full border border-slate-300/80 bg-white/95 px-4 py-3 text-left text-sm font-semibold text-slate-800 shadow-[0_8px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-rose-300 hover:bg-white focus-visible:outline-offset-4"
+        >
+          <span className="advis-icon-surface h-8 w-8 shrink-0"><Sparkles size={15} aria-hidden="true" /></span>
+          <span>Explore ADVIS</span>
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-500">5 spaces</span>
+          <ArrowRight size={15} className="text-rose-500" aria-hidden="true" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <section
       aria-label="ADVIS home workspace"
-      className="pointer-events-auto custom-scrollbar mx-auto flex max-h-[calc(100dvh-14rem)] w-full max-w-6xl flex-col gap-4 overflow-y-auto px-3 py-2 sm:max-h-[calc(100dvh-13rem)] sm:gap-5 sm:px-5 xl:max-h-none xl:overflow-visible scale-[0.9] sm:scale-[0.85] lg:scale-[0.7] origin-center"
+      className="pointer-events-auto custom-scrollbar flex w-[min(25rem,calc(100vw-1.5rem))] max-h-[calc(100dvh-6.5rem)] flex-col gap-3 overflow-y-auto rounded-2xl border border-slate-300/80 bg-white/94 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:w-[min(25rem,34vw)] sm:gap-3.5 sm:p-4"
     >
-      <header className="flex flex-col gap-2 text-center sm:gap-2.5">
-        <div className="advis-eyebrow flex items-center justify-center gap-2">
-          <Sparkles size={13} aria-hidden="true" />
-          <span>ADVIS · Spatial intelligence</span>
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="advis-eyebrow mb-1.5 flex items-center gap-2">
+            <Sparkles size={12} aria-hidden="true" />
+            <span>ADVIS · Spatial intelligence</span>
+          </div>
+          <h1 className="text-balance text-lg font-semibold tracking-tight text-[#172b4d] sm:text-xl">
+            One Core. Every scientific world.
+          </h1>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            Pick a destination; the Core stays in view.
+          </p>
         </div>
-        <h1 className="text-balance text-2xl font-semibold tracking-tight text-[#172b4d] sm:text-3xl lg:text-[2.15rem]">
-          One Core. Every scientific world.
-        </h1>
-        <p className="mx-auto max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
-          Move from a question to a living model, then explore the science behind it—all in one ADVIS workspace.
-        </p>
+        <button
+          type="button"
+          onClick={() => setIsExpanded(false)}
+          aria-label="Collapse explorer"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-rose-300 hover:text-rose-600 focus-visible:outline-offset-2"
+        >
+          <X size={15} aria-hidden="true" />
+        </button>
       </header>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
         {destinations.map((destination) => {
           const Icon = destination.icon;
           return (
@@ -118,60 +162,67 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-300/90 bg-white/96 p-3 text-left shadow-[0_10px_24px_rgba(0,0,0,0.3)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_16px_32px_rgba(0,0,0,0.42)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
+              className="group flex min-h-[58px] items-center gap-3 rounded-2xl border border-slate-300/90 bg-white/90 px-2.5 py-2 text-left shadow-[0_4px_12px_rgba(0,0,0,0.10)] transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-rose-300 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.16)] focus-visible:outline-offset-2 sm:px-3"
             >
-              <span className="mb-2 flex w-full items-center justify-between gap-1.5 sm:mb-3 sm:gap-2">
-                <span className="advis-icon-surface h-10 w-10 transition-transform group-hover:scale-[1.04]">
-                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+              <span className="advis-icon-surface flex h-9 w-9 shrink-0 items-center justify-center transition-transform group-hover:scale-[1.04]">
+                <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-semibold text-slate-800">{destination.title}</span>
+                  <ArrowRight size={13} className="shrink-0 text-rose-400 transition-transform group-hover:translate-x-0.5 group-hover:text-rose-600" aria-hidden="true" />
                 </span>
-                <span className="advis-eyebrow text-[9px] tracking-[0.1em]">{destination.category}</span>
+                <span className="mt-0.5 block text-[10px] leading-4 text-slate-500 sm:text-[11px]">{destination.description}</span>
               </span>
-
-              <span className="flex items-center justify-between gap-2 text-[13px] font-semibold text-slate-800 sm:text-sm">
-                <span>{destination.title}</span>
-                <ArrowRight size={14} className="shrink-0 text-blue-400/80 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-700" aria-hidden="true" />
-              </span>
-              <span className="mt-1 text-[11px] leading-4 text-slate-500 sm:mt-1.5 sm:text-xs sm:leading-5">{destination.description}</span>
+              <span className="hidden shrink-0 text-[8px] font-semibold tracking-[0.1em] text-slate-400 2xl:block">{destination.category}</span>
             </button>
           );
         })}
       </div>
 
       {directStarts.length > 0 && (
-        <div className="rounded-2xl border border-slate-300/90 bg-white/96 px-3.5 py-3 shadow-[0_10px_26px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:px-4">
-          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-800">Quick starts</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Jump directly into an available model or molecule.</p>
-            </div>
-            <span className="advis-eyebrow text-[9px]">From the current library</span>
-          </div>
+        <div className="rounded-xl border border-slate-200/90 bg-slate-50/85 p-2.5">
+          <button
+            type="button"
+            aria-expanded={showQuickStarts}
+            aria-controls="advis-quick-starts"
+            onClick={() => setShowQuickStarts((open) => !open)}
+            className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1 text-left text-xs font-semibold text-slate-800 transition hover:text-rose-600 focus-visible:outline-offset-2"
+          >
+            <span>Quick starts</span>
+            <span className="flex items-center gap-2">
+              <span className="text-[10px] font-normal text-slate-500">Models & molecules</span>
+              {showQuickStarts ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+            </span>
+          </button>
 
-          <div className="flex flex-wrap gap-2">
-            {directStarts.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  if (item.type === 'molecule') onSelectMolecule(item.id);
-                  else onSelectSpatialObject(item.id);
-                }}
-                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-xs font-medium text-slate-800 transition-[color,border-color,background-color,box-shadow] hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-800 hover:shadow-sm focus-visible:outline-offset-2"
-              >
-                {item.type === 'molecule' ? (
-                  <Atom size={13} className="shrink-0 text-blue-600" aria-hidden="true" />
-                ) : (
-                  <Cpu size={13} className="shrink-0 text-indigo-600" aria-hidden="true" />
-                )}
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
+          {showQuickStarts && (
+            <div id="advis-quick-starts" className="mt-2 flex flex-wrap gap-1.5">
+              {directStarts.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    if (item.type === 'molecule') onSelectMolecule(item.id);
+                    else onSelectSpatialObject(item.id);
+                  }}
+                  className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-left text-[11px] font-medium text-slate-800 transition-[color,border-color,background-color,box-shadow] hover:border-rose-300 hover:bg-rose-50/70 hover:text-rose-800 hover:shadow-sm focus-visible:outline-offset-2"
+                >
+                  {item.type === 'molecule' ? (
+                    <Atom size={12} className="shrink-0 text-blue-600" aria-hidden="true" />
+                  ) : (
+                    <Cpu size={12} className="shrink-0 text-indigo-600" aria-hidden="true" />
+                  )}
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      <p className="text-center text-xs text-slate-500">
-        Choose a starting point, or ask ADVIS using the command dock below.
+      <p className="text-center text-[10px] leading-4 text-slate-500">
+        You can also ask ADVIS using the command dock below.
       </p>
     </section>
   );
