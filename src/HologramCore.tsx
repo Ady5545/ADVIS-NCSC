@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Torus, Points, Icosahedron, Octahedron } from '@react-three/drei';
+import { Sphere, Torus, Points, Icosahedron } from '@react-three/drei';
 import * as THREE from 'three';
 import { SystemState } from './App';
 import { useGestureEngine } from './GestureContext';
@@ -15,6 +15,7 @@ interface HologramProps {
   themeColor?: string;
   handTracking?: any;
   isSpatial?: boolean;
+  isHome?: boolean;
 }
 
 const TAU = Math.PI * 2;
@@ -94,7 +95,7 @@ function createSphereGrid(): Float32Array {
 function createRadialDataGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0x51a7);
-  const spokes = 92;
+  const spokes = 44;
 
   for (let i = 0; i < spokes; i++) {
     const theta = (i / spokes) * TAU + random() * 0.03;
@@ -106,9 +107,13 @@ function createRadialDataGeometry(): Float32Array {
     const sy = Math.cos(phi) * inner;
     const sz = Math.sin(phi) * Math.sin(theta) * inner;
 
-    const ex = Math.sin(phi + (random() - 0.5) * 0.12) * Math.cos(theta) * outer;
-    const ey = Math.cos(phi + (random() - 0.5) * 0.12) * outer;
-    const ez = Math.sin(phi + (random() - 0.5) * 0.12) * Math.sin(theta) * outer;
+    // Keep each spoke on one perturbed spherical direction; randomizing each axis independently
+    // created skewed endpoints that looked like misplaced, broken line fragments.
+    const endPhi = THREE.MathUtils.clamp(phi + (random() - 0.5) * 0.12, 0.04, Math.PI - 0.04);
+    const endTheta = theta + (random() - 0.5) * 0.12;
+    const ex = Math.sin(endPhi) * Math.cos(endTheta) * outer;
+    const ey = Math.cos(endPhi) * outer;
+    const ez = Math.sin(endPhi) * Math.sin(endTheta) * outer;
 
     points.push(sx, sy, sz, ex, ey, ez);
   }
@@ -118,7 +123,7 @@ function createRadialDataGeometry(): Float32Array {
 function createEnergyFilamentGeometry(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xB17E5);
-  const filaments = 420;
+  const filaments = 110;
 
   for (let i = 0; i < filaments; i++) {
     const theta = random() * TAU;
@@ -201,27 +206,32 @@ function createSurfaceCircuitGeometry(): Float32Array {
 function createArcNetwork(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xA71F);
-  const layers = 6;
-  const segmentsPerLayer = 5;
+  const arcCount = 5;
+  const segmentsPerArc = 18;
 
-  for (let layer = 0; layer < layers; layer++) {
-    const radius = 2.05 + layer * 0.13;
+  // Build a handful of smooth, continuous orbital fragments instead of disconnected random chords.
+  for (let arc = 0; arc < arcCount; arc++) {
+    const radius = 2.12 + arc * 0.14;
     const tilt = [
-      (random() - 0.5) * 1.4,
-      (random() - 0.5) * 1.1,
-      (random() - 0.5) * 1.6,
+      (random() - 0.5) * 0.82,
+      (random() - 0.5) * 0.92,
+      (random() - 0.5) * 1.05,
     ] as [number, number, number];
+    const euler = new THREE.Euler(...tilt);
+    const start = random() * TAU;
+    const span = THREE.MathUtils.lerp(0.48, 1.08, random());
+    let previous: THREE.Vector3 | null = null;
 
-    for (let s = 0; s < segmentsPerLayer; s++) {
-      const start = random() * TAU;
-      const span = THREE.MathUtils.lerp(0.12, 0.55, random());
-      const a0 = start;
-      const a1 = start + span;
+    for (let segment = 0; segment <= segmentsPerArc; segment++) {
+      const angle = start + span * (segment / segmentsPerArc);
+      const point = new THREE.Vector3(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius,
+        Math.sin(angle * 1.4 + arc * 0.85) * 0.035,
+      ).applyEuler(euler);
 
-      const euler = new THREE.Euler(...tilt);
-      const p0 = new THREE.Vector3(Math.cos(a0) * radius, Math.sin(a0) * radius, 0).applyEuler(euler);
-      const p1 = new THREE.Vector3(Math.cos(a1) * radius, Math.sin(a1) * radius, 0).applyEuler(euler);
-      points.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+      if (previous) points.push(previous.x, previous.y, previous.z, point.x, point.y, point.z);
+      previous = point;
     }
   }
 
@@ -236,7 +246,8 @@ export function HologramCore({
   hologramIntensity = 1,
   themeColor: _themeColor = '#e20246',
   handTracking: _handTracking,
-  isSpatial = false
+  isSpatial = false,
+  isHome = false
 }: HologramProps) {
   const gestureState = useGestureEngine();
   const theatrePresentationRef = useTheatreOrbPresentation(!isSpatial);
@@ -273,11 +284,11 @@ export function HologramCore({
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  // About 85% fewer motes than the previous version; the volumetric surface, not dust, carries the image.
-  const outerParticles = useMemo(() => createParticleCloud(140, 2.7, 4.2, 0x9f65ff, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(84, 2.05, 3.45, 0xe84aa9, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(56, 1.02, 2.35, 0x438cff, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(24, 0.74, 1.78, 0xc7f5ff, 0.30), []);
+  // Keep star points outside the gas sphere so they read as distant stars, not specks buried in the core.
+  const outerParticles = useMemo(() => createParticleCloud(88, 3.0, 4.25, 0x9f65ff, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(60, 2.45, 3.35, 0xe84aa9, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(28, 1.85, 2.45, 0x438cff, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(16, 1.48, 1.78, 0xc7f5ff, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -296,12 +307,13 @@ export function HologramCore({
     { radius: 2.72, tube: 0.006, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.18 },
   ], []);
 
-  // Keep the app shell industrial red/black; let the Core carry an independent nebula palette.
+  // The UI stays industrial red/black; the Core follows the reference's rose, blue, cyan and warm-star palette.
   const colors = useMemo(() => ({
-    core: new THREE.Color('#100b2b'),
-    technical: new THREE.Color('#8b5cf6'),
-    plasma: new THREE.Color('#e34da8'),
-    hot: new THREE.Color('#c7f5ff'),
+    core: new THREE.Color('#08091f'),
+    technical: new THREE.Color('#429eff'),
+    plasma: new THREE.Color('#ff477f'),
+    hot: new THREE.Color('#fff0f5'),
+    warm: new THREE.Color('#f2bd83'),
   }), []);
 
   const materials = useMemo(() => ({
@@ -375,29 +387,39 @@ export function HologramCore({
         "  );",
         "  float cloud = fbm(p * 4.3 + (warp - 0.5) * 2.4 + drift);",
         "  float detail = fbm(p * 8.0 + (warp - 0.5) * 3.0 - drift);",
-        "  float clouds = smoothstep(0.32, 0.76, cloud * 0.62 + detail * 0.38);",
-        "  float pink = smoothstep(0.42, 0.78, detail * 0.58 + warp.x * 0.42);",
-        "  float blue = smoothstep(0.40, 0.77, warp.z * 0.55 + cloud * 0.45);",
-        "  float filaments = pow(1.0 - abs(sin((cloud * 1.2 + detail * 0.65 + warp.y * 0.3) * 10.0)), 8.0);",
-        "  filaments *= smoothstep(0.38, 0.75, cloud);",
-        "  vec3 deep = vec3(0.009, 0.008, 0.025);",
-        "  vec3 violet = vec3(0.12, 0.04, 0.40);",
-        "  vec3 magenta = vec3(0.62, 0.025, 0.32);",
-        "  vec3 electricBlue = vec3(0.025, 0.12, 0.65);",
-        "  vec3 col = mix(deep, violet, clouds);",
-        "  col = mix(col, magenta, pink * clouds * 0.88);",
-        "  col = mix(col, electricBlue, blue * clouds * 0.56);",
-        "  col += vec3(0.34, 0.22, 0.95) * filaments * (0.18 + uActivity * 0.18 + uVoice * 0.15);",
-        "  float gasSpark = pow(smoothstep(0.62, 0.90, detail), 3.0) * smoothstep(0.38, 0.70, cloud);",
-        "  col += vec3(0.22, 0.74, 1.0) * gasSpark * 0.48;",
+        "  float clouds = smoothstep(0.27, 0.72, cloud * 0.68 + detail * 0.32);",
+        "  float pink = smoothstep(0.34, 0.70, detail * 0.54 + warp.x * 0.46);",
+        "  float blue = smoothstep(0.36, 0.72, warp.z * 0.62 + cloud * 0.38);",
+        "  float gold = smoothstep(0.62, 0.82, warp.y * 0.58 + detail * 0.42);",
+        "  float hotCloud = pow(smoothstep(0.46, 0.78, detail * 0.62 + warp.x * 0.38), 1.8) * clouds;",
+        "  float filaments = pow(1.0 - abs(sin((cloud * 1.2 + detail * 0.65 + warp.y * 0.3) * 9.0)), 9.0);",
+        "  filaments *= smoothstep(0.36, 0.70, cloud);",
+        "  vec3 deep = vec3(0.008, 0.009, 0.027);",
+        "  vec3 indigo = vec3(0.035, 0.035, 0.16);",
+        "  vec3 rose = vec3(0.94, 0.045, 0.28);",
+        "  vec3 hotRose = vec3(1.0, 0.20, 0.48);",
+        "  vec3 nebulaBlue = vec3(0.075, 0.30, 0.88);",
+        "  vec3 cyanGas = vec3(0.24, 0.72, 1.0);",
+        "  vec3 col = mix(deep, indigo, clouds * 0.84);",
+        "  col += rose * pink * clouds * 0.82;",
+        "  col += nebulaBlue * blue * clouds * 0.72;",
+        "  col += cyanGas * pow(blue, 1.7) * clouds * 0.26;",
+        "  col = mix(col, hotRose, clamp(pink * clouds * 0.42, 0.0, 0.58));",
+        "  col = mix(col, vec3(1.0, 0.70, 0.82), hotCloud * 0.48);",
+        "  col += vec3(1.0, 0.34, 0.14) * gold * clouds * 0.10;",
+        "  col += vec3(1.0, 0.82, 0.92) * pow(smoothstep(0.70, 0.90, detail), 3.0) * clouds * 0.20;",
+        "  col += mix(vec3(0.20, 0.62, 1.0), vec3(1.0, 0.20, 0.48), pink) * filaments * (0.15 + uActivity * 0.10 + uVoice * 0.08);",
+        "  float gasSpark = pow(smoothstep(0.62, 0.90, detail), 3.0) * smoothstep(0.36, 0.68, cloud);",
+        "  col += vec3(0.32, 0.80, 1.0) * gasSpark * 0.42;",
         "  vec3 normal = normalize(vNormalView);",
         "  vec3 viewDir = normalize(vViewPosition);",
         "  float diffuse = 0.64 + 0.36 * max(dot(normal, normalize(vec3(-0.35, 0.5, 1.0))), 0.0);",
         "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.8);",
         "  col *= diffuse;",
-        "  col += vec3(0.17, 0.04, 0.70) * rim * (0.45 + uActivity * 0.22);",
-        "  col += vec3(0.08, 0.50, 1.0) * pow(rim, 5.0) * (0.60 + uVoice * 0.5);",
-        "  col *= 0.92 + uVoice * 0.45 + uActivity * 0.12;",
+        "  col += vec3(0.10, 0.29, 0.92) * rim * (0.42 + uActivity * 0.18);",
+        "  col += vec3(0.98, 0.10, 0.38) * pow(rim, 3.7) * (0.18 + uActivity * 0.08);",
+        "  col += vec3(0.20, 0.66, 1.0) * pow(rim, 5.0) * (0.52 + uVoice * 0.35);",
+        "  col *= 0.94 + uVoice * 0.36 + uActivity * 0.08;",
         "  gl_FragColor = vec4(col, uOpacity);",
         "}",
       ].join("\n"),
@@ -405,45 +427,47 @@ export function HologramCore({
       depthWrite: false,
       side: THREE.FrontSide,
     }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#7546ec', transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreHighlight: new THREE.MeshBasicMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#8b5cf6', transparent: true, opacity: 0.12, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.045, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#6d3bd5', transparent: true, opacity: 0.045, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#7151b7', transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#4f8fff', transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#bd8bff', transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#7448c2', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#ff477f', transparent: true, opacity: 0.13, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreHighlight: new THREE.MeshBasicMaterial({ color: '#fff0f5', transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#a7ddff', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#2869e8', transparent: true, opacity: 0.038, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#5d9de8', transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#49bdff', transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#ffc4df', transparent: true, opacity: 0.20, blending: THREE.AdditiveBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#4f9dff', transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false }),
     ring: ringConfigs.map((r, index) => new THREE.MeshBasicMaterial({
-      color: index === 1 ? '#b45dff' : '#647cff', transparent: true, opacity: r.opacity,
+      color: index === 1 ? '#ff6fa8' : index === 0 ? '#62b8ff' : '#d9f5ff', transparent: true, opacity: r.opacity * 0.82,
       blending: THREE.AdditiveBlending, depthWrite: false,
     })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#b05cff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#438cff', transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#e2f7ff', transparent: true, opacity: 0.64, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#ff79b0', transparent: true, opacity: 0.56, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#56aaff', transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#a56bff', transparent: true, opacity: 0.20, size: 0.013, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#eb63bc', transparent: true, opacity: 0.18, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#438cff', transparent: true, opacity: 0.20, size: 0.009, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.18, size: 0.007, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#9f7bff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    particles: new THREE.PointsMaterial({ color: '#f2bd83', transparent: true, opacity: 0.27, size: 0.013, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#ff5c98', transparent: true, opacity: 0.18, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#449eff', transparent: true, opacity: 0.18, size: 0.009, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#d7f5ff', transparent: true, opacity: 0.16, size: 0.007, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#84caff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false })
   }), [ringConfigs]);
 
   useEffect(() => {
-    // The Core palette stays nebula-violet/blue regardless of the industrial app accent.
+    // Keep the gas rose-forward, with blue/cyan edges and warm distant stars.
     const base = colors.technical.clone();
-    materials.coreGlow.color.copy(base.clone().lerp(colors.plasma, 0.28));
-    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.36));
-    materials.grid.color.copy(base.clone().lerp(colors.plasma, 0.2));
-    materials.radial.color.copy(new THREE.Color('#438cff'));
+    materials.coreGlow.color.copy(colors.plasma.clone().lerp(colors.technical, 0.24));
+    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.18));
+    materials.grid.color.copy(base.clone().lerp(colors.hot, 0.12));
+    materials.radial.color.copy(new THREE.Color('#49bdff'));
     materials.arc.color.copy(colors.hot);
-    materials.circuit.color.copy(base.clone().lerp(colors.hot, 0.12));
-    materials.ring.forEach((m, index) => m.color.copy(base.clone().lerp(colors.plasma, index / (materials.ring.length * 1.35))));
+    materials.circuit.color.copy(base.clone().lerp(colors.hot, 0.22));
+    const ringColors = [colors.technical, colors.plasma, colors.hot];
+    materials.ring.forEach((m, index) => m.color.copy(ringColors[index % ringColors.length]));
     materials.wave[1].color.copy(colors.plasma);
-    materials.wave[2].color.copy(new THREE.Color('#438cff'));
-    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.42));
-    materials.midParticles.color.copy(new THREE.Color('#438cff').lerp(colors.technical, 0.18));
+    materials.wave[2].color.copy(colors.technical);
+    materials.innerParticles.color.copy(colors.technical);
+    materials.midParticles.color.copy(colors.plasma);
+    materials.particles.color.copy(colors.warm);
     materials.microParticles.color.copy(colors.hot);
   }, [systemState, materials, colors]);
 
@@ -522,7 +546,8 @@ export function HologramCore({
     const boot = bootProgressRef.current;
 
     if (groupRef.current) {
-      groupRef.current.position.set(gestureState.pos.x, gestureState.pos.y, 0);
+      const homeCoreOffset = isHome && state.size.width >= 1024 ? -2.45 : 0;
+      groupRef.current.position.set(gestureState.pos.x + homeCoreOffset, gestureState.pos.y, 0);
       groupRef.current.rotation.set(gestureState.rot.x, gestureState.rot.y, gestureState.rot.z);
       groupRef.current.scale.setScalar(
         Math.max(0.001, 1.4 * boot * hologramIntensity * gestureState.scale.current * authoredBreath * (1 + curBass * 0.12))
@@ -546,7 +571,8 @@ export function HologramCore({
       innerShellRef.current.rotation.y -= delta * 0.28 * authoredSpeed;
       innerShellRef.current.rotation.z += delta * 0.13 * authoredSpeed;
       innerShellRef.current.scale.setScalar(1.12 * authoredShell * collapse);
-      materials.shellInner.opacity = (0.055 + technicalOpacity * 0.075 + curTreble * 0.06 + momentum * 0.035) * opacityFactor;
+      // A faint geodesic glint gives depth without drawing a cage across the nebula's brightest clouds.
+      materials.shellInner.opacity = (0.008 + technicalOpacity * 0.012 + curTreble * 0.006 + momentum * 0.004) * opacityFactor;
     }
 
     if (outerShellRef.current) {
@@ -698,7 +724,7 @@ export function HologramCore({
       <Sphere ref={haloRef} args={[1.42, 48, 48]} material={materials.halo} />
       <Sphere ref={nucleusGlowRef} args={[1.03, 56, 56]} material={materials.coreGlow} />
       <Sphere ref={nucleusRef} args={[0.82, 80, 80]} material={materials.core} />
-      <Sphere args={[0.22, 48, 48]} material={materials.coreHighlight} />
+      <Sphere args={[0.11, 48, 48]} material={materials.coreHighlight} />
 
       {/* One very quiet geodesic layer remains; the harsh outer polyhedron is gone. */}
       <Icosahedron ref={innerShellRef} args={[1.28, 2]} material={materials.shellInner} />
@@ -743,7 +769,7 @@ export function HologramCore({
         </lineLoop>
       ))}
 
-      {/* About 300 carefully spaced motes; the animated cloud surface does the visual work. */}
+      {/* Under 200 motes, placed in distinct shells outside the nebula rather than through its center. */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
         <primitive object={materials.particles} attach="material" />
       </Points>
