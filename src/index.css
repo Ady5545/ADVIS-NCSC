@@ -1,43 +1,63 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cyan-100: color-mix(in srgb, var(--primary) 20%, white);
-  --color-cyan-200: color-mix(in srgb, var(--primary) 40%, white);
-  --color-cyan-300: color-mix(in srgb, var(--primary) 60%, white);
+  --color-cyan-100: color-mix(in srgb, var(--primary) 18%, white);
+  --color-cyan-200: color-mix(in srgb, var(--primary) 34%, white);
+  --color-cyan-300: color-mix(in srgb, var(--primary) 58%, white);
   --color-cyan-400: var(--primary);
-  --color-cyan-500: color-mix(in srgb, var(--primary) 80%, black);
-  --color-cyan-600: color-mix(in srgb, var(--primary) 60%, black);
-  --color-cyan-900: color-mix(in srgb, var(--primary) 30%, black);
-  --color-cyan-950: color-mix(in srgb, var(--primary) 15%, black);
+  --color-cyan-500: color-mix(in srgb, var(--primary) 82%, #12336d);
+  --color-cyan-600: color-mix(in srgb, var(--primary) 62%, #102447);
+  --color-cyan-900: #183158;
+  --color-cyan-950: #112541;
 }
 
 @layer base {
   :root {
-    --background: 200 100% 2%;
-    --foreground: 0 0% 100%;
-    --primary: #22d3ee;
-    --primary-dark: 190 100% 30%;
+    --background: 213 100% 98%;
+    --foreground: 220 49% 17%;
+    --primary: #2864e8;
+    --primary-dark: #1749b4;
 
-    /* ADVIS semantic surfaces: shared by home, navigation and scientific panels. */
-    --advis-canvas: #020617;
-    --advis-surface: rgba(7, 17, 31, 0.78);
-    --advis-surface-raised: rgba(12, 27, 46, 0.92);
-    --advis-border: rgba(125, 211, 252, 0.18);
-    --advis-border-strong: rgba(103, 232, 249, 0.4);
-    --advis-text: #f1f8ff;
-    --advis-text-secondary: #b7c8dc;
-    --advis-text-muted: #8499b3;
-    --advis-blue: #60a5fa;
-    --advis-cyan: #22d3ee;
+    /* ADVIS pearl / ice-blue spatial design system. */
+    --advis-canvas: #f5f9ff;
+    --advis-canvas-raised: #ffffff;
+    --advis-surface: rgba(255, 255, 255, 0.84);
+    --advis-surface-raised: rgba(255, 255, 255, 0.96);
+    --advis-border: rgba(83, 122, 179, 0.18);
+    --advis-border-strong: rgba(40, 100, 232, 0.42);
+    --advis-text: #172b4d;
+    --advis-text-secondary: #415675;
+    --advis-text-muted: #6f819d;
+    --advis-blue: #2864e8;
+    --advis-blue-deep: #1749b4;
+    --advis-cyan: #15a9c7;
+    --advis-lavender: #7d8bff;
+    --advis-shadow: 0 24px 70px rgba(47, 88, 151, 0.12);
     --advis-motion-fast: 160ms;
     --advis-motion-normal: 240ms;
+    color-scheme: light;
+  }
+
+  html {
+    min-height: 100%;
+    background: var(--advis-canvas);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    min-height: 100%;
+    background:
+      radial-gradient(ellipse at 50% 34%, rgba(206, 229, 255, 0.6), transparent 44%),
+      linear-gradient(135deg, #fbfdff 0%, #f3f8ff 50%, #f8faff 100%);
+    color: var(--advis-text);
     overflow: hidden;
-    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    color: #13326f;
+    background: rgba(97, 155, 255, 0.25);
   }
 }
 
@@ -47,15 +67,15 @@
     background: var(--advis-surface);
     border: 1px solid var(--advis-border);
     border-radius: 1.25rem;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--advis-shadow);
+    backdrop-filter: blur(22px) saturate(1.2);
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
   }
 
   .advis-eyebrow {
-    color: rgba(103, 232, 249, 0.82);
-    font-size: 0.65rem;
-    font-weight: 700;
+    color: #4267a8;
+    font-size: 0.64rem;
+    font-weight: 750;
     letter-spacing: 0.15em;
     line-height: 1.4;
     text-transform: uppercase;
@@ -71,7 +91,7 @@
     padding: 0.2rem 0.75rem;
     color: var(--advis-text-muted);
     font-size: 0.62rem;
-    font-weight: 700;
+    font-weight: 750;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -92,57 +112,53 @@
     transition:
       color var(--advis-motion-fast) ease,
       background-color var(--advis-motion-fast) ease,
-      border-color var(--advis-motion-fast) ease;
+      border-color var(--advis-motion-fast) ease,
+      box-shadow var(--advis-motion-fast) ease;
   }
 
   .advis-nav-link:hover {
-    color: var(--advis-text);
-    background: rgba(56, 189, 248, 0.08);
-    border-color: rgba(125, 211, 252, 0.14);
+    color: #1749b4;
+    background: rgba(76, 125, 233, 0.07);
+    border-color: rgba(83, 122, 179, 0.16);
   }
 
   .advis-nav-link[aria-current="page"] {
-    color: #e0fbff;
-    background: rgba(34, 211, 238, 0.11);
-    border-color: var(--advis-border-strong);
-    box-shadow: inset 2px 0 0 var(--advis-cyan);
+    color: #1749b4;
+    background: linear-gradient(100deg, rgba(70, 122, 240, 0.14), rgba(70, 180, 240, 0.06));
+    border-color: rgba(40, 100, 232, 0.22);
+    box-shadow: inset 3px 0 0 var(--advis-blue), 0 6px 20px rgba(47, 88, 151, 0.06);
   }
 
   .advis-mobile-more-menu {
     color: var(--advis-text);
-    background: rgba(3, 10, 22, 0.96);
+    background: rgba(255, 255, 255, 0.96);
     border: 1px solid var(--advis-border-strong);
     border-radius: 1rem;
-    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 24px 60px rgba(35, 71, 128, 0.18);
+    backdrop-filter: blur(24px) saturate(1.25);
+    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  }
+
+  .advis-icon-surface {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(49, 103, 207, 0.16);
+    border-radius: 0.9rem;
+    color: #2d66ca;
+    background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(225,239,255,0.8));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 8px 20px rgba(64,105,169,0.08);
   }
 }
 
 @layer utilities {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 255, 255, 0.05);
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.2);
-    border-radius: 4px;
-  }
-  .mask-image-bottom {
-    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-  }
-  .mask-image-both {
-    mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(83, 122, 179, 0.06); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(65, 112, 190, 0.23); border-radius: 999px; }
+  .mask-image-bottom { mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+  .mask-image-both { mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @keyframes scan {
@@ -152,7 +168,6 @@
   100% { transform: translateY(150px); opacity: 0; }
 }
 
-/* Respect operating-system motion preferences and make keyboard focus unmistakable. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -165,6 +180,6 @@
 }
 
 :where(button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--primary, #22d3ee);
+  outline: 2px solid var(--primary, #2864e8);
   outline-offset: 3px;
 }
