@@ -104,7 +104,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
   return (
     <div className="absolute bottom-2 sm:bottom-4 lg:bottom-7 left-1/2 -translate-x-1/2 w-full max-w-3xl px-3 sm:px-4 pointer-events-auto flex flex-col gap-2 z-20">
       {attachedFile && (
-        <div className="self-start flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/50 rounded-lg px-3 py-1 text-xs font-mono text-cyan-300">
+        <div className="self-start flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-xs text-blue-800 shadow-sm">
           <Paperclip size={12} />
           <span>{attachedFile.name}</span>
           <button onClick={() => setAttachedFile(null)} className="hover:text-red-400 ml-2">
@@ -137,7 +137,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             aria-label="Ask ADVIS" placeholder="Ask ADVIS to explore, explain, or investigate…"
-            className="flex-1 bg-transparent border-none outline-none text-cyan-50 placeholder-cyan-500/30 tracking-wider text-sm font-mono"
+            className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 tracking-wider text-sm font-mono"
             disabled={systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING'}
           />
           
@@ -152,8 +152,8 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
               onClick={toggleMic}
               className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 ${
                 systemState === 'LISTENING' 
-                  ? 'bg-cyan-500/20 text-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.5)] animate-pulse' 
-                  : 'text-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-500/10'
+                  ? 'bg-blue-100 text-blue-800 shadow-[0_0_15px_rgba(40,100,232,0.18)] animate-pulse' 
+                  : 'text-slate-400 hover:text-blue-700 hover:bg-cyan-500/10'
               }`}
             >
               <Mic size={20} />
@@ -163,7 +163,7 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
           <button type="button" aria-label="Send command" title="Send command"
             onClick={handleSend}
             disabled={(!input.trim() && !attachedFile) || systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING'}
-            className="p-3 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/40 hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-10 w-10 shrink-0 items-center justify-center bg-blue-600/10 text-blue-700 rounded-xl hover:bg-blue-600/15 hover:shadow-[0_6px_18px_rgba(40,100,232,0.16)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send size={20} />
           </button>
@@ -174,24 +174,24 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
       <AudioSpectrumBar audioLevel={audioLevel} systemState={systemState} />
             <div className="flex justify-between items-center mt-2 px-2">
         <div className="flex gap-4 text-[10px] font-mono tracking-widest items-center">
-          <div className="flex items-center gap-2 border border-cyan-500/30 px-2 py-1 rounded bg-black/40">
-             {systemState === 'ONLINE' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50 animate-pulse"></div><span className="text-cyan-500/70">READY</span></>}
-             {systemState === 'LISTENING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-pulse"></div><span className="text-cyan-400 font-bold">LISTENING...</span></>}
+          <div className="flex items-center gap-2 border border-blue-100 px-2.5 py-1.5 rounded-full bg-white/85">
+             {systemState === 'ONLINE' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50 animate-pulse"></div><span className="text-slate-600">READY</span></>}
+             {systemState === 'LISTENING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-pulse"></div><span className="text-blue-700 font-bold">LISTENING...</span></>}
              {systemState === 'THINKING' && <><div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-bounce"></div><span className="text-orange-400">PROCESSING...</span></>}
              {systemState === 'SEARCHING' && <><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse"></div><span className="text-blue-400 font-bold">SEARCHING...</span></>}
              {systemState === 'ANALYZING' && <><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] animate-pulse"></div><span className="text-purple-400 font-bold">ANALYZING VISUAL DATA...</span></>}
-             {systemState === 'SPEAKING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></div><span className="text-cyan-300">SPEAKING...</span></>}
+             {systemState === 'SPEAKING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></div><span className="text-blue-700">SPEAKING...</span></>}
              {systemState === 'ERROR' && <><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div><span className="text-red-500">ERROR</span></>}
              {systemState === 'BOOTING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-800"></div><span className="text-cyan-800">BOOTING...</span></>}
              {systemState === 'CONNECTING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-800"></div><span className="text-cyan-800">CONNECTING...</span></>}
           </div>
           {handTracking && handTracking.state !== 'OFF' && (
-            <div className="flex items-center gap-2 border border-cyan-500/30 px-2 py-1 rounded bg-black/40">
+            <div className="flex items-center gap-2 border border-blue-100 px-2.5 py-1.5 rounded-full bg-white/85">
               {handTracking.state === 'SEARCHING' && <><div className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse"></div><span className="text-cyan-600">VISION: SEARCHING</span></>}
               {handTracking.state === 'TRACKING' && (
                 <>
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,255,0.8)]"></div>
-                  <span className="text-cyan-400 font-bold">
+                  <span className="text-blue-700 font-bold">
                     {handTracking.gesture === 'FIST' ? 'CONTROL LOCKED' : (handTracking.gesture === 'NONE' ? 'VISION ACTIVE' : 'INTERACTION ACTIVE')}
                   </span>
                 </>
