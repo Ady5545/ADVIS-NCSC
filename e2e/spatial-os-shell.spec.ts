@@ -66,7 +66,7 @@ test('command dock exposes meaningful names for its primary controls', async ({ 
 test('Learning Studio opens the existing interactive lessons module', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Learning Studio' }).click();
-  await expect(page.getByRole('heading', { name: /interactive lessons/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'INTERACTIVE LESSONS', exact: true })).toBeVisible();
 });
 
 
