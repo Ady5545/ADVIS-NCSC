@@ -296,7 +296,7 @@ export function HologramCore({
     { radius: 2.82, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.24 },
   ], []);
 
-  // SAP-inspired spatial core: luminous cyan/teal energy against the deep-blue canvas.
+  // Rittal-inspired spatial core: signal-red plasma, clean white highlights, carbon-black contrast.
   const colors = useMemo(() => ({
     core: new THREE.Color('#fff0f3'),
     technical: new THREE.Color('#e20246'),
