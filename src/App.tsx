@@ -232,7 +232,7 @@ function AppContent() {
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [themeColor, setThemeColor] = useState('#22d3ee');
+  const [themeColor, setThemeColor] = useState('#2864e8');
   const [speechRate, setSpeechRate] = useState(1.05);
 
   const sessionMolecule = useSessionMolecule();
@@ -1571,7 +1571,7 @@ function AppContent() {
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
-      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f5f6] text-slate-900 selection:bg-rose-500/20' : 'bg-black text-white selection:bg-cyan-500/30'}`}>
+      <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#f4f7fb] text-slate-900 selection:bg-blue-500/20' : 'bg-[#f5f9ff] text-slate-800 selection:bg-blue-500/20'}`}>
       
       {/* Action Preview Overlay */}
       {actionPreview && (
