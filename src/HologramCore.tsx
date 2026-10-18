@@ -201,8 +201,8 @@ function createSurfaceCircuitGeometry(): Float32Array {
 function createArcNetwork(): Float32Array {
   const points: number[] = [];
   const random = deterministicRandom(0xA71F);
-  const layers = 10;
-  const segmentsPerLayer = 9;
+  const layers = 6;
+  const segmentsPerLayer = 5;
 
   for (let layer = 0; layer < layers; layer++) {
     const radius = 2.05 + layer * 0.13;
@@ -234,7 +234,7 @@ export function HologramCore({
   bass = 0,
   treble = 0,
   hologramIntensity = 1,
-  themeColor = '#e20246',
+  themeColor: _themeColor = '#e20246',
   handTracking: _handTracking,
   isSpatial = false
 }: HologramProps) {
@@ -273,10 +273,11 @@ export function HologramCore({
   const arcNetwork = useMemo(() => createArcNetwork(), []);
   const surfaceCircuit = useMemo(() => createSurfaceCircuitGeometry(), []);
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
-  const outerParticles = useMemo(() => createParticleCloud(900, 2.7, 4.2, 0x48D7FF, 0.58), []);
-  const midParticles = useMemo(() => createParticleCloud(560, 2.05, 3.45, 0x1677FF, 0.45), []);
-  const innerParticles = useMemo(() => createParticleCloud(320, 1.02, 2.35, 0x2AC5FF, 0.68), []);
-  const microParticles = useMemo(() => createParticleCloud(240, 0.74, 1.78, 0xF2FDFF, 0.30), []);
+  // About 85% fewer motes than the previous version; the volumetric surface, not dust, carries the image.
+  const outerParticles = useMemo(() => createParticleCloud(140, 2.7, 4.2, 0x9f65ff, 0.58), []);
+  const midParticles = useMemo(() => createParticleCloud(84, 2.05, 3.45, 0xe84aa9, 0.45), []);
+  const innerParticles = useMemo(() => createParticleCloud(56, 1.02, 2.35, 0x438cff, 0.68), []);
+  const microParticles = useMemo(() => createParticleCloud(24, 0.74, 1.78, 0xc7f5ff, 0.30), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -290,67 +291,161 @@ export function HologramCore({
   }, []);
 
   const ringConfigs = useMemo(() => [
-    { radius: 1.92, tube: 0.014, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.7 },
-    { radius: 2.18, tube: 0.010, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.48 },
-    { radius: 2.50, tube: 0.009, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.35 },
-    { radius: 2.82, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.24 },
+    { radius: 1.92, tube: 0.011, rotation: [0.18, 0.12, 0.08] as [number, number, number], opacity: 0.52 },
+    { radius: 2.30, tube: 0.008, rotation: [1.05, -0.22, 0.58] as [number, number, number], opacity: 0.31 },
+    { radius: 2.72, tube: 0.006, rotation: [-0.58, 0.8, -0.35] as [number, number, number], opacity: 0.18 },
   ], []);
 
-  // Rittal-inspired spatial core: signal-red plasma, clean white highlights, carbon-black contrast.
+  // Keep the app shell industrial red/black; let the Core carry an independent nebula palette.
   const colors = useMemo(() => ({
-    core: new THREE.Color('#fff0f3'),
-    technical: new THREE.Color('#e20246'),
-    plasma: new THREE.Color('#8f0030'),
-    hot: new THREE.Color('#ffffff'),
+    core: new THREE.Color('#100b2b'),
+    technical: new THREE.Color('#8b5cf6'),
+    plasma: new THREE.Color('#e34da8'),
+    hot: new THREE.Color('#c7f5ff'),
   }), []);
 
   const materials = useMemo(() => ({
-    core: new THREE.MeshPhysicalMaterial({
-      color: '#ffb5c8', metalness: 0.2, roughness: 0.16, clearcoat: 1,
-      clearcoatRoughness: 0.12, emissive: '#8f0030', emissiveIntensity: 0.32,
-      transparent: true, opacity: 0.98, depthWrite: false,
+    // A lit, procedural nebula surface: actual spherical depth with animated gas filaments.
+    core: new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uVoice: { value: 0 },
+        uActivity: { value: 0 },
+        uOpacity: { value: 1 },
+      },
+      vertexShader: [
+        "varying vec3 vNormalView;",
+        "varying vec3 vViewPosition;",
+        "varying vec3 vObjectPosition;",
+        "void main() {",
+        "  vObjectPosition = position;",
+        "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+        "  vViewPosition = -mvPosition.xyz;",
+        "  vNormalView = normalize(normalMatrix * normal);",
+        "  gl_Position = projectionMatrix * mvPosition;",
+        "}",
+      ].join("\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform float uTime;",
+        "uniform float uVoice;",
+        "uniform float uActivity;",
+        "uniform float uOpacity;",
+        "varying vec3 vNormalView;",
+        "varying vec3 vViewPosition;",
+        "varying vec3 vObjectPosition;",
+        "float hash31(vec3 p) {",
+        "  p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));",
+        "  p *= 17.0;",
+        "  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));",
+        "}",
+        "float noise3(vec3 p) {",
+        "  vec3 i = floor(p);",
+        "  vec3 f = fract(p);",
+        "  f = f * f * (3.0 - 2.0 * f);",
+        "  float n000 = hash31(i + vec3(0.0, 0.0, 0.0));",
+        "  float n100 = hash31(i + vec3(1.0, 0.0, 0.0));",
+        "  float n010 = hash31(i + vec3(0.0, 1.0, 0.0));",
+        "  float n110 = hash31(i + vec3(1.0, 1.0, 0.0));",
+        "  float n001 = hash31(i + vec3(0.0, 0.0, 1.0));",
+        "  float n101 = hash31(i + vec3(1.0, 0.0, 1.0));",
+        "  float n011 = hash31(i + vec3(0.0, 1.0, 1.0));",
+        "  float n111 = hash31(i + vec3(1.0, 1.0, 1.0));",
+        "  float z0 = mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y);",
+        "  float z1 = mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y);",
+        "  return mix(z0, z1, f.z);",
+        "}",
+        "float fbm(vec3 p) {",
+        "  float value = 0.0;",
+        "  float amplitude = 0.5;",
+        "  for (int i = 0; i < 4; i++) {",
+        "    value += amplitude * noise3(p);",
+        "    p = p * 2.03 + 17.17;",
+        "    amplitude *= 0.5;",
+        "  }",
+        "  return value;",
+        "}",
+        "void main() {",
+        "  vec3 p = normalize(vObjectPosition);",
+        "  vec3 drift = vec3(uTime * 0.035, -uTime * 0.021, uTime * 0.028);",
+        "  vec3 warp = vec3(",
+        "    fbm(p * 2.6 + drift),",
+        "    fbm(p * 2.6 + vec3(7.3, 1.7, -2.4) - drift),",
+        "    fbm(p * 2.6 + vec3(-4.1, 8.2, 3.6) + drift)",
+        "  );",
+        "  float cloud = fbm(p * 4.3 + (warp - 0.5) * 2.4 + drift);",
+        "  float detail = fbm(p * 8.0 + (warp - 0.5) * 3.0 - drift);",
+        "  float clouds = smoothstep(0.32, 0.76, cloud * 0.62 + detail * 0.38);",
+        "  float pink = smoothstep(0.42, 0.78, detail * 0.58 + warp.x * 0.42);",
+        "  float blue = smoothstep(0.40, 0.77, warp.z * 0.55 + cloud * 0.45);",
+        "  float filaments = pow(1.0 - abs(sin((cloud * 1.2 + detail * 0.65 + warp.y * 0.3) * 10.0)), 8.0);",
+        "  filaments *= smoothstep(0.38, 0.75, cloud);",
+        "  vec3 deep = vec3(0.009, 0.008, 0.025);",
+        "  vec3 violet = vec3(0.12, 0.04, 0.40);",
+        "  vec3 magenta = vec3(0.62, 0.025, 0.32);",
+        "  vec3 electricBlue = vec3(0.025, 0.12, 0.65);",
+        "  vec3 col = mix(deep, violet, clouds);",
+        "  col = mix(col, magenta, pink * clouds * 0.88);",
+        "  col = mix(col, electricBlue, blue * clouds * 0.56);",
+        "  col += vec3(0.34, 0.22, 0.95) * filaments * (0.18 + uActivity * 0.18 + uVoice * 0.15);",
+        "  float gasSpark = pow(smoothstep(0.62, 0.90, detail), 3.0) * smoothstep(0.38, 0.70, cloud);",
+        "  col += vec3(0.22, 0.74, 1.0) * gasSpark * 0.48;",
+        "  vec3 normal = normalize(vNormalView);",
+        "  vec3 viewDir = normalize(vViewPosition);",
+        "  float diffuse = 0.64 + 0.36 * max(dot(normal, normalize(vec3(-0.35, 0.5, 1.0))), 0.0);",
+        "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.8);",
+        "  col *= diffuse;",
+        "  col += vec3(0.17, 0.04, 0.70) * rim * (0.45 + uActivity * 0.22);",
+        "  col += vec3(0.08, 0.50, 1.0) * pow(rim, 5.0) * (0.60 + uVoice * 0.5);",
+        "  col *= 0.92 + uVoice * 0.45 + uActivity * 0.12;",
+        "  gl_FragColor = vec4(col, uOpacity);",
+        "}",
+      ].join("\n"),
+      transparent: true,
+      depthWrite: false,
+      side: THREE.FrontSide,
     }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#ff315f', transparent: true, opacity: 0.32, blending: THREE.NormalBlending, depthWrite: false }),
-    coreHighlight: new THREE.MeshBasicMaterial({ color: '#eaffff', transparent: true, opacity: 0.96, blending: THREE.NormalBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#e20246', transparent: true, opacity: 0.34, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#8f0030', transparent: true, opacity: 0.22, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#ff527b', transparent: true, opacity: 0.17, blending: THREE.NormalBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#7f394b', transparent: true, opacity: 0.19, blending: THREE.NormalBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#ff315f', transparent: true, opacity: 0.24, blending: THREE.NormalBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#ff315f', transparent: true, opacity: 0.5, blending: THREE.NormalBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#b00039', transparent: true, opacity: 0.32, blending: THREE.NormalBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#7546ec', transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreHighlight: new THREE.MeshBasicMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#8b5cf6', transparent: true, opacity: 0.12, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.045, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#6d3bd5', transparent: true, opacity: 0.045, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#7151b7', transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#4f8fff', transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#bd8bff', transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#7448c2', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false }),
     ring: ringConfigs.map((r, index) => new THREE.MeshBasicMaterial({
-      color: index === 2 ? '#ff527b' : '#e20246', transparent: true, opacity: r.opacity,
-      blending: THREE.NormalBlending, depthWrite: false,
+      color: index === 1 ? '#b45dff' : '#647cff', transparent: true, opacity: r.opacity,
+      blending: THREE.AdditiveBlending, depthWrite: false,
     })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#efffff', transparent: true, opacity: 0.92, blending: THREE.NormalBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#ff315f', transparent: true, opacity: 0.82, blending: THREE.NormalBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#a00034', transparent: true, opacity: 0.76, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#b05cff', transparent: true, opacity: 0.66, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#438cff', transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#ff315f', transparent: true, opacity: 0.66, size: 0.021, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#ff6b8d', transparent: true, opacity: 0.56, size: 0.017, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#c7003e', transparent: true, opacity: 0.62, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    microParticles: new THREE.PointsMaterial({ color: '#ffffff', transparent: true, opacity: 0.65, size: 0.012, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#ff809d', transparent: true, opacity: 0, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    particles: new THREE.PointsMaterial({ color: '#a56bff', transparent: true, opacity: 0.20, size: 0.013, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#eb63bc', transparent: true, opacity: 0.18, size: 0.010, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#438cff', transparent: true, opacity: 0.20, size: 0.009, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    microParticles: new THREE.PointsMaterial({ color: '#c7f5ff', transparent: true, opacity: 0.18, size: 0.007, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#9f7bff', transparent: true, opacity: 0, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
   }), [ringConfigs]);
 
   useEffect(() => {
-    // Keep the orb inside the SAP cyan/blue palette; state changes affect motion and intensity.
-    const base = new THREE.Color(themeColor || '#e20246');
-    materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.42));
-    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.22));
-    materials.grid.color.copy(base.clone().lerp(colors.technical, 0.35));
-    materials.radial.color.copy(base.clone().lerp(colors.technical, 0.18));
+    // The Core palette stays nebula-violet/blue regardless of the industrial app accent.
+    const base = colors.technical.clone();
+    materials.coreGlow.color.copy(base.clone().lerp(colors.plasma, 0.28));
+    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.36));
+    materials.grid.color.copy(base.clone().lerp(colors.plasma, 0.2));
+    materials.radial.color.copy(new THREE.Color('#438cff'));
     materials.arc.color.copy(colors.hot);
-    materials.circuit.color.copy(base.clone().lerp(colors.technical, 0.22));
-    materials.ring.forEach((m, index) => m.color.copy(base.clone().lerp(colors.plasma, index / (materials.ring.length * 1.8))));
-    materials.wave[1].color.copy(base);
-    materials.wave[2].color.copy(colors.plasma);
-    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.35));
-    materials.midParticles.color.copy(base.clone().lerp(colors.technical, 0.18));
+    materials.circuit.color.copy(base.clone().lerp(colors.hot, 0.12));
+    materials.ring.forEach((m, index) => m.color.copy(base.clone().lerp(colors.plasma, index / (materials.ring.length * 1.35))));
+    materials.wave[1].color.copy(colors.plasma);
+    materials.wave[2].color.copy(new THREE.Color('#438cff'));
+    materials.innerParticles.color.copy(base.clone().lerp(colors.plasma, 0.42));
+    materials.midParticles.color.copy(new THREE.Color('#438cff').lerp(colors.technical, 0.18));
     materials.microParticles.color.copy(colors.hot);
-  }, [systemState, themeColor, materials, colors]);
+  }, [systemState, materials, colors]);
 
   useEffect(() => () => {
     Object.values(materials).forEach((material) => {
@@ -396,8 +491,17 @@ export function HologramCore({
     const curBass = Math.max(idleBass, smoothedBassRef.current + momentum * 0.55);
     const curTreble = Math.max(idleTreble, smoothedTrebleRef.current + momentum * 0.35);
 
-    const voice = THREE.MathUtils.smoothstep(audioLevel, 0.02, 0.35);
+    const micVoice = THREE.MathUtils.smoothstep(audioLevel, 0.02, 0.35);
+    const voice = THREE.MathUtils.clamp(
+      Math.max(micVoice, systemState === 'SPEAKING' ? 0.55 : systemState === 'LISTENING' ? 0.18 : 0),
+      0,
+      1,
+    );
     const activity = THREE.MathUtils.clamp(curBass * 0.95 + curTreble * 0.5 + stateActivity * 0.3 + voice * 0.65, 0, 1.7);
+    materials.core.uniforms.uTime.value = time;
+    materials.core.uniforms.uVoice.value = voice;
+    materials.core.uniforms.uActivity.value = activity;
+    materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
 
     const theatre = theatrePresentationRef.current;
     const authoredBreath = 1 + (theatre.breathing - 0.5) * 0.075;
@@ -429,33 +533,33 @@ export function HologramCore({
       nucleusRef.current.rotation.y += delta * (0.34 + curTreble * 1.1);
       nucleusRef.current.rotation.x -= delta * (0.1 + curBass * 0.18);
       nucleusRef.current.scale.setScalar(authoredCore * (0.98 + (Math.sin(time * 2.2) * 0.035)) * collapse);
-      materials.core.opacity = Math.min(1, (0.75 + voice * 0.22 + theatre.halo * 0.08 + eventPulseRef.current * 0.1) * hologramIntensity) * opacityFactor;
+      materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + theatre.halo * 0.03 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
     }
 
     if (nucleusGlowRef.current) {
-      nucleusGlowRef.current.scale.setScalar((1.36 + curBass * 0.42 + theatre.halo * 0.22) * collapse);
-      materials.coreGlow.opacity = Math.min(0.62, (0.1 + activity * 0.09 + voice * 0.18 + theatre.halo * 0.1 + depthControl * 0.04) * hologramIntensity) * opacityFactor;
+      nucleusGlowRef.current.scale.setScalar((1.28 + curBass * 0.16 + voice * 0.12 + theatre.halo * 0.08) * collapse);
+      materials.coreGlow.opacity = Math.min(0.34, (0.06 + activity * 0.045 + voice * 0.16 + theatre.halo * 0.035 + depthControl * 0.02) * hologramIntensity) * opacityFactor;
     }
 
     if (innerShellRef.current) {
       innerShellRef.current.rotation.x += delta * 0.18 * authoredSpeed;
       innerShellRef.current.rotation.y -= delta * 0.28 * authoredSpeed;
       innerShellRef.current.rotation.z += delta * 0.13 * authoredSpeed;
-      innerShellRef.current.scale.setScalar(1.22 * authoredShell * collapse);
-      materials.shellInner.opacity = (0.18 + technicalOpacity * 0.16 + curTreble * 0.2 + momentum * 0.1) * opacityFactor;
+      innerShellRef.current.scale.setScalar(1.12 * authoredShell * collapse);
+      materials.shellInner.opacity = (0.055 + technicalOpacity * 0.075 + curTreble * 0.06 + momentum * 0.035) * opacityFactor;
     }
 
     if (outerShellRef.current) {
       outerShellRef.current.rotation.x -= delta * 0.12 * authoredSpeed;
       outerShellRef.current.rotation.y += delta * 0.19 * authoredSpeed;
       outerShellRef.current.rotation.z -= delta * 0.09 * authoredSpeed;
-      outerShellRef.current.scale.setScalar(1.46 * authoredShell * collapse);
-      materials.shellOuter.opacity = (0.08 + technicalOpacity * 0.11 + curBass * 0.11) * opacityFactor;
+      outerShellRef.current.scale.setScalar(1.33 * authoredShell * collapse);
+      materials.shellOuter.opacity = (0.015 + technicalOpacity * 0.025 + curBass * 0.025) * opacityFactor;
     }
 
     if (haloRef.current) {
-      haloRef.current.scale.setScalar((1.58 + theatre.halo * 0.65 + curBass * 0.22) * collapse);
-      materials.halo.opacity = (0.024 + theatre.halo * 0.06 + voice * 0.03) * opacityFactor;
+      haloRef.current.scale.setScalar((1.34 + theatre.halo * 0.22 + curBass * 0.08) * collapse);
+      materials.halo.opacity = (0.022 + theatre.halo * 0.03 + voice * 0.055 + activity * 0.015) * opacityFactor;
     }
 
     if (orbitalRef.current) {
@@ -546,8 +650,8 @@ export function HologramCore({
       outerParticlesRef.current.rotation.z += delta * 0.006;
       outerParticlesRef.current.scale.setScalar((1 + theatre.particleEnergy * 0.16 + activity * 0.05) * collapse);
       const mat = outerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.22 + theatre.particleEnergy * 0.42 + curTreble * 0.3) * opacityFactor;
-      mat.size = 0.018 + curTreble * 0.038 + voice * 0.009;
+      mat.opacity = (0.08 + theatre.particleEnergy * 0.18 + curTreble * 0.08) * opacityFactor;
+      mat.size = 0.010 + curTreble * 0.012 + voice * 0.003;
     }
 
     if (midParticlesRef.current) {
@@ -555,8 +659,8 @@ export function HologramCore({
       midParticlesRef.current.rotation.z += delta * 0.018;
       midParticlesRef.current.scale.setScalar((1 + activity * 0.08) * collapse);
       const mat = midParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.17 + theatre.particleEnergy * 0.34 + curBass * 0.22) * opacityFactor;
-      mat.size = 0.014 + curTreble * 0.032;
+      mat.opacity = (0.07 + theatre.particleEnergy * 0.16 + curBass * 0.08) * opacityFactor;
+      mat.size = 0.008 + curTreble * 0.009;
     }
 
     if (innerParticlesRef.current) {
@@ -564,8 +668,8 @@ export function HologramCore({
       innerParticlesRef.current.rotation.x += delta * 0.025;
       innerParticlesRef.current.scale.setScalar((0.98 + curBass * 0.1) * collapse);
       const mat = innerParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.18 + theatre.particleEnergy * 0.4 + curBass * 0.22) * opacityFactor;
-      mat.size = 0.011 + curTreble * 0.022;
+      mat.opacity = (0.08 + theatre.particleEnergy * 0.16 + curBass * 0.09) * opacityFactor;
+      mat.size = 0.007 + curTreble * 0.008;
     }
 
     if (microParticlesRef.current) {
@@ -573,8 +677,8 @@ export function HologramCore({
       microParticlesRef.current.rotation.z += delta * 0.055;
       microParticlesRef.current.scale.setScalar((1.02 + curBass * 0.13) * collapse);
       const mat = microParticlesRef.current.material as THREE.PointsMaterial;
-      mat.opacity = (0.18 + theatre.particleEnergy * 0.4 + microControl * 0.16 + voice * 0.12 + curTreble * 0.16) * opacityFactor;
-      mat.size = 0.008 + microControl * 0.004 + curTreble * 0.018 + voice * 0.006;
+      mat.opacity = (0.10 + theatre.particleEnergy * 0.12 + microControl * 0.06 + voice * 0.10 + curTreble * 0.05) * opacityFactor;
+      mat.size = 0.006 + microControl * 0.002 + curTreble * 0.006 + voice * 0.004;
     }
 
     pulseRefs.current.forEach((pulseRef, index) => {
@@ -590,17 +694,16 @@ export function HologramCore({
 
   return (
     <group ref={groupRef}>
-      {/* ADVIS pearl core: a calm luminous nucleus framed by precision orbital geometry. */}
-      <Sphere ref={haloRef} args={[1.68, 48, 48]} material={materials.halo} />
-      <Sphere ref={nucleusGlowRef} args={[1.08, 56, 56]} material={materials.coreGlow} />
-      <Sphere ref={nucleusRef} args={[0.78, 64, 64]} material={materials.core} />
-      <Sphere args={[0.38, 48, 48]} material={materials.coreHighlight} />
+      {/* The spherical surface carries slowly moving gas clouds; a soft shell gives it real depth. */}
+      <Sphere ref={haloRef} args={[1.42, 48, 48]} material={materials.halo} />
+      <Sphere ref={nucleusGlowRef} args={[1.03, 56, 56]} material={materials.coreGlow} />
+      <Sphere ref={nucleusRef} args={[0.82, 80, 80]} material={materials.core} />
+      <Sphere args={[0.22, 48, 48]} material={materials.coreHighlight} />
 
-      {/* Two nested crystalline lattices create depth without the old dense visual noise. */}
-      <Icosahedron ref={innerShellRef} args={[1.5, 2]} material={materials.shellInner} />
-      <Octahedron ref={outerShellRef} args={[1.76, 2]} material={materials.shellOuter} />
+      {/* One very quiet geodesic layer remains; the harsh outer polyhedron is gone. */}
+      <Icosahedron ref={innerShellRef} args={[1.28, 2]} material={materials.shellInner} />
 
-      {/* Four fine orbital ribbons; each occupies a distinct plane around the nucleus. */}
+      {/* Three precise orbital lines frame the nebula without competing with it. */}
       <group ref={orbitalRef}>
         {ringConfigs.map((ring, index) => (
           <Torus key={index} args={[ring.radius, ring.tube, 12, 128]} rotation={ring.rotation} material={materials.ring[index]} />
@@ -616,10 +719,10 @@ export function HologramCore({
       </lineSegments>
 
       <group ref={arcOrbitRef}>
-        {[0, 1, 2, 3].map((index) => (
+        {[0, 1].map((index) => (
           <Torus
             key={index}
-            args={[2.26 + index * 0.19, 0.008, 8, 80, Math.PI * (0.38 + (index % 2) * 0.1)]}
+            args={[2.28 + index * 0.27, 0.006, 8, 80, Math.PI * (0.42 + (index % 2) * 0.1)]}
             rotation={[index * 0.43, (index % 3) * 0.52, index * 0.24]}
             material={materials.ring[index]}
           />
@@ -640,7 +743,7 @@ export function HologramCore({
         </lineLoop>
       ))}
 
-      {/* Light, restrained data motes—not a cloud of competing particles. */}
+      {/* About 300 carefully spaced motes; the animated cloud surface does the visual work. */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
         <primitive object={materials.particles} attach="material" />
       </Points>
@@ -654,8 +757,8 @@ export function HologramCore({
         <primitive object={materials.microParticles} attach="material" />
       </Points>
 
-      {[0, 1, 2].map((index) => (
-        <Sphere key={index} ref={(ref) => { pulseRefs.current[index] = ref; }} args={[1.96 + index * 0.18, 32, 32]} material={materials.pulse} />
+      {[0, 1].map((index) => (
+        <Sphere key={index} ref={(ref) => { pulseRefs.current[index] = ref; }} args={[1.92 + index * 0.28, 40, 40]} material={materials.pulse} />
       ))}
     </group>
   );
