@@ -94,17 +94,17 @@ export function ScientificLaunchpad({
   return (
     <section
       aria-label="ADVIS home workspace"
-      className="pointer-events-auto mx-auto flex w-full max-w-5xl select-none flex-col gap-4 px-3 py-2 sm:gap-5 sm:px-5"
+      className="pointer-events-auto mx-auto flex w-full max-w-6xl select-none flex-col gap-4 px-3 py-2 sm:gap-5 sm:px-5"
     >
       <header className="flex flex-col gap-2 text-center sm:gap-2.5">
         <div className="advis-eyebrow flex items-center justify-center gap-2">
           <Sparkles size={13} aria-hidden="true" />
           <span>ADVIS · Spatial intelligence</span>
         </div>
-        <h1 className="text-balance text-2xl font-semibold tracking-tight text-white drop-shadow-[0_2px_18px_rgba(2,6,23,0.9)] sm:text-3xl lg:text-[2.15rem]">
+        <h1 className="text-balance text-2xl font-semibold tracking-tight text-[#172b4d] sm:text-3xl lg:text-[2.15rem]">
           One Core. Every scientific world.
         </h1>
-        <p className="mx-auto max-w-2xl text-sm leading-6 text-slate-300 drop-shadow-[0_2px_12px_rgba(2,6,23,0.9)] sm:text-[15px]">
+        <p className="mx-auto max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
           Move from a question to a living model, then explore the science behind it—all in one ADVIS workspace.
         </p>
       </header>
@@ -118,31 +118,31 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[118px] flex-col rounded-2xl border border-sky-200/15 bg-slate-950/70 p-3.5 text-left shadow-[0_12px_35px_rgba(0,0,0,0.16)] backdrop-blur-lg transition-[background,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cyan-200/45 hover:bg-slate-900/90 focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
+              className="group flex min-h-[118px] flex-col rounded-2xl border border-slate-200/90 bg-white/85 p-3.5 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_20px_46px_rgba(45,87,147,0.15)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
             >
               <span className="mb-3 flex w-full items-center justify-between gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-200/20 bg-cyan-300/[0.08] text-cyan-200 transition-colors group-hover:border-cyan-200/40 group-hover:bg-cyan-300/[0.14]">
+                <span className="advis-icon-surface h-10 w-10 transition-transform group-hover:scale-[1.04]">
                   <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
                 </span>
                 <span className="advis-eyebrow text-[9px] tracking-[0.1em]">{destination.category}</span>
               </span>
 
-              <span className="flex items-center justify-between gap-2 text-[13px] font-semibold text-slate-50 sm:text-sm">
+              <span className="flex items-center justify-between gap-2 text-[13px] font-semibold text-slate-800 sm:text-sm">
                 <span>{destination.title}</span>
-                <ArrowRight size={14} className="shrink-0 text-cyan-200/60 transition-transform group-hover:translate-x-0.5 group-hover:text-cyan-100" aria-hidden="true" />
+                <ArrowRight size={14} className="shrink-0 text-blue-400/80 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-700" aria-hidden="true" />
               </span>
-              <span className="mt-1.5 text-xs leading-5 text-slate-400">{destination.description}</span>
+              <span className="mt-1.5 text-xs leading-5 text-slate-500">{destination.description}</span>
             </button>
           );
         })}
       </div>
 
       {directStarts.length > 0 && (
-        <div className="advis-surface rounded-2xl px-3.5 py-3 sm:px-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-white/82 px-3.5 py-3 shadow-[0_12px_36px_rgba(45,87,147,0.08)] backdrop-blur-xl sm:px-4">
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Quick starts</h2>
-              <p className="mt-0.5 text-xs text-slate-400">Jump into an available model or molecule.</p>
+              <h2 className="text-sm font-semibold text-slate-800">Quick starts</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Jump directly into an available model or molecule.</p>
             </div>
             <span className="advis-eyebrow text-[9px]">From the current library</span>
           </div>
@@ -156,12 +156,12 @@ export function ScientificLaunchpad({
                   if (item.type === 'molecule') onSelectMolecule(item.id);
                   else onSelectSpatialObject(item.id);
                 }}
-                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-sky-200/15 bg-slate-950/65 px-3 py-2 text-left text-xs font-medium text-slate-200 transition-colors hover:border-cyan-200/40 hover:bg-cyan-300/[0.08] hover:text-white focus-visible:outline-offset-2"
+                className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-left text-xs font-medium text-slate-700 transition-[color,border-color,background-color,box-shadow] hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-800 hover:shadow-sm focus-visible:outline-offset-2"
               >
                 {item.type === 'molecule' ? (
-                  <Atom size={13} className="shrink-0 text-cyan-200" aria-hidden="true" />
+                  <Atom size={13} className="shrink-0 text-blue-600" aria-hidden="true" />
                 ) : (
-                  <Cpu size={13} className="shrink-0 text-blue-200" aria-hidden="true" />
+                  <Cpu size={13} className="shrink-0 text-indigo-600" aria-hidden="true" />
                 )}
                 <span>{item.label}</span>
               </button>
@@ -170,7 +170,7 @@ export function ScientificLaunchpad({
         </div>
       )}
 
-      <p className="text-center text-xs text-slate-400 drop-shadow-[0_2px_10px_rgba(2,6,23,0.9)]">
+      <p className="text-center text-xs text-slate-500">
         Choose a starting point, or ask ADVIS using the command dock below.
       </p>
     </section>
