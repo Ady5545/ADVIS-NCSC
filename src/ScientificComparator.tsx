@@ -216,7 +216,7 @@ export const ScientificComparator: React.FC<ScientificComparatorProps> = ({
             <div>
               <div className="flex justify-between items-start border-b border-blue-200/20 pb-2 mb-3">
                 <div>
-                  <div className="text-base font-bold text-white">{entityA_chem.name}</div>
+                  <div className="text-base font-bold text-slate-800">{entityA_chem.name}</div>
                   <div className="text-xs text-blue-700 font-bold">{entityA_chem.formula}</div>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50/40 border border-blue-200/40 text-blue-800">
@@ -276,7 +276,7 @@ export const ScientificComparator: React.FC<ScientificComparatorProps> = ({
             <div>
               <div className="flex justify-between items-start border-b border-blue-200/20 pb-2 mb-3">
                 <div>
-                  <div className="text-base font-bold text-white">{entityB_chem.name}</div>
+                  <div className="text-base font-bold text-slate-800">{entityB_chem.name}</div>
                   <div className="text-xs text-blue-700 font-bold">{entityB_chem.formula}</div>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50/40 border border-blue-200/40 text-blue-800">
@@ -345,7 +345,7 @@ export const ScientificComparator: React.FC<ScientificComparatorProps> = ({
             <div>
               <div className="flex justify-between items-start border-b border-blue-200/20 pb-2 mb-3">
                 <div>
-                  <div className="text-base font-bold text-white">{entityA_eng.name}</div>
+                  <div className="text-base font-bold text-slate-800">{entityA_eng.name}</div>
                   <div className="text-[10px] text-blue-700 font-bold uppercase">{entityA_eng.category}</div>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50/40 border border-blue-200/40 text-blue-800">
@@ -377,7 +377,7 @@ export const ScientificComparator: React.FC<ScientificComparatorProps> = ({
             <div>
               <div className="flex justify-between items-start border-b border-blue-200/20 pb-2 mb-3">
                 <div>
-                  <div className="text-base font-bold text-white">{entityB_eng.name}</div>
+                  <div className="text-base font-bold text-slate-800">{entityB_eng.name}</div>
                   <div className="text-[10px] text-blue-700 font-bold uppercase">{entityB_eng.category}</div>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50/40 border border-blue-200/40 text-blue-800">
