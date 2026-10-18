@@ -1652,6 +1652,7 @@ function AppContent() {
               hologramIntensity={hologramIntensity}
               themeColor={themeColor}
               isSpatial={isSpatial}
+              isHome={!currentSpatialObject && !activeLearningSession && !sessionMolecule.isSessionActive}
             />
           )}
         
@@ -1739,9 +1740,9 @@ function AppContent() {
           <Sidebar currentView={currentView} setView={setCurrentView} />
         </div>
         
-        <div className="flex-1 flex items-center justify-center relative">
+        <div className="flex-1 relative min-w-0">
           {(!currentSpatialObject && !activeLearningSession && !sessionMolecule.isSessionActive) && (
-            <div className="w-full flex justify-center pb-24 md:pb-20">
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-start justify-end p-2 sm:p-3 lg:p-4">
               <ScientificLaunchpad
                 onOpenView={(view) => setCurrentView(view)}
                 onSelectMolecule={(formulaOrKey) => {
