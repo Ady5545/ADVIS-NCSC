@@ -288,7 +288,7 @@ export function ScientificHUD({
           {isMoleculeActive && moleculeData && (
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
-                <span className="text-base md:text-lg font-bold text-white tracking-wide">{moleculeData.name}</span>
+                <span className="text-base md:text-lg font-bold text-slate-800 tracking-wide">{moleculeData.name}</span>
                 <span className="text-xs font-bold text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-200/40">{moleculeData.formula}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-white/90 backdrop-blur-md p-2.5 rounded-lg border border-blue-200/40">
@@ -318,7 +318,7 @@ export function ScientificHUD({
               {engineeringDatas.map((engineeringData, idx) => (
             <div key={idx} className="space-y-2">
               <div className="flex justify-between items-baseline">
-                <span className="text-base md:text-lg font-bold text-white tracking-wide truncate max-w-[220px]">{engineeringDatas[0]?.name || ''}</span>
+                <span className="text-base md:text-lg font-bold text-slate-800 tracking-wide truncate max-w-[220px]">{engineeringDatas[0]?.name || ''}</span>
                 <span className="text-[10px] font-bold text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-200/40 uppercase">
                   {spatialMode}
                 </span>
@@ -346,7 +346,7 @@ export function ScientificHUD({
           {!hasActiveModel && (
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
-                <span className="text-sm font-bold text-white tracking-wide">SPATIAL WORKSPACE</span>
+                <span className="text-sm font-bold text-slate-800 tracking-wide">SPATIAL WORKSPACE</span>
                 <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/40">READY</span>
               </div>
               <p className="text-[10px] text-blue-700 font-sans leading-relaxed">
@@ -532,7 +532,7 @@ export function ScientificHUD({
 
           {educationalInsight ? (
             <div className="space-y-1.5">
-              <div className="text-xs font-bold text-white">{educationalInsight.title}</div>
+              <div className="text-xs font-bold text-slate-800">{educationalInsight.title}</div>
               <p className="text-[11px] text-blue-800 font-sans font-light leading-relaxed">
                 {educationalInsight.principle}
               </p>
@@ -582,7 +582,7 @@ export function ScientificHUD({
               </button>
             </div>
 
-            <div className="text-white font-bold text-sm tracking-wide mb-1">
+            <div className="text-slate-800 font-bold text-sm tracking-wide mb-1">
               {selectedComp?.name}
             </div>
             <div className="text-[10px] text-blue-700 font-sans font-light leading-relaxed mb-2 line-clamp-3">
