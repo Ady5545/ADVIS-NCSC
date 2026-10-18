@@ -94,4 +94,12 @@ test('ADVIS shell uses the bright pearl spatial theme rather than a dark canvas'
   expect(theme.canvas).toBe('#f5f9ff');
   expect(theme.pageBackground).not.toBe('rgb(0, 0, 0)');
   await expect(page.getByRole('heading', { name: /one core\. every scientific world\./i })).toHaveCSS('color', 'rgb(23, 43, 77)');
+
+  const primaryCard = page.getByRole('button', { name: 'Explore systems' });
+  const cardStyle = await primaryCard.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { radius: style.borderTopLeftRadius, borderColor: style.borderTopColor };
+  });
+  expect(parseFloat(cardStyle.radius)).toBeGreaterThanOrEqual(15);
+  expect(cardStyle.borderColor).toBe('rgba(62, 91, 139, 0.28)');
 });
