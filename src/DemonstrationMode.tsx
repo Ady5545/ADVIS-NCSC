@@ -268,22 +268,22 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 font-mono text-cyan-300">
+    <div className="flex flex-col gap-4 font-mono text-blue-700">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-cyan-500/20 pb-3">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-blue-200/20 pb-3">
         <div>
-          <h3 className="text-cyan-400 font-bold tracking-wider text-base flex items-center gap-2">
-            <PlayCircle size={20} className="text-cyan-400" />
+          <h3 className="text-blue-700 font-bold tracking-wider text-base flex items-center gap-2">
+            <PlayCircle size={20} className="text-blue-700" />
             INTERACTIVE SCIENTIFIC DEMONSTRATION SUITE
           </h3>
-          <p className="text-xs text-cyan-400/60">
+          <p className="text-xs text-blue-700">
             Step-by-step physical and orbital thermodynamic simulations with synchronized stage parameters.
           </p>
         </div>
 
         {/* Script Switcher */}
-        <div className="flex flex-wrap gap-1.5 bg-slate-900 p-1 rounded-lg border border-cyan-500/30 text-xs font-bold">
+        <div className="flex flex-wrap gap-1.5 bg-white p-1 rounded-lg border border-blue-200/30 text-xs font-bold">
           {DEMO_SCRIPTS.map(script => (
             <button
               key={script.id}
@@ -294,8 +294,8 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
               }}
               className={`px-3 py-1 rounded transition-all cursor-pointer ${
                 activeScriptId === script.id
-                  ? 'bg-cyan-500/30 text-cyan-100 border border-cyan-400'
-                  : 'text-cyan-400/60 hover:text-cyan-200'
+                  ? 'bg-cyan-500/30 text-slate-800 border border-blue-200'
+                  : 'text-blue-700 hover:text-blue-800'
               }`}
             >
               {script.title.split(' ')[0]} {script.title.split(' ')[1]}
@@ -305,12 +305,12 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
       </div>
 
       {/* Script Summary */}
-      <div className="bg-slate-900/60 p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
+      <div className="bg-white/60 p-3 rounded-xl border border-blue-200/20 flex items-center justify-between">
         <div>
           <div className="text-sm font-bold text-white">{activeScript.title}</div>
-          <div className="text-xs text-cyan-400/70 font-sans mt-0.5">{activeScript.overview}</div>
+          <div className="text-xs text-blue-700 font-sans mt-0.5">{activeScript.overview}</div>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 uppercase whitespace-nowrap">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 border border-blue-200/40 text-blue-700 uppercase whitespace-nowrap">
           {activeScript.category}
         </span>
       </div>
@@ -327,8 +327,8 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
             }}
             className={`p-2 rounded-lg border text-left transition-all cursor-pointer ${
               currentStepIndex === idx
-                ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
-                : 'bg-slate-950/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                ? 'bg-cyan-500/30 border-blue-200 text-slate-800 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
           >
             <div className="text-[9px] font-bold uppercase mb-0.5">Step {idx + 1}</div>
@@ -338,20 +338,20 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
       </div>
 
       {/* ACTIVE STEP DETAILS CARD */}
-      <div className="bg-slate-950/90 p-4 rounded-xl border border-cyan-500/40 space-y-4 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-cyan-500/20 pb-3">
+      <div className="bg-white/90 p-4 rounded-xl border border-blue-200/40 space-y-4 shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-blue-200/20 pb-3">
           <div>
-            <div className="text-xs font-bold text-cyan-400 tracking-widest uppercase">
+            <div className="text-xs font-bold text-blue-700 tracking-widest uppercase">
               PHASE {currentStepIndex + 1} OF {activeScript.steps.length}
             </div>
             <div className="text-base font-bold text-white mt-0.5">{currentStep.title}</div>
-            <div className="text-xs text-cyan-300/80 font-sans">{currentStep.subtitle}</div>
+            <div className="text-xs text-blue-700 font-sans">{currentStep.subtitle}</div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleApplyStep(currentStep)}
-              className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400/50 text-cyan-100 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 border border-blue-200/50 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Eye size={14} />
               <span>Project into 3D Workspace</span>
@@ -360,22 +360,22 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
         </div>
 
         {/* Step Description */}
-        <p className="text-xs text-cyan-200/90 font-sans font-light leading-relaxed bg-cyan-950/20 p-3 rounded-lg border border-cyan-500/15">
+        <p className="text-xs text-blue-800 font-sans font-light leading-relaxed bg-blue-50/20 p-3 rounded-lg border border-blue-200/15">
           {currentStep.description}
         </p>
 
         {/* Realtime Parameters Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {Object.entries(currentStep.parameters).map(([k, v]) => (
-            <div key={k} className="bg-slate-900/80 p-2.5 rounded-lg border border-cyan-500/20">
-              <div className="text-[10px] text-cyan-400/70 truncate">{k}</div>
-              <div className="text-xs font-bold text-cyan-100 truncate mt-0.5">{v}</div>
+            <div key={k} className="bg-white/80 p-2.5 rounded-lg border border-blue-200/20">
+              <div className="text-[10px] text-blue-700 truncate">{k}</div>
+              <div className="text-xs font-bold text-slate-800 truncate mt-0.5">{v}</div>
             </div>
           ))}
         </div>
 
         {/* Interactive Playback Transport Controls */}
-        <div className="flex items-center justify-between pt-3 border-t border-cyan-500/20">
+        <div className="flex items-center justify-between pt-3 border-t border-blue-200/20">
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -386,14 +386,14 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
                 }
               }}
               disabled={currentStepIndex === 0}
-              className="p-1.5 rounded bg-slate-900 hover:bg-cyan-950 border border-cyan-500/30 disabled:opacity-30 cursor-pointer text-cyan-300"
+              className="p-1.5 rounded bg-white hover:bg-blue-50 border border-blue-200/30 disabled:opacity-30 cursor-pointer text-blue-700"
               title="Previous Step"
             >
               <SkipBack size={16} />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="px-3 py-1.5 rounded bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400/60 text-cyan-100 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded bg-cyan-500/20 hover:bg-cyan-500/40 border border-blue-200/60 text-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
               {isPlaying ? <PauseCircle size={16} /> : <PlayCircle size={16} />}
               <span>{isPlaying ? 'Pause Sequence' : 'Auto Play (5s)'}</span>
@@ -407,14 +407,14 @@ export const DemonstrationMode: React.FC<DemonstrationModeProps> = ({
                 }
               }}
               disabled={currentStepIndex === activeScript.steps.length - 1}
-              className="p-1.5 rounded bg-slate-900 hover:bg-cyan-950 border border-cyan-500/30 disabled:opacity-30 cursor-pointer text-cyan-300"
+              className="p-1.5 rounded bg-white hover:bg-blue-50 border border-blue-200/30 disabled:opacity-30 cursor-pointer text-blue-700"
               title="Next Step"
             >
               <SkipForward size={16} />
             </button>
           </div>
 
-          <div className="text-xs text-cyan-400/60 font-mono">
+          <div className="text-xs text-blue-700 font-mono">
             {currentStepIndex + 1} / {activeScript.steps.length} Steps
           </div>
         </div>
