@@ -165,7 +165,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
   };
 
   return (
-    <div className="pointer-events-none select-none font-mono text-cyan-400">
+    <div className="pointer-events-none select-none font-mono text-blue-700">
       
       {/* ─────────────────────────────────────────────────────────────
           1. TOP CENTER: CAMERA PRESETS & CUTAWAY CONTROL BAR
@@ -173,9 +173,9 @@ export function V12EngineController(props: V12EngineControllerProps) {
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-40 flex flex-wrap items-center justify-center gap-2 max-w-4xl px-3">
         
         {/* Camera Presets Bar */}
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl px-2.5 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center gap-1">
-          <div className="flex items-center gap-1.5 pr-2 border-r border-cyan-500/20 text-[10px] text-cyan-400/80 font-bold uppercase tracking-wider">
-            <Camera size={12} className="text-cyan-400" />
+        <div className="bg-white/85 backdrop-blur-md border border-blue-200/30 rounded-xl px-2.5 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center gap-1">
+          <div className="flex items-center gap-1.5 pr-2 border-r border-blue-200/20 text-[10px] text-blue-700 font-bold uppercase tracking-wider">
+            <Camera size={12} className="text-blue-700" />
             <span className="hidden sm:inline">Camera:</span>
           </div>
 
@@ -189,8 +189,8 @@ export function V12EngineController(props: V12EngineControllerProps) {
                   title={preset.description}
                   className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-cyan-500/30 border border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                      : 'border border-transparent bg-slate-900/60 hover:bg-cyan-950/40 text-cyan-400/70 hover:text-cyan-200'
+                      ? 'bg-cyan-500/30 border border-blue-200 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                      : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
                   }`}
                 >
                   {preset.name}
@@ -201,9 +201,9 @@ export function V12EngineController(props: V12EngineControllerProps) {
         </div>
 
         {/* View mode panel (Solid / Glass / Blueprint wireframe) */}
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl px-2.5 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center gap-1">
-          <div className="flex items-center gap-1.5 pr-2 border-r border-cyan-500/20 text-[10px] text-cyan-400/80 font-bold uppercase tracking-wider">
-            <Layers size={12} className="text-cyan-400" />
+        <div className="bg-white/85 backdrop-blur-md border border-blue-200/30 rounded-xl px-2.5 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center gap-1">
+          <div className="flex items-center gap-1.5 pr-2 border-r border-blue-200/20 text-[10px] text-blue-700 font-bold uppercase tracking-wider">
+            <Layers size={12} className="text-blue-700" />
             <span className="hidden sm:inline">View mode:</span>
           </div>
 
@@ -213,8 +213,8 @@ export function V12EngineController(props: V12EngineControllerProps) {
               title="Full PBR alloy, carbon fiber, and titanium exterior solid assembly"
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'SOLID'
-                  ? 'bg-cyan-500/30 border border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                  : 'border border-transparent bg-slate-900/60 hover:bg-cyan-950/40 text-cyan-400/70 hover:text-cyan-200'
+                  ? 'bg-cyan-500/30 border border-blue-200 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                  : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
               }`}
             >
               Solid
@@ -226,7 +226,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'GLASS'
                   ? 'bg-sky-500/30 border border-sky-400 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.4)]'
-                  : 'border border-transparent bg-slate-900/60 hover:bg-cyan-950/40 text-cyan-400/70 hover:text-cyan-200'
+                  : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
               }`}
             >
               Glass
@@ -238,7 +238,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
               className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 currentCutawayMode === 'SECTION'
                   ? 'bg-purple-500/30 border border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.4)]'
-                  : 'border border-transparent bg-slate-900/60 hover:bg-cyan-950/40 text-cyan-400/70 hover:text-cyan-200'
+                  : 'border border-transparent bg-white/60 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
               }`}
             >
               Blueprint
@@ -252,23 +252,23 @@ export function V12EngineController(props: V12EngineControllerProps) {
          ───────────────────────────────────────────────────────────── */}
       {showCharts && (
         <div className="absolute top-20 right-4 md:right-6 pointer-events-auto z-40 flex flex-col items-end transition-all">
-          <div className="flex items-center justify-between bg-slate-950/90 border border-cyan-500/40 rounded-t-xl px-3 py-1.5 w-80 md:w-88 shadow-lg">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-              <Activity size={12} className="text-cyan-400 animate-pulse" />
+          <div className="flex items-center justify-between bg-white/90 border border-blue-200/40 rounded-t-xl px-3 py-1.5 w-80 md:w-88 shadow-lg">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
+              <Activity size={12} className="text-blue-700 animate-pulse" />
               <span>SYNCHRONIZED TELEMETRY</span>
             </div>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsChartsMinimized(!isChartsMinimized)}
-                className="text-cyan-400/60 hover:text-white p-1 transition-colors cursor-pointer"
+                className="text-blue-700 hover:text-white p-1 transition-colors cursor-pointer"
                 title={isChartsMinimized ? 'Expand diagram' : 'Minimize diagram'}
               >
                 {isChartsMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
               </button>
               <button
                 onClick={() => setShowCharts(false)}
-                className="text-cyan-400/60 hover:text-rose-400 p-1 transition-colors cursor-pointer text-xs"
+                className="text-blue-700 hover:text-rose-400 p-1 transition-colors cursor-pointer text-xs"
                 title="Close diagram"
               >
                 ✕
@@ -277,7 +277,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
           </div>
 
           {!isChartsMinimized && (
-            <div className="w-80 md:w-88 rounded-b-xl overflow-hidden border-x border-b border-cyan-500/30 shadow-2xl">
+            <div className="w-80 md:w-88 rounded-b-xl overflow-hidden border-x border-b border-blue-200/30 shadow-2xl">
               <V12SynchronizedDiagrams cylinderOverride={focusedCylinder} compact />
             </div>
           )}
@@ -290,9 +290,9 @@ export function V12EngineController(props: V12EngineControllerProps) {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-40 flex flex-col items-center gap-2 w-full max-w-2xl px-3">
         
         {/* A. FIRING ORDER TRACK (1 - 12 - 4 - 9 - 2 - 11 - 6 - 7 - 3 - 10 - 5 - 8) */}
-        <div className="w-full bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-2 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[9px] text-cyan-400/70 border-b border-cyan-500/15 pb-1">
-            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-cyan-300">
+        <div className="w-full bg-white/90 backdrop-blur-xl border border-blue-200/30 rounded-xl p-2 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-[9px] text-blue-700 border-b border-blue-200/15 pb-1">
+            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-blue-700">
               <Zap size={11} className="text-amber-400" />
               <span>60° V12 FIRING ORDER TRACK (6.5L NA)</span>
             </div>
@@ -326,8 +326,8 @@ export function V12EngineController(props: V12EngineControllerProps) {
                     isFiring
                       ? 'bg-amber-500/40 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse scale-105'
                       : isSelected
-                      ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                      : 'bg-slate-900/60 border-cyan-500/20 hover:bg-cyan-950/40 text-cyan-400/80 hover:text-cyan-200'
+                      ? 'bg-cyan-500/30 border-blue-200 text-slate-800 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                      : 'bg-white/60 border-blue-200/20 hover:bg-blue-50/40 text-blue-700 hover:text-blue-800'
                   }`}
                 >
                   <div className="text-[10px] font-bold tracking-tight">
@@ -349,7 +349,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
         </div>
 
         {/* B. RPM / PLAYBACK CONTROLLER & CYCLE SCRUBBER */}
-        <div className="w-full bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-2.5 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex flex-col gap-2">
+        <div className="w-full bg-white/90 backdrop-blur-xl border border-blue-200/30 rounded-xl p-2.5 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             
             {/* Play/Pause & Speed Mult */}
@@ -367,15 +367,15 @@ export function V12EngineController(props: V12EngineControllerProps) {
               </button>
 
               {/* Speed Multipliers */}
-              <div className="flex items-center gap-0.5 bg-slate-900/80 p-0.5 rounded-lg border border-cyan-500/20 text-[9px] font-bold">
+              <div className="flex items-center gap-0.5 bg-white/80 p-0.5 rounded-lg border border-blue-200/20 text-[9px] font-bold">
                 {[0.25, 0.5, 1, 2].map((spd) => (
                   <button
                     key={spd}
                     onClick={() => changeSpeed(spd)}
                     className={`px-1.5 py-1 rounded transition-all cursor-pointer ${
                       kinematicSpeed === spd
-                        ? 'bg-cyan-500/30 text-cyan-100 border border-cyan-400/40 shadow-[0_0_6px_rgba(6,182,212,0.3)]'
-                        : 'text-cyan-400/60 hover:text-cyan-200'
+                        ? 'bg-cyan-500/30 text-slate-800 border border-blue-200/40 shadow-[0_0_6px_rgba(6,182,212,0.3)]'
+                        : 'text-blue-700 hover:text-blue-800'
                     }`}
                   >
                     {spd}x
@@ -386,8 +386,8 @@ export function V12EngineController(props: V12EngineControllerProps) {
 
             {/* RPM Slider & Presets */}
             <div className="flex-1 flex items-center gap-2.5 min-w-[220px]">
-              <div className="text-[10px] text-cyan-300 font-bold tracking-wider min-w-[75px] text-right">
-                {v12Rpm.toFixed(0)} <span className="text-[8px] text-cyan-400/60">RPM</span>
+              <div className="text-[10px] text-blue-700 font-bold tracking-wider min-w-[75px] text-right">
+                {v12Rpm.toFixed(0)} <span className="text-[8px] text-blue-700">RPM</span>
               </div>
 
               <input
@@ -397,35 +397,35 @@ export function V12EngineController(props: V12EngineControllerProps) {
                 step="50"
                 value={v12Rpm}
                 onChange={(e) => changeRpm(parseFloat(e.target.value))}
-                className="flex-1 accent-cyan-400 h-1.5 bg-slate-900 rounded-lg cursor-pointer appearance-none"
+                className="flex-1 accent-blue-600 h-1.5 bg-white rounded-lg cursor-pointer appearance-none"
               />
 
               {/* RPM Quick Presets */}
               <div className="hidden sm:flex items-center gap-1 text-[8px] font-bold">
                 <button
                   onClick={() => changeRpm(600)}
-                  className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-white border border-blue-200/20 hover:border-blue-200 text-blue-700 cursor-pointer"
                   title="Idle speed (600 RPM)"
                 >
                   Idle
                 </button>
                 <button
                   onClick={() => changeRpm(3000)}
-                  className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-white border border-blue-200/20 hover:border-blue-200 text-blue-700 cursor-pointer"
                   title="Cruising speed (3,000 RPM)"
                 >
                   3K
                 </button>
                 <button
                   onClick={() => changeRpm(6750)}
-                  className="px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/20 hover:border-cyan-400 text-amber-300 cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-white border border-blue-200/20 hover:border-blue-200 text-amber-300 cursor-pointer"
                   title="Peak torque (6,750 RPM)"
                 >
                   Peak
                 </button>
                 <button
                   onClick={() => changeRpm(8500)}
-                  className="px-1.5 py-0.5 rounded bg-slate-900 border border-rose-500/40 hover:border-rose-400 text-rose-300 cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-white border border-rose-500/40 hover:border-rose-400 text-rose-300 cursor-pointer"
                   title="Maximum power (8,500 RPM)"
                 >
                   Redline
@@ -439,8 +439,8 @@ export function V12EngineController(props: V12EngineControllerProps) {
                 onClick={onToggleSound}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border transition-all cursor-pointer ${
                   soundEnabled
-                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                    : 'bg-slate-900 border-cyan-500/20 text-cyan-400/50 hover:text-cyan-300'
+                    ? 'bg-cyan-500/20 border-blue-200 text-blue-800 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                    : 'bg-white border-blue-200/20 text-blue-700 hover:text-blue-700'
                 }`}
                 title={
                   soundEnabled
@@ -450,14 +450,14 @@ export function V12EngineController(props: V12EngineControllerProps) {
               >
                 {soundEnabled ? (
                   <>
-                    <Volume2 size={13} className={isKinematicPlaying && v12Rpm > 0 ? 'text-cyan-300 animate-pulse' : 'text-cyan-400'} />
+                    <Volume2 size={13} className={isKinematicPlaying && v12Rpm > 0 ? 'text-blue-700 animate-pulse' : 'text-blue-700'} />
                     <span className="hidden sm:inline text-[8px] font-bold tracking-wider">
                       {isKinematicPlaying && v12Rpm > 0 ? 'AUDIO ON' : 'AUDIO'}
                     </span>
                   </>
                 ) : (
                   <>
-                    <VolumeX size={13} className="text-cyan-400/40" />
+                    <VolumeX size={13} className="text-blue-700" />
                     <span className="hidden sm:inline text-[8px] font-bold tracking-wider opacity-60">MUTED</span>
                   </>
                 )}
@@ -467,7 +467,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
 
           {/* Crank Cycle Scrubber (0° to 720°) */}
           {onScrubAngle && (
-            <div className="flex items-center gap-2 pt-1 border-t border-cyan-500/10 text-[8px] text-cyan-400/70">
+            <div className="flex items-center gap-2 pt-1 border-t border-blue-200/10 text-[8px] text-blue-700">
               <span className="min-w-[55px] font-bold">CRANK: {((currentAngleDeg % 720 + 720) % 720).toFixed(0)}°</span>
               <input
                 type="range"
@@ -476,24 +476,24 @@ export function V12EngineController(props: V12EngineControllerProps) {
                 step="1"
                 value={((currentAngleDeg % 720 + 720) % 720)}
                 onChange={(e) => onScrubAngle(parseFloat(e.target.value))}
-                className="flex-1 accent-amber-400 h-1 bg-slate-900 rounded cursor-pointer appearance-none"
+                className="flex-1 accent-amber-400 h-1 bg-white rounded cursor-pointer appearance-none"
               />
-              <span className="text-cyan-400/50">4-STROKE 720°</span>
+              <span className="text-blue-700">4-STROKE 720°</span>
             </div>
           )}
         </div>
 
         {/* C. OVERLAY TOGGLE PANEL (Callouts, Charge, Arrows, Isolate, Charts) */}
-        <div className="bg-slate-950/85 backdrop-blur-md border border-cyan-500/30 rounded-xl px-3 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex flex-wrap items-center justify-center gap-1.5 text-[9px] font-bold uppercase">
-          <span className="text-cyan-400/60 mr-1 text-[8px] tracking-wider">OVERLAYS:</span>
+        <div className="bg-white/85 backdrop-blur-md border border-blue-200/30 rounded-xl px-3 py-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex flex-wrap items-center justify-center gap-1.5 text-[9px] font-bold uppercase">
+          <span className="text-blue-700 mr-1 text-[8px] tracking-wider">OVERLAYS:</span>
 
           {/* 1. Callouts (showLabels) */}
           <button
             onClick={onToggleLabels}
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               showLabels
-                ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
-                : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                ? 'bg-cyan-500/30 border-blue-200 text-slate-800 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
             title="Toggle holographic 3D component callouts"
           >
@@ -507,7 +507,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               chargeFlowEnabled
                 ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
             title="Toggle air/fuel charge flow and combustion flame effects"
           >
@@ -521,7 +521,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               vectorsEnabled
                 ? 'bg-purple-500/30 border-purple-400 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.3)]'
-                : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
             title="Toggle piston thrust and crankshaft torque force vectors"
           >
@@ -535,7 +535,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               isolatedComponentId
                 ? 'bg-emerald-500/30 border-emerald-400 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
-                : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
             title="Isolate active component or crankshaft from surrounding block"
           >
@@ -549,7 +549,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               showCharts
                 ? 'bg-sky-500/30 border-sky-400 text-sky-100 shadow-[0_0_8px_rgba(56,189,248,0.3)]'
-                : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-300'
+                : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-700'
             }`}
             title="Toggle real-time synchronized telemetry and thermodynamic charts"
           >
