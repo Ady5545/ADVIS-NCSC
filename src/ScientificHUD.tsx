@@ -259,17 +259,17 @@ export function ScientificHUD({
   }
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-30 font-mono text-cyan-400 select-none">
+    <div className="absolute inset-0 pointer-events-none z-30 font-mono text-blue-700 select-none">
       
       {/* ─────────────────────────────────────────────────────────────
           1. TOP-LEFT WIDGET: ACTIVE MODEL INFORMATION PANEL
          ───────────────────────────────────────────────────────────── */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 pointer-events-auto flex flex-col gap-2 max-w-[320px] md:max-w-[360px] max-h-[40vh] md:max-h-[80vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in z-40">
-        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
-          <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2.5">
+        <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
+          <div className="flex items-center justify-between border-b border-blue-200/20 pb-2 mb-2.5">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${hasActiveModel ? 'bg-cyan-400 animate-ping' : 'bg-cyan-500/50'}`} />
-              <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-blue-700 uppercase">
                 {isMoleculeActive ? 'MOLECULAR STRUCTURE' : isEngineeringActive ? 'ENGINEERING ASSET' : 'SPATIAL WORKSPACE'}
               </span>
             </div>
@@ -289,25 +289,25 @@ export function ScientificHUD({
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <span className="text-base md:text-lg font-bold text-white tracking-wide">{moleculeData.name}</span>
-                <span className="text-xs font-bold text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded border border-cyan-500/40">{moleculeData.formula}</span>
+                <span className="text-xs font-bold text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-200/40">{moleculeData.formula}</span>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2.5 rounded-lg border border-cyan-500/40">
-                <div className="text-cyan-400/70">Geometry:</div>
-                <div className="text-cyan-200 font-semibold text-right">{moleculeData.geometry}</div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-white/90 backdrop-blur-md p-2.5 rounded-lg border border-blue-200/40">
+                <div className="text-blue-700">Geometry:</div>
+                <div className="text-blue-800 font-semibold text-right">{moleculeData.geometry}</div>
                 
-                <div className="text-cyan-400/70">Hybridization:</div>
-                <div className="text-cyan-200 font-semibold text-right">{moleculeData.hybridization || moleculeSpec?.hybridization || 'sp³'}</div>
+                <div className="text-blue-700">Hybridization:</div>
+                <div className="text-blue-800 font-semibold text-right">{moleculeData.hybridization || moleculeSpec?.hybridization || 'sp³'}</div>
                 
-                <div className="text-cyan-400/70">Bond Angle:</div>
+                <div className="text-blue-700">Bond Angle:</div>
                 <div className="text-amber-300 font-bold text-right" title="Literature Database Value">
                   {moleculeSpec?.bondAngle || 'N/A'} <span className="text-[8px] text-amber-500/80 uppercase ml-1 border border-amber-500/30 rounded px-0.5">LIT</span>
                 </div>
                 
-                <div className="text-cyan-400/70">Bond Type:</div>
-                <div className="text-cyan-200 font-semibold text-right">{moleculeSpec?.classification || moleculeData.bondType}</div>
+                <div className="text-blue-700">Bond Type:</div>
+                <div className="text-blue-800 font-semibold text-right">{moleculeSpec?.classification || moleculeData.bondType}</div>
 
-                <div className="text-cyan-400/70">Valence e⁻:</div>
-                <div className="text-cyan-200 font-semibold text-right">{moleculeData.valenceElectrons} e⁻</div>
+                <div className="text-blue-700">Valence e⁻:</div>
+                <div className="text-blue-800 font-semibold text-right">{moleculeData.valenceElectrons} e⁻</div>
               </div>
             </div>
           )}
@@ -319,21 +319,21 @@ export function ScientificHUD({
             <div key={idx} className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <span className="text-base md:text-lg font-bold text-white tracking-wide truncate max-w-[220px]">{engineeringDatas[0]?.name || ''}</span>
-                <span className="text-[10px] font-bold text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded border border-cyan-500/40 uppercase">
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-200/40 uppercase">
                   {spatialMode}
                 </span>
               </div>
-              <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider">{engineeringData.category}</div>
+              <div className="text-[10px] text-blue-700 uppercase tracking-wider">{engineeringData.category}</div>
               
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2.5 rounded-lg border border-cyan-500/40">
-                <div className="text-cyan-400/70">Subsystems:</div>
-                <div className="text-cyan-200 font-semibold text-right">{engineeringData.components?.length || 0} Modules</div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] bg-white/90 backdrop-blur-md p-2.5 rounded-lg border border-blue-200/40">
+                <div className="text-blue-700">Subsystems:</div>
+                <div className="text-blue-800 font-semibold text-right">{engineeringData.components?.length || 0} Modules</div>
 
                 {engineeringData.educationalInformation?.specifications && (
                   Object.entries(engineeringData.educationalInformation.specifications).slice(0, 3).map(([k, v]) => (
                     <React.Fragment key={k}>
-                      <div className="text-cyan-400/70 truncate">{k}:</div>
-                      <div className="text-cyan-200 font-semibold text-right truncate">{v}</div>
+                      <div className="text-blue-700 truncate">{k}:</div>
+                      <div className="text-blue-800 font-semibold text-right truncate">{v}</div>
                     </React.Fragment>
                   ))
                 )}
@@ -349,7 +349,7 @@ export function ScientificHUD({
                 <span className="text-sm font-bold text-white tracking-wide">SPATIAL WORKSPACE</span>
                 <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/40">READY</span>
               </div>
-              <p className="text-[10px] text-cyan-400/70 font-sans leading-relaxed">
+              <p className="text-[10px] text-blue-700 font-sans leading-relaxed">
                 Holographic 3D visualization and engineering inspection system active. Select an entity from the launchpad or library.
               </p>
             </div>
@@ -363,16 +363,16 @@ export function ScientificHUD({
       
       {/* Mobile Menu Toggle */}
       <div className="absolute top-4 right-4 md:hidden pointer-events-auto z-50">
-        <button onClick={() => setShowControlsOnMobile(!showControlsOnMobile)} className="bg-slate-950/95 backdrop-blur-2xl p-2 rounded-lg border-2 border-cyan-400/80 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+        <button onClick={() => setShowControlsOnMobile(!showControlsOnMobile)} className="bg-white/95 backdrop-blur-2xl p-2 rounded-lg border-2 border-blue-200/80 text-blue-700 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
       </div>
       <div className={`absolute top-16 right-4 md:top-6 md:right-6 pointer-events-auto flex flex-col gap-2 max-w-[280px] md:max-w-[320px] max-h-[40vh] md:max-h-[80vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in transition-all z-40 ${showControlsOnMobile ? 'flex' : 'hidden md:flex'}`}>
-        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
-          <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2.5">
+        <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
+          <div className="flex items-center justify-between border-b border-blue-200/20 pb-2 mb-2.5">
             <div className="flex items-center gap-2">
-              <Sliders size={12} className="text-cyan-400" />
-              <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">
+              <Sliders size={12} className="text-blue-700" />
+              <span className="text-[10px] font-bold tracking-[0.2em] text-blue-700 uppercase">
                 {isEngineeringActive ? 'KINEMATICS MODE' : isMoleculeActive ? 'LESSON PHASES' : 'QUICK LAUNCH'}
               </span>
             </div>
@@ -386,12 +386,12 @@ export function ScientificHUD({
                   onClick={() => onChangeSpatialMode('INSPECTION')}
                   className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
                     spatialMode === 'INSPECTION'
-                      ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                      : 'border-cyan-500/20 bg-slate-900/50 hover:bg-cyan-950/40 text-cyan-400/80'
+                      ? 'bg-cyan-500/30 border-blue-200 text-slate-800 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                      : 'border-blue-200/20 bg-white/50 hover:bg-blue-50/40 text-blue-700'
                   }`}
                 >
                   <span>Inspect Part</span>
-                  {spatialMode === 'INSPECTION' && <span className="text-[8px] text-cyan-300">✓</span>}
+                  {spatialMode === 'INSPECTION' && <span className="text-[8px] text-blue-700">✓</span>}
                 </button>
 
                 <button
@@ -399,7 +399,7 @@ export function ScientificHUD({
                   className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
                     spatialMode === 'SHOWCASE'
                       ? 'bg-emerald-500/30 border-emerald-400 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                      : 'border-cyan-500/20 bg-slate-900/50 hover:bg-cyan-950/40 text-cyan-400/80'
+                      : 'border-blue-200/20 bg-white/50 hover:bg-blue-50/40 text-blue-700'
                   }`}
                 >
                   <span>3D Showcase</span>
@@ -411,7 +411,7 @@ export function ScientificHUD({
                   className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
                     spatialMode === 'EXPLODED'
                       ? 'bg-purple-500/30 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                      : 'border-cyan-500/20 bg-slate-900/50 hover:bg-cyan-950/40 text-cyan-400/80'
+                      : 'border-blue-200/20 bg-white/50 hover:bg-blue-50/40 text-blue-700'
                   }`}
                 >
                   <span>Exploded View</span>
@@ -423,7 +423,7 @@ export function ScientificHUD({
                   className={`px-2.5 py-1.5 rounded border transition-all text-left flex items-center justify-between cursor-pointer ${
                     spatialMode === 'DEMO'
                       ? 'bg-amber-500/30 border-amber-400 text-amber-100 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-                      : 'border-cyan-500/20 bg-slate-900/50 hover:bg-cyan-950/40 text-cyan-400/80'
+                      : 'border-blue-200/20 bg-white/50 hover:bg-blue-50/40 text-blue-700'
                   }`}
                 >
                   <span>Guided Demo</span>
@@ -434,7 +434,7 @@ export function ScientificHUD({
               {onOpenEngineeringMode && (
                 <button
                   onClick={onOpenEngineeringMode}
-                  className="w-full py-1.5 px-3 rounded border border-cyan-500/40 bg-cyan-950/50 hover:bg-cyan-900/60 text-cyan-200 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  className="w-full py-1.5 px-3 rounded border border-blue-200/40 bg-blue-50/50 hover:bg-blue-50/60 text-blue-800 text-[10px] font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)]"
                 >
                   <Cpu size={12} />
                   <span>Open CAD Workstation</span>
@@ -457,10 +457,10 @@ export function ScientificHUD({
           {/* MOLECULE CONTROLS */}
           {isMoleculeActive && activeLearningSession && (
             <div className="space-y-2">
-              <div className="text-[9px] text-cyan-400/70 font-semibold uppercase">
+              <div className="text-[9px] text-blue-700 font-semibold uppercase">
                 Step {activeLearningSession.currentStepIndex + 1} of {activeLearningSession.steps.length}
               </div>
-              <div className="text-xs font-bold text-cyan-200 truncate">
+              <div className="text-xs font-bold text-blue-800 truncate">
                 {activeLearningSession.steps[activeLearningSession.currentStepIndex]?.title}
               </div>
               <div className="flex gap-1.5 pt-1">
@@ -469,13 +469,13 @@ export function ScientificHUD({
                     const e = new CustomEvent('ADVIS_LEARN_REPLAY_STEP');
                     window.dispatchEvent(e);
                   }}
-                  className="flex-1 py-1 px-2 rounded border border-cyan-500/30 bg-cyan-950/40 hover:bg-cyan-900/50 text-[10px] text-cyan-300 font-bold uppercase transition-all cursor-pointer text-center"
+                  className="flex-1 py-1 px-2 rounded border border-blue-200/30 bg-blue-50/40 hover:bg-blue-50/50 text-[10px] text-blue-700 font-bold uppercase transition-all cursor-pointer text-center"
                 >
                   Replay
                 </button>
                 <button
                   onClick={onExitSpatial}
-                  className="flex-1 py-1 px-2 rounded border border-cyan-500/30 bg-cyan-950/40 hover:bg-cyan-900/50 text-[10px] text-cyan-300 font-bold uppercase transition-all cursor-pointer text-center"
+                  className="flex-1 py-1 px-2 rounded border border-blue-200/30 bg-blue-50/40 hover:bg-blue-50/50 text-[10px] text-blue-700 font-bold uppercase transition-all cursor-pointer text-center"
                 >
                   Exit Lesson
                 </button>
@@ -486,29 +486,29 @@ export function ScientificHUD({
           {/* IDLE QUICK LAUNCH BUTTONS */}
           {!hasActiveModel && (
             <div className="space-y-1.5">
-              <div className="text-[9px] text-cyan-400/60 uppercase font-semibold">Immediate Projections:</div>
+              <div className="text-[9px] text-blue-700 uppercase font-semibold">Immediate Projections:</div>
               <div className="grid grid-cols-2 gap-1.5 text-[9px] font-bold">
                 <button
                   onClick={() => onSelectMolecule('H2O')}
-                  className="py-1 px-2 rounded border border-cyan-500/30 bg-slate-900/60 hover:bg-cyan-950/60 hover:border-cyan-400 text-cyan-200 transition-all cursor-pointer text-left truncate"
+                  className="py-1 px-2 rounded border border-blue-200/30 bg-white/60 hover:bg-blue-50/60 hover:border-blue-200 text-blue-800 transition-all cursor-pointer text-left truncate"
                 >
                   ⚡ Water (H₂O)
                 </button>
                 <button
                   onClick={() => onSelectMolecule('CO2')}
-                  className="py-1 px-2 rounded border border-cyan-500/30 bg-slate-900/60 hover:bg-cyan-950/60 hover:border-cyan-400 text-cyan-200 transition-all cursor-pointer text-left truncate"
+                  className="py-1 px-2 rounded border border-blue-200/30 bg-white/60 hover:bg-blue-50/60 hover:border-blue-200 text-blue-800 transition-all cursor-pointer text-left truncate"
                 >
                   ⚡ Carbon (CO₂)
                 </button>
                 <button
                   onClick={() => onSelectSpatialObject('v12_engine', 'INSPECTION')}
-                  className="py-1 px-2 rounded border border-cyan-500/30 bg-slate-900/60 hover:bg-cyan-950/60 hover:border-cyan-400 text-cyan-200 transition-all cursor-pointer text-left truncate"
+                  className="py-1 px-2 rounded border border-blue-200/30 bg-white/60 hover:bg-blue-50/60 hover:border-blue-200 text-blue-800 transition-all cursor-pointer text-left truncate"
                 >
                   ⚡ V12 Engine
                 </button>
                 <button
                   onClick={() => onSelectSpatialObject('servo_motor', 'INSPECTION')}
-                  className="py-1 px-2 rounded border border-cyan-500/30 bg-slate-900/60 hover:bg-cyan-950/60 hover:border-cyan-400 text-cyan-200 transition-all cursor-pointer text-left truncate"
+                  className="py-1 px-2 rounded border border-blue-200/30 bg-white/60 hover:bg-blue-50/60 hover:border-blue-200 text-blue-800 transition-all cursor-pointer text-left truncate"
                 >
                   ⚡ Servo Motor
                 </button>
@@ -522,8 +522,8 @@ export function ScientificHUD({
           3. BOTTOM-LEFT WIDGET: CONTEXTUAL EDUCATIONAL INSIGHT
          ───────────────────────────────────────────────────────────── */}
       <div className={`absolute bottom-24 left-4 md:bottom-28 md:left-6 pointer-events-auto flex flex-col gap-2 max-w-[320px] md:max-w-[380px] max-h-[35vh] overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade-in z-40 ${showControlsOnMobile ? 'flex' : 'hidden md:flex'}`}>
-        <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
-          <div className="flex items-center gap-2 border-b border-cyan-500/20 pb-2 mb-2">
+        <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
+          <div className="flex items-center gap-2 border-b border-blue-200/20 pb-2 mb-2">
             <BookOpen size={13} className="text-amber-400" />
             <span className="text-[10px] font-bold tracking-[0.2em] text-amber-300 uppercase">
               {'SCIENTIFIC PRINCIPLES'}
@@ -533,13 +533,13 @@ export function ScientificHUD({
           {educationalInsight ? (
             <div className="space-y-1.5">
               <div className="text-xs font-bold text-white">{educationalInsight.title}</div>
-              <p className="text-[11px] text-cyan-200/90 font-sans font-light leading-relaxed">
+              <p className="text-[11px] text-blue-800 font-sans font-light leading-relaxed">
                 {educationalInsight.principle}
               </p>
               {educationalInsight.keyPoints && educationalInsight.keyPoints.length > 0 && (
                 <div className="space-y-0.5 pt-1">
                   {educationalInsight.keyPoints.map((pt: string, idx: number) => (
-                    <div key={idx} className="text-[10px] text-cyan-300 flex items-start gap-1">
+                    <div key={idx} className="text-[10px] text-blue-700 flex items-start gap-1">
                       <span className="text-amber-400">•</span>
                       <span>{pt}</span>
                     </div>
@@ -549,10 +549,10 @@ export function ScientificHUD({
             </div>
           ) : (
             <div className="space-y-1.5">
-              <p className="text-[11px] text-cyan-200/80 font-sans font-light leading-relaxed">
+              <p className="text-[11px] text-blue-800 font-sans font-light leading-relaxed">
                 ADVIS renders real 3D molecular orbital geometries, VSEPR angles, and multi-component mechanical assemblies.
               </p>
-              <p className="text-[10px] text-cyan-400/60 font-mono">
+              <p className="text-[10px] text-blue-700 font-mono">
                 Select any entity from the libraries or use voice commands to begin.
               </p>
             </div>
@@ -567,15 +567,15 @@ export function ScientificHUD({
         
         {/* COMPONENT INSPECTION CARD (When a component is selected) */}
         {selectedComp ? (
-          <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.9)]">
-            <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2 mb-2">
+          <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.9)]">
+            <div className="flex items-center justify-between border-b border-blue-200/30 pb-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">COMPONENT INSPECTION</span>
+                <span className="text-[10px] font-bold tracking-[0.2em] text-blue-700 uppercase">COMPONENT INSPECTION</span>
               </div>
               <button
                 onClick={() => onSelectComponent(null)}
-                className="text-cyan-400/60 hover:text-cyan-200 text-xs px-1.5 py-0.5 rounded border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer"
+                className="text-blue-700 hover:text-blue-800 text-xs px-1.5 py-0.5 rounded border border-blue-200/30 hover:border-blue-200 transition-all cursor-pointer"
                 title="Deselect"
               >
                 ✕
@@ -585,18 +585,18 @@ export function ScientificHUD({
             <div className="text-white font-bold text-sm tracking-wide mb-1">
               {selectedComp?.name}
             </div>
-            <div className="text-[10px] text-cyan-300/80 font-sans font-light leading-relaxed mb-2 line-clamp-3">
+            <div className="text-[10px] text-blue-700 font-sans font-light leading-relaxed mb-2 line-clamp-3">
               {selectedComp?.description}
             </div>
 
-            <div className="bg-slate-900/90 backdrop-blur-md rounded-lg p-2 border border-cyan-500/40 text-[9px] space-y-1 mb-2">
+            <div className="bg-white/90 backdrop-blur-md rounded-lg p-2 border border-blue-200/40 text-[9px] space-y-1 mb-2">
               <div className="flex justify-between">
-                <span className="text-cyan-400/70">Shape:</span>
-                <span className="text-cyan-200 font-bold uppercase">{selectedComp?.shape}</span>
+                <span className="text-blue-700">Shape:</span>
+                <span className="text-blue-800 font-bold uppercase">{selectedComp?.shape}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-cyan-400/70">Position:</span>
-                <span className="text-cyan-200 font-bold">[{selectedComp?.position.map(n => n.toFixed(1)).join(', ')}]</span>
+                <span className="text-blue-700">Position:</span>
+                <span className="text-blue-800 font-bold">[{selectedComp?.position.map(n => n.toFixed(1)).join(', ')}]</span>
               </div>
             </div>
 
@@ -607,7 +607,7 @@ export function ScientificHUD({
                   className={`flex-1 py-1 px-2 border rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     isolatedComponentId === selectedComp?.id
                       ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
-                      : 'bg-cyan-950/50 hover:bg-cyan-900/60 border-cyan-500/40 text-cyan-200'
+                      : 'bg-blue-50/50 hover:bg-blue-50/60 border-blue-200/40 text-blue-800'
                   }`}
                 >
                   {isolatedComponentId === selectedComp?.id ? 'Exit Isolation' : '🔍 Isolate Part'}
@@ -615,7 +615,7 @@ export function ScientificHUD({
               )}
               <button
                 onClick={() => onSelectComponent(null)}
-                className="py-1 px-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[9px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer"
+                className="py-1 px-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-blue-200/40 text-blue-700 text-[9px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer"
               >
                 Deselect
               </button>
@@ -623,8 +623,8 @@ export function ScientificHUD({
 
             {/* Function Flow Trace Triggers */}
             {onTraceFunction && (
-              <div className="border-t border-cyan-500/20 pt-2">
-                <div className="text-[8px] text-cyan-400/70 uppercase font-bold mb-1">Trace Function (See how energy/motion flows):</div>
+              <div className="border-t border-blue-200/20 pt-2">
+                <div className="text-[8px] text-blue-700 uppercase font-bold mb-1">Trace Function (See how energy/motion flows):</div>
                 <div className="flex flex-wrap gap-1">
                   {['combustion', 'fuel', 'cooling', 'crankshaft', 'gears', 'feedback', 'power', 'mcu'].map((funcKey) => (
                     <button
@@ -633,7 +633,7 @@ export function ScientificHUD({
                       className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-all cursor-pointer ${
                         tracedFunctionKey === funcKey
                           ? 'bg-amber-500/40 border-amber-400 text-amber-100 font-bold'
-                          : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/70 hover:text-cyan-200'
+                          : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-800'
                       }`}
                     >
                       {funcKey}
@@ -645,54 +645,54 @@ export function ScientificHUD({
           </div>
         ) : (
           /* GESTURE CONTROL & TRACKING STATUS (When no component is selected) */
-          <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
-            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2">
+          <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-xl p-3.5 shadow-[0_0_35px_rgba(6,182,212,0.25),0_10px_35px_rgba(0,0,0,0.9)]">
+            <div className="flex items-center justify-between border-b border-blue-200/20 pb-2 mb-2">
               <div className="flex items-center gap-2">
-                <Hand size={13} className="text-cyan-400" />
-                <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">GESTURE CONTROL</span>
+                <Hand size={13} className="text-blue-700" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-blue-700 uppercase">GESTURE CONTROL</span>
               </div>
               <button
                 onClick={onToggleCv}
                 className={`flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold border transition-all cursor-pointer ${
                   cvEnabled 
-                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200' 
-                    : 'bg-slate-900/50 border-cyan-500/20 text-cyan-500/60 hover:text-cyan-300'
+                    ? 'bg-cyan-500/20 border-blue-200 text-blue-800' 
+                    : 'bg-white/50 border-blue-200/20 text-slate-500 hover:text-blue-700'
                 }`}
                 title="Toggle camera tracking"
               >
-                {cvEnabled ? <Video size={10} className="text-cyan-300" /> : <VideoOff size={10} />}
+                {cvEnabled ? <Video size={10} className="text-blue-700" /> : <VideoOff size={10} />}
                 <span>{cvEnabled ? 'CAMERA ON' : 'CAMERA OFF'}</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] bg-slate-900/90 backdrop-blur-md p-2 rounded-lg border border-cyan-500/40 mb-2">
-              <div className="text-cyan-400/70">Tracking:</div>
-              <div className={`font-semibold text-right ${cvEnabled && handTracking.state === 'TRACKING' ? 'text-emerald-400' : 'text-cyan-400/60'}`}>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] bg-white/90 backdrop-blur-md p-2 rounded-lg border border-blue-200/40 mb-2">
+              <div className="text-blue-700">Tracking:</div>
+              <div className={`font-semibold text-right ${cvEnabled && handTracking.state === 'TRACKING' ? 'text-emerald-400' : 'text-blue-700'}`}>
                 {cvEnabled ? (handTracking.state === 'TRACKING' ? 'LOCKED' : 'SEARCHING') : 'STANDBY'}
               </div>
 
-              <div className="text-cyan-400/70">Gesture:</div>
-              <div className="text-cyan-200 font-bold text-right truncate">
+              <div className="text-blue-700">Gesture:</div>
+              <div className="text-blue-800 font-bold text-right truncate">
                 {cvEnabled ? (handTracking.gesture || 'NONE') : 'N/A'}
               </div>
             </div>
 
-                        <div className="text-[9px] text-cyan-400/60 space-y-0.5 border-t border-cyan-500/10 pt-1.5">
+                        <div className="text-[9px] text-blue-700 space-y-0.5 border-t border-blue-200/10 pt-1.5">
               <div className="flex justify-between">
                 <span>1-Hand Pinch:</span>
-                <span className="text-cyan-300">Manipulate</span>
+                <span className="text-blue-700">Manipulate</span>
               </div>
               <div className="flex justify-between">
                 <span>2-Hand Pinch:</span>
-                <span className="text-cyan-300">Zoom / Scale</span>
+                <span className="text-blue-700">Zoom / Scale</span>
               </div>
               <div className="flex justify-between">
                 <span>Open Palm:</span>
-                <span className="text-cyan-300">Rotate / Orbit</span>
+                <span className="text-blue-700">Rotate / Orbit</span>
               </div>
               <div className="flex justify-between">
                 <span>Clap:</span>
-                <span className="text-cyan-300">Reset Workspace</span>
+                <span className="text-blue-700">Reset Workspace</span>
               </div>
             </div>
           </div>
@@ -706,11 +706,11 @@ export function ScientificHUD({
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-30 flex flex-col gap-2 items-center w-full max-w-xl px-4">
         {/* Contextual Command Bar */}
         {onSendMessage && (
-          <div className="w-full bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 rounded-2xl p-2.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.95)] flex flex-col gap-1.5 transition-all">
+          <div className="w-full bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 rounded-2xl p-2.5 shadow-[0_0_35px_rgba(6,182,212,0.3),0_10px_35px_rgba(0,0,0,0.95)] flex flex-col gap-1.5 transition-all">
             {/* Quick Contextual Action Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[9px] font-mono">
-              <span className="text-cyan-400/60 font-bold uppercase tracking-wider pl-1 flex items-center gap-1">
-                <Sparkles size={10} className="text-cyan-400 animate-pulse" />
+              <span className="text-blue-700 font-bold uppercase tracking-wider pl-1 flex items-center gap-1">
+                <Sparkles size={10} className="text-blue-700 animate-pulse" />
                 <span>Actions:</span>
               </span>
               {selectedComp ? (
@@ -723,13 +723,13 @@ export function ScientificHUD({
                   </button>
                   <button
                     onClick={() => handleQuickAction(`What does ${selectedComp.name} do?`)}
-                    className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-200 border border-cyan-500/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-blue-50/60 hover:bg-blue-50/60 text-blue-800 border border-blue-200/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     ℹ️ Explain Part
                   </button>
                   <button
                     onClick={() => handleQuickAction(`Make ${selectedComp.name} larger`)}
-                    className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-200 border border-cyan-500/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-blue-50/60 hover:bg-blue-50/60 text-blue-800 border border-blue-200/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     ⚡ Scale Part
                   </button>
@@ -738,25 +738,25 @@ export function ScientificHUD({
                 <>
                   <button
                     onClick={() => handleQuickAction(isExploded ? "Assemble model" : "Explode model")}
-                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 rounded-full whitespace-nowrap transition-all cursor-pointer font-semibold"
+                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-blue-800 border border-blue-200/40 rounded-full whitespace-nowrap transition-all cursor-pointer font-semibold"
                   >
                     {isExploded ? "🧩 Assemble" : "💥 Explode View"}
                   </button>
                   <button
                     onClick={() => handleQuickAction("Explain overall architecture")}
-                    className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-500/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-blue-50/60 hover:bg-blue-50/60 text-blue-700 border border-blue-200/30 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     🔬 Overview
                   </button>
                   <button
                     onClick={() => handleQuickAction("Build a bicycle")}
-                    className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400/80 border border-cyan-500/20 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-blue-50/60 hover:bg-blue-50/60 text-blue-700 border border-blue-200/20 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     🚲 Build Bicycle
                   </button>
                   <button
                     onClick={() => handleQuickAction("Build an Oxford shoe")}
-                    className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400/80 border border-cyan-500/20 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-blue-50/60 hover:bg-blue-50/60 text-blue-700 border border-blue-200/20 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     👞 Build Oxford Shoe
                   </button>
@@ -765,25 +765,25 @@ export function ScientificHUD({
                 <>
                   <button
                     onClick={() => handleQuickAction("Build a smartphone")}
-                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-blue-800 border border-blue-200/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     📱 Smartphone
                   </button>
                   <button
                     onClick={() => handleQuickAction("Build a laptop")}
-                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-blue-800 border border-blue-200/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     💻 Laptop
                   </button>
                   <button
                     onClick={() => handleQuickAction("Build a bicycle")}
-                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-blue-800 border border-blue-200/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     🚲 Bicycle
                   </button>
                   <button
                     onClick={() => handleQuickAction("Build a transformer")}
-                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
+                    className="px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-blue-800 border border-blue-200/40 rounded-full whitespace-nowrap transition-all cursor-pointer"
                   >
                     ⚡ Transformer
                   </button>
@@ -792,8 +792,8 @@ export function ScientificHUD({
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleCommandSubmit} className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-cyan-500/40 rounded-xl px-3 py-1.5 focus-within:border-cyan-300 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">
-              <Terminal size={14} className="text-cyan-400/70 shrink-0" />
+            <form onSubmit={handleCommandSubmit} className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-blue-200/40 rounded-xl px-3 py-1.5 focus-within:border-blue-200 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">
+              <Terminal size={14} className="text-blue-700 shrink-0" />
               <input
                 type="text"
                 value={commandInput}
@@ -805,7 +805,7 @@ export function ScientificHUD({
                     ? `Command (e.g. "Build a drone", "Explode", "Explain structure")...`
                     : `Enter command (e.g. "Build a laptop", "Build a bicycle", "Teach water")...`
                 }
-                className="flex-1 bg-transparent text-cyan-200 placeholder-cyan-500/50 text-xs font-mono outline-none border-none"
+                className="flex-1 bg-transparent text-blue-800 placeholder-cyan-500/50 text-xs font-mono outline-none border-none"
               />
               <button
                 type="submit"
@@ -813,7 +813,7 @@ export function ScientificHUD({
                 className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
                   commandInput.trim()
                     ? 'bg-cyan-500 text-slate-950 hover:bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]'
-                    : 'bg-cyan-950/40 text-cyan-500/40 cursor-not-allowed'
+                    : 'bg-blue-50/40 text-slate-500 cursor-not-allowed'
                 }`}
                 title="Send Command (Enter)"
               >
@@ -827,8 +827,8 @@ export function ScientificHUD({
         {hasActiveModel && (
           <div className="flex flex-col gap-1.5 items-center">
             {engineeringDatas[0]?.animations && engineeringDatas[0].animations.length > 0 && (
-              <div className="bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 px-4 py-1.5 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-[9px] flex items-center gap-3 min-w-[280px]">
-                <span className="text-cyan-400/80 font-bold w-12 text-right">0°</span>
+              <div className="bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 px-4 py-1.5 rounded-full shadow-[0_0_25px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-[9px] flex items-center gap-3 min-w-[280px]">
+                <span className="text-blue-700 font-bold w-12 text-right">0°</span>
                 <input 
                   type="range" 
                   min="0" 
@@ -843,13 +843,13 @@ export function ScientificHUD({
                       onChangeKinematicTimeOffset(parseFloat(e.target.value));
                     }
                   }}
-                  className="flex-1 accent-cyan-400 cursor-pointer h-1 bg-slate-800 rounded-full appearance-none outline-none"
+                  className="flex-1 accent-blue-600 cursor-pointer h-1 bg-slate-50 rounded-full appearance-none outline-none"
                   style={{ WebkitAppearance: 'none' }}
                 />
-                <span className="text-cyan-400/80 font-bold w-12">720°</span>
+                <span className="text-blue-700 font-bold w-12">720°</span>
                 <button 
                   onClick={() => onChangeKinematicTimeOffset && onChangeKinematicTimeOffset(0)}
-                  className="ml-1 text-[8px] bg-cyan-900/50 hover:bg-cyan-800 text-cyan-200 px-1.5 py-0.5 rounded border border-cyan-500/30"
+                  className="ml-1 text-[8px] bg-blue-50/50 hover:bg-cyan-800 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200/30"
                   title="Reset to Reference"
                 >
                   RST
@@ -857,27 +857,27 @@ export function ScientificHUD({
               </div>
             )}
 
-            <div className="flex items-center gap-2 bg-slate-950/95 backdrop-blur-2xl border-2 border-cyan-400/80 px-4 py-1.5 rounded-full shadow-[0_0_30px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-xs">
+            <div className="flex items-center gap-2 bg-white/95 backdrop-blur-2xl border-2 border-blue-200/80 px-4 py-1.5 rounded-full shadow-[0_0_30px_rgba(6,182,212,0.25),0_8px_25px_rgba(0,0,0,0.9)] font-mono text-xs">
               {onToggleKinematicPlaying && (
                 <button
                   onClick={onToggleKinematicPlaying}
-                  className="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400/50 text-cyan-100 text-[9px] font-bold uppercase flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/40 border border-blue-200/50 text-slate-800 text-[9px] font-bold uppercase flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <span>{isKinematicPlaying ? '⏸ PAUSE' : '▶ PLAY'}</span>
                 </button>
               )}
 
               {onChangeKinematicSpeed && (
-                <div className="flex items-center gap-1 border-l border-cyan-500/30 pl-2">
-                  <span className="text-[9px] text-cyan-400/60 font-bold uppercase">Speed:</span>
+                <div className="flex items-center gap-1 border-l border-blue-200/30 pl-2">
+                  <span className="text-[9px] text-blue-700 font-bold uppercase">Speed:</span>
                   {[0.25, 0.5, 1.0, 2.0].map((s) => (
                     <button
                       key={s}
                       onClick={() => onChangeKinematicSpeed(s)}
                       className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition-all cursor-pointer ${
                         kinematicSpeed === s
-                          ? 'bg-cyan-400 text-black border-cyan-300 font-extrabold shadow-[0_0_10px_rgba(34,211,238,0.5)]'
-                          : 'bg-slate-900/60 border-cyan-500/20 text-cyan-400/70 hover:text-cyan-200'
+                          ? 'bg-cyan-400 text-black border-blue-200 font-extrabold shadow-[0_0_10px_rgba(34,211,238,0.5)]'
+                          : 'bg-white/60 border-blue-200/20 text-blue-700 hover:text-blue-800'
                       }`}
                     >
                       {s}x
@@ -891,8 +891,8 @@ export function ScientificHUD({
                   onClick={onToggleBlueprint}
                   className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all cursor-pointer ml-1 ${
                     blueprintEnabled
-                      ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
-                      : 'bg-slate-900/50 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-200'
+                      ? 'bg-cyan-500/30 border-blue-200 text-slate-800'
+                      : 'bg-white/50 border-blue-200/20 text-blue-700 hover:text-blue-800'
                   }`}
                 >
                   📐 Blueprint
@@ -905,7 +905,7 @@ export function ScientificHUD({
                   className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all cursor-pointer ${
                     xrayEnabled
                       ? 'bg-purple-500/30 border-purple-400 text-purple-100'
-                      : 'bg-slate-900/50 border-cyan-500/20 text-cyan-400/60 hover:text-cyan-200'
+                      : 'bg-white/50 border-blue-200/20 text-blue-700 hover:text-blue-800'
                   }`}
                 >
                   ☢ X-Ray
