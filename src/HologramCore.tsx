@@ -234,7 +234,7 @@ export function HologramCore({
   bass = 0,
   treble = 0,
   hologramIntensity = 1,
-  themeColor = '#0088ff',
+  themeColor = '#18d5e2',
   handTracking: _handTracking,
   isSpatial = false
 }: HologramProps) {
@@ -296,48 +296,48 @@ export function HologramCore({
     { radius: 2.82, tube: 0.007, rotation: [0.62, 0.18, 1.22] as [number, number, number], opacity: 0.24 },
   ], []);
 
-  // JARVIS-inspired blue-white spatial core: cool blue only, with a white-hot center.
+  // SAP-inspired spatial core: luminous cyan/teal energy against the deep-blue canvas.
   const colors = useMemo(() => ({
-    core: new THREE.Color('#d9e7ff'),
-    technical: new THREE.Color('#2864e8'),
-    plasma: new THREE.Color('#7a82f7'),
+    core: new THREE.Color('#cbffff'),
+    technical: new THREE.Color('#18d5e2'),
+    plasma: new THREE.Color('#167de0'),
     hot: new THREE.Color('#ffffff'),
   }), []);
 
   const materials = useMemo(() => ({
     core: new THREE.MeshPhysicalMaterial({
-      color: '#91baff', metalness: 0.2, roughness: 0.16, clearcoat: 1,
-      clearcoatRoughness: 0.12, emissive: '#2f5fdd', emissiveIntensity: 0.22,
+      color: '#64eafa', metalness: 0.2, roughness: 0.16, clearcoat: 1,
+      clearcoatRoughness: 0.12, emissive: '#056ea7', emissiveIntensity: 0.3,
       transparent: true, opacity: 0.98, depthWrite: false,
     }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#6daeff', transparent: true, opacity: 0.23, blending: THREE.NormalBlending, depthWrite: false }),
-    coreHighlight: new THREE.MeshBasicMaterial({ color: '#f8fcff', transparent: true, opacity: 0.96, blending: THREE.NormalBlending, depthWrite: false }),
-    shellInner: new THREE.MeshBasicMaterial({ color: '#3677e8', transparent: true, opacity: 0.3, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
-    shellOuter: new THREE.MeshBasicMaterial({ color: '#858af6', transparent: true, opacity: 0.17, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
-    halo: new THREE.MeshBasicMaterial({ color: '#a6d2ff', transparent: true, opacity: 0.13, blending: THREE.NormalBlending, depthWrite: false, side: THREE.DoubleSide }),
-    grid: new THREE.LineBasicMaterial({ color: '#9bc1f4', transparent: true, opacity: 0.12, blending: THREE.NormalBlending, depthWrite: false }),
-    radial: new THREE.LineBasicMaterial({ color: '#77aaf0', transparent: true, opacity: 0.2, blending: THREE.NormalBlending, depthWrite: false }),
-    arc: new THREE.LineBasicMaterial({ color: '#2e68d2', transparent: true, opacity: 0.45, blending: THREE.NormalBlending, depthWrite: false }),
-    circuit: new THREE.LineBasicMaterial({ color: '#7da9ec', transparent: true, opacity: 0.25, blending: THREE.NormalBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#23cfe4', transparent: true, opacity: 0.3, blending: THREE.NormalBlending, depthWrite: false }),
+    coreHighlight: new THREE.MeshBasicMaterial({ color: '#eaffff', transparent: true, opacity: 0.96, blending: THREE.NormalBlending, depthWrite: false }),
+    shellInner: new THREE.MeshBasicMaterial({ color: '#0ab8d4', transparent: true, opacity: 0.34, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    shellOuter: new THREE.MeshBasicMaterial({ color: '#126ed0', transparent: true, opacity: 0.2, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    halo: new THREE.MeshBasicMaterial({ color: '#13d9dc', transparent: true, opacity: 0.17, blending: THREE.NormalBlending, depthWrite: false, side: THREE.DoubleSide }),
+    grid: new THREE.LineBasicMaterial({ color: '#439dc5', transparent: true, opacity: 0.16, blending: THREE.NormalBlending, depthWrite: false }),
+    radial: new THREE.LineBasicMaterial({ color: '#19bed2', transparent: true, opacity: 0.23, blending: THREE.NormalBlending, depthWrite: false }),
+    arc: new THREE.LineBasicMaterial({ color: '#15e4e8', transparent: true, opacity: 0.48, blending: THREE.NormalBlending, depthWrite: false }),
+    circuit: new THREE.LineBasicMaterial({ color: '#148fbc', transparent: true, opacity: 0.3, blending: THREE.NormalBlending, depthWrite: false }),
     ring: ringConfigs.map((r, index) => new THREE.MeshBasicMaterial({
-      color: index === 2 ? '#858af6' : '#3d78e8', transparent: true, opacity: r.opacity,
+      color: index === 2 ? '#0ecdc9' : '#168cff', transparent: true, opacity: r.opacity,
       blending: THREE.NormalBlending, depthWrite: false,
     })),
     wave: [
-      new THREE.LineBasicMaterial({ color: '#eff7ff', transparent: true, opacity: 0.92, blending: THREE.NormalBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#3980ea', transparent: true, opacity: 0.78, blending: THREE.NormalBlending, depthWrite: false }),
-      new THREE.LineBasicMaterial({ color: '#8b8cf5', transparent: true, opacity: 0.7, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#efffff', transparent: true, opacity: 0.92, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#24d9e5', transparent: true, opacity: 0.82, blending: THREE.NormalBlending, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color: '#168cff', transparent: true, opacity: 0.72, blending: THREE.NormalBlending, depthWrite: false }),
     ],
-    particles: new THREE.PointsMaterial({ color: '#6e9ce9', transparent: true, opacity: 0.5, size: 0.021, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    midParticles: new THREE.PointsMaterial({ color: '#91b9f6', transparent: true, opacity: 0.38, size: 0.017, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    innerParticles: new THREE.PointsMaterial({ color: '#7e94f0', transparent: true, opacity: 0.48, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    particles: new THREE.PointsMaterial({ color: '#2ca8e7', transparent: true, opacity: 0.62, size: 0.021, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    midParticles: new THREE.PointsMaterial({ color: '#20d4df', transparent: true, opacity: 0.5, size: 0.017, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
+    innerParticles: new THREE.PointsMaterial({ color: '#13b7c5', transparent: true, opacity: 0.58, size: 0.014, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
     microParticles: new THREE.PointsMaterial({ color: '#ffffff', transparent: true, opacity: 0.65, size: 0.012, sizeAttenuation: true, depthWrite: false, blending: THREE.NormalBlending }),
-    pulse: new THREE.MeshBasicMaterial({ color: '#86baff', transparent: true, opacity: 0, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
+    pulse: new THREE.MeshBasicMaterial({ color: '#62f4ee', transparent: true, opacity: 0, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
   }), [ringConfigs]);
 
   useEffect(() => {
-    // Keep the orb chromatically blue in every operating state; state changes affect motion/intensity elsewhere.
-    const base = colors.technical.clone();
+    // Keep the orb inside the SAP cyan/blue palette; state changes affect motion and intensity.
+    const base = new THREE.Color(themeColor || '#18d5e2');
     materials.coreGlow.color.copy(base.clone().lerp(colors.hot, 0.42));
     materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.22));
     materials.grid.color.copy(base.clone().lerp(colors.technical, 0.35));
