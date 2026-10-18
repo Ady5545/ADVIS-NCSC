@@ -60,8 +60,10 @@ export function Sidebar({
         aria-label="ADVIS Home"
         className="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-blue-50/80 focus-visible:outline-offset-4"
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-100 text-blue-600 shadow-[0_8px_24px_rgba(56,105,189,0.12)]">
-          <span className="h-3 w-3 rounded-full border-2 border-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.24)]" />
+        <span aria-hidden="true" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200/80 bg-gradient-to-br from-white to-blue-50 shadow-[0_8px_24px_rgba(56,105,189,0.12)]">
+          <span className="absolute h-7 w-7 rotate-45 rounded-full border border-blue-300/90" />
+          <span className="absolute h-5 w-5 -rotate-45 rounded-full border border-indigo-300/90" />
+          <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-white via-blue-400 to-blue-700 shadow-[0_0_12px_rgba(40,100,232,0.35)]" />
         </span>
         <span className="min-w-0">
           <span className="block text-lg font-semibold tracking-[0.16em] text-slate-800">ADVIS</span>
