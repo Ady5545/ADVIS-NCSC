@@ -506,7 +506,7 @@ export function EngineeringReferenceCockpit({
                   <button
                     key={cylinder}
                     onClick={() => window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: cylinder } }))}
-                    className={`h-8 border text-[9px] font-semibold transition-all ${firing ? 'bg-rose-50 border-rose-500 text-rose-700' : active ? 'bg-white border-slate-900 text-white' : 'border-slate-200 bg-white hover:border-slate-400 text-slate-500'}`}
+                    className={`h-8 border text-[9px] font-semibold transition-all ${firing ? 'bg-rose-50 border-rose-500 text-rose-700' : active ? 'bg-blue-50 border-blue-300 text-blue-900' : 'border-slate-200 bg-white hover:border-slate-400 text-slate-500'}`}
                   >
                     {cylinder}
                   </button>
