@@ -169,7 +169,7 @@
   input[class*="border-"]:not([type="checkbox"]):not([type="radio"]),
   select[class*="border-"],
   textarea[class*="border-"] {
-    border-radius: 0.9rem;
+    border-radius: 1rem;
   }
 
   div[class*="border-"][class*="bg-"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]) {
@@ -180,7 +180,6 @@
   [class*="border-slate-200"],
   [class*="border-slate-300"],
   [class*="border-blue-100"],
-  [class*="border-blue-200"],
   [class*="border-sky-200"] {
     border-color: rgba(62, 91, 139, 0.28);
   }
