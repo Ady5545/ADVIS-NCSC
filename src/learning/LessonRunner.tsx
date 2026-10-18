@@ -189,7 +189,7 @@ export function LessonRunner({
 
   return (
     <div className="absolute inset-0 z-[90] pointer-events-auto flex items-center justify-center bg-white/65 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Guided learning lesson">
-      <section className="w-full max-w-3xl max-h-[92vh] overflow-hidden rounded-2xl border border-blue-200/40 bg-white text-cyan-50 shadow-[0_20px_80px_rgba(0,0,0,0.55)] flex flex-col">
+      <section className="w-full max-w-3xl max-h-[92vh] overflow-hidden rounded-2xl border border-blue-200/40 bg-white text-slate-800 shadow-[0_20px_70px_rgba(45,87,147,0.14)] flex flex-col">
         <header className="px-4 sm:px-6 py-4 border-b border-blue-200/20 flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl border border-blue-200/30 bg-blue-50/60 flex items-center justify-center shrink-0"><BookOpen size={19} className="text-blue-700" /></div>
           <div className="min-w-0 flex-1">
@@ -241,7 +241,7 @@ export function LessonRunner({
 
               <div className="mt-4 rounded-xl border border-blue-200/20 bg-blue-50/20 p-4">
                 <div className="text-[9px] uppercase tracking-[0.15em] text-blue-700 mb-2">Your task</div>
-                <p className="text-sm text-cyan-50 leading-relaxed">{step.learnerTask}</p>
+                <p className="text-sm text-slate-600 leading-relaxed">{step.learnerTask}</p>
                 {step.completionRule.type === 'SELECT_COMPONENT' && (
                   <div className="text-xs mt-3" role="status">
                     {selectedComponentId === step.completionRule.componentId
