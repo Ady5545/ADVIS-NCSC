@@ -25,8 +25,8 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const w = canvas.width;
       const h = canvas.height;
 
-      // 1. Neutral Scientific Visualization Base (Dark Blue-Gray / Slate)
-      ctx.fillStyle = '#090d16';
+      // 1. Pearl-white scientific canvas with a soft cool-blue atmosphere.
+      ctx.fillStyle = '#f5f9ff';
       ctx.fillRect(0, 0, w, h);
 
       // 2. Subtle Radial Gradient with Soft Lighting Center
@@ -35,13 +35,13 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         w / 2, h * 0.5, Math.max(w, h) * 0.85
       );
       if (systemState === 'ERROR') {
-        bgGrad.addColorStop(0, 'rgba(30, 10, 15, 0.95)');
-        bgGrad.addColorStop(0.5, 'rgba(18, 7, 10, 0.98)');
-        bgGrad.addColorStop(1, '#050204');
+        bgGrad.addColorStop(0, 'rgba(255, 243, 246, 0.95)');
+        bgGrad.addColorStop(0.5, 'rgba(255, 248, 250, 0.98)');
+        bgGrad.addColorStop(1, '#fff8fb');
       } else {
-        bgGrad.addColorStop(0, 'rgba(15, 23, 42, 0.95)'); // Slate 900
-        bgGrad.addColorStop(0.45, 'rgba(11, 17, 32, 0.98)');
-        bgGrad.addColorStop(1, '#060911');
+        bgGrad.addColorStop(0, 'rgba(223, 238, 255, 0.88)'); // Soft glacial-blue glow
+        bgGrad.addColorStop(0.45, 'rgba(246, 250, 255, 0.82)');
+        bgGrad.addColorStop(1, '#f5f9ff');
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
@@ -51,7 +51,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       ctx.lineWidth = 1;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.025)' 
-        : 'rgba(56, 189, 248, 0.025)'; // Very faint cyan-slate grid
+        : 'rgba(74, 117, 183, 0.085)'; // Very faint cyan-slate grid
 
       ctx.beginPath();
       for (let x = 0; x < w; x += gridSize) {
@@ -68,7 +68,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const majorGrid = gridSize * 4;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.06)' 
-        : 'rgba(56, 189, 248, 0.05)';
+        : 'rgba(74, 117, 183, 0.13)';
       ctx.lineWidth = 1;
 
       for (let x = majorGrid; x < w; x += majorGrid) {
@@ -86,7 +86,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       // 4. Subtle Ambient Floating Energy Particle Dust (minimal, non-distracting)
       ctx.fillStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.15)' 
-        : `color-mix(in srgb, ${themeColor} 12%, transparent)`;
+        : `color-mix(in srgb, ${themeColor} 20%, transparent)`;
       for (let i = 0; i < 8; i++) {
         const px = (Math.sin(time * 0.4 + i * 1.5) * 0.45 + 0.5) * w;
         const py = (Math.cos(time * 0.3 + i * 2.1) * 0.45 + 0.5) * h;
@@ -96,13 +96,13 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         ctx.fill();
       }
 
-      // 5. Soft Outer Vignette for Depth
+      // 5. Very soft edge tint for depth without darkening the canvas.
       const vignette = ctx.createRadialGradient(
         w / 2, h / 2, h * 0.35,
         w / 2, h / 2, Math.max(w, h) * 0.75
       );
       vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vignette.addColorStop(1, 'rgba(2, 6, 15, 0.65)');
+      vignette.addColorStop(1, 'rgba(105, 139, 192, 0.12)');
       ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, w, h);
 
