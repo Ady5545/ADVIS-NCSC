@@ -45,7 +45,7 @@ const FIRING_ORDER = [1, 8, 4, 3, 6, 5, 7, 2];
 const CYLINDER_BANK: Record<number, 'L' | 'R'> = { 1: 'L', 2: 'R', 3: 'L', 4: 'R', 5: 'L', 6: 'R', 7: 'L', 8: 'R' };
 const SPEEDS = [0.25, 0.5, 1, 2] as const;
 const cyanButton = 'rounded-md border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all';
-const inactiveButton = 'border-cyan-500/20 bg-slate-900/70 text-cyan-400/70 hover:border-cyan-400/50 hover:text-cyan-100';
+const inactiveButton = 'border-blue-200/20 bg-white/70 text-blue-700 hover:border-blue-200/50 hover:text-slate-800';
 
 function angleDistance(a: number, b: number) {
   const raw = Math.abs(((a - b) % 720 + 720) % 720);
@@ -87,13 +87,13 @@ export function V8EngineController(props: V8EngineControllerProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-40 pointer-events-none font-mono text-cyan-100">
+    <div className="absolute inset-0 z-40 pointer-events-none font-mono text-slate-800">
       {/* Camera presets use the same event bridge as the V12, but use V8-specific positions. */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-auto max-w-[calc(100vw-24px)] overflow-x-auto">
-        <div className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-cyan-500/30 bg-slate-950/90 p-2 shadow-[0_0_22px_rgba(6,182,212,0.15)] backdrop-blur-xl">
-          <span className="flex items-center gap-1.5 border-r border-cyan-500/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-cyan-400"><Camera size={12} /> Camera:</span>
+        <div className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-blue-200/30 bg-white/90 p-2 shadow-[0_0_22px_rgba(6,182,212,0.15)] backdrop-blur-xl">
+          <span className="flex items-center gap-1.5 border-r border-blue-200/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-blue-700"><Camera size={12} /> Camera:</span>
           {V8_CAMERA_PRESETS.map((preset) => (
-            <button key={preset.id} onClick={() => onApplyCameraPreset(preset)} title={preset.description} className={`${cyanButton} ${inactiveButton} hover:bg-cyan-950/60`}>
+            <button key={preset.id} onClick={() => onApplyCameraPreset(preset)} title={preset.description} className={`${cyanButton} ${inactiveButton} hover:bg-blue-50/60`}>
               {preset.name}
             </button>
           ))}
@@ -101,10 +101,10 @@ export function V8EngineController(props: V8EngineControllerProps) {
       </div>
 
       <div className="absolute top-[4.3rem] left-1/2 -translate-x-1/2 pointer-events-auto">
-        <div className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-slate-950/90 p-2 shadow-lg backdrop-blur-xl">
-          <span className="flex items-center gap-1.5 border-r border-cyan-500/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-cyan-400"><Layers size={12} /> View mode:</span>
+        <div className="flex items-center gap-1.5 rounded-xl border border-blue-200/30 bg-white/90 p-2 shadow-lg backdrop-blur-xl">
+          <span className="flex items-center gap-1.5 border-r border-blue-200/20 pr-2 text-[10px] font-bold uppercase tracking-wider text-blue-700"><Layers size={12} /> View mode:</span>
           {(['SOLID', 'GLASS', 'SECTION'] as const).map((mode) => (
-            <button key={mode} onClick={() => cutaway(mode)} className={`${cyanButton} ${currentCutawayMode === mode ? 'border-cyan-400 bg-cyan-500/25 text-white shadow-[0_0_10px_rgba(6,182,212,0.25)]' : inactiveButton}`}>
+            <button key={mode} onClick={() => cutaway(mode)} className={`${cyanButton} ${currentCutawayMode === mode ? 'border-blue-200 bg-cyan-500/25 text-white shadow-[0_0_10px_rgba(6,182,212,0.25)]' : inactiveButton}`}>
               {mode === 'SECTION' ? 'Blueprint' : mode === 'GLASS' ? 'Glass' : 'Solid'}
             </button>
           ))}
@@ -113,9 +113,9 @@ export function V8EngineController(props: V8EngineControllerProps) {
 
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-auto flex w-full max-w-3xl flex-col items-center gap-2 px-3">
         {/* Eight-cylinder sequence; it is deliberately distinct from the twelve-cylinder telemetry. */}
-        <div className="w-full rounded-xl border border-cyan-500/30 bg-slate-950/90 p-2 shadow-[0_0_25px_rgba(6,182,212,0.15)] backdrop-blur-xl">
-          <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-cyan-500/15 pb-1 text-[9px] text-cyan-400/75">
-            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-cyan-300"><Zap size={11} className="text-amber-400" /><span>90° Cross-Plane V8 · Example Firing Sequence</span></div>
+        <div className="w-full rounded-xl border border-blue-200/30 bg-white/90 p-2 shadow-[0_0_25px_rgba(6,182,212,0.15)] backdrop-blur-xl">
+          <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-blue-200/15 pb-1 text-[9px] text-blue-700">
+            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-blue-700"><Zap size={11} className="text-amber-400" /><span>90° Cross-Plane V8 · Example Firing Sequence</span></div>
             <span className="hidden sm:inline">1–8–4–3–6–5–7–2 · 720° cycle</span>
           </div>
           <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
@@ -123,7 +123,7 @@ export function V8EngineController(props: V8EngineControllerProps) {
               const phase = cycleByCylinder[cylinder];
               const chosen = focusedCylinder === cylinder;
               return (
-                <button key={cylinder} onClick={() => onSelectCylinder(cylinder)} title={`Cylinder ${cylinder} · Bank ${CYLINDER_BANK[cylinder]} · ${phase.stroke} · Select cylinder`} className={`relative flex flex-col items-center justify-center rounded-lg border px-1 py-1.5 transition-all ${phase.isFiring ? 'scale-105 border-amber-400 bg-amber-500/35 text-white shadow-[0_0_14px_rgba(245,158,11,0.45)]' : chosen ? 'border-cyan-400 bg-cyan-500/25 text-cyan-100' : 'border-cyan-500/20 bg-slate-900/70 text-cyan-400/80 hover:border-cyan-400/50'}`}>
+                <button key={cylinder} onClick={() => onSelectCylinder(cylinder)} title={`Cylinder ${cylinder} · Bank ${CYLINDER_BANK[cylinder]} · ${phase.stroke} · Select cylinder`} className={`relative flex flex-col items-center justify-center rounded-lg border px-1 py-1.5 transition-all ${phase.isFiring ? 'scale-105 border-amber-400 bg-amber-500/35 text-white shadow-[0_0_14px_rgba(245,158,11,0.45)]' : chosen ? 'border-blue-200 bg-cyan-500/25 text-slate-800' : 'border-blue-200/20 bg-white/70 text-blue-700 hover:border-blue-200/50'}`}>
                   <span className="text-[10px] font-bold">C{cylinder}</span>
                   <span className="flex items-center gap-1 text-[7px] opacity-80"><span>{CYLINDER_BANK[cylinder]}</span><span>·</span><span>{phase.stroke}</span></span>
                   {phase.isFiring && <span className="absolute -right-1 -top-1 h-2 w-2 animate-ping rounded-full bg-amber-400" />}
@@ -133,43 +133,43 @@ export function V8EngineController(props: V8EngineControllerProps) {
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-cyan-500/30 bg-slate-950/90 p-2.5 shadow-[0_0_25px_rgba(6,182,212,0.15)] backdrop-blur-xl">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-blue-200/30 bg-white/90 p-2.5 shadow-[0_0_25px_rgba(6,182,212,0.15)] backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <button onClick={onTogglePlaying} title={isKinematicPlaying ? 'Pause V8 kinematics' : 'Start V8 kinematics'} className={`rounded-lg border p-2 transition-all ${isKinematicPlaying ? 'border-amber-400/60 bg-amber-500/20 text-amber-300' : 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300'}`}>
                 {isKinematicPlaying ? <Pause size={14} /> : <Play size={14} />}
               </button>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-400">Speed:</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700">Speed:</span>
               {SPEEDS.map((speed) => (
-                <button key={speed} onClick={() => onChangeSpeed(speed)} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${kinematicSpeed === speed ? 'border-cyan-400 bg-cyan-400/25 text-white' : 'border-cyan-500/20 text-cyan-400/75 hover:bg-cyan-950/50'}`}>{speed}x</button>
+                <button key={speed} onClick={() => onChangeSpeed(speed)} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${kinematicSpeed === speed ? 'border-blue-200 bg-cyan-400/25 text-white' : 'border-blue-200/20 text-blue-700 hover:bg-blue-50/50'}`}>{speed}x</button>
               ))}
             </div>
 
             <div className="flex min-w-[230px] flex-1 items-center gap-2 sm:max-w-[390px]">
-              <label htmlFor="v8-rpm" className="whitespace-nowrap text-[10px] font-bold text-cyan-300">{Math.round(rpm).toLocaleString()} RPM</label>
-              <input id="v8-rpm" aria-label="V8 engine RPM" type="range" min="600" max="7000" step="100" value={rpm} onChange={(event) => onChangeRpm(Number(event.currentTarget.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-cyan-400" />
-              <span className="text-[8px] text-cyan-500/70">ILLUSTRATIVE</span>
+              <label htmlFor="v8-rpm" className="whitespace-nowrap text-[10px] font-bold text-blue-700">{Math.round(rpm).toLocaleString()} RPM</label>
+              <input id="v8-rpm" aria-label="V8 engine RPM" type="range" min="600" max="7000" step="100" value={rpm} onChange={(event) => onChangeRpm(Number(event.currentTarget.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-blue-600" />
+              <span className="text-[8px] text-slate-500">ILLUSTRATIVE</span>
             </div>
 
-            <button onClick={onToggleSound} title={soundEnabled ? 'Mute V8 synthesized engine audio' : 'Enable V8 synthesized engine audio'} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[9px] font-bold uppercase ${soundEnabled ? 'border-cyan-400/60 bg-cyan-500/20 text-cyan-200' : 'border-slate-700 bg-slate-900 text-slate-400'}`}>
+            <button onClick={onToggleSound} title={soundEnabled ? 'Mute V8 synthesized engine audio' : 'Enable V8 synthesized engine audio'} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[9px] font-bold uppercase ${soundEnabled ? 'border-blue-200/60 bg-cyan-500/20 text-blue-800' : 'border-slate-200 bg-white text-slate-500'}`}>
               {soundEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />} {soundEnabled ? 'Audio on' : 'Audio off'}
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="whitespace-nowrap text-[8px] text-cyan-500/70">CRANK: {Math.round(activeAngle)}°</span>
+            <span className="whitespace-nowrap text-[8px] text-slate-500">CRANK: {Math.round(activeAngle)}°</span>
             <input aria-label="V8 crank angle across a four-stroke 720 degree cycle" type="range" min="0" max="720" step="1" value={Math.round(activeAngle)} onChange={(event) => onScrubAngle(Number(event.currentTarget.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-amber-400" />
-            <span className="whitespace-nowrap text-[8px] text-cyan-500/70">4-STROKE 720°</span>
-            <button title="Reset crank angle to zero" onClick={() => onScrubAngle(0)} className="rounded border border-cyan-500/30 px-1.5 py-1 text-[8px] text-cyan-300 hover:bg-cyan-950/60"><RotateCcw size={10} /></button>
+            <span className="whitespace-nowrap text-[8px] text-slate-500">4-STROKE 720°</span>
+            <button title="Reset crank angle to zero" onClick={() => onScrubAngle(0)} className="rounded border border-blue-200/30 px-1.5 py-1 text-[8px] text-blue-700 hover:bg-blue-50/60"><RotateCcw size={10} /></button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-cyan-500/15 pt-2">
-            <span className="mr-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-cyan-500/75"><Activity size={11} /> Overlays:</span>
-            <button onClick={onToggleLabels} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${showLabels ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100' : 'border-cyan-500/20 text-cyan-400/65'}`}><Tag size={10} className="mr-1 inline" />Callouts</button>
-            <button onClick={onToggleChargeFlow} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${chargeFlowEnabled ? 'border-amber-400/70 bg-amber-500/15 text-amber-200' : 'border-cyan-500/20 text-cyan-400/65'}`}><Wind size={10} className="mr-1 inline" />Charge flow</button>
-            <button onClick={onToggleVectors} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${vectorsEnabled ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100' : 'border-cyan-500/20 text-cyan-400/65'}`}>↗ Kinematic vectors</button>
-            <button onClick={toggleIsolate} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${isolatedComponentId ? 'border-amber-400 bg-amber-500/20 text-amber-100' : 'border-cyan-500/20 text-cyan-400/65'}`}>{isolatedComponentId ? 'Exit isolate' : 'Isolate selected'}</button>
-            <span className="ml-auto hidden items-center gap-1 text-[8px] text-cyan-500/60 lg:flex">Active firing phase: C{activeFiringCylinder}</span>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-blue-200/15 pt-2">
+            <span className="mr-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-500"><Activity size={11} /> Overlays:</span>
+            <button onClick={onToggleLabels} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${showLabels ? 'border-blue-200 bg-cyan-500/20 text-slate-800' : 'border-blue-200/20 text-blue-700'}`}><Tag size={10} className="mr-1 inline" />Callouts</button>
+            <button onClick={onToggleChargeFlow} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${chargeFlowEnabled ? 'border-amber-400/70 bg-amber-500/15 text-amber-200' : 'border-blue-200/20 text-blue-700'}`}><Wind size={10} className="mr-1 inline" />Charge flow</button>
+            <button onClick={onToggleVectors} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${vectorsEnabled ? 'border-blue-200 bg-cyan-500/20 text-slate-800' : 'border-blue-200/20 text-blue-700'}`}>↗ Kinematic vectors</button>
+            <button onClick={toggleIsolate} className={`rounded-md border px-2 py-1 text-[9px] font-bold ${isolatedComponentId ? 'border-amber-400 bg-amber-500/20 text-amber-100' : 'border-blue-200/20 text-blue-700'}`}>{isolatedComponentId ? 'Exit isolate' : 'Isolate selected'}</button>
+            <span className="ml-auto hidden items-center gap-1 text-[8px] text-slate-500 lg:flex">Active firing phase: C{activeFiringCylinder}</span>
           </div>
         </div>
       </div>
