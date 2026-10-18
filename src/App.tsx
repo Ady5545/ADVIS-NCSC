@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { HologramCore } from './HologramCore';
@@ -1715,14 +1715,11 @@ function AppContent() {
           
           <EffectComposer>
             <Bloom
-              luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
+              luminanceThreshold={isEngineeringMode ? 1.0 : 0.82}
               mipmapBlur
-              intensity={(isEngineeringMode ? 0.035 : 0.16) * hologramIntensity}
+              intensity={(isEngineeringMode ? 0.025 : 0.22) * hologramIntensity}
             />
-            {!isEngineeringMode && (
-              <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
-            )}
-            <Noise opacity={isEngineeringMode ? 0.004 : 0.012} />
+            <Noise opacity={isEngineeringMode ? 0.001 : 0.003} />
           </EffectComposer>
         </Canvas>
       </div>
