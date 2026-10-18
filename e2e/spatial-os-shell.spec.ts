@@ -83,7 +83,7 @@ test('module views use an accessible dialog shell and return home on close', asy
 });
 
 
-test('ADVIS shell uses the SAP-blue canvas and luminous cyan contrast system', async ({ page }) => {
+test('ADVIS shell uses the Rittal-inspired industrial black and red theme', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto('/');
 
@@ -92,10 +92,14 @@ test('ADVIS shell uses the SAP-blue canvas and luminous cyan contrast system', a
     primary: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim().toLowerCase(),
     pageBackground: getComputedStyle(document.body).backgroundColor,
   }));
-  expect(theme.canvas).toBe('#041321');
-  expect(theme.primary).toBe('#18d5e2');
+  expect(theme.canvas).toBe('#080809');
+  expect(theme.primary).toBe('#e20246');
   expect(theme.pageBackground).not.toBe('rgb(0, 0, 0)');
-  await expect(page.getByRole('heading', { name: /one core\. every scientific world\./i })).toHaveCSS('color', 'rgb(234, 248, 255)');
+  await expect(page.getByRole('heading', { name: /one core\\. every scientific world\\./i })).toHaveCSS('color', 'rgb(240, 240, 242)');
+
+  const launchpad = page.getByRole('region', { name: 'ADVIS home workspace' });
+  const launchpadScale = await launchpad.evaluate((element) => getComputedStyle(element).scale);
+  expect(launchpadScale).toBe('0.7');
 
   const primaryCard = page.getByRole('button', { name: 'Explore systems' });
   const cardStyle = await primaryCard.evaluate((element) => {
@@ -103,5 +107,6 @@ test('ADVIS shell uses the SAP-blue canvas and luminous cyan contrast system', a
     return { radius: style.borderTopLeftRadius, borderColor: style.borderTopColor };
   });
   expect(parseFloat(cardStyle.radius)).toBeGreaterThanOrEqual(15);
-  expect(cardStyle.borderColor).toBe('rgba(81, 166, 205, 0.3)');
-});;
+  expect(cardStyle.borderColor).toBe('rgba(255, 255, 255, 0.18)');
+  await expect(page.locator('canvas').first()).toBeVisible();
+});
