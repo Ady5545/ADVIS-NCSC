@@ -94,7 +94,7 @@ export function ScientificLaunchpad({
   return (
     <section
       aria-label="ADVIS home workspace"
-      className="pointer-events-auto mx-auto flex w-full max-w-6xl select-none flex-col gap-4 px-3 py-2 sm:gap-5 sm:px-5"
+      className="pointer-events-auto custom-scrollbar mx-auto flex max-h-[calc(100dvh-14rem)] w-full max-w-6xl flex-col gap-4 overflow-y-auto px-3 py-2 sm:max-h-[calc(100dvh-13rem)] sm:gap-5 sm:px-5 xl:max-h-none xl:overflow-visible"
     >
       <header className="flex flex-col gap-2 text-center sm:gap-2.5">
         <div className="advis-eyebrow flex items-center justify-center gap-2">
@@ -109,7 +109,7 @@ export function ScientificLaunchpad({
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-5">
         {destinations.map((destination) => {
           const Icon = destination.icon;
           return (
@@ -118,9 +118,9 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[118px] flex-col rounded-2xl border border-slate-200/90 bg-white/85 p-3.5 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_20px_46px_rgba(45,87,147,0.15)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
+              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-200/90 bg-white/88 p-3 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_20px_46px_rgba(45,87,147,0.15)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
             >
-              <span className="mb-3 flex w-full items-center justify-between gap-2">
+              <span className="mb-2 flex w-full items-center justify-between gap-1.5 sm:mb-3 sm:gap-2">
                 <span className="advis-icon-surface h-10 w-10 transition-transform group-hover:scale-[1.04]">
                   <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
                 </span>
@@ -131,7 +131,7 @@ export function ScientificLaunchpad({
                 <span>{destination.title}</span>
                 <ArrowRight size={14} className="shrink-0 text-blue-400/80 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-700" aria-hidden="true" />
               </span>
-              <span className="mt-1.5 text-xs leading-5 text-slate-500">{destination.description}</span>
+              <span className="mt-1 text-[11px] leading-4 text-slate-500 sm:mt-1.5 sm:text-xs sm:leading-5">{destination.description}</span>
             </button>
           );
         })}
