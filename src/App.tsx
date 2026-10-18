@@ -1781,12 +1781,12 @@ function AppContent() {
 
     {/* Camera Permission State Notification */}
     {cameraPermissionError && (
-      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[46] font-mono text-xs text-rose-400 bg-black/90 border border-rose-500/40 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(244,63,94,0.2)]">
+      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[46] font-mono text-xs text-rose-600 bg-white/95 border border-rose-200 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(244,63,94,0.2)]">
         <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
         <span className="font-bold tracking-widest uppercase">{cameraPermissionError}</span>
         <button
           onClick={() => setCameraPermissionError(null)}
-          className="ml-3 text-[10px] text-rose-300 hover:text-white underline cursor-pointer"
+          className="ml-3 text-[10px] text-rose-500 hover:text-rose-800 underline cursor-pointer"
         >
           DISMISS
         </button>
@@ -1795,7 +1795,7 @@ function AppContent() {
 
     {/* Hand Loss State Notification */}
     {cvEnabled && handTracking.state === 'LOST' && !cameraPermissionError && (
-      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[45] font-mono text-xs text-amber-500 bg-black/90 border border-amber-500/30 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.2)] animate-pulse pointer-events-none">
+      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[45] font-mono text-xs text-amber-700 bg-white/95 border border-amber-200 px-5 py-3 rounded-xl flex items-center gap-3 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.2)] animate-pulse pointer-events-none">
         <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
         <span className="font-bold tracking-widest uppercase">INTERACTION PAUSED — HAND POSITION LOST</span>
       </div>
@@ -2025,40 +2025,40 @@ function AppContent() {
 
     {/* Biometric Scanner Overlay */}
     {biometricActive && (
-      <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center font-mono">
+      <div className="absolute inset-0 z-[60] bg-white/65 backdrop-blur-xl flex flex-col items-center justify-center font-mono">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="flex flex-col items-center border border-cyan-500/30 bg-cyan-950/20 p-12 rounded-2xl shadow-[0_0_30px_rgba(0,255,255,0.15)] relative overflow-hidden"
+          className="flex flex-col items-center border border-blue-200 bg-white/92 p-10 sm:p-12 rounded-3xl shadow-[0_24px_70px_rgba(45,87,147,0.16)] relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-blue-50/70 via-white/20 to-indigo-50/60 pointer-events-none"></div>
           
           <motion.div 
             animate={{ y: [0, -10, 0] }}
             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-            className="relative mb-8 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+            className="relative mb-8 text-blue-600"
           >
             <Fingerprint size={120} strokeWidth={1} />
             
             <motion.div 
               animate={{ top: ['0%', '100%', '0%'] }}
               transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-              className="absolute left-0 right-0 h-1 bg-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,1)] z-10 opacity-70"
+              className="absolute left-0 right-0 h-1 bg-blue-500 shadow-[0_0_12px_rgba(40,100,232,0.45)] z-10 opacity-70"
             />
           </motion.div>
           
-          <div className="text-xl text-cyan-300 tracking-[0.2em] mb-2 z-10 font-bold uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+          <div className="text-center text-lg text-slate-800 tracking-[0.14em] mb-2 z-10 font-bold uppercase">
             BIOMETRIC VERIFICATION REQUIRED
           </div>
           
-          <div className="text-cyan-500/70 text-sm tracking-widest mb-10 z-10">
+          <div className="text-slate-500 text-sm tracking-[0.1em] text-center mb-10 z-10">
             PLACE FINGER ON SCANNER TO AUTHORIZE
           </div>
           
           <div className="flex gap-4 z-10">
             <button 
               onClick={() => setBiometricActive(false)}
-              className="px-6 py-2 border border-cyan-500/50 text-cyan-500 hover:bg-cyan-900/30 transition-colors rounded tracking-widest text-xs"
+              className="px-6 py-2 border border-blue-200 text-blue-800 hover:bg-blue-50 transition-colors rounded-xl tracking-widest text-xs"
             >
               CANCEL
             </button>
@@ -2070,7 +2070,7 @@ function AppContent() {
                   setTimeout(() => pendingAction(), 300);
                 }
               }}
-              className="px-6 py-2 bg-cyan-500/20 border border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-black transition-colors rounded tracking-widest text-xs shadow-[0_0_10px_rgba(34,211,238,0.3)] hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] font-bold flex items-center gap-2"
+              className="px-6 py-2 bg-blue-600/10 border border-blue-300 text-blue-800 hover:bg-blue-600 hover:text-white transition-colors rounded-xl tracking-widest text-xs shadow-sm hover:shadow-md font-bold flex items-center gap-2"
             >
               <Lock size={14} />
               AUTHORIZE OVERRIDE
@@ -2130,10 +2130,10 @@ function AppContent() {
     )}
 
     {showInnovationLab && (
-      <div className="fixed inset-0 z-[95] bg-slate-950/95 backdrop-blur-md p-3 md:p-6 flex flex-col">
-        <div className="flex items-center justify-between gap-3 mb-3 border-b border-cyan-500/20 pb-3">
-          <div className="font-mono text-xs md:text-sm tracking-[0.16em] text-cyan-200">ADVIS // INNOVATION WORKSHOP</div>
-          <button type="button" onClick={() => setShowInnovationLab(false)} aria-label="Close innovation workshop" className="flex items-center gap-2 rounded-lg border border-cyan-500/30 px-3 py-2 text-cyan-200 hover:bg-cyan-500/10">
+      <div className="fixed inset-0 z-[95] bg-white/92 backdrop-blur-2xl p-3 md:p-6 flex flex-col">
+        <div className="flex items-center justify-between gap-3 mb-3 border-b border-blue-100 pb-3">
+          <div className="font-mono text-xs md:text-sm tracking-[0.16em] font-semibold text-blue-800">ADVIS // INNOVATION WORKSHOP</div>
+          <button type="button" onClick={() => setShowInnovationLab(false)} aria-label="Close innovation workshop" className="flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-blue-800 hover:bg-blue-50">
             <X size={15} /> CLOSE WORKSHOP
           </button>
         </div>
@@ -2145,14 +2145,14 @@ function AppContent() {
 
     {/* Connection Screen / Cinematic Boot Loader */}
     {(systemState === 'CONNECTING') && (
-      <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center font-mono">
-        <div className="text-5xl font-bold tracking-[0.3em] text-cyan-400 mb-8 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+      <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col items-center justify-center font-mono">
+        <div className="text-5xl font-bold tracking-[0.3em] text-blue-700 mb-8">
           A.D.V.I.S.
         </div>
-        <div className="w-64 h-1 bg-cyan-900/50 rounded-full overflow-hidden">
-          <div className="h-full bg-cyan-400 animate-pulse w-full"></div>
+        <div className="w-64 h-1 bg-blue-100 rounded-full overflow-hidden">
+          <div className="h-full bg-blue-600 animate-pulse w-full"></div>
         </div>
-        <div className="mt-4 text-cyan-400/80 text-sm tracking-widest animate-pulse">
+        <div className="mt-4 text-blue-700 text-sm tracking-widest animate-pulse">
           INITIALIZING CORE PLEXUS...
         </div>
       </div>
