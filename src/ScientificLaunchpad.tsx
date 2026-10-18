@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  Activity, Atom, ArrowUpRight, Cpu, GitCompare, GraduationCap, Orbit, Shapes, Sparkles, Wrench,
-} from 'lucide-react';
-import { SPATIAL_LIBRARY } from './SpatialLibrary';
+import { Atom, Cpu, ArrowRight, GitCompare, PlayCircle } from 'lucide-react';
 
 interface ScientificLaunchpadProps {
   onOpenView: (view: 'molecules' | 'engineering' | 'learning' | 'compare' | 'demonstration') => void;
@@ -10,96 +7,121 @@ interface ScientificLaunchpadProps {
   onSelectSpatialObject: (objectId: string) => void;
 }
 
-const pathways = [
-  { title: 'Engineering systems', description: 'Engines, mechanisms, electronics and assemblies.', view: 'engineering' as const, icon: Wrench },
-  { title: 'Molecular structures', description: 'Explore atoms, bonds and molecular geometry.', view: 'molecules' as const, icon: Atom },
-  { title: 'Learning studio', description: 'Understand concepts through guided 3D lessons.', view: 'learning' as const, icon: GraduationCap },
-  { title: 'Compare & demonstrate', description: 'Inspect systems, differences and motion.', view: 'compare' as const, icon: GitCompare },
-];
-
-const featuredModels = [
-  { id: 'v8_engine_scientific', icon: Wrench },
-  { id: 'arduino_uno', icon: Cpu },
-  { id: 'human_anatomy_scientific', icon: Activity },
-  { id: 'solar_system', icon: Orbit },
-  { id: 'hydrogen_atom', icon: Atom },
-  { id: 'solar_panel', icon: Shapes },
-];
-
 export function ScientificLaunchpad({
-  onOpenView, onSelectMolecule, onSelectSpatialObject,
+  onOpenView,
+  onSelectMolecule,
+  onSelectSpatialObject
 }: ScientificLaunchpadProps) {
-  const availableModels = featuredModels
-    .map((entry) => ({ ...entry, model: SPATIAL_LIBRARY[entry.id] }))
-    .filter((entry) => Boolean(entry.model));
-
   return (
-    <section className="advis-home" aria-label="ADVIS spatial intelligence home">
-      <div className="advis-home-main">
-        <header className="advis-home-hero">
-          <div className="advis-home-kicker"><Sparkles size={12} /> A.D.V.I.S. / SPATIAL INTELLIGENCE</div>
-          <h1 className="advis-home-title">Meet your <span>spatial intelligence.</span></h1>
-          <p className="advis-home-description">
-            Bring complex systems to life. Explore engineering, electronics, molecular science, anatomy and the universe in an interactive 3D workspace.
-          </p>
-          <div className="advis-core-statusline">
-            <span className="advis-core-statusdot" />
-            <span>ADVIS CORE</span>
-            <span className="advis-core-status-divider" />
-            <span>ONLINE · READY TO EXPLORE</span>
+    <div className="w-full max-w-3xl mx-auto flex flex-col items-center justify-center p-4 z-20 pointer-events-auto select-none font-mono">
+      {/* Minimal clean workstation navigation bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-3">
+        {/* Molecular Structures */}
+        <button
+          onClick={() => onOpenView('molecules')}
+          className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition-all group cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Atom size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+              VSEPR / 3D
+            </span>
           </div>
-        </header>
+          <div className="text-xs font-bold text-white group-hover:text-cyan-200">
+            MOLECULAR LIBRARY
+          </div>
+          <div className="text-[10px] text-cyan-400/60 font-sans mt-0.5">
+            18 Verified Molecules
+          </div>
+        </button>
 
-        <div className="advis-home-label-row">Explore a workspace</div>
-        <div className="advis-pathway-grid">
-          {pathways.map((pathway) => {
-            const Icon = pathway.icon;
-            return (
-              <button key={pathway.title} type="button" className="advis-pathway-card" onClick={() => onOpenView(pathway.view)}>
-                <div className="advis-pathway-icon"><Icon size={18} strokeWidth={1.9} /></div>
-                <div className="advis-pathway-title">{pathway.title}</div>
-                <div className="advis-pathway-copy">{pathway.description}</div>
-                <ArrowUpRight className="advis-pathway-arrow" size={14} aria-hidden="true" />
-              </button>
-            );
-          })}
-        </div>
+        {/* Engineering Catalog */}
+        <button
+          onClick={() => onOpenView('engineering')}
+          className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition-all group cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Cpu size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+              CAD / KINEMATICS
+            </span>
+          </div>
+          <div className="text-xs font-bold text-white group-hover:text-cyan-200">
+            ENGINEERING CATALOG
+          </div>
+          <div className="text-[10px] text-cyan-400/60 font-sans mt-0.5">
+            14 Mechanical Systems
+          </div>
+        </button>
 
-        <div className="advis-home-label-row advis-home-model-label">Jump into a 3D system</div>
-        <div className="advis-featured-row">
-          {availableModels.map(({ id, icon: Icon, model }) => (
-            <button key={id} type="button" className="advis-featured-model" onClick={() => onSelectSpatialObject(id)}>
-              <span className="advis-featured-icon"><Icon size={16} /></span>
-              <span className="advis-featured-model-copy">
-                <span className="advis-featured-name">{model.name}</span>
-                <span className="advis-featured-category">{model.category || 'Scientific model'}</span>
-              </span>
-              <ArrowUpRight className="advis-featured-arrow" size={14} aria-hidden="true" />
+        {/* Scientific Comparison Mode */}
+        <button
+          onClick={() => onOpenView('compare')}
+          className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition-all group cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <GitCompare size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+              COMPARE
+            </span>
+          </div>
+          <div className="text-xs font-bold text-white group-hover:text-cyan-200">
+            SCIENTIFIC COMPARATOR
+          </div>
+          <div className="text-[10px] text-cyan-400/60 font-sans mt-0.5">
+            Side-by-side Analysis
+          </div>
+        </button>
+
+        {/* Scientific Demonstrations */}
+        <button
+          onClick={() => onOpenView('demonstration')}
+          className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-left transition-all group cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <PlayCircle size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+              ANIMATE
+            </span>
+          </div>
+          <div className="text-xs font-bold text-white group-hover:text-cyan-200">
+            DEMONSTRATION MODE
+          </div>
+          <div className="text-[10px] text-cyan-400/60 font-sans mt-0.5">
+            4-Stroke, Tracking, VSEPR
+          </div>
+        </button>
+      </div>
+
+      {/* Direct Quick Projections */}
+      <div className="w-full bg-slate-950/80 border border-cyan-500/20 rounded-xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span className="text-[10px] font-bold text-cyan-400/70 tracking-widest uppercase">
+          Direct 3D Projections:
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: '4-Stroke Engine', id: 'v8_engine_scientific', type: 'eng' },
+            { label: 'Human Anatomy', id: 'human_anatomy_scientific', type: 'eng' },
+            { label: 'H₂O', id: 'H2O', type: 'mol' },
+            { label: 'CO₂', id: 'CO2', type: 'mol' },
+            { label: 'CH₄', id: 'CH4', type: 'mol' },
+            { label: 'V12 Engine', id: 'v12_engine', type: 'eng' },
+            { label: 'Servo Motor', id: 'servo_motor', type: 'eng' },
+            { label: 'Solar Tracker', id: 'heliomotion', type: 'eng' }
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.type === 'mol') onSelectMolecule(item.id);
+                else onSelectSpatialObject(item.id);
+              }}
+              className="px-2.5 py-1 rounded bg-slate-900/90 hover:bg-cyan-950/80 border border-cyan-500/30 hover:border-cyan-400 text-cyan-200 text-[11px] transition-all cursor-pointer font-bold"
+            >
+              {item.label}
             </button>
           ))}
         </div>
-
-        <div className="advis-home-hint">
-          Select any system to enter immersive 3D inspection.
-          <button type="button" onClick={() => onSelectMolecule('H2O')}>Try a water molecule <ArrowUpRight size={12} /></button>
-        </div>
       </div>
-
-      <aside className="advis-core-presence" aria-label="ADVIS Core status">
-        <div className="advis-core-label">
-          <span className="advis-core-label-dot" />
-          <span>CORE SYSTEM / 01</span>
-        </div>
-        <div className="advis-core-caption">
-          <div className="advis-core-caption-title">ADVIS CORE</div>
-          <div className="advis-core-caption-subtitle">Spatial intelligence engine</div>
-        </div>
-        <div className="advis-core-readout">
-          <span>NEURAL FIELD</span>
-          <span className="advis-core-readout-line" />
-          <span>ACTIVE</span>
-        </div>
-      </aside>
-    </section>
+    </div>
   );
 }
