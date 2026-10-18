@@ -258,7 +258,7 @@ export function LessonRunner({
 
               {step.question && (
                 <fieldset className="mt-4 rounded-xl border border-slate-200 p-4">
-                  <legend className="px-2 text-sm font-semibold text-white">{step.question.prompt}</legend>
+                  <legend className="px-2 text-sm font-semibold text-slate-800">{step.question.prompt}</legend>
                   <div className="space-y-2 mt-2">
                     {step.question.choices.map((choice) => {
                       const wasSubmitted = submittedChoice === choice.id;
