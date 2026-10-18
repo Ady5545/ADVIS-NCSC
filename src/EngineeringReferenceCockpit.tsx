@@ -152,7 +152,7 @@ export function EngineeringReferenceCockpit({
           >
             <ChevronRight size={11} className={collapsed ? '' : 'rotate-90 transition-transform'} />
             <span className="flex-1 truncate">{node.label}</span>
-            <span className="text-[8px] text-slate-400">{node.children.length}</span>
+            <span className="text-[8px] text-slate-500">{node.children.length}</span>
           </button>
           {!collapsed && node.children.map((child) => renderComponentTreeNode(child, depth + 1))}
         </div>
@@ -173,9 +173,9 @@ export function EngineeringReferenceCockpit({
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-semibold truncate">{component.name}</span>
-            <span className="text-[8px] text-slate-400">{component.shape}</span>
+            <span className="text-[8px] text-slate-500">{component.shape}</span>
           </div>
-          <div className="text-[8px] text-slate-400 truncate mt-0.5">{component.description}</div>
+          <div className="text-[8px] text-slate-500 truncate mt-0.5">{component.description}</div>
         </button>
         <button
           type="button"
@@ -239,7 +239,7 @@ export function EngineeringReferenceCockpit({
               <button
                 type="button"
                 onClick={onOpenInnovationLab}
-                className="h-9 px-3 rounded-full border border-cyan-300/60 bg-cyan-50/95 text-cyan-800 hover:bg-cyan-100 transition-all flex items-center justify-center gap-1.5 shadow-sm text-[10px] font-semibold tracking-wide"
+                className="h-9 px-3 rounded-full border border-blue-200/60 bg-cyan-50/95 text-slate-600 hover:bg-cyan-100 transition-all flex items-center justify-center gap-1.5 shadow-sm text-[10px] font-semibold tracking-wide"
                 aria-label="Open innovation workshop"
                 title="Create and experiment with an editable study"
               >
@@ -248,7 +248,7 @@ export function EngineeringReferenceCockpit({
               <button
                 type="button"
                 onClick={() => setWorkshopOpen(true)}
-                className="h-9 px-3 rounded-full border border-cyan-600/30 bg-slate-950 text-cyan-200 hover:bg-slate-900 transition-all flex items-center justify-center text-[9px] font-semibold tracking-wide"
+                className="h-9 px-3 rounded-full border border-blue-200/30 bg-white text-blue-800 hover:bg-white transition-all flex items-center justify-center text-[9px] font-semibold tracking-wide"
                 aria-label="Create an editable copy of this model"
                 title="Create a transform-level editable copy without changing the reference model"
               >
@@ -291,14 +291,14 @@ export function EngineeringReferenceCockpit({
         {/* Left diagnostics */}
         <div className="absolute left-5 top-24 w-[210px] hidden md:flex flex-col gap-3 pointer-events-auto">
           <div className="bg-white/88 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.08)] px-3 py-2">
-            <div className="text-[9px] uppercase tracking-[0.16em] text-slate-400">Live speed / rev min</div>
+            <div className="text-[9px] uppercase tracking-[0.16em] text-slate-500">Live speed / rev min</div>
             {isV12 ? (
               <div className="text-4xl leading-none font-semibold text-slate-900 mt-1">{Math.round(v12Rpm)}</div>
             ) : (
               <div className="text-3xl leading-none font-semibold text-slate-900 mt-1">ONLINE</div>
             )}
             <div className="h-px bg-slate-200 my-2" />
-            <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-slate-400">
+            <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-slate-500">
               <span>{isV12 ? 'REV / MIN' : 'OBJECT STATE'}</span>
               <span>{qualityLabel}</span>
             </div>
@@ -310,12 +310,12 @@ export function EngineeringReferenceCockpit({
                 <div className="text-[9px] uppercase tracking-[0.15em] text-slate-500 mb-2">Slider · Crank</div>
                 <div className="h-[72px] relative">
                   <div className="absolute left-5 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border border-slate-300" />
-                  <div className="absolute left-[47px] top-[36px] w-11 h-px bg-slate-900 origin-left" style={{ transform: 'rotate(-27deg)' }} />
+                  <div className="absolute left-[47px] top-[36px] w-11 h-px bg-white origin-left" style={{ transform: 'rotate(-27deg)' }} />
                   <div className="absolute left-[28px] top-[22px] w-2 h-2 rounded-full border-2 border-rose-500 bg-white" />
                   <div className="absolute left-[89px] top-[9px] h-9 w-px bg-slate-400" />
                   <div className="absolute left-[85px] top-[44px] w-16 h-px bg-slate-300" />
-                  <div className="absolute right-0 top-2 text-[8px] text-slate-400 uppercase">after TDC</div>
-                  <div className="absolute right-0 bottom-2 text-[8px] text-slate-400 uppercase">stroke</div>
+                  <div className="absolute right-0 top-2 text-[8px] text-slate-500 uppercase">after TDC</div>
+                  <div className="absolute right-0 bottom-2 text-[8px] text-slate-500 uppercase">stroke</div>
                 </div>
               </div>
 
@@ -332,10 +332,10 @@ export function EngineeringReferenceCockpit({
             <div className="bg-white/88 border border-slate-300 shadow-sm p-3">
               <div className="text-[9px] uppercase tracking-[0.15em] text-slate-500">Assembly profile</div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
-                <div><div className="text-slate-400">PARTS</div><div className="text-slate-900 font-semibold">{components.length}</div></div>
-                <div><div className="text-slate-400">STATUS</div><div className="text-emerald-600 font-semibold">{objectMeta?.modelStatus || 'READY'}</div></div>
-                <div><div className="text-slate-400">MODE</div><div className="text-slate-900 font-semibold">{modeLabel}</div></div>
-                <div><div className="text-slate-400">LOD</div><div className="text-slate-900 font-semibold">{lodTier}</div></div>
+                <div><div className="text-slate-500">PARTS</div><div className="text-slate-900 font-semibold">{components.length}</div></div>
+                <div><div className="text-slate-500">STATUS</div><div className="text-emerald-600 font-semibold">{objectMeta?.modelStatus || 'READY'}</div></div>
+                <div><div className="text-slate-500">MODE</div><div className="text-slate-900 font-semibold">{modeLabel}</div></div>
+                <div><div className="text-slate-500">LOD</div><div className="text-slate-900 font-semibold">{lodTier}</div></div>
               </div>
             </div>
           )}
@@ -361,27 +361,27 @@ export function EngineeringReferenceCockpit({
                   <>
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.15em] text-slate-400">Cylinder {activeCylinder} · Bank {activeTelemetry?.bank || 'L'}</div>
+                        <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500">Cylinder {activeCylinder} · Bank {activeTelemetry?.bank || 'L'}</div>
                         <div className="text-xl font-semibold text-slate-900">{stroke}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[9px] uppercase tracking-[0.12em] text-slate-400">CRANK</div>
+                        <div className="text-[9px] uppercase tracking-[0.12em] text-slate-500">CRANK</div>
                         <div className="text-lg font-semibold text-slate-900">{Math.round(activeTelemetry?.cycleAngleDeg || 0)}°</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-[10px]">
-                      <div><div className="text-slate-400 uppercase">Indicative pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div><div className="text-[8px] text-amber-700">Teaching indicator; not measured</div></div>
-                      <div><div className="text-slate-400 uppercase">Piston position</div><div className="font-semibold text-slate-900">{activeTelemetry?.pistonPositionMm?.toFixed(1)} mm</div></div>
-                      <div><div className="text-slate-400 uppercase">Intake lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.intakeLiftMm?.toFixed(1)} mm</div></div>
-                      <div><div className="text-slate-400 uppercase">Exhaust lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.exhaustLiftMm?.toFixed(1)} mm</div></div>
+                      <div><div className="text-slate-500 uppercase">Indicative pressure</div><div className="font-semibold text-slate-900">{pressure.toFixed(1)} bar</div><div className="text-[8px] text-amber-700">Teaching indicator; not measured</div></div>
+                      <div><div className="text-slate-500 uppercase">Piston position</div><div className="font-semibold text-slate-900">{activeTelemetry?.pistonPositionMm?.toFixed(1)} mm</div></div>
+                      <div><div className="text-slate-500 uppercase">Intake lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.intakeLiftMm?.toFixed(1)} mm</div></div>
+                      <div><div className="text-slate-500 uppercase">Exhaust lift</div><div className="font-semibold text-slate-900">{activeTelemetry?.exhaustLiftMm?.toFixed(1)} mm</div></div>
                     </div>
                   </>
                 ) : (
                   <div className="grid grid-cols-2 gap-3 text-[10px]">
-                    <div><div className="text-slate-400 uppercase">Parts</div><div className="text-lg font-semibold">{components.length}</div></div>
-                    <div><div className="text-slate-400 uppercase">Authority</div><div className="text-lg font-semibold">{qualityLabel}</div></div>
-                    <div><div className="text-slate-400 uppercase">Scale</div><div className="text-lg font-semibold">{objectMeta?.defaultScale?.toFixed(2) || '1.00'}</div></div>
-                    <div><div className="text-slate-400 uppercase">Selection</div><div className="text-lg font-semibold">{selectedComponentId ? '1' : '0'}</div></div>
+                    <div><div className="text-slate-500 uppercase">Parts</div><div className="text-lg font-semibold">{components.length}</div></div>
+                    <div><div className="text-slate-500 uppercase">Authority</div><div className="text-lg font-semibold">{qualityLabel}</div></div>
+                    <div><div className="text-slate-500 uppercase">Scale</div><div className="text-lg font-semibold">{objectMeta?.defaultScale?.toFixed(2) || '1.00'}</div></div>
+                    <div><div className="text-slate-500 uppercase">Selection</div><div className="text-lg font-semibold">{selectedComponentId ? '1' : '0'}</div></div>
                   </div>
                 )}
               </div>
@@ -392,7 +392,7 @@ export function EngineeringReferenceCockpit({
             <div className="bg-white/92 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.08)] overflow-hidden">
               <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-700">Synchronized diagrams</div>
-                <button onClick={() => setShowCharts(false)} className="text-slate-400 hover:text-slate-900"><X size={13} /></button>
+                <button onClick={() => setShowCharts(false)} className="text-slate-500 hover:text-slate-900"><X size={13} /></button>
               </div>
               <div className="max-h-[290px] overflow-y-auto">
                 <V12SynchronizedDiagrams cylinderOverride={activeCylinder} compact />
@@ -405,13 +405,13 @@ export function EngineeringReferenceCockpit({
         {showParts && (
           <div className="absolute left-5 top-[24%] w-[min(360px,calc(100vw-40px))] max-h-[60vh] bg-white/95 border border-slate-300 shadow-xl pointer-events-auto overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]"><Layers3 size={13} /> Component explorer <span className="text-slate-400">({components.length})</span></div>
+              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]"><Layers3 size={13} /> Component explorer <span className="text-slate-500">({components.length})</span></div>
               <button type="button" onClick={() => setShowParts(false)} aria-label="Close component explorer"><X size={13} /></button>
             </div>
 
             <div className="p-2 border-b border-slate-200 space-y-2">
               <label className="flex items-center gap-2 px-2 border border-slate-300 bg-white">
-                <Search size={13} className="text-slate-400" />
+                <Search size={13} className="text-slate-500" />
                 <input value={componentSearch} onChange={(event) => setComponentSearch(event.currentTarget.value)} aria-label="Search components by name, subsystem or description" placeholder="Search all components…" className="min-w-0 w-full py-2 text-[10px] outline-none bg-transparent" />
               </label>
               <div className="flex items-center justify-between text-[9px] text-slate-500">
@@ -426,16 +426,16 @@ export function EngineeringReferenceCockpit({
                 <div className="text-[12px] font-semibold text-slate-900">{selectedComponent.name}</div>
                 <p className="text-[10px] leading-relaxed text-slate-600">{selectedComponent.description}</p>
                 <div className="grid grid-cols-2 gap-2 text-[9px] pt-1">
-                  <div><div className="text-slate-400 uppercase">Subsystem</div><div className="text-slate-700">{selectedComponent.subsystemId?.replace(/[-_]+/g, ' ') || selectedComponent.category || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Material</div><div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
-                  <div><div className="text-slate-400 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
+                  <div><div className="text-slate-500 uppercase">Subsystem</div><div className="text-slate-700">{selectedComponent.subsystemId?.replace(/[-_]+/g, ' ') || selectedComponent.category || 'Not specified'}</div></div>
+                  <div><div className="text-slate-500 uppercase">Material</div><div className="text-slate-700">{selectedComponent.engineeringDetails?.material || selectedComponent.specifications?.Material || 'Not specified'}</div></div>
+                  <div><div className="text-slate-500 uppercase">Geometry source</div><div className="text-slate-700">{selectedComponentFidelity?.sourceLabel || 'Not specified'}</div></div>
+                  <div><div className="text-slate-500 uppercase">Dimensions</div><div className="text-slate-700">{objectMeta?.evidence?.dimensionsStatus || 'Unverified / unspecified'}</div></div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     type="button"
                     onClick={() => onFocusComponent?.(selectedComponent.id)}
-                    className="rounded border border-cyan-700/30 bg-cyan-50 px-2 py-2 text-[9px] font-semibold text-cyan-800 hover:bg-cyan-100"
+                    className="rounded border border-blue-200/30 bg-cyan-50 px-2 py-2 text-[9px] font-semibold text-slate-600 hover:bg-cyan-100"
                   >Focus in 3D</button>
                   <button
                     type="button"
@@ -457,7 +457,7 @@ export function EngineeringReferenceCockpit({
         {/* Bottom-left playback */}
         <div className="absolute left-5 bottom-5 w-[240px] bg-white/94 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)] pointer-events-auto">
           <div className="flex items-center justify-between px-3 pt-2">
-            <div className="text-[9px] uppercase tracking-[0.14em] text-slate-400">{isV12 ? 'Engine speed' : 'Model playback'}</div>
+            <div className="text-[9px] uppercase tracking-[0.14em] text-slate-500">{isV12 ? 'Engine speed' : 'Model playback'}</div>
             <div className="text-[10px] font-semibold text-slate-900">{isV12 ? Math.round(v12Rpm) + ' RPM' : 'READY'}</div>
           </div>
           <div className="px-3 pt-2 flex items-center gap-1">
@@ -497,7 +497,7 @@ export function EngineeringReferenceCockpit({
         {/* Bottom center firing track */}
         {isV12 && (
           <div className="absolute left-1/2 -translate-x-1/2 bottom-5 w-[min(560px,50vw)] bg-white/92 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)] pointer-events-auto">
-            <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.16em] text-slate-400">720° firing order · click to track</div>
+            <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.16em] text-slate-500">720° firing order · click to track</div>
             <div className="px-3 py-2 grid grid-cols-12 gap-1">
               {V12_INSPECTION_CONFIG.firingTrack?.sequence.map((cylinder) => {
                 const active = cylinder === activeCylinder;
@@ -506,7 +506,7 @@ export function EngineeringReferenceCockpit({
                   <button
                     key={cylinder}
                     onClick={() => window.dispatchEvent(new CustomEvent('advis-select-cylinder', { detail: { cylNum: cylinder } }))}
-                    className={`h-8 border text-[9px] font-semibold transition-all ${firing ? 'bg-rose-50 border-rose-500 text-rose-700' : active ? 'bg-slate-900 border-slate-900 text-white' : 'border-slate-200 bg-white hover:border-slate-400 text-slate-500'}`}
+                    className={`h-8 border text-[9px] font-semibold transition-all ${firing ? 'bg-rose-50 border-rose-500 text-rose-700' : active ? 'bg-white border-slate-900 text-white' : 'border-slate-200 bg-white hover:border-slate-400 text-slate-500'}`}
                   >
                     {cylinder}
                   </button>
@@ -519,7 +519,7 @@ export function EngineeringReferenceCockpit({
         {/* Bottom-right interaction deck */}
         <div className="absolute right-5 bottom-5 w-[330px] pointer-events-auto">
           <div className="bg-white/94 border border-slate-300 shadow-[0_12px_36px_rgba(15,23,42,0.10)]">
-            <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.15em] text-slate-400">Camera</div>
+            <div className="px-3 pt-2 text-[9px] uppercase tracking-[0.15em] text-slate-500">Camera</div>
             <div className="grid grid-cols-5 gap-1 p-2">
               {activeCameraPresets.map((preset) => (
                 <button key={preset.id} onClick={() => applyPreset(preset.id)} className={`px-1.5 py-1.5 border text-[8px] uppercase tracking-[0.10em] ${activePreset === preset.id ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400'}`}>
@@ -528,14 +528,14 @@ export function EngineeringReferenceCockpit({
               ))}
             </div>
 
-            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">View mode</div>
+            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-500">View mode</div>
             <div className="grid grid-cols-3 gap-1 p-2">
               <button onClick={() => { if (xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'SOLID' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>SOLID</button>
               <button onClick={() => { if (!xrayEnabled) onToggleXray?.(); if (blueprintEnabled) onToggleBlueprint?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'GLASS' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>GLASS</button>
               <button onClick={() => { if (!blueprintEnabled) onToggleBlueprint?.(); if (xrayEnabled) onToggleXray?.(); }} className={`py-1.5 border text-[9px] ${modeLabel === 'BLUEPRINT' ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>BLUEPRINT</button>
             </div>
 
-            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-400">Overlays</div>
+            <div className="px-3 text-[9px] uppercase tracking-[0.15em] text-slate-500">Overlays</div>
             <div className="grid grid-cols-4 gap-1 p-2">
               <button onClick={() => setShowParts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Parts</button>
               <button onClick={() => setShowCharts((v) => !v)} className="py-1.5 border border-slate-200 hover:border-slate-400 text-[8px] uppercase">Charts</button>
@@ -543,7 +543,7 @@ export function EngineeringReferenceCockpit({
               <button onClick={() => onToggleMagnifier?.()} className={`py-1.5 border text-[8px] uppercase ${isMagnifierFocused ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-200'}`}>Zoom focus</button>
             </div>
             <div className="px-3 pt-2 border-t border-slate-200">
-              <div className="flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.12em] text-slate-400">
+              <div className="flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.12em] text-slate-500">
                 <label htmlFor="assembly-explosion-factor">Assembly separation</label>
                 <div className="flex items-center gap-1">
                   <button
@@ -576,7 +576,7 @@ export function EngineeringReferenceCockpit({
                 aria-label="Assembly separation from assembled to fully exploded"
                 className="mt-1 w-full accent-cyan-700"
               />
-              <div className="flex items-center justify-between text-[8px] text-slate-400">
+              <div className="flex items-center justify-between text-[8px] text-slate-500">
                 <span>Assembled</span><span>Separated</span>
               </div>
             </div>
@@ -590,7 +590,7 @@ export function EngineeringReferenceCockpit({
               <button onClick={() => setInspectionOpen(true)} className="py-1.5 border border-slate-200 text-[8px]">REPORT</button>
             </div>
           </div>
-          <div className="mt-2 text-[8px] text-right uppercase tracking-[0.14em] text-slate-400">
+          <div className="mt-2 text-[8px] text-right uppercase tracking-[0.14em] text-slate-500">
             scroll to zoom · drag to orbit · {modeLabel.toLowerCase()} inspection
           </div>
         </div>
