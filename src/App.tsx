@@ -1610,7 +1610,7 @@ function AppContent() {
         <Canvas
           shadows
           dpr={[1, 1.85]}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
@@ -1643,7 +1643,7 @@ function AppContent() {
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
-          <color attach="background" args={[isEngineeringMode ? '#f4f5f6' : '#020617']} />
+          {isEngineeringMode && <color attach="background" args={['#f4f7fb']} />}
           {!isEngineeringMode && (
             <HologramCore
               systemState={systemState}
