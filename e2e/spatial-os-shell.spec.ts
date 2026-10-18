@@ -81,3 +81,17 @@ test('module views use an accessible dialog shell and return home on close', asy
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Learning Studio' })).toBeVisible();
 });
+
+
+test('ADVIS shell uses the bright pearl spatial theme rather than a dark canvas', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+
+  const theme = await page.evaluate(() => ({
+    canvas: getComputedStyle(document.documentElement).getPropertyValue('--advis-canvas').trim().toLowerCase(),
+    pageBackground: getComputedStyle(document.body).backgroundColor,
+  }));
+  expect(theme.canvas).toBe('#f5f9ff');
+  expect(theme.pageBackground).not.toBe('rgb(0, 0, 0)');
+  await expect(page.getByRole('heading', { name: /one core\. every scientific world\./i })).toHaveCSS('color', 'rgb(23, 43, 77)');
+});
