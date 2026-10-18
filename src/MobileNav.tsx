@@ -38,11 +38,11 @@ export function MobileNav({
           aria-current={currentView === 'home' ? 'page' : undefined}
           className={`flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 transition-colors ${
             currentView === 'home'
-              ? 'bg-cyan-300/15 text-cyan-100'
-              : 'text-slate-200 hover:bg-white/[0.06]'
+              ? 'bg-blue-50 text-blue-800'
+              : 'text-slate-700 hover:bg-blue-50/80'
           }`}
         >
-          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full border-2 border-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.55)]" />
+          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full border-2 border-blue-600 shadow-[0_0_10px_rgba(40,100,232,0.28)]" />
           <span className="text-[11px] font-semibold tracking-[0.12em]">ADVIS</span>
         </button>
 
@@ -61,8 +61,8 @@ export function MobileNav({
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex h-9 min-w-0 shrink items-center justify-center gap-1 rounded-xl px-1.5 text-[10px] font-medium transition-colors sm:px-2 ${
                   isActive
-                    ? 'bg-cyan-300/15 text-cyan-100'
-                    : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
+                    ? 'bg-blue-50 text-blue-800'
+                    : 'text-slate-600 hover:bg-blue-50/80 hover:text-blue-800'
                 }`}
               >
                 <Icon size={14} aria-hidden="true" className="shrink-0" />
@@ -78,7 +78,7 @@ export function MobileNav({
             aria-expanded={moreOpen}
             aria-controls="advis-mobile-more-menu"
             className={`flex h-9 shrink-0 items-center gap-0.5 rounded-xl px-2 text-[10px] font-semibold transition-colors ${
-              moreOpen ? 'bg-cyan-300/15 text-cyan-100' : 'text-slate-300 hover:bg-white/[0.06]'
+              moreOpen ? 'bg-blue-50 text-blue-800' : 'text-slate-600 hover:bg-blue-50/80'
             }`}
           >
             {moreOpen ? <X size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
@@ -105,11 +105,11 @@ export function MobileNav({
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex min-h-11 min-w-0 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition-colors ${
                   isActive
-                    ? 'border-cyan-300/40 bg-cyan-300/10 text-cyan-100'
-                    : 'border-transparent text-slate-200 hover:border-white/10 hover:bg-white/[0.05]'
+                    ? 'border-blue-300 bg-blue-50 text-blue-800'
+                    : 'border-transparent text-slate-700 hover:border-blue-100 hover:bg-blue-50/80'
                 }`}
               >
-                <Icon size={16} aria-hidden="true" className="shrink-0 text-cyan-200" />
+                <Icon size={16} aria-hidden="true" className="shrink-0 text-blue-600" />
                 <span className="min-w-0 truncate">{item.label}</span>
               </button>
             );
