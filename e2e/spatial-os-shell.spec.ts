@@ -50,3 +50,14 @@ test('all current destinations remain available to desktop navigation', async ({
     await expect(navigation.getByRole('button', { name: new RegExp(label, 'i') })).toBeVisible();
   }
 });
+
+
+test('command dock exposes meaningful names for its primary controls', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('textbox', { name: 'Ask ADVIS' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Attach a file' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /start voice input/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Send command' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open settings' })).toBeVisible();
+});
