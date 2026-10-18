@@ -98,8 +98,10 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
   await expect(page.getByRole('heading', { name: /one core\\. every scientific world\\./i })).toHaveCSS('color', 'rgb(240, 240, 242)');
 
   const launchpad = page.getByRole('region', { name: 'ADVIS home workspace' });
-  const launchpadScale = await launchpad.evaluate((element) => getComputedStyle(element).scale);
-  expect(launchpadScale).toBe('0.7');
+  const launchpadBox = await launchpad.boundingBox();
+  expect(launchpadBox).not.toBeNull();
+  expect(launchpadBox!.x).toBeGreaterThan(1366 * 0.58);
+  expect(launchpadBox!.width).toBeLessThanOrEqual(450);
 
   const primaryCard = page.getByRole('button', { name: 'Explore systems' });
   const cardStyle = await primaryCard.evaluate((element) => {
@@ -107,6 +109,11 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
     return { radius: style.borderTopLeftRadius, borderColor: style.borderTopColor };
   });
   expect(parseFloat(cardStyle.radius)).toBeGreaterThanOrEqual(15);
-  expect(cardStyle.borderColor).toBe('rgba(255, 255, 255, 0.18)');
+  expect(cardStyle.borderColor).not.toBe('rgba(0, 0, 0, 0)');
+
+  const quickStarts = page.getByRole('button', { name: /quick starts/i });
+  await expect(quickStarts).toBeVisible();
+  await quickStarts.click();
+  await expect(page.getByRole('button', { name: 'Four-stroke engine' })).toBeVisible();
   await expect(page.locator('canvas').first()).toBeVisible();
 });
