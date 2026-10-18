@@ -171,27 +171,27 @@ export function ParametricInnovationLab() {
 
   return (
     <div className="flex flex-col gap-4 h-full min-h-0">
-      <div className="flex items-start justify-between gap-3 border-b border-cyan-500/20 pb-3">
+      <div className="flex items-start justify-between gap-3 border-b border-blue-200/20 pb-3">
         <div>
-          <h3 className="text-cyan-300 font-bold tracking-wider text-base flex items-center gap-2">
+          <h3 className="text-blue-700 font-bold tracking-wider text-base flex items-center gap-2">
             <Lightbulb size={18} />
             INNOVATION LAB // PARAMETRIC PLANETARY STUDY
           </h3>
-          <p className="text-xs text-cyan-400/65 font-mono mt-1 max-w-3xl">
+          <p className="text-xs text-blue-700 font-mono mt-1 max-w-3xl">
             Change a design variable, watch the geometry update, and see the resulting kinematic relationship. This is the bridge from viewing a model to experimenting with one.
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          <button onClick={undo} disabled={!history.length} aria-label="Undo last parameter change" className="px-2 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
+          <button onClick={undo} disabled={!history.length} aria-label="Undo last parameter change" className="px-2 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
             <Undo2 size={14} />
           </button>
-          <button onClick={redo} disabled={!future.length} aria-label="Redo parameter change" className="px-2 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
+          <button onClick={redo} disabled={!future.length} aria-label="Redo parameter change" className="px-2 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs disabled:opacity-30 disabled:cursor-not-allowed">
             <Redo2 size={14} />
           </button>
-          <button onClick={saveLocally} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
+          <button onClick={saveLocally} className="px-2.5 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs flex items-center gap-1.5">
             <Save size={13} /> SAVE
           </button>
-          <button onClick={loadLocally} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs">
+          <button onClick={loadLocally} className="px-2.5 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs">
             LOAD
           </button>
           <button onClick={() => { setBaseline(params); setNotice('Current design marked as comparison baseline'); }} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs">
@@ -200,11 +200,11 @@ export function ParametricInnovationLab() {
           <button onClick={() => setCompareOpen((open) => !open)} aria-expanded={compareOpen} className="px-2.5 py-2 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 text-xs flex items-center gap-1.5">
             <GitCompare size={13} /> COMPARE
           </button>
-          <button onClick={() => importRef.current?.click()} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
+          <button onClick={() => importRef.current?.click()} className="px-2.5 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs flex items-center gap-1.5">
             <Upload size={13} /> IMPORT
           </button>
           <input ref={importRef} type="file" accept="application/json,.json" className="hidden" aria-label="Import study JSON" onChange={importStudy} />
-          <button onClick={reset} className="px-2.5 py-2 rounded-lg border border-cyan-500/30 bg-slate-950/70 text-cyan-300 text-xs flex items-center gap-1.5">
+          <button onClick={reset} className="px-2.5 py-2 rounded-lg border border-blue-200/30 bg-white/70 text-blue-700 text-xs flex items-center gap-1.5">
             <RotateCcw size={13} /> RESET
           </button>
           <button onClick={exportStudy} className="px-2.5 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs flex items-center gap-1.5">
@@ -212,7 +212,7 @@ export function ParametricInnovationLab() {
           </button>
         </div>
       </div>
-      {notice && <div role="status" aria-live="polite" className="text-[11px] font-mono text-cyan-200/80">{notice}</div>}
+      {notice && <div role="status" aria-live="polite" className="text-[11px] font-mono text-blue-800">{notice}</div>}
       {compareOpen && <div className="grid grid-cols-2 md:grid-cols-5 gap-2" aria-label="Current design compared with baseline">
         {([
           ['Sun teeth', 'sunTeeth'], ['Planet teeth', 'planetTeeth'], ['Module (mm)', 'moduleMm'],
@@ -226,8 +226,8 @@ export function ParametricInnovationLab() {
       </div>}
 
       <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_300px] gap-3 flex-1 min-h-0">
-        <div className="rounded-xl border border-cyan-500/20 bg-slate-950/75 p-4 overflow-y-auto">
-          <div className="text-[10px] uppercase tracking-widest text-cyan-400/60 mb-3">Design variables</div>
+        <div className="rounded-xl border border-blue-200/20 bg-white/75 p-4 overflow-y-auto">
+          <div className="text-[10px] uppercase tracking-widest text-blue-700 mb-3">Design variables</div>
           {[
             { key: 'sunTeeth', label: 'Sun teeth', min: 12, max: 40, step: 2 },
             { key: 'planetTeeth', label: 'Planet teeth', min: 8, max: 30, step: 1 },
@@ -236,7 +236,7 @@ export function ParametricInnovationLab() {
             { key: 'inputTorqueNm', label: 'Input torque (N·m)', min: 10, max: 1000, step: 10 },
           ].map((control) => (
             <label key={control.key} className="block mb-4">
-              <div className="flex justify-between text-[10px] font-mono text-cyan-300 mb-1.5">
+              <div className="flex justify-between text-[10px] font-mono text-blue-700 mb-1.5">
                 <span>{control.label}</span>
                 <span>{String(params[control.key as keyof StudyParams])}</span>
               </div>
@@ -247,16 +247,16 @@ export function ParametricInnovationLab() {
                 step={control.step}
                 value={params[control.key as keyof StudyParams]}
                 onChange={(event) => setValue(control.key as keyof StudyParams, Number(event.target.value) as never)}
-                className="w-full accent-cyan-400"
+                className="w-full accent-blue-600"
               />
             </label>
           ))}
-          <div className="pt-3 border-t border-cyan-500/10 text-[10px] leading-relaxed text-cyan-400/60">
-            Ring teeth is constrained by the planetary relation: <span className="text-cyan-200">Nr = Ns + 2Np</span>.
+          <div className="pt-3 border-t border-blue-200/10 text-[10px] leading-relaxed text-blue-700">
+            Ring teeth is constrained by the planetary relation: <span className="text-blue-800">Nr = Ns + 2Np</span>.
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden border border-cyan-500/20 bg-slate-950 min-h-[380px]">
+        <div className="rounded-xl overflow-hidden border border-blue-200/20 bg-white min-h-[380px]">
           <Canvas camera={{ position: [2.8, 2.4, 3.5], fov: 42 }} dpr={[1, 1.7]}>
             <color attach="background" args={['#020617']} />
             <ambientLight intensity={0.5} />
@@ -270,8 +270,8 @@ export function ParametricInnovationLab() {
           </Canvas>
         </div>
 
-        <div className="rounded-xl border border-cyan-500/20 bg-slate-950/75 p-4 overflow-y-auto">
-          <div className="text-[10px] uppercase tracking-widest text-cyan-400/60 mb-3">Calculated consequences</div>
+        <div className="rounded-xl border border-blue-200/20 bg-white/75 p-4 overflow-y-auto">
+          <div className="text-[10px] uppercase tracking-widest text-blue-700 mb-3">Calculated consequences</div>
           <div className="space-y-2">
             {[
               ['Ring teeth', derived.ringTeeth.toFixed(0), 'teeth'],
@@ -282,9 +282,9 @@ export function ParametricInnovationLab() {
               ['Ring pitch diameter', derived.ringPitchDiameterMm.toFixed(2), 'mm'],
               ['Center distance', derived.centerDistanceMm.toFixed(2), 'mm'],
             ].map(([label, value, unit]) => (
-              <div key={label} className="rounded-lg bg-slate-900/80 border border-cyan-500/10 px-3 py-2">
-                <div className="text-[9px] text-cyan-400/55 uppercase">{label}</div>
-                <div className="text-sm text-cyan-100 font-bold mt-0.5">{value} <span className="text-[10px] text-cyan-400/60">{unit}</span></div>
+              <div key={label} className="rounded-lg bg-white/80 border border-blue-200/10 px-3 py-2">
+                <div className="text-[9px] text-blue-700 uppercase">{label}</div>
+                <div className="text-sm text-slate-800 font-bold mt-0.5">{value} <span className="text-[10px] text-blue-700">{unit}</span></div>
               </div>
             ))}
           </div>
@@ -298,13 +298,13 @@ export function ParametricInnovationLab() {
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-cyan-500/10 bg-slate-900/60 p-2">
-              <div className="text-[9px] text-cyan-400/50 flex items-center gap-1"><Cog size={11} /> TOPOLOGY</div>
-              <div className="text-[10px] text-cyan-200 mt-1">{derived.ringTeeth + params.sunTeeth + params.planetTeeth * 3} visible tooth elements</div>
+            <div className="rounded-lg border border-blue-200/10 bg-white/60 p-2">
+              <div className="text-[9px] text-blue-700 flex items-center gap-1"><Cog size={11} /> TOPOLOGY</div>
+              <div className="text-[10px] text-blue-800 mt-1">{derived.ringTeeth + params.sunTeeth + params.planetTeeth * 3} visible tooth elements</div>
             </div>
-            <div className="rounded-lg border border-cyan-500/10 bg-slate-900/60 p-2">
-              <div className="text-[9px] text-cyan-400/50 flex items-center gap-1"><Ruler size={11} /> SCALE</div>
-              <div className="text-[10px] text-cyan-200 mt-1">{(derived.ringPitchDiameterMm / 10).toFixed(1)} visual units</div>
+            <div className="rounded-lg border border-blue-200/10 bg-white/60 p-2">
+              <div className="text-[9px] text-blue-700 flex items-center gap-1"><Ruler size={11} /> SCALE</div>
+              <div className="text-[10px] text-blue-800 mt-1">{(derived.ringPitchDiameterMm / 10).toFixed(1)} visual units</div>
             </div>
           </div>
         </div>
