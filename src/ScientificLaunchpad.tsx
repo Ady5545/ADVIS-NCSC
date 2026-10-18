@@ -118,7 +118,7 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-200/90 bg-white/88 p-3 text-left shadow-[0_12px_34px_rgba(45,87,147,0.09)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_22px_48px_rgba(45,75,126,0.2)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
+              className="group flex min-h-[126px] flex-col rounded-2xl border border-slate-300/90 bg-white/96 p-3 text-left shadow-[0_14px_34px_rgba(45,75,126,0.13)] backdrop-blur-xl transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_22px_48px_rgba(45,75,126,0.2)] focus-visible:outline-offset-4 sm:min-h-[132px] sm:p-4"
             >
               <span className="mb-2 flex w-full items-center justify-between gap-1.5 sm:mb-3 sm:gap-2">
                 <span className="advis-icon-surface h-10 w-10 transition-transform group-hover:scale-[1.04]">
