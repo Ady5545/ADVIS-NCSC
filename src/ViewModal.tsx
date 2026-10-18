@@ -877,21 +877,30 @@ export function ViewModal({
         exit={{ opacity: 0 }}
         className={`absolute inset-0 z-40 flex p-4 md:p-8 ${currentView === 'demonstration' || currentView === 'compare' ? 'items-end justify-center pointer-events-none' : 'items-center justify-center bg-black/70 backdrop-blur-md pointer-events-auto'}`}
       >
-        <motion.div 
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="advis-module-title"
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
-          className={`w-full max-w-5xl pointer-events-auto bg-black/90 border border-cyan-500/40 rounded-xl shadow-[0_0_50px_rgba(0,255,255,0.15)] flex flex-col overflow-hidden ${currentView === 'demonstration' || currentView === 'compare' ? 'max-h-[50vh]' : 'max-h-[90vh]'}`}
+          className={`advis-surface w-full max-w-5xl pointer-events-auto border-cyan-200/20 rounded-2xl shadow-[0_20px_70px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden ${currentView === 'demonstration' || currentView === 'compare' ? 'max-h-[50vh]' : 'max-h-[90vh]'}`}
         >
-          <div className="flex justify-between items-center p-4 border-b border-cyan-500/30 bg-cyan-950/30">
-            <h2 className="text-lg md:text-xl font-mono tracking-widest text-cyan-400 uppercase drop-shadow-[0_0_8px_rgba(0,255,255,0.5)] font-bold">
+          <div className="flex items-center justify-between gap-4 border-b border-sky-200/15 bg-slate-950/35 p-4 sm:p-5">
+            <h2 id="advis-module-title" className="text-base font-semibold tracking-wide text-cyan-100 sm:text-lg">
               {getModuleTitle()}
             </h2>
-            <button onClick={() => setView('home')} className="text-cyan-500/70 hover:text-cyan-300 transition-colors bg-cyan-500/10 hover:bg-cyan-500/20 p-2 rounded-lg cursor-pointer">
-              <X size={20} />
+            <button
+              type="button"
+              aria-label="Close module"
+              title="Return home"
+              onClick={() => setView('home')}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-300 transition-colors hover:border-cyan-200/30 hover:bg-cyan-300/10 hover:text-white"
+            >
+              <X size={18} aria-hidden="true" />
             </button>
           </div>
-          <div className="p-6 overflow-y-auto flex-1 font-mono custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 font-sans custom-scrollbar sm:p-6">
             {renderContent()}
           </div>
         </motion.div>
