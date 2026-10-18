@@ -194,7 +194,7 @@ export function ViewModal({
                             {item.formula}
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-slate-200 text-blue-700 font-bold">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 border border-slate-200 text-blue-700 font-bold">
                           {item.hybridization || 'sp³'}
                         </span>
                       </div>
@@ -255,7 +255,7 @@ export function ViewModal({
                           if (onLoadMoleculeBuilder) onLoadMoleculeBuilder(item.formula || key);
                           setView('home');
                         }}
-                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-slate-900 hover:bg-cyan-950 text-blue-700 text-xs font-mono rounded border border-slate-200 hover:border-blue-300 transition-all font-medium cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white hover:bg-blue-50 text-blue-700 text-xs font-mono rounded border border-slate-200 hover:border-blue-300 transition-all font-medium cursor-pointer"
                       >
                         <Wrench size={13} />
                         <span>In Builder</span>
@@ -337,13 +337,13 @@ export function ViewModal({
                             {model.category}
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-slate-200 text-blue-700 font-bold">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 border border-slate-200 text-blue-700 font-bold">
                           {model.components?.length || 1} Parts
                         </span>
                       </div>
 
                       {/* Subsystem mini tabs */}
-                      <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-200 text-[9px] font-bold mb-2.5">
+                      <div className="grid grid-cols-3 gap-1 bg-white p-1 rounded-lg border border-slate-200 text-[9px] font-bold mb-2.5">
                         <button
                           onClick={() => setActiveTabPerCard(prev => ({ ...prev, [id]: 'structure' }))}
                           className={`py-0.5 rounded text-center cursor-pointer transition-all ${
@@ -429,7 +429,7 @@ export function ViewModal({
                           if (onSelectSpatialObject) onSelectSpatialObject(id, 'EXPLODED');
                           setView('home');
                         }}
-                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-slate-900 hover:bg-cyan-950 text-blue-700 text-xs font-mono rounded border border-slate-200 hover:border-blue-300 transition-all font-medium cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white hover:bg-blue-50 text-blue-700 text-xs font-mono rounded border border-slate-200 hover:border-blue-300 transition-all font-medium cursor-pointer"
                       >
                         <Layers size={13} />
                         <span>Explode</span>
@@ -886,7 +886,7 @@ export function ViewModal({
           exit={{ scale: 0.95, y: 20 }}
           className={`advis-surface w-full max-w-5xl pointer-events-auto border-cyan-200/20 rounded-2xl shadow-[0_20px_70px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden ${currentView === 'demonstration' || currentView === 'compare' ? 'max-h-[50vh]' : 'max-h-[90vh]'}`}
         >
-          <div className="flex items-center justify-between gap-4 border-b border-sky-200/15 bg-slate-950/35 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-4 border-b border-sky-200/15 bg-white/35 p-4 sm:p-5">
             <h2 id="advis-module-title" className="text-base font-semibold tracking-wide text-slate-800 sm:text-lg">
               {getModuleTitle()}
             </h2>
@@ -895,7 +895,7 @@ export function ViewModal({
               aria-label="Close module"
               title="Return home"
               onClick={() => setView('home')}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-600 transition-colors hover:border-cyan-200/30 hover:bg-cyan-300/10 hover:text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800"
             >
               <X size={18} aria-hidden="true" />
             </button>
