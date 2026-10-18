@@ -68,3 +68,16 @@ test('Learning Studio opens the existing interactive lessons module', async ({ p
   await page.getByRole('button', { name: 'Learning Studio' }).click();
   await expect(page.getByRole('heading', { name: /interactive lessons/i })).toBeVisible();
 });
+
+
+test('module views use an accessible dialog shell and return home on close', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Molecular library' }).click();
+
+  const dialog = page.getByRole('dialog', { name: /molecular library/i });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: /molecular library/i })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close module' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Learning Studio' })).toBeVisible();
+});
