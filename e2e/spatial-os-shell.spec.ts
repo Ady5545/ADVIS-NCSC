@@ -101,5 +101,5 @@ test('ADVIS shell uses the bright pearl spatial theme rather than a dark canvas'
     return { radius: style.borderTopLeftRadius, borderColor: style.borderTopColor };
   });
   expect(parseFloat(cardStyle.radius)).toBeGreaterThanOrEqual(15);
-  expect(cardStyle.borderColor).toBe('rgba(62, 91, 139, 0.28)');
+  expect(cardStyle.borderColor).toBe('rgba(54, 83, 132, 0.34)');
 });
