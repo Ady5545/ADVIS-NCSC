@@ -106,7 +106,7 @@ function createEjectionCloud(count: number): EjectionCloud {
       .addScaledVector(tangent, spreadA)
       .addScaledVector(bitangent, spreadB)
       .normalize()
-      .multiplyScalar(0.958 + random() * 0.035);
+      .multiplyScalar(1.198 + random() * 0.044);
 
     const direction = origin.clone().normalize()
       .addScaledVector(tangent, (random() - 0.5) * 0.92)
@@ -118,7 +118,7 @@ function createEjectionCloud(count: number): EjectionCloud {
     positions.set([origin.x, origin.y, origin.z], i * 3);
     phases[i] = random();
     speeds[i] = THREE.MathUtils.lerp(0.095, 0.175, random());
-    sizes[i] = THREE.MathUtils.lerp(0.16, 0.42, random());
+    sizes[i] = THREE.MathUtils.lerp(0.20, 0.525, random());
     const color = palette[sourceIndex].clone().multiplyScalar(THREE.MathUtils.lerp(0.78, 1.18, random()));
     colors.set([color.r, color.g, color.b], i * 3);
   }
@@ -165,13 +165,13 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
     const bitangent = new THREE.Vector3().crossVectors(axis, tangent).normalize();
     const phase = random() * TAU;
     const flowAngle = THREE.MathUtils.lerp(0.52, 1.55, random()) * (random() < 0.5 ? -1 : 1);
-    const outwardDistance = THREE.MathUtils.lerp(0.32, 1.06, random());
+    const outwardDistance = THREE.MathUtils.lerp(0.40, 1.325, random());
     const broadRibbon = random() < 0.22;
     const width = broadRibbon
-      ? THREE.MathUtils.lerp(0.065, 0.105, random())
-      : THREE.MathUtils.lerp(0.022, 0.062, random());
-    const bendA = THREE.MathUtils.lerp(0.045, 0.115, random());
-    const bendB = THREE.MathUtils.lerp(0.018, 0.075, random());
+      ? THREE.MathUtils.lerp(0.081, 0.131, random())
+      : THREE.MathUtils.lerp(0.0275, 0.0775, random());
+    const bendA = THREE.MathUtils.lerp(0.056, 0.144, random());
+    const bendB = THREE.MathUtils.lerp(0.0225, 0.09375, random());
     const color = palette[Math.floor(random() * palette.length)];
     const vertexBase = plume * (segments + 1) * (acrossSteps + 1);
 
@@ -186,14 +186,14 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
         .multiplyScalar(-Math.sin(swirl))
         .addScaledVector(tangent, Math.cos(swirl))
         .normalize();
-      const radius = 0.965 + outwardDistance * Math.pow(u, 1.62);
+      const radius = 1.206 + outwardDistance * Math.pow(u, 1.62);
       const sideBend = Math.sin(u * TAU * 0.54 + phase) * bendA * u;
       const flowBend = Math.sin(u * TAU * 0.39 + phase * 1.4) * bendB * u;
       const center = surfaceNormal.clone().multiplyScalar(radius)
         .addScaledVector(bitangent, sideBend)
         .addScaledVector(flowTangent, flowBend);
       const body = Math.pow(Math.max(0, Math.sin(Math.PI * u)), 0.72);
-      const plumeWidth = (0.010 + width * body) * (1.0 - 0.20 * u);
+      const plumeWidth = (0.0125 + width * body) * (1.0 - 0.20 * u);
 
       for (let across = 0; across <= acrossSteps; across++) {
         const v = across / acrossSteps;
@@ -1139,9 +1139,9 @@ export function HologramCore({
   return (
     <group ref={groupRef}>
       {/* A shaded nebula planet anchors the Core; its outer atmospheric sheet stays soft and broken. */}
-      <Sphere ref={nucleusGlowRef} args={[0.99, 64, 64]} material={materials.coreGlow} />
-      <Sphere ref={nucleusRef} args={[0.94, 112, 112]} material={materials.core} />
-      <Sphere ref={gasWispsRef} args={[1.055, 96, 96]} material={materials.gasWisps} />
+      <Sphere ref={nucleusGlowRef} args={[1.24, 64, 64]} material={materials.coreGlow} />
+      <Sphere ref={nucleusRef} args={[1.175, 112, 112]} material={materials.core} />
+      <Sphere ref={gasWispsRef} args={[1.32, 96, 96]} material={materials.gasWisps} />
       <mesh ref={gasFlowRef} geometry={gasPlumeGeometry} material={materials.gasFlow} frustumCulled={false} renderOrder={3} />
 
       {/* Round ambient stars sit behind the Core; the soft animated points flow outward from its surface. */}
