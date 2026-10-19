@@ -143,7 +143,7 @@ float noise3(vec3 p) {
 float fbm(vec3 p) {
   float value = 0.0;
   float amplitude = 0.5;
-  for (int octave = 0; octave < 5; octave++) {
+  for (int octave = 0; octave < 3; octave++) {
     value += amplitude * noise3(p);
     p = p * 2.02 + vec3(17.1, 9.2, 13.7);
     amplitude *= 0.5;
@@ -180,21 +180,15 @@ ${noiseFunctions}
 void main() {
   vec3 p = normalize(vNebulaPosition);
   float drift = uTime * 0.018;
-
-  float broadWarp = fbm(p * 3.35 + vec3(drift, -drift * 0.72, drift * 0.9));
-  vec3 warp = vec3(
-    fbm(p * 3.15 + vec3(2.4, broadWarp * 2.6, uTime * 0.013)),
-    fbm(p * 3.15 + vec3(5.8, 1.7 + broadWarp * 2.2, -uTime * 0.016)),
-    fbm(p * 3.15 + vec3(9.1, 6.3, broadWarp * 2.0 + uTime * 0.011))
-  );
-
-  float broadClouds = fbm(p * 6.4 + (warp - 0.5) * 4.1 + vec3(drift, -drift * 0.8, drift * 0.6));
-  float fineClouds = fbm(p * 15.0 + (warp - 0.5) * 5.0 - vec3(uTime * 0.025, uTime * 0.018, -uTime * 0.021));
-  float density = clamp(broadClouds * 0.69 + fineClouds * 0.31, 0.0, 1.0);
+  float warp = fbm(p * 2.7 + vec3(drift, -drift * 0.72, drift * 0.9));
+  float broadClouds = fbm(p * 5.6 + vec3(warp * 2.8, -warp * 2.3, warp * 1.9) + vec3(drift, -drift * 0.8, drift * 0.6));
+  float fineClouds = fbm(p * 12.1 + vec3(broadClouds * 3.1, warp * 2.2, -broadClouds * 2.0) - vec3(uTime * 0.022, -uTime * 0.017, uTime * 0.018));
+  float paletteField = fbm(p * 3.65 + vec3(6.4, 2.1, 9.5) + vec3(warp, -warp * 0.6, warp * 1.2));
+  float density = clamp(broadClouds * 0.68 + fineClouds * 0.32, 0.0, 1.0);
   float filaments = pow(1.0 - abs(fineClouds * 2.0 - 1.0), 4.0);
-  float blueField = fbm(p * 4.8 + vec3(11.6, 3.8, -6.1) + warp);
-  float roseField = fbm(p * 5.4 + vec3(-7.5, 8.4, 2.9) + warp.yzx);
-  float emberField = fbm(p * 7.1 + vec3(4.2, -5.6, 10.3) - warp.zxy);
+  float blueMask = smoothstep(0.40, 0.77, paletteField + sin(p.y * 6.0 + uTime * 0.025) * 0.07);
+  float roseMask = smoothstep(0.38, 0.76, broadClouds * 0.58 + fineClouds * 0.42 + sin(p.z * 7.0 - p.x * 4.0) * 0.12);
+  float emberMask = smoothstep(0.61, 0.84, fineClouds + paletteField * 0.16);
 
   vec3 deepIndigo = vec3(0.012, 0.020, 0.095);
   vec3 violet = vec3(0.19, 0.075, 0.62);
@@ -203,18 +197,17 @@ void main() {
   vec3 cyan = vec3(0.055, 0.46, 0.98);
 
   vec3 color = mix(deepIndigo, violet, smoothstep(0.18, 0.70, density));
-  color = mix(color, magenta, smoothstep(0.43, 0.77, roseField) * 0.76);
-  color = mix(color, cyan, smoothstep(0.39, 0.79, blueField) * 0.84);
-  color = mix(color, coral, smoothstep(0.58, 0.82, emberField) * smoothstep(0.30, 0.74, roseField) * 0.57);
-  color += mix(cyan, magenta, roseField) * filaments * 0.34;
-  color = mix(color, uAccent, smoothstep(0.54, 0.86, fbm(p * 6.1 + vec3(5.0, 0.2, 13.7))) * 0.24);
+  color = mix(color, magenta, roseMask * 0.78);
+  color = mix(color, cyan, blueMask * 0.84);
+  color = mix(color, coral, emberMask * roseMask * 0.57);
+  color += mix(cyan, magenta, roseMask) * filaments * 0.34;
+  color = mix(color, uAccent, smoothstep(0.55, 0.85, paletteField) * 0.22);
 
   float facing = max(dot(normalize(vNormalView), normalize(vViewDirection)), 0.0);
   float fresnel = pow(1.0 - facing, 2.0);
   float cloudBody = smoothstep(0.16, 0.66, density);
   float alpha = clamp((0.09 + cloudBody * 0.60 + filaments * 0.12 + fresnel * 0.34) * uOpacity, 0.0, 0.94);
   alpha *= mix(0.62, 1.0, smoothstep(0.05, 0.48, density));
-
   gl_FragColor = vec4(color * (1.25 + uEnergy * 0.34), alpha);
 }
 `;
@@ -276,6 +269,7 @@ export function HologramCore({
 
   const groupRef = useRef<THREE.Group>(null);
   const planetRef = useRef<THREE.Group>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
   const plumeRef = useRef<THREE.Group>(null);
   const spatialTransitionRef = useRef(0);
   const smoothedEnergyRef = useRef(0);
@@ -357,7 +351,8 @@ export function HologramCore({
     const gestureEnergy = Math.max(0, gestureState.energy.current || 0);
     const signalTarget = Math.max(0, bass) * 0.68 + Math.max(0, treble) * 0.22
       + gestureEnergy * 0.24 + stateEnergy * 0.32
-      + THREE.MathUtils.smoothstep(audioLevel, 0.02, 0.35) * 0.42;
+      + THREE.MathUtils.smoothstep(audioLevel, 0.02, 0.35) * 0.42
+      + THREE.MathUtils.clamp(theatre.particleEnergy ?? 0.3, 0, 1.3) * 0.12;
     smoothedEnergyRef.current = THREE.MathUtils.damp(
       smoothedEnergyRef.current,
       THREE.MathUtils.clamp(signalTarget, 0.08, 1.35),
@@ -374,6 +369,10 @@ export function HologramCore({
     );
     const boot = bootProgressRef.current;
     const breathing = 1 + ((theatre.breathing ?? 0.5) - 0.5) * 0.06 + Math.sin(time * 0.62) * 0.012;
+    const authoredScale = THREE.MathUtils.clamp(theatre.coreScale ?? 1, 0.75, 1.45);
+    const authoredSpeed = THREE.MathUtils.clamp(theatre.ringSpeed ?? 1, 0.3, 2.5);
+    const authoredShellScale = THREE.MathUtils.clamp(theatre.shellScale ?? 1, 0.76, 1.42);
+    const technicalOpacity = THREE.MathUtils.clamp(theatre.technicalOpacity ?? 1, 0.5, 1.15);
 
     if (groupRef.current) {
       groupRef.current.position.set(gestureState.pos.x, gestureState.pos.y, 0);
@@ -381,18 +380,23 @@ export function HologramCore({
       groupRef.current.scale.setScalar(Math.max(
         0.001,
         boot * hologramIntensity * gestureState.scale.current * breathing
-          * (1 + energy * 0.075) * 1.08 * collapse
+          * authoredScale * (1 + energy * 0.075) * 1.08 * collapse
       ));
     }
 
     if (planetRef.current) {
-      planetRef.current.rotation.y += delta * (0.025 + energy * 0.025) * stateSpeed;
+      planetRef.current.rotation.y += delta * (0.025 + energy * 0.025) * stateSpeed * authoredSpeed;
       planetRef.current.rotation.x = Math.sin(time * 0.10) * 0.045;
       planetRef.current.rotation.z = Math.cos(time * 0.075) * 0.024;
     }
 
+    if (atmosphereRef.current) {
+      atmosphereRef.current.scale.setScalar(1.075 * authoredShellScale * (1 + (theatre.halo ?? 0.5) * 0.035));
+    }
+
     if (plumeRef.current) {
-      plumeRef.current.rotation.y -= delta * (0.013 + energy * 0.016) * stateSpeed;
+      plumeRef.current.scale.setScalar(0.94 + (theatre.ringSpread ?? 1) * 0.05 + (theatre.depthActivity ?? 0.3) * 0.025);
+      plumeRef.current.rotation.y -= delta * (0.013 + energy * 0.016) * stateSpeed * authoredSpeed;
       plumeRef.current.rotation.x = Math.sin(time * 0.085) * 0.035;
       plumeRef.current.rotation.z += delta * 0.004;
     }
@@ -400,19 +404,19 @@ export function HologramCore({
     const planetUniforms = planetMaterial.uniforms;
     planetUniforms.uTime.value = time;
     planetUniforms.uEnergy.value = energy;
-    planetUniforms.uOpacity.value = visibility * boot;
+    planetUniforms.uOpacity.value = visibility * boot * technicalOpacity;
     atmosphereMaterial.uniforms.uTime.value = time * 0.82;
     atmosphereMaterial.uniforms.uEnergy.value = energy;
-    atmosphereMaterial.uniforms.uOpacity.value = visibility * boot;
+    atmosphereMaterial.uniforms.uOpacity.value = visibility * boot * (0.78 + (theatre.halo ?? 0.5) * 0.25);
 
     puffMaterials.forEach((material, index) => {
       material.uniforms.uTime.value = time + index * 0.13;
       material.uniforms.uEnergy.value = energy;
-      material.uniforms.uOpacity.value = cloudPuffs[index].opacity * visibility * boot;
+      material.uniforms.uOpacity.value = cloudPuffs[index].opacity * visibility * boot * (0.86 + (theatre.gridOpacity ?? 0.5) * 0.12);
     });
     wispMaterials.forEach((material, index) => {
       const pulse = 0.82 + 0.18 * Math.sin(time * gasWisps[index].speed + gasWisps[index].phase);
-      material.opacity = gasWisps[index].opacity * pulse * (0.74 + energy * 0.32) * visibility * boot;
+      material.opacity = gasWisps[index].opacity * pulse * (0.70 + energy * 0.30 + (theatre.radialIntensity ?? 0.5) * 0.07 + (theatre.arcIntensity ?? 0.5) * 0.05 + (theatre.microEnergy ?? 0.5) * 0.05) * visibility * boot;
     });
   });
 
@@ -425,7 +429,7 @@ export function HologramCore({
         </mesh>
 
         {/* A soft outer atmosphere gives the sphere a cloud-lit silhouette rather than a hard shell. */}
-        <mesh material={atmosphereMaterial} scale={1.075} frustumCulled={false}>
+        <mesh ref={atmosphereRef} material={atmosphereMaterial} frustumCulled={false}>
           <sphereGeometry args={[PLANET_RADIUS, 96, 96]} />
         </mesh>
 
