@@ -118,7 +118,7 @@ function createEjectionCloud(count: number): EjectionCloud {
     positions.set([origin.x, origin.y, origin.z], i * 3);
     phases[i] = random();
     speeds[i] = THREE.MathUtils.lerp(0.095, 0.175, random());
-    sizes[i] = THREE.MathUtils.lerp(0.30, 0.88, random());
+    sizes[i] = THREE.MathUtils.lerp(0.16, 0.42, random());
     const color = palette[sourceIndex].clone().multiplyScalar(THREE.MathUtils.lerp(0.78, 1.18, random()));
     colors.set([color.r, color.g, color.b], i * 3);
   }
@@ -128,6 +128,122 @@ function createEjectionCloud(count: number): EjectionCloud {
   geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
   geometry.setAttribute('aFade', new THREE.BufferAttribute(fades, 1));
   return { geometry, origins, directions, phases, speeds, sizes, fades };
+}
+
+function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
+  const geometry = new THREE.BufferGeometry();
+  const random = deterministicRandom(0x6A5F10);
+  const segments = 44;
+  const acrossSteps = 10;
+  const vertexCount = count * (segments + 1) * (acrossSteps + 1);
+  const positions = new Float32Array(vertexCount * 3);
+  const uvs = new Float32Array(vertexCount * 2);
+  const colors = new Float32Array(vertexCount * 3);
+  const seeds = new Float32Array(vertexCount);
+  const drifts = new Float32Array(vertexCount * 3);
+  const indices: number[] = [];
+
+  const axes = [
+    new THREE.Vector3(0.78, 0.26, 0.57),
+    new THREE.Vector3(-0.76, 0.36, 0.54),
+    new THREE.Vector3(0.12, 0.86, 0.50),
+    new THREE.Vector3(-0.22, -0.82, 0.53),
+    new THREE.Vector3(0.54, -0.58, 0.61),
+    new THREE.Vector3(-0.58, -0.30, 0.76),
+    new THREE.Vector3(0.96, -0.10, 0.24),
+    new THREE.Vector3(-0.90, 0.06, 0.43),
+    new THREE.Vector3(0.42, 0.62, 0.66),
+    new THREE.Vector3(-0.36, 0.62, 0.70),
+    new THREE.Vector3(0.32, -0.28, 0.90),
+    new THREE.Vector3(-0.20, -0.48, 0.85),
+  ].map((axis) => axis.normalize());
+  const palette = [
+    new THREE.Color('#ff70b5'),
+    new THREE.Color('#6bc9ff'),
+    new THREE.Color('#ffe4f2'),
+    new THREE.Color('#ff4f92'),
+    new THREE.Color('#75b5ff'),
+    new THREE.Color('#f5c8ff'),
+    new THREE.Color('#ff91c8'),
+    new THREE.Color('#8e9cff'),
+    new THREE.Color('#fff0f7'),
+    new THREE.Color('#4fbaff'),
+    new THREE.Color('#ff7db6'),
+    new THREE.Color('#c6b3ff'),
+  ];
+
+  for (let plume = 0; plume < count; plume++) {
+    const axis = axes[plume % axes.length].clone();
+    const reference = Math.abs(axis.y) > 0.82
+      ? new THREE.Vector3(1, 0, 0)
+      : new THREE.Vector3(0, 1, 0);
+    const tangent = new THREE.Vector3().crossVectors(axis, reference).normalize();
+    const bitangent = new THREE.Vector3().crossVectors(axis, tangent).normalize();
+    const planeAngle = random() * TAU;
+    const side = tangent.clone().multiplyScalar(Math.cos(planeAngle))
+      .addScaledVector(bitangent, Math.sin(planeAngle)).normalize();
+    const drift = tangent.clone().multiplyScalar(-Math.sin(planeAngle))
+      .addScaledVector(bitangent, Math.cos(planeAngle)).normalize();
+    const phase = random() * TAU;
+    const width = THREE.MathUtils.lerp(0.15, 0.34, random());
+    const length = THREE.MathUtils.lerp(1.45, 2.05, random());
+    const slopeA = (random() - 0.5) * 0.42;
+    const slopeB = (random() - 0.5) * 0.46;
+    const color = palette[plume % palette.length];
+    const vertexBase = plume * (segments + 1) * (acrossSteps + 1);
+
+    for (let along = 0; along <= segments; along++) {
+      const u = along / segments;
+      const radius = 0.79 + u * length;
+      const bendA = Math.sin(u * THREE.MathUtils.lerp(3.2, 5.7, random()) + phase) * 0.14 * u;
+      const bendB = Math.sin(u * 4.1 + phase * 1.7) * 0.105 * u;
+      const center = axis.clone().multiplyScalar(radius)
+        .addScaledVector(tangent, slopeA * u + bendA)
+        .addScaledVector(bitangent, slopeB * u + bendB);
+      const body = Math.pow(Math.sin(Math.PI * u), 0.72);
+      const plumeWidth = (0.025 + width * body) * (1.0 - 0.25 * u);
+
+      for (let across = 0; across <= acrossSteps; across++) {
+        const v = across / acrossSteps;
+        const vertex = vertexBase + along * (acrossSteps + 1) + across;
+        const lateral = (v - 0.5) * 2.0 * plumeWidth;
+        const point = center.clone().addScaledVector(side, lateral);
+
+        positions[vertex * 3] = point.x;
+        positions[vertex * 3 + 1] = point.y;
+        positions[vertex * 3 + 2] = point.z;
+        uvs[vertex * 2] = u;
+        uvs[vertex * 2 + 1] = v;
+        colors[vertex * 3] = color.r;
+        colors[vertex * 3 + 1] = color.g;
+        colors[vertex * 3 + 2] = color.b;
+        seeds[vertex] = phase / TAU;
+        drifts[vertex * 3] = drift.x;
+        drifts[vertex * 3 + 1] = drift.y;
+        drifts[vertex * 3 + 2] = drift.z;
+      }
+    }
+
+    for (let along = 0; along < segments; along++) {
+      for (let across = 0; across < acrossSteps; across++) {
+        const a = vertexBase + along * (acrossSteps + 1) + across;
+        const b = a + acrossSteps + 1;
+        const c = a + 1;
+        const d = b + 1;
+        indices.push(a, b, c, b, d, c);
+      }
+    }
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1));
+  geometry.setAttribute('aDrift', new THREE.BufferAttribute(drifts, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 function createSphereGrid(): Float32Array {
@@ -334,6 +450,7 @@ export function HologramCore({
   const nucleusRef = useRef<THREE.Mesh>(null);
   const nucleusGlowRef = useRef<THREE.Mesh>(null);
   const gasWispsRef = useRef<THREE.Mesh>(null);
+  const gasFlowRef = useRef<THREE.Mesh>(null);
   const innerShellRef = useRef<THREE.Mesh>(null);
   const outerShellRef = useRef<THREE.Mesh>(null);
   const haloRef = useRef<THREE.Mesh>(null);
@@ -362,7 +479,9 @@ export function HologramCore({
   const energyFilaments = useMemo(() => createEnergyFilamentGeometry(), []);
   // Keep star points outside the gas sphere so they read as distant stars, not specks buried in the core.
   const outerParticles = useMemo(() => createParticleCloud(56, 3.15, 4.35, 0xc7f5ff, 0.58), []);
-  const ejectionCloud = useMemo(() => createEjectionCloud(240), []);
+  // Wide translucent ribbons carry the gas motion; fewer point sprites remain only as glowing condensates.
+  const ejectionCloud = useMemo(() => createEjectionCloud(84), []);
+  const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(12), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -581,6 +700,93 @@ export function HologramCore({
       side: THREE.DoubleSide,
       toneMapped: false,
     }),
+    gasFlow: new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uActivity: { value: 0 },
+        uVoice: { value: 0 },
+      },
+      vertexShader: [
+        "attribute vec3 aColor;",
+        "attribute float aSeed;",
+        "attribute vec3 aDrift;",
+        "uniform float uTime;",
+        "varying vec2 vUv;",
+        "varying vec3 vColor;",
+        "varying float vSeed;",
+        "void main() {",
+        "  vUv = uv;",
+        "  vColor = aColor;",
+        "  vSeed = aSeed;",
+        "  vec3 p = position;",
+        "  float sway = sin(uv.x * 5.6 - uTime * 0.62 + aSeed * 6.283) * 0.052;",
+        "  sway += sin(uv.x * 11.4 + uTime * 0.36 + aSeed * 15.0) * 0.018;",
+        "  p += aDrift * sway * (0.25 + uv.x);",
+        "  vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);",
+        "  gl_Position = projectionMatrix * mvPosition;",
+        "}",
+      ].join("\\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform float uTime;",
+        "uniform float uActivity;",
+        "uniform float uVoice;",
+        "varying vec2 vUv;",
+        "varying vec3 vColor;",
+        "varying float vSeed;",
+        "float hash21(vec2 p) {",
+        "  p = fract(p * vec2(123.34, 456.21));",
+        "  p += dot(p, p + 45.32);",
+        "  return fract(p.x * p.y);",
+        "}",
+        "float noise21(vec2 p) {",
+        "  vec2 i = floor(p);",
+        "  vec2 f = fract(p);",
+        "  f = f * f * (3.0 - 2.0 * f);",
+        "  float a = hash21(i);",
+        "  float b = hash21(i + vec2(1.0, 0.0));",
+        "  float c = hash21(i + vec2(0.0, 1.0));",
+        "  float d = hash21(i + vec2(1.0, 1.0));",
+        "  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);",
+        "}",
+        "float fbm21(vec2 p) {",
+        "  float value = 0.0;",
+        "  float amplitude = 0.5;",
+        "  for (int i = 0; i < 4; i++) {",
+        "    value += amplitude * noise21(p);",
+        "    p = p * 2.03 + 13.7;",
+        "    amplitude *= 0.5;",
+        "  }",
+        "  return value;",
+        "}",
+        "void main() {",
+        "  float u = vUv.x;",
+        "  float across = abs(vUv.y * 2.0 - 1.0);",
+        "  float edge = 1.0 - smoothstep(0.28, 1.0, across);",
+        "  float life = smoothstep(0.0, 0.12, u) * (1.0 - smoothstep(0.76, 1.0, u));",
+        "  vec2 flow = vec2(u * 3.4 - uTime * 0.08, vUv.y * 3.3 + sin(u * 5.0 - uTime * 0.3 + vSeed * 8.0) * 0.16);",
+        "  float cloud = fbm21(flow + vec2(0.0, uTime * 0.04));",
+        "  float fine = fbm21(flow * 2.4 + vec2(-uTime * 0.12, vSeed * 4.0));",
+        "  float cloudBody = smoothstep(0.30, 0.67, cloud * 0.68 + fine * 0.32);",
+        "  float vaporThreads = pow(1.0 - abs(sin((cloud * 1.3 + fine * 0.42 + vUv.y * 0.12) * 7.3)), 3.2);",
+        "  float density = edge * life * (cloudBody * 0.25 + vaporThreads * 0.11);",
+        "  density *= 0.84 + uActivity * 0.13 + uVoice * 0.12;",
+        "  if (density < 0.018) discard;",
+        "  vec3 cyan = vec3(0.24, 0.72, 1.0);",
+        "  vec3 pearl = vec3(1.0, 0.82, 0.92);",
+        "  float blueMist = smoothstep(0.35, 0.68, fine + vColor.b * 0.22);",
+        "  float hotMist = pow(smoothstep(0.56, 0.84, cloud * 0.6 + fine * 0.4), 2.0);",
+        "  vec3 gasColor = mix(vColor, cyan, blueMist * 0.34);",
+        "  gasColor = mix(gasColor, pearl, hotMist * 0.30);",
+        "  gl_FragColor = vec4(gasColor * (1.05 + uActivity * 0.12 + uVoice * 0.08), min(density, 0.24));",
+        "}",
+      ].join("\\n"),
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
     coreGlow: new THREE.MeshBasicMaterial({ color: '#ff477f', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false }),
     shellInner: new THREE.MeshBasicMaterial({ color: '#a7ddff', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
     shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -620,7 +826,7 @@ export function HologramCore({
         "  vFade = aFade;",
         "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
         "  gl_Position = projectionMatrix * mvPosition;",
-        "  gl_PointSize = clamp(aSize * (420.0 / max(1.0, -mvPosition.z)) * (1.0 + uActivity * 0.12 + uVoice * 0.12), 3.8, 14.0);",
+        "  gl_PointSize = clamp(aSize * (300.0 / max(1.0, -mvPosition.z)) * (1.0 + uActivity * 0.08 + uVoice * 0.08), 2.4, 8.0);",
         "}",
       ].join("\n"),
       fragmentShader: [
@@ -631,7 +837,7 @@ export function HologramCore({
         "  float distanceFromCenter = length(gl_PointCoord - vec2(0.5));",
         "  float hotCenter = 1.0 - smoothstep(0.02, 0.22, distanceFromCenter);",
         "  float softHalo = 1.0 - smoothstep(0.06, 0.5, distanceFromCenter);",
-        "  float alpha = (hotCenter * 0.92 + softHalo * 0.36) * vFade;",
+        "  float alpha = (hotCenter * 0.50 + softHalo * 0.26) * vFade;",
         "  if (alpha < 0.012) discard;",
         "  gl_FragColor = vec4(vColor * (0.64 + hotCenter * 1.20), alpha);",
         "}",
@@ -664,6 +870,7 @@ export function HologramCore({
 
   useEffect(() => () => {
     ejectionCloud.geometry.dispose();
+    gasPlumeGeometry.dispose();
     Object.values(materials).forEach((material) => {
       if (Array.isArray(material)) material.forEach((m) => m.dispose());
       else material.dispose();
@@ -720,6 +927,9 @@ export function HologramCore({
     materials.gasWisps.uniforms.uTime.value = time;
     materials.gasWisps.uniforms.uVoice.value = voice;
     materials.gasWisps.uniforms.uActivity.value = activity;
+    materials.gasFlow.uniforms.uTime.value = time;
+    materials.gasFlow.uniforms.uVoice.value = voice;
+    materials.gasFlow.uniforms.uActivity.value = activity;
     materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
 
     const theatre = theatrePresentationRef.current;
@@ -759,6 +969,12 @@ export function HologramCore({
       gasWispsRef.current.rotation.y += delta * (0.055 + curTreble * 0.055);
       gasWispsRef.current.rotation.x -= delta * (0.025 + curBass * 0.025);
       gasWispsRef.current.scale.setScalar((1.0 + curBass * 0.018 + voice * 0.012) * collapse);
+    }
+
+    if (gasFlowRef.current) {
+      gasFlowRef.current.rotation.y += delta * (0.035 + curTreble * 0.025);
+      gasFlowRef.current.rotation.z -= delta * (0.018 + curBass * 0.016);
+      gasFlowRef.current.scale.setScalar((1.0 + curBass * 0.025 + voice * 0.018) * collapse);
     }
 
     if (nucleusGlowRef.current) {
@@ -915,6 +1131,7 @@ export function HologramCore({
       <Sphere ref={nucleusGlowRef} args={[0.90, 56, 56]} material={materials.coreGlow} />
       <Sphere ref={nucleusRef} args={[0.82, 80, 80]} material={materials.core} />
       <Sphere ref={gasWispsRef} args={[0.98, 72, 72]} material={materials.gasWisps} />
+      <mesh ref={gasFlowRef} geometry={gasPlumeGeometry} material={materials.gasFlow} frustumCulled={false} renderOrder={3} />
 
       {/* Round ambient stars sit behind the Core; the soft animated points flow outward from its surface. */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
