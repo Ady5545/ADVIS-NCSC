@@ -1,6 +1,8 @@
 export type WorkspaceSpatialMode = 'INSPECTION' | 'SHOWCASE' | 'EXPLODED' | 'DEMO';
 export type WorkspaceLodTier = 'LOW' | 'MEDIUM' | 'HIGH' | 'ULTRA';
 export type WorkspaceChemistryMode = 'LESSON' | 'CANONICAL' | null;
+export type WorkspaceChemistryIntent = 'SHOW_STRUCTURE' | 'TEACH_PROCESS' | 'LEWIS_STRUCTURE' | 'IONIC_BOND_FORMATION' | 'HYBRIDIZATION' | 'UNKNOWN';
+export type WorkspaceChemistryLearningMode = 'SHOW_ME' | 'TEACH_ME';
 
 /**
  * A saved workspace is a UI/session snapshot, not a model or geometry export.
@@ -45,6 +47,8 @@ export interface WorkspaceSnapshotData {
   lessonRunnerId: string | null;
   chemistryFormula: string | null;
   chemistrySessionMode: WorkspaceChemistryMode;
+  chemistryIntent: WorkspaceChemistryIntent | null;
+  chemistryLearningMode: WorkspaceChemistryLearningMode | null;
 }
 
 export interface SavedWorkspace extends WorkspaceSnapshotData {
@@ -95,6 +99,21 @@ function normalizeSnapshot(raw: unknown): WorkspaceSnapshotData | null {
     raw.chemistrySessionMode === 'LESSON' || raw.chemistrySessionMode === 'CANONICAL'
       ? raw.chemistrySessionMode
       : null;
+  const chemistryIntentValues: WorkspaceChemistryIntent[] = [
+    'SHOW_STRUCTURE',
+    'TEACH_PROCESS',
+    'LEWIS_STRUCTURE',
+    'IONIC_BOND_FORMATION',
+    'HYBRIDIZATION',
+    'UNKNOWN',
+  ];
+  const chemistryIntent = chemistryIntentValues.includes(raw.chemistryIntent as WorkspaceChemistryIntent)
+    ? raw.chemistryIntent as WorkspaceChemistryIntent
+    : null;
+  const chemistryLearningMode: WorkspaceChemistryLearningMode | null =
+    raw.chemistryLearningMode === 'SHOW_ME' || raw.chemistryLearningMode === 'TEACH_ME'
+      ? raw.chemistryLearningMode
+      : null;
 
   return {
     currentView,
@@ -136,6 +155,8 @@ function normalizeSnapshot(raw: unknown): WorkspaceSnapshotData | null {
     lessonRunnerId: safeString(raw.lessonRunnerId),
     chemistryFormula: safeString(raw.chemistryFormula, null, 40),
     chemistrySessionMode,
+    chemistryIntent,
+    chemistryLearningMode,
   };
 }
 
