@@ -59,6 +59,9 @@ test('workspace sessions save, restore and delete without changing model assets'
   await saveDialog.getByLabel('Workspace name').fill('Current production shell smoke test');
   await saveDialog.getByRole('button', { name: 'Save session' }).click();
   await expect(page.getByRole('status')).toContainText('Saved');
+  await expect.poll(() => page.evaluate(() => {
+    return window.localStorage.getItem('advis_unified_workspace_sessions_v1') || '';
+  })).toContain('Current production shell smoke test');
 
   await page.keyboard.press('Control+k');
   const savedCommand = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
