@@ -420,7 +420,10 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
         setSaveOpen(true);
         break;
       case 'saved':
-        setSavedOpen(true);
+        // Let the command palette finish closing before mounting the second
+        // modal. Swapping two aria-modal overlays in one React commit can
+        // strand focus and make pointer activation unreliable in browsers.
+        window.requestAnimationFrame(() => setSavedOpen(true));
         break;
     }
   }, [onNavigate, onSelectSpatialObject, onSelectComponent, onSelectMolecule, onOpenLesson, setAssistantOpen, onAskAssistant, setSaveOpen, setSavedOpen, setCommandOpen]);
