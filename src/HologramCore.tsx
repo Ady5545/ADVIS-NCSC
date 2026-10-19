@@ -159,7 +159,7 @@ function createEjectionCloud(count: number): EjectionCloud {
       .addScaledVector(tangent, spreadA)
       .addScaledVector(bitangent, spreadB)
       .normalize()
-      .multiplyScalar(1.90 + random() * 0.055);
+      .multiplyScalar(1.35 + random() * 0.035);
 
     const direction = origin.clone().normalize()
       .addScaledVector(tangent, (random() - 0.5) * 0.92)
@@ -171,7 +171,7 @@ function createEjectionCloud(count: number): EjectionCloud {
     positions.set([origin.x, origin.y, origin.z], i * 3);
     phases[i] = random();
     speeds[i] = THREE.MathUtils.lerp(0.095, 0.175, random());
-    sizes[i] = THREE.MathUtils.lerp(0.20, 0.525, random());
+    sizes[i] = THREE.MathUtils.lerp(0.28, 0.735, random());
     const color = palette[sourceIndex].clone().multiplyScalar(THREE.MathUtils.lerp(0.78, 1.18, random()));
     colors.set([color.r, color.g, color.b], i * 3);
   }
