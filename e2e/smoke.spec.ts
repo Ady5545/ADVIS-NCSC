@@ -30,3 +30,52 @@ test('narrow viewport retains the application shell without a startup error', as
   const bootFlag = await page.evaluate(() => Boolean((window as Window & { __ADVIS_BOOT_RENDER_STARTED__?: boolean }).__ADVIS_BOOT_RENDER_STARTED__));
   expect(bootFlag, 'The JavaScript application should mount at a narrow viewport').toBe(true);
 });
+
+
+test('workspace command palette searches the existing chemistry catalogue', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+  await page.keyboard.press('Control+k');
+
+  const dialog = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Water');
+  await expect(dialog.getByRole('button', { name: /Water · H₂O/i })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+});
+
+test('workspace sessions save, restore and delete without changing model assets', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+
+  await page.keyboard.press('Control+k');
+  const commands = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await commands.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Save current workspace');
+  await commands.getByRole('button', { name: 'Save current workspace' }).click();
+
+  const saveDialog = page.getByRole('dialog', { name: 'Save this workspace' });
+  await expect(saveDialog).toBeVisible();
+  await saveDialog.getByLabel('Workspace name').fill('Current production shell smoke test');
+  await saveDialog.getByRole('button', { name: 'Save session' }).click();
+  await expect(page.getByRole('status')).toContainText('Saved');
+
+  await page.keyboard.press('Control+k');
+  const savedCommand = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await savedCommand.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
+  await savedCommand.getByRole('button', { name: 'Open saved workspaces' }).click();
+
+  const savedDialog = page.getByRole('dialog', { name: 'Saved workspaces' });
+  await expect(savedDialog.getByRole('button', { name: 'Restore saved workspace Current production shell smoke test' })).toBeVisible();
+  await savedDialog.getByRole('button', { name: 'Restore saved workspace Current production shell smoke test' }).click();
+  await expect(savedDialog).toHaveCount(0);
+
+  await page.keyboard.press('Control+k');
+  const savedCommandAgain = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await savedCommandAgain.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
+  await savedCommandAgain.getByRole('button', { name: 'Open saved workspaces' }).click();
+
+  const restoredList = page.getByRole('dialog', { name: 'Saved workspaces' });
+  await restoredList.getByRole('button', { name: 'Delete saved workspace Current production shell smoke test' }).click();
+  await expect(restoredList.getByRole('button', { name: /Current production shell smoke test/ })).toHaveCount(0);
+});
