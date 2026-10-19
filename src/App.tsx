@@ -273,6 +273,14 @@ function AppContent() {
   const [workspaceAssistantOpen, setWorkspaceAssistantOpen] = useState(false);
   const [savedWorkspaceCount, setSavedWorkspaceCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!barnDoorActive) return;
+    setWorkspaceCommandOpen(false);
+    setWorkspaceSaveOpen(false);
+    setSavedWorkspacesOpen(false);
+    setWorkspaceAssistantOpen(false);
+  }, [barnDoorActive]);
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
   const [cvEnabled, setCvEnabled] = useState<boolean>(false);
@@ -2038,6 +2046,7 @@ function AppContent() {
           savedWorkspaceCount={savedWorkspaceCount}
         />
       </div>
+      {!barnDoorActive && (
       <WorkspaceCommandCenter
         currentView={currentView}
         systemState={systemState}
@@ -2067,6 +2076,7 @@ function AppContent() {
         onSendMessage={(message) => { void handleSendMessage(message); }}
         onSavedCountChange={setSavedWorkspaceCount}
       />
+      )}
       <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
         <div className={`hidden lg:block transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
           <Sidebar currentView={currentView} setView={setCurrentView} />
