@@ -65,17 +65,20 @@ test('workspace sessions save, restore and delete without changing model assets'
     return window.localStorage.getItem('advis_unified_workspace_sessions_v1') || '';
   })).toContain('Current production shell smoke test');
 
-  // Use the dedicated toolbar entry point for the session manager. The
-  // command palette is covered by its own smoke test; chaining two modal
-  // overlays here made headless Chromium's pointer hit-testing flaky.
-  await page.getByRole('button', { name: 'Open saved workspaces' }).click();
+  await page.getByRole('button', { name: 'Open ADVIS command search' }).click();
+  const savedCommand = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await savedCommand.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
+  await savedCommand.getByRole('button', { name: 'Open saved workspaces' }).click();
 
   const savedDialog = page.getByRole('dialog', { name: 'Saved workspaces' });
   await expect(savedDialog.getByRole('button', { name: 'Restore saved workspace Current production shell smoke test' })).toBeVisible();
   await savedDialog.getByRole('button', { name: 'Restore saved workspace Current production shell smoke test' }).click();
   await expect(savedDialog).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Open saved workspaces' }).click();
+  await page.getByRole('button', { name: 'Open ADVIS command search' }).click();
+  const savedCommandAgain = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await savedCommandAgain.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
+  await savedCommandAgain.getByRole('button', { name: 'Open saved workspaces' }).click();
 
   const restoredList = page.getByRole('dialog', { name: 'Saved workspaces' });
   await restoredList.getByRole('button', { name: 'Delete saved workspace Current production shell smoke test' }).click();
