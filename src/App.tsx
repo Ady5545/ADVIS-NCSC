@@ -1888,7 +1888,7 @@ function AppContent() {
   const lessonRunnerSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
   const lessonRunnerSelectedComponentId = activeLessonRunner
     && activeLessonRunner.modelId === lessonRunnerSpatialId
-    && workspaceActiveModel?.components.some((component) => component.id === selectedComponentId)
+    && workspaceActiveModel?.components?.some((component) => component.id === selectedComponentId)
       ? selectedComponentId
       : null;
 
