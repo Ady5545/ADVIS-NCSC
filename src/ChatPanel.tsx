@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatMessage, SystemState } from './App';
+import type { ChatMessage, SystemState } from './App';
 
 function TypewriterMessage({ text, isLatest, audioLevel = 0 }: { text: string, isLatest: boolean, audioLevel?: number }) {
   const [displayedLength, setDisplayedLength] = useState(isLatest ? 0 : text.length);
