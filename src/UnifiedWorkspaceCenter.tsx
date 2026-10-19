@@ -487,12 +487,19 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
       </header>
 
       {isSpatial && (
-        <div className="pointer-events-auto fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[90] flex items-center gap-2 lg:hidden">
-          <button type="button" onClick={() => setAssistantOpen(true)} aria-label="Open ADVIS Assistant" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#101014]/95 text-white shadow-lg backdrop-blur-xl">
+        <div className="pointer-events-auto fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[90] flex items-center gap-1.5 lg:hidden">
+          <button type="button" onClick={() => setAssistantOpen(true)} aria-label="Open ADVIS Assistant" title="Ask ADVIS" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#101014]/95 text-white shadow-lg backdrop-blur-xl">
             <MessageSquare size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={() => setCommandOpen(true)} aria-label="Search workspace" className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e20246]/45 bg-[#101014]/95 text-[#ff7194] shadow-lg backdrop-blur-xl">
+          <button type="button" onClick={() => setCommandOpen(true)} aria-label="Search workspace" title="Search ADVIS" className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e20246]/45 bg-[#101014]/95 text-[#ff7194] shadow-lg backdrop-blur-xl">
             <Search size={17} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => setSaveOpen(true)} aria-label="Save current workspace" title="Save workspace" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#101014]/95 text-white shadow-lg backdrop-blur-xl">
+            <Save size={16} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => setSavedOpen(true)} aria-label="Open saved workspaces" title="Saved workspaces" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#101014]/95 text-white shadow-lg backdrop-blur-xl">
+            <FolderOpen size={16} aria-hidden="true" />
+            {savedWorkspaces.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#e20246] px-1 text-[9px] font-bold text-white">{savedWorkspaces.length}</span>}
           </button>
         </div>
       )}
