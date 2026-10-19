@@ -422,6 +422,37 @@ function buildContextSummary(butlerContext, resolvedRef, advisMemories, advisPro
     summary += `  - Explicitly Supported Controls: ${Object.entries(capabilities).filter(([, enabled]) => enabled === true).map(([name]) => name).join(', ') || 'None explicitly confirmed'}\n`;
     summary += `  - Explicitly Unsupported Controls: ${Object.entries(capabilities).filter(([, enabled]) => enabled === false).map(([name]) => name).join(', ') || 'None explicitly marked unsupported'}\n`;
   }
+  const typedTutorContext = ctx.activeModelTutorContext;
+  if (typedTutorContext && typedTutorContext.modelId) {
+    summary += `- Typed Tutor Context: ${typedTutorContext.modelName || typedTutorContext.modelId} [${typedTutorContext.modelId}], version ${typedTutorContext.modelVersion || 'unversioned'}\n`;
+    if (typedTutorContext.selectedComponentName || typedTutorContext.selectedComponentId) {
+      summary += `  - Selected Component Purpose: ${typedTutorContext.selectedComponentName || typedTutorContext.selectedComponentId}: ${typedTutorContext.selectedComponentPurpose || 'not specified'}\n`;
+    }
+    summary += `  - Simulation/Behavior Level: ${typedTutorContext.simulationLevel || 'NONE'} (this level describes the declared model; it is not independent validation)\n`;
+    if (Array.isArray(typedTutorContext.relationships) && typedTutorContext.relationships.length) {
+      summary += `  - Component Relationships:\n`;
+      typedTutorContext.relationships.slice(0, 12).forEach((item) => {
+        summary += `    - ${item.name} [${item.componentId}]: ${item.relationship || 'relationship unspecified'}; ${item.description || ''}\n`;
+      });
+    }
+    if (Array.isArray(typedTutorContext.parameters) && typedTutorContext.parameters.length) {
+      summary += `  - Declared Parameters (values supplied by the current context):\n`;
+      typedTutorContext.parameters.slice(0, 12).forEach((item) => {
+        summary += `    - ${item.name} [${item.id}]: ${item.value} ${item.unit || ''}; ${item.description || ''}\n`;
+      });
+    }
+    if (Array.isArray(typedTutorContext.evidence) && typedTutorContext.evidence.length) {
+      summary += `  - Typed Context Evidence (not all items establish exact-model authority):\n`;
+      typedTutorContext.evidence.slice(0, 10).forEach((item) => {
+        summary += `    [${item.id}] ${item.kind} | ${item.label} | ${item.applicability || 'applicability unspecified'} | ${item.sourceUrl || 'No URL supplied'} | ${item.detail || ''}\n`;
+      });
+    }
+    if (Array.isArray(typedTutorContext.limitations) && typedTutorContext.limitations.length) {
+      summary += `  - Tutor Context Limitations: ${typedTutorContext.limitations.slice(0, 8).join('; ')}\n`;
+    }
+    summary += `  - Allowed Suggested UI Actions: ${(typedTutorContext.safeActions || []).join(', ') || 'None explicitly available'}\n`;
+  }
+
   if (ctx.activeProjectId) {
     const proj = (advisProjects || []).find(p => p.id === ctx.activeProjectId);
     summary += `- Active Project: ${proj ? proj.name : ctx.activeProjectId}\n`;

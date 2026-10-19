@@ -69,13 +69,20 @@ jobs:
       - name: Test engine kinematics reference vectors
         run: npm run test:kinematics
 
+      - name: Test accessibility, authoring, tutor and offline-pack contracts
+        run: npm run test:accessibility-authoring
+
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
       - name: Build Vite application
         env:
+          VERCEL: "1"
           VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
         run: npm run build
+
+      - name: Smoke test production-like HTTP output
+        run: npm run test:production-http
 
       - name: Install Chromium for browser smoke tests
         run: npx playwright install --with-deps chromium

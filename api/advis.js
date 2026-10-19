@@ -140,6 +140,70 @@ function cleanModelEvidence(value) {
   };
 }
 
+function cleanModelTutorContext(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value;
+  const allowedEvidenceKinds = ["SOURCE_BACKED", "MODEL_DERIVED", "ILLUSTRATIVE", "UNKNOWN"];
+  const allowedApplicability = ["EXACT_MODEL", "RELATED_MODEL", "GENERAL_PRINCIPLE", "ILLUSTRATIVE"];
+  const allowedSimulationLevels = ["NONE", "PRESENTATION_ANIMATION", "KINEMATIC", "ANALYTICAL", "NUMERICAL", "BENCHMARK_VALIDATED"];
+  const allowedActions = ["SELECT_COMPONENT", "SET_EXPLOSION", "SET_VIEW_MODE", "FOCUS_COMPONENT", "OPEN_LESSON"];
+  const evidence = Array.isArray(input.evidence) ? input.evidence.slice(0, 12).map(function (item, index) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    const label = cleanText(item.label, 160);
+    const detail = cleanText(item.detail, 280);
+    const rawUrl = cleanText(item.sourceUrl, 500);
+    return {
+      id: cleanText(item.id, 120) || "evidence-" + (index + 1),
+      label,
+      kind: allowedEvidenceKinds.includes(item.kind) ? item.kind : "UNKNOWN",
+      detail,
+      sourceUrl: /^https:\/\/\S+$/i.test(rawUrl) ? rawUrl : "",
+      applicability: allowedApplicability.includes(item.applicability) ? item.applicability : "ILLUSTRATIVE"
+    };
+  }).filter(function (item) { return item && item.label; }) : [];
+  const relationships = Array.isArray(input.relationships) ? input.relationships.slice(0, 16).map(function (item) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    return {
+      componentId: cleanText(item.componentId, 120),
+      name: cleanText(item.name, 140),
+      relationship: cleanText(item.relationship, 100),
+      description: cleanText(item.description, 240)
+    };
+  }).filter(function (item) { return item && item.componentId && item.name; }) : [];
+  const parameters = Array.isArray(input.parameters) ? input.parameters.slice(0, 16).map(function (item) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    if (typeof item.value !== "number" || !Number.isFinite(item.value)) return null;
+    return {
+      id: cleanText(item.id, 100),
+      name: cleanText(item.name, 120),
+      unit: cleanText(item.unit, 40),
+      value: Math.max(-1e12, Math.min(1e12, item.value)),
+      description: cleanText(item.description, 240)
+    };
+  }).filter(function (item) { return item && item.id && item.name; }) : [];
+  const limitations = Array.isArray(input.limitations)
+    ? input.limitations.slice(0, 10).map(function (item) { return cleanText(item, 260); }).filter(Boolean)
+    : [];
+  const safeActions = Array.isArray(input.safeActions)
+    ? Array.from(new Set(input.safeActions.filter(function (item) { return allowedActions.includes(item); }))).slice(0, 5)
+    : [];
+  return {
+    modelId: cleanText(input.modelId, 120),
+    modelName: cleanText(input.modelName, 160),
+    modelVersion: cleanText(input.modelVersion, 80) || "unversioned",
+    domain: cleanText(input.domain, 100),
+    selectedComponentId: cleanText(input.selectedComponentId, 120) || null,
+    selectedComponentName: cleanText(input.selectedComponentName, 160) || null,
+    selectedComponentPurpose: cleanText(input.selectedComponentPurpose, 300) || null,
+    relationships,
+    parameters,
+    evidence,
+    simulationLevel: allowedSimulationLevels.includes(input.simulationLevel) ? input.simulationLevel : "NONE",
+    limitations,
+    safeActions
+  };
+}
+
 function cleanContext(value) {
   const input = value && typeof value === "object" ? value : {};
   const allowedWorkspaces = ["HUD", "SPATIAL", "CHEMISTRY", "ENGINEERING"];
@@ -185,6 +249,7 @@ function cleanContext(value) {
     systemState: cleanText(input.systemState, 40),
     activeMolecule: molecule,
     activeModelEvidence: cleanModelEvidence(input.activeModelEvidence),
+    activeModelTutorContext: cleanModelTutorContext(input.activeModelTutorContext),
     recentActions: Array.isArray(input.recentActions)
       ? input.recentActions.slice(-6).map(function (action) {
           return {
@@ -533,3 +598,4 @@ module.exports = async function advisHandler(req, res) {
 
 // Export the sanitizer for deterministic contract tests; the serverless default remains the handler.
 module.exports.cleanContext = cleanContext;
+module.exports.cleanModelTutorContext = cleanModelTutorContext;
