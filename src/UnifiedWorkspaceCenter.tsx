@@ -328,6 +328,12 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
     onSavedCountChange?.(savedWorkspaces.length);
   }, [savedWorkspaces.length, onSavedCountChange]);
 
+  // Re-read storage whenever the saved-workspace panel opens. This keeps the
+  // list authoritative after saves from another UI entry point and across remounts.
+  useEffect(() => {
+    if (savedOpen) setSavedWorkspaces(readSavedWorkspaces());
+  }, [savedOpen]);
+
   useEffect(() => {
     if (commandOpen) {
       setQuery('');
