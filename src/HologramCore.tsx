@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Points } from '@react-three/drei';
+import { Points } from '@react-three/drei';
 import * as THREE from 'three';
 import { SystemState } from './App';
 import { useGestureEngine } from './GestureContext';
@@ -50,6 +50,59 @@ function createParticleCloud(
     positions[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * (radius + wobble);
   }
   return positions;
+}
+
+
+/**
+ * Builds a smooth, cloud-edged nebula body. The displacement is coherent in
+ * direction-space (not per-vertex random), so it creates broad billowing lobes
+ * and smaller vapor folds instead of a jagged or potato-like silhouette.
+ * The same phase is shared by the body, atmosphere and corona so their contours
+ * remain layered versions of one shape.
+ */
+function createNebulaSilhouetteGeometry(
+  radius: number,
+  widthSegments: number,
+  heightSegments: number,
+  phase = 0.73,
+): THREE.BufferGeometry {
+  const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+  const position = geometry.attributes.position as THREE.BufferAttribute;
+  const direction = new THREE.Vector3();
+
+  for (let i = 0; i < position.count; i++) {
+    direction.fromBufferAttribute(position, i).normalize();
+    const x = direction.x;
+    const y = direction.y;
+    const z = direction.z;
+
+    const broadCloud = Math.sin(x * 2.8 + y * 1.6 + phase)
+      * Math.cos(z * 3.2 - y * 1.7 - phase * 0.35);
+    const cloudLobes = Math.sin(x * 4.3 + z * 3.8 + phase * 1.2)
+      * Math.cos(y * 4.7 - x * 1.8 + phase * 0.6);
+    const vaporFolds = Math.sin(x * 7.2 + y * 5.3 - z * 6.8 + phase * 2.1)
+      * Math.cos(z * 5.8 - y * 4.2 + phase * 0.8);
+
+    // The broad term makes the overall silhouette irregular; finer terms
+    // shape wispy lobes without creating sharp spikes or disconnected chunks.
+    const displacement = radius * (
+      broadCloud * 0.085
+      + cloudLobes * 0.036
+      + vaporFolds * 0.014
+    );
+    const deformedRadius = radius + displacement;
+    position.setXYZ(
+      i,
+      x * deformedRadius,
+      y * deformedRadius,
+      z * deformedRadius,
+    );
+  }
+
+  position.needsUpdate = true;
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 interface EjectionCloud {
@@ -106,7 +159,7 @@ function createEjectionCloud(count: number): EjectionCloud {
       .addScaledVector(tangent, spreadA)
       .addScaledVector(bitangent, spreadB)
       .normalize()
-      .multiplyScalar(1.198 + random() * 0.044);
+      .multiplyScalar(1.90 + random() * 0.055);
 
     const direction = origin.clone().normalize()
       .addScaledVector(tangent, (random() - 0.5) * 0.92)
@@ -472,6 +525,9 @@ export function HologramCore({
   // Wide translucent ribbons carry the gas motion; fewer point sprites remain only as glowing condensates.
   const ejectionCloud = useMemo(() => createEjectionCloud(84), []);
   const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(30), []);
+  const planetGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.645, 144, 144), []);
+  const atmosphereGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.848, 112, 112), []);
+  const glowGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.736, 96, 96), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -882,11 +938,14 @@ export function HologramCore({
   useEffect(() => () => {
     ejectionCloud.geometry.dispose();
     gasPlumeGeometry.dispose();
+    planetGeometry.dispose();
+    atmosphereGeometry.dispose();
+    glowGeometry.dispose();
     Object.values(materials).forEach((material) => {
       if (Array.isArray(material)) material.forEach((m) => m.dispose());
       else material.dispose();
     });
-  }, [materials]);
+  }, [materials, ejectionCloud, gasPlumeGeometry, planetGeometry, atmosphereGeometry, glowGeometry]);
 
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
@@ -985,7 +1044,7 @@ export function HologramCore({
     if (gasFlowRef.current) {
       gasFlowRef.current.rotation.y += delta * (0.035 + curTreble * 0.025);
       gasFlowRef.current.rotation.z -= delta * (0.018 + curBass * 0.016);
-      gasFlowRef.current.scale.setScalar((1.0 + curBass * 0.025 + voice * 0.018) * collapse);
+      gasFlowRef.current.scale.setScalar(1.4 * (1.0 + curBass * 0.025 + voice * 0.018) * collapse);
     }
 
     if (nucleusGlowRef.current) {
@@ -1108,6 +1167,7 @@ export function HologramCore({
     }
 
     if (ejectionRef.current) {
+      ejectionRef.current.scale.setScalar(1.4);
       const position = ejectionCloud.geometry.attributes.position as THREE.BufferAttribute;
       const fade = ejectionCloud.geometry.attributes.aFade as THREE.BufferAttribute;
       for (let i = 0; i < ejectionCloud.phases.length; i++) {
@@ -1139,9 +1199,9 @@ export function HologramCore({
   return (
     <group ref={groupRef}>
       {/* A shaded nebula planet anchors the Core; its outer atmospheric sheet stays soft and broken. */}
-      <Sphere ref={nucleusGlowRef} args={[1.24, 64, 64]} material={materials.coreGlow} />
-      <Sphere ref={nucleusRef} args={[1.175, 112, 112]} material={materials.core} />
-      <Sphere ref={gasWispsRef} args={[1.32, 96, 96]} material={materials.gasWisps} />
+      <mesh ref={nucleusGlowRef} geometry={glowGeometry} material={materials.coreGlow} frustumCulled={false} />
+      <mesh ref={nucleusRef} geometry={planetGeometry} material={materials.core} frustumCulled={false} />
+      <mesh ref={gasWispsRef} geometry={atmosphereGeometry} material={materials.gasWisps} frustumCulled={false} />
       <mesh ref={gasFlowRef} geometry={gasPlumeGeometry} material={materials.gasFlow} frustumCulled={false} renderOrder={3} />
 
       {/* Round ambient stars sit behind the Core; the soft animated points flow outward from its surface. */}
