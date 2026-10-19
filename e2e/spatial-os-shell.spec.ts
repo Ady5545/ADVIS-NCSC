@@ -162,8 +162,7 @@ test('workspace snapshot can be saved, resumed and deleted locally', async ({ pa
 
   const savedDialog = page.getByRole('dialog', { name: 'Saved workspaces' });
   await expect(savedDialog).toBeVisible();
-  const savedItem = savedDialog.getByRole('button', { name: /Unified workspace smoke test/ });
-  await expect(savedItem).toBeVisible();
+  await expect(savedDialog.getByRole('button', { name: 'Restore saved workspace Unified workspace smoke test' })).toBeVisible();
   await savedDialog.getByRole('button', { name: 'Restore saved workspace Unified workspace smoke test' }).click();
   await expect(savedDialog).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'ADVIS home workspace' })).toBeVisible();
