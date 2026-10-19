@@ -187,6 +187,8 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
     const phase = random() * TAU;
     const width = THREE.MathUtils.lerp(0.15, 0.34, random());
     const length = THREE.MathUtils.lerp(1.45, 2.05, random());
+    const bendFrequencyA = THREE.MathUtils.lerp(3.2, 5.7, random());
+    const bendFrequencyB = THREE.MathUtils.lerp(3.6, 5.0, random());
     const slopeA = (random() - 0.5) * 0.42;
     const slopeB = (random() - 0.5) * 0.46;
     const color = palette[plume % palette.length];
@@ -195,8 +197,8 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
     for (let along = 0; along <= segments; along++) {
       const u = along / segments;
       const radius = 0.79 + u * length;
-      const bendA = Math.sin(u * THREE.MathUtils.lerp(3.2, 5.7, random()) + phase) * 0.14 * u;
-      const bendB = Math.sin(u * 4.1 + phase * 1.7) * 0.105 * u;
+      const bendA = Math.sin(u * bendFrequencyA + phase) * 0.14 * u;
+      const bendB = Math.sin(u * bendFrequencyB + phase * 1.7) * 0.105 * u;
       const center = axis.clone().multiplyScalar(radius)
         .addScaledVector(tangent, slopeA * u + bendA)
         .addScaledVector(bitangent, slopeB * u + bendB);
@@ -725,7 +727,7 @@ export function HologramCore({
         "  vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);",
         "  gl_Position = projectionMatrix * mvPosition;",
         "}",
-      ].join("\\n"),
+      ].join("\n"),
       fragmentShader: [
         "precision highp float;",
         "uniform float uTime;",
@@ -780,7 +782,7 @@ export function HologramCore({
         "  gasColor = mix(gasColor, pearl, hotMist * 0.30);",
         "  gl_FragColor = vec4(gasColor * (1.05 + uActivity * 0.12 + uVoice * 0.08), min(density, 0.24));",
         "}",
-      ].join("\\n"),
+      ].join("\n"),
       transparent: true,
       depthWrite: false,
       side: THREE.DoubleSide,
