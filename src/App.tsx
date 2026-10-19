@@ -1668,9 +1668,13 @@ function AppContent() {
     const model = SPATIAL_LIBRARY[modelId];
     if (!model || model.modelStatus === 'UNAVAILABLE' || !model.components.some((component) => component.id === componentId)) return;
     handleOpenLessonModel(modelId);
+    syncScientificWorkspaceContext(modelId);
     setSelectedComponentId(componentId);
     setHighlightedComponentId(componentId);
     setCurrentView('home');
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
     pushRecentAction('SELECT_COMPONENT', componentId, model.components.find((component) => component.id === componentId)?.name || componentId);
   };
 
@@ -1685,11 +1689,33 @@ function AppContent() {
     setCurrentView('home');
   };
 
+  const handleWorkspaceStartChemistryLesson = (subject: string, intent?: string) => {
+    sessionMolecule.closeSession();
+    setCurrentSpatialObject(null);
+    setSelectedComponentId(null);
+    setHoveredComponentId(null);
+    setHighlightedComponentId(null);
+    syncScientificWorkspaceContext(null);
+    setShowInnovationLab(false);
+    setCurrentView('home');
+    setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
+    changeSpatialMode('INSPECTION');
+  };
+
   const handleWorkspaceOpenLesson = (lessonId: string) => {
     if (!LEARNING_LESSONS.some((lesson) => lesson.id === lessonId)) return;
+    sessionMolecule.closeSession();
+    setActiveLearningSession(null);
+    setCurrentSpatialObject(null);
+    setSelectedComponentId(null);
+    setHoveredComponentId(null);
+    setHighlightedComponentId(null);
+    syncScientificWorkspaceContext(null);
+    setShowInnovationLab(false);
     setCurrentView('home');
     setRequestedLessonId(lessonId);
     setShowLessonRunner(true);
+    changeSpatialMode('INSPECTION');
   };
 
   const handleRestoreWorkspace = (snapshot: WorkspaceSnapshotData) => {
@@ -2087,11 +2113,7 @@ function AppContent() {
         }}
         onSelectMolecule={handleWorkspaceSelectMolecule}
         onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
-        onStartLesson={(subject, intent: any) => {
-          sessionMolecule.closeSession();
-          setCurrentSpatialObject(null);
-          setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
-        }}
+        onStartLesson={(subject, intent: any) => handleWorkspaceStartChemistryLesson(subject, intent)}
         onOpenView={(view) => setCurrentView(view)}
         presentationStep={presentationStep}
         isolatedComponentId={isolatedComponentId}
@@ -2210,13 +2232,7 @@ function AppContent() {
         setCurrentView('home');
       }}
       onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
-      onStartLesson={(subject, intent: any) => {
-        sessionMolecule.closeSession();
-        setCurrentSpatialObject(null);
-        setSelectedComponentId(null);
-        setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
-        setCurrentView('home');
-      }}
+      onStartLesson={(subject, intent: any) => handleWorkspaceStartChemistryLesson(subject, intent)}
       handTracking={handTracking}
       activeSpatialObject={currentSpatialObject}
       activeLearningSession={activeLearningSession}
