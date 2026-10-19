@@ -63,7 +63,7 @@ test('workspace sessions save, restore and delete without changing model assets'
     return window.localStorage.getItem('advis_unified_workspace_sessions_v1') || '';
   })).toContain('Current production shell smoke test');
 
-  await page.keyboard.press('Control+k');
+  await page.getByRole('button', { name: 'Open ADVIS command search' }).click();
   const savedCommand = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
   await savedCommand.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
   await savedCommand.getByRole('button', { name: 'Open saved workspaces' }).click();
@@ -73,7 +73,7 @@ test('workspace sessions save, restore and delete without changing model assets'
   await savedDialog.getByRole('button', { name: 'Restore saved workspace Current production shell smoke test' }).click();
   await expect(savedDialog).toHaveCount(0);
 
-  await page.keyboard.press('Control+k');
+  await page.getByRole('button', { name: 'Open ADVIS command search' }).click();
   const savedCommandAgain = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
   await savedCommandAgain.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Open saved workspaces');
   await savedCommandAgain.getByRole('button', { name: 'Open saved workspaces' }).click();
