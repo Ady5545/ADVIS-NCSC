@@ -456,6 +456,9 @@ export function HologramCore({
   const volumeDrawingBufferRef = useRef(new THREE.Vector2());
   const volumeStateModeRef = useRef(0.08);
   const volumeListeningRef = useRef(0);
+  const volumeThinkingRef = useRef(0);
+  const volumeSearchingRef = useRef(0);
+  const volumeSpeakingRef = useRef(0);
   const volumeErrorRef = useRef(0);
   const gasWispsRef = useRef<THREE.Mesh>(null);
   const gasFlowRef = useRef<THREE.Mesh>(null);
@@ -630,12 +633,12 @@ export function HologramCore({
         "  vec3 normal = normalize(vNormalView);",
         "  vec3 viewDir = normalize(vViewPosition);",
         "  float lightFacing = dot(normal, normalize(vec3(-0.42, 0.30, 0.85)));",
-        "  float planetLighting = 0.16 + 0.84 * smoothstep(-0.40, 0.66, lightFacing);",
-        "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.8);",
+        "  float planetLighting = 0.10 + 0.90 * smoothstep(-0.26, 0.56, lightFacing);",
+        "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.35);",
         "  col *= planetLighting;",
         "  col += vec3(0.09, 0.22, 0.62) * (1.0 - clouds) * 0.055 * planetLighting;",
-        "  col += vec3(0.016, 0.020, 0.085) * (1.0 - planetLighting);",
-        "  col += vec3(0.09, 0.29, 1.0) * rim * (0.40 + uActivity * 0.16);",
+        "  col += vec3(0.025, 0.032, 0.15) * (1.0 - planetLighting);",
+        "  col += vec3(0.09, 0.29, 1.0) * rim * (0.34 + uActivity * 0.14);",
         "  col += vec3(0.98, 0.10, 0.38) * pow(rim, 3.8) * (0.13 + uActivity * 0.07);",
         "  col += vec3(0.20, 0.66, 1.0) * pow(rim, 5.7) * (0.48 + uVoice * 0.30);",
         "  col *= 1.16 + uVoice * 0.18 + uActivity * 0.05;",
@@ -984,6 +987,9 @@ export function HologramCore({
     if (systemState === 'ERROR') volumeStateTarget = 0.78;
     volumeStateModeRef.current = THREE.MathUtils.damp(volumeStateModeRef.current, volumeStateTarget, 3.0, delta);
     volumeListeningRef.current = THREE.MathUtils.damp(volumeListeningRef.current, systemState === 'LISTENING' ? 1 : 0, 4.8, delta);
+    volumeThinkingRef.current = THREE.MathUtils.damp(volumeThinkingRef.current, systemState === 'THINKING' || systemState === 'ANALYZING' ? 1 : 0, 3.0, delta);
+    volumeSearchingRef.current = THREE.MathUtils.damp(volumeSearchingRef.current, systemState === 'SEARCHING' ? 1 : 0, 3.5, delta);
+    volumeSpeakingRef.current = THREE.MathUtils.damp(volumeSpeakingRef.current, systemState === 'SPEAKING' ? 1 : 0, 4.5, delta);
     volumeErrorRef.current = THREE.MathUtils.damp(volumeErrorRef.current, systemState === 'ERROR' ? 1 : 0, 4.0, delta);
 
     materials.core.uniforms.uTime.value = time;
@@ -1000,6 +1006,9 @@ export function HologramCore({
     materials.nebulaVolume.uniforms.uVoice.value = voice;
     materials.nebulaVolume.uniforms.uStateMode.value = volumeStateModeRef.current;
     materials.nebulaVolume.uniforms.uListening.value = volumeListeningRef.current;
+    materials.nebulaVolume.uniforms.uThinking.value = volumeThinkingRef.current;
+    materials.nebulaVolume.uniforms.uSearching.value = volumeSearchingRef.current;
+    materials.nebulaVolume.uniforms.uSpeaking.value = volumeSpeakingRef.current;
     materials.nebulaVolume.uniforms.uError.value = volumeErrorRef.current;
     materials.nebulaVolume.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
     materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
