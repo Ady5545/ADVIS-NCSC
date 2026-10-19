@@ -8,12 +8,26 @@
 - Preserve the mathematically spherical core; all organic variation belongs in surface/volume shading, not vertex deformation.
 - Avoid unrelated application, camera, UI, science-model or backend changes.
 
+## Delivery checkpoints
+
+- **Checkpoint 1 — first 50% (Phases 1–3):** implement the bounded volume renderer, integrate it with the existing core, and refine the cloud field while preserving enough legacy tendrils for comparison. Stop after this checkpoint for user preview/review.
+- **Checkpoint 2 — remaining 50% (Phases 4–6):** lighting/composition, deeper state-response tuning, performance and rendered-preview verification. Do not begin this checkpoint until the user explicitly approves after reviewing Checkpoint 1.
+- Existing state/audio uniforms remain connected where already present; this checkpoint does not expand the later state-response phase.
+
+## Checkpoint 1 progress
+
+- **Phase 1 — implemented, visual review pending:** src/NebulaVolume.ts uses a bounded spherical proxy, conservative front-to-back integration, early termination, and clips sampling at the near-side inner-core intersection. Its cloud field now uses anisotropic flow coordinates and sparse filament density to avoid only round, isolated blobs.
+- **Phase 2 — integrated, visual review pending:** one volume mesh is driven through existing per-frame uniforms; camera-local coordinates are reused, render order is explicit, disposal is wired, and ray-march sample count adapts to drawing-buffer size/DPI.
+- **Phase 3 — first density pass implemented, visual review pending:** the volume has elongated cloud banks and broken filaments; existing gas sheets are down to 20 and 46 condensate points remain. No further ribbon/particle reduction until the preview has been reviewed.
+- No production promotion or merge has occurred. The current work remains in draft PR #53.
+- The latest two shader/integration refinement commits have not yet completed CI; the current run must be checked before this checkpoint is considered ready to inspect.
+
 ## Baseline
 
 - High-resolution spherical core and shader-driven magenta/rose/blue/cyan cloud surface.
-- 30 curved mesh sheets for outer gas and 46 moving condensate points.
+- 20 curved mesh sheets remain as outer tendrils, with 46 moving condensate points. Do not reduce these further until rendered preview review confirms the new volume carries the mass.
 - Existing centered home-camera rig, bloom, spatial-mode transition, audio signals and system-state signal.
-- TypeScript and Vite build passed after the last syntax fix. The repository's broad browser smoke suite previously failed on application-shell timeouts and a theme-style assertion; these are tracked separately and must not be assumed green.
+- On the last validated pre-refinement commit, TypeScript and the Vite production build passed. The browser smoke suite still had three failures: mobile secondary-navigation interaction timeout, module-dialog/close timeout, and a theme text-color assertion returning no RGB channels. The newest volumetric refinements must be revalidated independently.
 
 ## Phase 1 — Volumetric gas renderer
 
