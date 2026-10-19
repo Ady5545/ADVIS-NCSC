@@ -95,7 +95,7 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
   expect(theme.canvas).toBe('#080809');
   expect(theme.primary).toBe('#e20246');
   expect(theme.pageBackground).not.toBe('rgb(0, 0, 0)');
-  await expect(page.getByRole('heading', { name: /one core\\. every scientific world\\./i })).toHaveCSS('color', 'rgb(243, 243, 245)');
+  await expect(page.getByRole('heading', { name: /one core\. every scientific world\./i })).toHaveCSS('color', 'rgb(243, 243, 245)');
 
   const launchpad = page.getByRole('region', { name: 'ADVIS home workspace' });
   const launchpadBox = await launchpad.boundingBox();
