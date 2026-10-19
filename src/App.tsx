@@ -39,7 +39,7 @@ import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentati
 type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };
 type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
-function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
+function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?: boolean }) {
   const gestureState = useGestureEngine();
   const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
 
@@ -99,6 +99,16 @@ function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   }, [gestureState]);
 
   useFrame((state) => {
+    // The Home Core is a centered hero object; pointer-driven camera drift belongs to spatial inspection.
+    if (isHome && !isSpatial) {
+      state.camera.position.x += (0 - state.camera.position.x) * 0.12;
+      state.camera.position.y += (0 - state.camera.position.y) * 0.12;
+      state.camera.position.z += (15 - state.camera.position.z) * 0.12;
+      lookAtRef.current.set(0, 0, 0);
+      state.camera.lookAt(0, 0, 0);
+      return;
+    }
+
     const lerpSpeed = isSpatial ? 0.35 : 0.05;
     state.camera.position.x += (gestureState.cameraTarget.x - state.camera.position.x) * lerpSpeed;
     state.camera.position.y += (gestureState.cameraTarget.y - state.camera.position.y) * lerpSpeed;
@@ -1641,7 +1651,10 @@ function AppContent() {
           <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
-          <CameraRig isSpatial={isSpatial} />
+          <CameraRig
+            isSpatial={isSpatial}
+            isHome={!currentSpatialObject && !activeLearningSession && !sessionMolecule.isSessionActive}
+          />
           {isEngineeringMode && <color attach="background" args={['#101013']} />}
           {!isEngineeringMode && (
             <HologramCore
