@@ -28,90 +28,113 @@ function deterministicRandom(seed: number) {
   };
 }
 
-type CloudPuff = {
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale: [number, number, number];
-  color: string;
-  opacity: number;
-};
-
-type GasWisp = {
-  geometry: THREE.TubeGeometry;
+type GasRibbon = {
+  geometry: THREE.BufferGeometry;
   color: string;
   opacity: number;
   phase: number;
   speed: number;
 };
 
-function createCloudPuffs(): CloudPuff[] {
-  const random = deterministicRandom(0x4e454255);
-  return Array.from({ length: 20 }, () => {
-    const y = random() * 1.72 - 0.86;
-    const theta = random() * TAU;
-    const ring = Math.sqrt(Math.max(0, 1 - y * y));
-    const direction = new THREE.Vector3(ring * Math.cos(theta), y, ring * Math.sin(theta));
-    const radius = PLANET_RADIUS * (0.91 + random() * 0.38);
-    const size = 0.38 + random() * 0.68;
-    const stretch = 1.0 + random() * 1.25;
-    return {
-      position: [
-        direction.x * radius,
-        direction.y * radius,
-        direction.z * radius,
-      ] as [number, number, number],
-      rotation: [random() * TAU, random() * TAU, random() * TAU] as [number, number, number],
-      scale: [
-        size * stretch,
-        size * (0.46 + random() * 0.72),
-        size * (0.72 + random() * 1.0),
-      ] as [number, number, number],
-      color: GAS_COLORS[Math.floor(random() * GAS_COLORS.length)],
-      opacity: 0.13 + random() * 0.17,
-    };
-  });
-}
-
-function createGasWisps(): GasWisp[] {
+function createGasRibbons(): GasRibbon[] {
   const random = deterministicRandom(0xA7D15);
-  const wisps: GasWisp[] = [];
+  const ribbons: GasRibbon[] = [];
+  const ribbonCount = 38;
+  const segments = 52;
 
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < ribbonCount; i++) {
     const y = random() * 1.72 - 0.86;
     const theta = random() * TAU;
     const ring = Math.sqrt(Math.max(0, 1 - y * y));
-    const direction = new THREE.Vector3(ring * Math.cos(theta), y, ring * Math.sin(theta)).normalize();
-    let tangent = new THREE.Vector3(-direction.z, 0.22 + (random() - 0.5) * 0.5, direction.x);
-    if (tangent.lengthSq() < 0.03) tangent = new THREE.Vector3(1, 0.2, 0);
-    tangent.normalize();
-    const bitangent = new THREE.Vector3().crossVectors(direction, tangent).normalize();
-    const startRadius = PLANET_RADIUS * (0.92 + random() * 0.12);
-    const length = 0.62 + random() * 1.42;
-    const curvature = (random() - 0.5) * 1.1;
-    const phase = random() * TAU;
-    const points: THREE.Vector3[] = [];
+    const direction = new THREE.Vector3(
+      ring * Math.cos(theta),
+      y,
+      ring * Math.sin(theta)
+    ).normalize();
 
-    for (let step = 0; step <= 8; step++) {
-      const t = step / 8;
-      const point = direction.clone().multiplyScalar(startRadius + length * t);
-      const bend = Math.sin(t * Math.PI * 0.92) * curvature;
-      point.addScaledVector(tangent, bend + t * t * (random() - 0.5) * 0.14);
-      point.addScaledVector(bitangent, Math.sin(t * Math.PI * 1.38 + phase) * (0.08 + random() * 0.18) * t);
-      points.push(point);
+    const referenceAxis = Math.abs(direction.y) < 0.86
+      ? new THREE.Vector3(0, 1, 0)
+      : new THREE.Vector3(1, 0, 0);
+    const tangent = new THREE.Vector3().crossVectors(referenceAxis, direction).normalize();
+    const bitangent = new THREE.Vector3().crossVectors(direction, tangent).normalize();
+
+    const phase = random() * TAU;
+    const flowAngle = 0.28 + random() * 1.08;
+    const outwardDistance = 0.20 + random() * 1.08;
+    const broadRibbon = random() < 0.24;
+    const baseWidth = broadRibbon ? 0.085 + random() * 0.075 : 0.018 + random() * 0.043;
+    const centers: THREE.Vector3[] = [];
+
+    for (let step = 0; step <= segments; step++) {
+      const t = step / segments;
+      const swirl = flowAngle * t
+        + Math.sin(t * TAU * 0.72 + phase) * 0.065 * t;
+      const flowDirection = direction.clone()
+        .multiplyScalar(Math.cos(swirl))
+        .addScaledVector(tangent, Math.sin(swirl))
+        .normalize();
+
+      // The leading edge hugs the planet; the tail bends along the surface before
+      // gently lifting into space. This avoids isolated spherical "puffs".
+      const lift = outwardDistance * Math.pow(t, 1.7);
+      const lateral = Math.sin(t * TAU * 0.68 + phase) * 0.13 * t;
+      const crossDrift = Math.sin(t * TAU * 0.43 + phase * 1.3) * 0.08 * t;
+      const center = flowDirection.clone().multiplyScalar(PLANET_RADIUS * 1.006 + lift);
+      center.addScaledVector(bitangent, lateral);
+      center.addScaledVector(tangent, crossDrift);
+      centers.push(center);
     }
 
-    const curve = new THREE.CatmullRomCurve3(points);
-    const tubeRadius = 0.012 + random() * 0.034;
-    wisps.push({
-      geometry: new THREE.TubeGeometry(curve, 40, tubeRadius, 5, false),
+    const positions: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+
+    for (let step = 0; step <= segments; step++) {
+      const t = step / segments;
+      const previous = centers[Math.max(0, step - 1)];
+      const next = centers[Math.min(segments, step + 1)];
+      const pathTangent = next.clone().sub(previous).normalize();
+      const localNormal = centers[step].clone().normalize();
+      let side = new THREE.Vector3().crossVectors(pathTangent, localNormal);
+      if (side.lengthSq() < 0.0001) {
+        side = new THREE.Vector3().crossVectors(pathTangent, bitangent);
+      }
+      side.normalize();
+
+      // Fine, tapered sheets have soft shader edges; there are no solid tube bodies.
+      const taper = 0.11 + Math.pow(Math.sin(Math.PI * t), 0.72) * 0.89;
+      const width = baseWidth * taper * (1 - 0.28 * t);
+      const left = centers[step].clone().addScaledVector(side, -width);
+      const right = centers[step].clone().addScaledVector(side, width);
+
+      positions.push(left.x, left.y, left.z, right.x, right.y, right.z);
+      uvs.push(0, t, 1, t);
+
+      if (step < segments) {
+        const a = step * 2;
+        const b = a + 1;
+        const c = a + 2;
+        const d = a + 3;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+    ribbons.push({
+      geometry,
       color: GAS_COLORS[Math.floor(random() * GAS_COLORS.length)],
-      opacity: 0.10 + random() * 0.22,
+      opacity: broadRibbon ? 0.28 + random() * 0.12 : 0.34 + random() * 0.20,
       phase,
-      speed: 0.12 + random() * 0.20,
+      speed: 0.16 + random() * 0.34,
     });
   }
 
-  return wisps;
+  return ribbons;
 }
 
 const noiseFunctions = `
@@ -236,6 +259,48 @@ void main() {
 }
 `;
 
+const gasRibbonVertexShader = `
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const gasRibbonFragmentShader = `
+uniform float uTime;
+uniform float uEnergy;
+uniform float uOpacity;
+uniform float uPhase;
+uniform float uSpeed;
+uniform vec3 uColor;
+varying vec2 vUv;
+
+void main() {
+  float across = abs(vUv.x * 2.0 - 1.0);
+  float softEdge = pow(max(0.0, 1.0 - across), 1.55);
+  float startFade = smoothstep(0.0, 0.10, vUv.y);
+  float tailFade = 1.0 - smoothstep(0.70, 1.0, vUv.y);
+
+  float slowWave = sin(vUv.y * 31.0 - uTime * (0.52 + uSpeed) + uPhase
+    + sin(vUv.y * 11.0 + uPhase) * 1.7);
+  float fineWave = sin(vUv.y * 79.0 + uTime * 0.24 + uPhase * 2.3);
+  float turbulence = smoothstep(-0.82, 0.42, slowWave * 0.62 + fineWave * 0.20 + 0.13);
+
+  // Alpha fades at both edges and at the end of each strand, so gas merges
+  // into the atmosphere instead of looking like a rigid ribbon or cable.
+  float alpha = softEdge * startFade * tailFade
+    * (0.20 + turbulence * 0.62) * uOpacity
+    * (0.82 + uEnergy * 0.24);
+
+  vec3 coolerEdge = mix(uColor, vec3(0.40, 0.74, 1.0), smoothstep(0.18, 0.96, vUv.y) * 0.48);
+  float brightSpine = pow(max(0.0, 1.0 - across), 4.0);
+  vec3 gasColor = coolerEdge * (0.72 + turbulence * 0.42 + brightSpine * 0.52);
+  gl_FragColor = vec4(gasColor, alpha);
+}
+`;
+
 function createNebulaMaterial(accent: THREE.Color, opacity = 1): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -276,15 +341,10 @@ export function NebulaPlanet({
   const bootProgressRef = useRef(systemState === 'BOOTING' ? 0 : 1);
   const previousStateRef = useRef<SystemState>(systemState);
 
-  const cloudPuffs = useMemo(() => createCloudPuffs(), []);
-  const gasWisps = useMemo(() => createGasWisps(), []);
+  const gasRibbons = useMemo(() => createGasRibbons(), []);
   const accentColor = useMemo(() => new THREE.Color(themeColor), [themeColor]);
 
   const planetMaterial = useMemo(() => createNebulaMaterial(accentColor), [accentColor]);
-  const puffMaterials = useMemo(
-    () => cloudPuffs.map((puff) => createNebulaMaterial(new THREE.Color(puff.color), puff.opacity)),
-    [cloudPuffs]
-  );
   const atmosphereMaterial = useMemo(
     () => new THREE.ShaderMaterial({
       uniforms: {
@@ -302,28 +362,35 @@ export function NebulaPlanet({
     }),
     []
   );
-  const wispMaterials = useMemo(
-    () => gasWisps.map((wisp) => new THREE.MeshBasicMaterial({
-      color: wisp.color,
+  const ribbonMaterials = useMemo(
+    () => gasRibbons.map((ribbon) => new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uEnergy: { value: 0 },
+        uOpacity: { value: ribbon.opacity },
+        uPhase: { value: ribbon.phase },
+        uSpeed: { value: ribbon.speed },
+        uColor: { value: new THREE.Color(ribbon.color) },
+      },
+      vertexShader: gasRibbonVertexShader,
+      fragmentShader: gasRibbonFragmentShader,
       transparent: true,
-      opacity: wisp.opacity,
-      blending: THREE.AdditiveBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
       toneMapped: false,
     })),
-    [gasWisps]
+    [gasRibbons]
   );
 
   useEffect(() => {
     return () => {
       planetMaterial.dispose();
       atmosphereMaterial.dispose();
-      puffMaterials.forEach((material) => material.dispose());
-      wispMaterials.forEach((material) => material.dispose());
-      gasWisps.forEach((wisp) => wisp.geometry.dispose());
+      ribbonMaterials.forEach((material) => material.dispose());
+      gasRibbons.forEach((ribbon) => ribbon.geometry.dispose());
     };
-  }, [planetMaterial, atmosphereMaterial, puffMaterials, wispMaterials, gasWisps]);
+  }, [planetMaterial, atmosphereMaterial, ribbonMaterials, gasRibbons]);
 
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
@@ -409,15 +476,16 @@ export function NebulaPlanet({
     atmosphereMaterial.uniforms.uEnergy.value = energy;
     atmosphereMaterial.uniforms.uOpacity.value = visibility * boot * (0.78 + (theatre.halo ?? 0.5) * 0.25);
 
-    puffMaterials.forEach((material, index) => {
-      material.uniforms.uTime.value = time + index * 0.13;
+    ribbonMaterials.forEach((material, index) => {
+      const ribbon = gasRibbons[index];
+      const pulse = 0.84 + 0.16 * Math.sin(time * ribbon.speed + ribbon.phase);
+      material.uniforms.uTime.value = time;
       material.uniforms.uEnergy.value = energy;
-      material.uniforms.uOpacity.value = cloudPuffs[index].opacity * visibility * boot * (0.86 + (theatre.gridOpacity ?? 0.5) * 0.12);
+      material.uniforms.uOpacity.value = ribbon.opacity * pulse * visibility * boot
+        * (0.82 + energy * 0.16 + (theatre.radialIntensity ?? 0.5) * 0.05
+          + (theatre.arcIntensity ?? 0.5) * 0.04 + (theatre.microEnergy ?? 0.5) * 0.04);
     });
-    wispMaterials.forEach((material, index) => {
-      const pulse = 0.82 + 0.18 * Math.sin(time * gasWisps[index].speed + gasWisps[index].phase);
-      material.opacity = gasWisps[index].opacity * pulse * (0.70 + energy * 0.30 + (theatre.radialIntensity ?? 0.5) * 0.07 + (theatre.arcIntensity ?? 0.5) * 0.05 + (theatre.microEnergy ?? 0.5) * 0.05) * visibility * boot;
-    });
+
   });
 
   return (
@@ -433,28 +501,15 @@ export function NebulaPlanet({
           <sphereGeometry args={[PLANET_RADIUS, 96, 96]} />
         </mesh>
 
-        {/* Low-opacity billows blend into the body to create turbulent, volumetric-looking gas. */}
-        {cloudPuffs.map((puff, index) => (
-          <mesh
-            key={index}
-            position={puff.position}
-            rotation={puff.rotation}
-            scale={puff.scale}
-            material={puffMaterials[index]}
-            frustumCulled={false}
-          >
-            <sphereGeometry args={[1, 32, 24]} />
-          </mesh>
-        ))}
       </group>
 
-      {/* Curved, differently sized gas filaments stream away from the planet. */}
+      {/* Layered transparent gas sheets flow across and then peel away from the atmosphere. */}
       <group ref={plumeRef}>
-        {gasWisps.map((wisp, index) => (
+        {gasRibbons.map((ribbon, index) => (
           <mesh
             key={index}
-            geometry={wisp.geometry}
-            material={wispMaterials[index]}
+            geometry={ribbon.geometry}
+            material={ribbonMaterials[index]}
             frustumCulled={false}
           />
         ))}
