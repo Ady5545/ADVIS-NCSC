@@ -260,11 +260,29 @@ void main() {
 `;
 
 const gasRibbonVertexShader = `
+uniform float uTime;
+uniform float uEnergy;
+uniform float uPhase;
+uniform float uSpeed;
 varying vec2 vUv;
+varying float vFlow;
 
 void main() {
   vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  float waveA = sin(uv.y * 18.0 - uTime * (0.65 + uSpeed) + uPhase
+    + sin(uv.y * 7.0 + uPhase) * 1.7);
+  float waveB = sin(uv.y * 43.0 + uTime * 0.31 + uPhase * 1.7);
+  float envelope = sin(uv.y * 3.14159265);
+  float side = uv.x * 2.0 - 1.0;
+
+  // Subtle vertex drift makes the gas physically billow instead of only
+  // changing brightness on an otherwise rigid, static strip.
+  vec3 displaced = position;
+  displaced += normalize(position) * envelope
+    * (waveA * 0.032 + waveB * 0.012) * (0.45 + uEnergy * 0.65);
+  displaced += normalize(position) * side * waveA * 0.014 * envelope;
+  vFlow = waveA * 0.55 + waveB * 0.25 + 0.20;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
 }
 `;
 
@@ -276,6 +294,7 @@ uniform float uPhase;
 uniform float uSpeed;
 uniform vec3 uColor;
 varying vec2 vUv;
+varying float vFlow;
 
 void main() {
   float across = abs(vUv.x * 2.0 - 1.0);
@@ -283,20 +302,25 @@ void main() {
   float startFade = smoothstep(0.0, 0.10, vUv.y);
   float tailFade = 1.0 - smoothstep(0.70, 1.0, vUv.y);
 
-  float slowWave = sin(vUv.y * 31.0 - uTime * (0.52 + uSpeed) + uPhase
-    + sin(vUv.y * 11.0 + uPhase) * 1.7);
-  float fineWave = sin(vUv.y * 79.0 + uTime * 0.24 + uPhase * 2.3);
-  float turbulence = smoothstep(-0.82, 0.42, slowWave * 0.62 + fineWave * 0.20 + 0.13);
+  float slowWave = sin(vUv.y * 25.0 - uTime * (0.52 + uSpeed) + uPhase
+    + sin(vUv.y * 8.0 + uPhase) * 1.7);
+  float fineWave = sin(vUv.y * 71.0 + uTime * 0.24 + uPhase * 2.3 + across * 4.2);
+  float cloudWave = sin(vUv.y * 12.0 + uPhase * 1.4 - uTime * 0.17
+    + sin(vUv.y * 4.5 + uPhase) * 2.0);
+  float turbulence = smoothstep(-0.82, 0.42,
+    slowWave * 0.48 + fineWave * 0.20 + cloudWave * 0.22 + vFlow * 0.18);
+  float wispyGaps = smoothstep(-0.82, -0.04, cloudWave * 0.62 + fineWave * 0.24 + vFlow * 0.18);
+  float filament = pow(max(0.0, 1.0 - abs(slowWave * 0.48 + fineWave * 0.36)), 3.0);
 
-  // Alpha fades at both edges and at the end of each strand, so gas merges
-  // into the atmosphere instead of looking like a rigid ribbon or cable.
+  // Broken density layers create soft, uneven gas wisps rather than a lit cable.
   float alpha = softEdge * startFade * tailFade
-    * (0.20 + turbulence * 0.62) * uOpacity
+    * (0.08 + turbulence * 0.42 + filament * 0.22)
+    * (0.46 + wispyGaps * 0.54) * uOpacity
     * (0.82 + uEnergy * 0.24);
 
   vec3 coolerEdge = mix(uColor, vec3(0.40, 0.74, 1.0), smoothstep(0.18, 0.96, vUv.y) * 0.48);
   float brightSpine = pow(max(0.0, 1.0 - across), 4.0);
-  vec3 gasColor = coolerEdge * (0.72 + turbulence * 0.42 + brightSpine * 0.52);
+  vec3 gasColor = coolerEdge * (0.70 + turbulence * 0.38 + filament * 0.35 + brightSpine * 0.28);
   gl_FragColor = vec4(gasColor, alpha);
 }
 `;
