@@ -100,7 +100,7 @@ export function ScientificLaunchpad({
         </span>
         <div className="flex flex-wrap gap-1.5">
           {[
-            { label: '4-Stroke Engine', id: 'v8_engine_scientific', type: 'eng' },
+            { label: '4-Stroke Engine', id: 'v8_engine', type: 'eng' },
             { label: 'Human Anatomy', id: 'human_anatomy_scientific', type: 'eng' },
             { label: 'H₂O', id: 'H2O', type: 'mol' },
             { label: 'CO₂', id: 'CO2', type: 'mol' },

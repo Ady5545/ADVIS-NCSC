@@ -9,7 +9,7 @@
     "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "lint": "npm run validate:catalog && npm run validate:science && npm run validate:capabilities && npm run validate:lessons && npm run test:simulation && npm run test:explosion && npm run test:study-project && npm run test:tutor-context && npm run test:lesson-progress && npm run test:workshop && npm run test:domains && npm run test:kinematics",
     "validate:catalog": "node scripts/validate-model-catalog.mjs",
-    "validate:lessons": "node scripts/validate-lessons.mjs",
+    "validate:lessons": "node scripts/validate-lessons.mjs && npm run test:v8-lesson",
     "test:simulation": "node scripts/test-simulation-engine.mjs",
     "test:explosion": "node scripts/test-explosion-math.mjs",
     "test:study-project": "node scripts/test-study-project.mjs",
@@ -20,7 +20,8 @@
     "test:workshop": "node scripts/test-workshop-store.mjs",
     "test:domains": "node scripts/test-domain-models.mjs",
     "test:kinematics": "node scripts/test-kinematics-reference.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:v8-lesson": "node scripts/test-v8-guided-lesson.mjs"
   },
   "keywords": [
     "browser",
