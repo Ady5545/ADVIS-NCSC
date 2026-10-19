@@ -24,6 +24,9 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
       uVoice: { value: 0 },
       uStateMode: { value: 0.08 },
       uListening: { value: 0 },
+      uThinking: { value: 0 },
+      uSearching: { value: 0 },
+      uSpeaking: { value: 0 },
       uError: { value: 0 },
       uOpacity: { value: 1 },
       uRadius: { value: NEBULA_VOLUME_RADIUS },
@@ -48,6 +51,9 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
       uniform float uVoice;
       uniform float uStateMode;
       uniform float uListening;
+      uniform float uThinking;
+      uniform float uSearching;
+      uniform float uSpeaking;
       uniform float uError;
       uniform float uOpacity;
       uniform float uRadius;
@@ -126,7 +132,8 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
         float transmittance = 1.0;
         vec3 accumulatedColor = vec3(0.0);
         vec3 drift = vec3(uTime * 0.035, -uTime * 0.024, uTime * 0.029)
-          * (0.76 + uActivity * 0.10 + uVoice * 0.07 + uStateMode * 0.10);
+          * (0.68 + uActivity * 0.08 + uVoice * 0.04 + uStateMode * 0.08
+            + uSearching * 0.22 + uThinking * 0.07);
 
         for (int i = 0; i < 24; i++) {
           if (float(i) >= steps || transmittance < 0.035) break;
@@ -142,7 +149,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
             sin(p.y * 1.7 + uTime * 0.11),
             sin(p.z * 1.9 - uTime * 0.09),
             cos(p.x * 1.6 + uTime * 0.08)
-          ) * (0.20 + uStateMode * 0.035);
+          ) * (0.17 + uStateMode * 0.025 + uThinking * 0.10);
 
           // Stretch the cloud field along a dominant flow direction. This turns
           // round, disconnected blobs into overlapping billows and long vapor
@@ -184,7 +191,8 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
           float outerFade = 1.0 - smoothstep(uRadius - 0.43, uRadius - 0.055, radialDistance);
           float shell = innerFade * outerFade;
           float density = cloudDensity * shell;
-          density *= 0.76 + uActivity * 0.10 + uVoice * 0.07 + uStateMode * 0.06;
+          density *= 0.72 + uActivity * 0.08 + uVoice * 0.04 + uStateMode * 0.05
+            + uThinking * 0.12 + uSearching * 0.06 + uSpeaking * 0.04;
           if (density < 0.012) continue;
 
           float stepAlpha = 1.0 - exp(-density * stepLength * 0.34);
@@ -199,11 +207,23 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
           gasColor = mix(gasColor, vec3(0.16, 0.76, 1.0), listeningRim * 0.24);
           gasColor = mix(gasColor, vec3(1.0, 0.045, 0.19), uError * 0.36);
 
-          float keyLight = 0.58 + 0.42 * max(
+          float keyFacing = max(
             dot(normalize(p), normalize(vec3(-0.42, 0.30, 0.85))),
             0.0
           );
-          float filamentLight = 1.0 + filament * 0.72 + uVoice * 0.10 + uActivity * 0.05 + uStateMode * 0.04;
+          // A clearer day/night split with restrained violet scatter in shadow.
+          float keyLight = 0.36 + 0.64 * keyFacing;
+          float violetFill = (1.0 - keyFacing) * 0.19;
+          gasColor = mix(gasColor, vec3(0.075, 0.085, 0.34), violetFill);
+
+          // Keep the outer limb crisp: electric-blue on cooler clouds, rose on warm banks.
+          float viewFacing = max(dot(normalize(p), -rayDirection), 0.0);
+          float silhouette = pow(1.0 - viewFacing, 3.4);
+          vec3 rimColor = mix(vec3(0.13, 0.28, 0.95), vec3(1.0, 0.08, 0.32), roseMix);
+          gasColor += rimColor * silhouette * (0.10 + uActivity * 0.09 + uVoice * 0.06);
+
+          float filamentLight = 1.0 + filament * 0.58 + uVoice * 0.08
+            + uSpeaking * 0.11 + uActivity * 0.04;
           gasColor *= keyLight * filamentLight;
 
           accumulatedColor += transmittance * gasColor * stepAlpha;
