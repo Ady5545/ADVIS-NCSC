@@ -1596,6 +1596,12 @@ function AppContent() {
   const activeChemistryName = typeof activeChemistryEntity === 'string'
     ? (CHEMISTRY_DATABASE[activeChemistryEntity]?.name || activeChemistryEntity)
     : '';
+  const workspaceSelectedMoleculeAtom = sessionMolecule.molecule?.atoms.find((atom) => atom.id === sessionMolecule.selectedAtomId) || null;
+  const workspaceSelectedMoleculeBond = sessionMolecule.molecule?.bonds.find((bond) => bond.id === sessionMolecule.selectedBondId) || null;
+  const workspaceSelectedComponentLabel = workspaceSelectedComponent?.name
+    || (workspaceSelectedMoleculeAtom ? `${workspaceSelectedMoleculeAtom.element} atom` : '')
+    || (workspaceSelectedMoleculeBond ? 'Selected molecular bond' : '')
+    || null;
   const workspaceContextLabel = workspaceActiveModel?.name
     || activeChemistryName
     || (sessionMolecule.isSessionActive ? `Molecular builder · ${sessionMolecule.canonicalOriginFormula || 'custom structure'}` : '')
@@ -1639,7 +1645,9 @@ function AppContent() {
       ? (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')
       : null),
     chemistryFormula: activeChemistryFormula,
-    chemistrySessionMode: activeChemistryEntity ? 'LESSON' : (sessionMolecule.isSessionActive && sessionMolecule.canonicalOriginFormula ? 'CANONICAL' : null),
+    chemistrySessionMode: activeChemistryFormula && activeLearningSession
+      ? 'LESSON'
+      : (sessionMolecule.isSessionActive && sessionMolecule.canonicalOriginFormula ? 'CANONICAL' : null),
     chemistryIntent: activeLearningSession?.context?.intent || null,
     chemistryLearningMode: activeLearningSession?.mode || null,
   }), [
@@ -1841,8 +1849,11 @@ function AppContent() {
   };
 
   const handleAskAboutWorkspace = () => {
-    const prompt = workspaceSelectedComponent
-      ? "Explain the selected component's role in this workspace. Describe how it interacts with connected components and what the visible controls or simulation can tell us. Distinguish illustrative behavior from validated results."
+    const selectionLabel = workspaceSelectedComponent?.name
+      || (workspaceSelectedMoleculeAtom ? `${workspaceSelectedMoleculeAtom.element} atom` : '')
+      || (workspaceSelectedMoleculeBond ? 'selected molecular bond' : '');
+    const prompt = selectionLabel
+      ? `Explain the selected ${selectionLabel} in this workspace. Describe its role, relevant relationships and what the visible controls or analysis can tell us. Distinguish illustrative behavior from validated results.`
       : "Explain this ADVIS workspace and how its visible controls connect to the active learning or engineering context. Distinguish illustrative behavior from validated results.";
     void handleSendMessage(prompt);
   };
@@ -2032,7 +2043,7 @@ function AppContent() {
         systemState={systemState}
         isSpatial={isSpatial}
         activeContextLabel={workspaceContextLabel}
-        selectedComponentLabel={workspaceSelectedComponent?.name || null}
+        selectedComponentLabel={workspaceSelectedComponentLabel}
         currentSpatialObject={currentSpatialObject}
         selectedComponentId={selectedComponentId}
         messages={messages}
