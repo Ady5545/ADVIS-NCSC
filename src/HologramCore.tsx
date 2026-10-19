@@ -453,6 +453,9 @@ export function HologramCore({
   const nebulaVolumeRef = useRef<THREE.Mesh>(null);
   const volumeCameraWorldRef = useRef(new THREE.Vector3());
   const volumeCameraLocalRef = useRef(new THREE.Vector3());
+  const volumeStateModeRef = useRef(0.08);
+  const volumeListeningRef = useRef(0);
+  const volumeErrorRef = useRef(0);
   const gasWispsRef = useRef<THREE.Mesh>(null);
   const gasFlowRef = useRef<THREE.Mesh>(null);
   const innerShellRef = useRef<THREE.Mesh>(null);
@@ -969,6 +972,19 @@ export function HologramCore({
       1,
     );
     const activity = THREE.MathUtils.clamp(curBass * 0.95 + curTreble * 0.5 + stateActivity * 0.3 + voice * 0.65, 0, 1.7);
+
+    let volumeStateTarget = 0.08;
+    if (systemState === 'BOOTING') volumeStateTarget = 0;
+    if (systemState === 'LISTENING') volumeStateTarget = 0.34;
+    if (systemState === 'THINKING') volumeStateTarget = 0.70;
+    if (systemState === 'SEARCHING') volumeStateTarget = 0.95;
+    if (systemState === 'ANALYZING') volumeStateTarget = 0.66;
+    if (systemState === 'SPEAKING') volumeStateTarget = 0.44;
+    if (systemState === 'ERROR') volumeStateTarget = 0.78;
+    volumeStateModeRef.current = THREE.MathUtils.damp(volumeStateModeRef.current, volumeStateTarget, 3.0, delta);
+    volumeListeningRef.current = THREE.MathUtils.damp(volumeListeningRef.current, systemState === 'LISTENING' ? 1 : 0, 4.8, delta);
+    volumeErrorRef.current = THREE.MathUtils.damp(volumeErrorRef.current, systemState === 'ERROR' ? 1 : 0, 4.0, delta);
+
     materials.core.uniforms.uTime.value = time;
     materials.core.uniforms.uVoice.value = voice;
     materials.core.uniforms.uActivity.value = activity;
@@ -981,6 +997,9 @@ export function HologramCore({
     materials.nebulaVolume.uniforms.uTime.value = time;
     materials.nebulaVolume.uniforms.uActivity.value = activity;
     materials.nebulaVolume.uniforms.uVoice.value = voice;
+    materials.nebulaVolume.uniforms.uStateMode.value = volumeStateModeRef.current;
+    materials.nebulaVolume.uniforms.uListening.value = volumeListeningRef.current;
+    materials.nebulaVolume.uniforms.uError.value = volumeErrorRef.current;
     materials.nebulaVolume.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
     materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
 
@@ -1162,12 +1181,13 @@ export function HologramCore({
 
     if (ejectionRef.current) {
       ejectionRef.current.scale.setScalar(1.4);
+      const outwardDrive = THREE.MathUtils.clamp((volumeStateModeRef.current - 0.54) * 0.58, 0, 0.24);
       const position = ejectionCloud.geometry.attributes.position as THREE.BufferAttribute;
       const fade = ejectionCloud.geometry.attributes.aFade as THREE.BufferAttribute;
       for (let i = 0; i < ejectionCloud.phases.length; i++) {
         const phase = ejectionCloud.phases[i];
         const progress = (time * ejectionCloud.speeds[i] + phase) % 1;
-        const travel = progress * (1.55 + ejectionCloud.sizes[i] * 0.64) * (1.0 + voice * 0.14 + activity * 0.06);
+        const travel = progress * (1.55 + ejectionCloud.sizes[i] * 0.64) * (1.0 + voice * 0.14 + activity * 0.06 + outwardDrive);
         const curlX = (Math.sin(time * 1.35 + phase * TAU) * 0.26 + Math.sin(phase * 13.0 + progress * 4.2) * 0.10) * progress;
         const curlY = (Math.cos(time * 1.08 + phase * 7.3) * 0.23 + Math.cos(phase * 9.0 - progress * 3.8) * 0.10) * progress;
         const curlZ = (Math.sin(time * 0.92 + phase * 9.1) * 0.22 + Math.sin(phase * 11.0 + progress * 3.4) * 0.08) * progress;
