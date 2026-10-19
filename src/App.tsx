@@ -2056,6 +2056,8 @@ function AppContent() {
           setCurrentSpatialObject(null);
           setSelectedComponentId(null);
           setHoveredComponentId(null);
+          setHighlightedComponentId(null);
+          setCurrentView('home');
           changeSpatialMode('INSPECTION');
         }}
         selectedComponentId={selectedComponentId}
@@ -2182,26 +2184,21 @@ function AppContent() {
       triggerCleanSlate={() => requireBiometric(handleCleanSlate)}
       cvEnabled={cvEnabled}
       setCvEnabled={setCvEnabled}
-      onSelectMolecule={(formulaOrKey) => {
-        sessionMolecule.closeSession();
-        setCurrentSpatialObject(null);
-        setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-      }}
+      onSelectMolecule={handleWorkspaceSelectMolecule}
       onLoadMoleculeBuilder={(formulaOrKey) => {
         setActiveLearningSession(null);
         setCurrentSpatialObject(null);
+        setSelectedComponentId(null);
         sessionMolecule.loadCanonical(formulaOrKey);
+        setCurrentView('home');
       }}
-      onSelectSpatialObject={(objectId, mode) => {
-        sessionMolecule.closeSession();
-        setActiveLearningSession(null);
-        setCurrentSpatialObject(objectId);
-        changeSpatialMode(mode || 'INSPECTION');
-      }}
+      onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
       onStartLesson={(subject, intent: any) => {
         sessionMolecule.closeSession();
         setCurrentSpatialObject(null);
+        setSelectedComponentId(null);
         setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
+        setCurrentView('home');
       }}
       handTracking={handTracking}
       activeSpatialObject={currentSpatialObject}
