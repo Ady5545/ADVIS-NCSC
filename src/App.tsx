@@ -130,7 +130,7 @@ export interface ChatMessage {
   image?: { content: string, mimeType: string };
 }
 
-import { LearningSession } from './LearnEngine/LearnTypes';
+import type { LearningSession, ChemistryIntent } from './LearnEngine/LearnTypes';
 import { buildChemistryLesson } from './LearnEngine/LessonBuilder';
 import { CHEMISTRY_DATABASE } from './LearnEngine/ChemistryDatabase';
 import { LearnWorkspace } from './LearnEngine/LearnWorkspace';
@@ -1690,6 +1690,20 @@ function AppContent() {
   };
 
   const handleWorkspaceStartChemistryLesson = (subject: string, intent?: string) => {
+    const supportedIntents: ChemistryIntent[] = [
+      'SHOW_STRUCTURE',
+      'TEACH_PROCESS',
+      'LEWIS_STRUCTURE',
+      'IONIC_BOND_FORMATION',
+      'HYBRIDIZATION',
+      'UNKNOWN',
+    ];
+    const resolvedIntent: ChemistryIntent = supportedIntents.includes(intent as ChemistryIntent)
+      ? intent as ChemistryIntent
+      : intent === 'VSEPR' || intent === 'SHOW_ME'
+        ? 'SHOW_STRUCTURE'
+        : 'TEACH_PROCESS';
+
     sessionMolecule.closeSession();
     setCurrentSpatialObject(null);
     setSelectedComponentId(null);
@@ -1698,7 +1712,7 @@ function AppContent() {
     syncScientificWorkspaceContext(null);
     setShowInnovationLab(false);
     setCurrentView('home');
-    setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
+    setActiveLearningSession(buildChemistryLesson(subject, resolvedIntent, 'TEACH_ME'));
     changeSpatialMode('INSPECTION');
   };
 
