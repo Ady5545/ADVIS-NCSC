@@ -1844,7 +1844,7 @@ function AppContent() {
     setWorkspaceCommandOpen(false);
     setSavedWorkspacesOpen(false);
     setWorkspaceSaveOpen(false);
-    pushRecentAction('WORKSPACE_RESTORED', restoredSpatialId, restoredModel?.name || activeChemistryEntity?.name || 'Saved workspace');
+    pushRecentAction('WORKSPACE_RESTORED', restoredSpatialId, restoredModel?.name || (activeChemistryFormula ? (CHEMISTRY_DATABASE[activeChemistryFormula]?.name || activeChemistryFormula) : 'Saved workspace'));
     setWorkspaceAssistantOpen(false);
   };
 
