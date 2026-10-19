@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatMessage, SystemState } from './App';
+import type { ChatMessage, SystemState } from './App';
 
 function TypewriterMessage({ text, isLatest, audioLevel = 0 }: { text: string, isLatest: boolean, audioLevel?: number }) {
   const [displayedLength, setDisplayedLength] = useState(isLatest ? 0 : text.length);
@@ -79,7 +79,17 @@ function TypewriterMessage({ text, isLatest, audioLevel = 0 }: { text: string, i
   );
 }
 
-export function ChatPanel({ messages, systemState, audioLevel }: { messages: ChatMessage[], systemState: SystemState, audioLevel?: number }) {
+export function ChatPanel({
+  messages,
+  systemState,
+  audioLevel,
+  variant = 'default',
+}: {
+  messages: ChatMessage[];
+  systemState: SystemState;
+  audioLevel?: number;
+  variant?: 'default' | 'workspace';
+}) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,7 +101,7 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
   const lastMessageIndex = messages.length - 1;
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto pr-4 pb-32 pt-10 custom-scrollbar pointer-events-auto mask-image-both">
+    <div className={`flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pointer-events-auto mask-image-both ${variant === 'workspace' ? 'pr-1 pb-4 pt-3' : 'pr-4 pb-32 pt-10'}`}>
       <AnimatePresence initial={false}>
         {messages.map((msg, i) => (
           <motion.div
@@ -100,13 +110,17 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             animate={{ opacity: 1, x: 0 }}
             className={`flex flex-col max-w-[85%] ${msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'}`}
           >
-            <div className={`text-[10px] mb-1 font-mono tracking-widest ${msg.role === 'user' ? 'text-blue-700' : 'text-blue-700'}`}>
+            <div className={`text-[10px] mb-1 font-mono tracking-widest ${variant === 'workspace' ? 'text-white/40' : 'text-blue-700'}`}>
               {msg.role === 'user' ? 'USER_DIRECTIVE' : 'A.D.V.I.S.'} // {new Date(msg.timestamp).toLocaleTimeString([], { hour12: false })}
             </div>
             <div className={`p-3 rounded-lg backdrop-blur-md border ${
-              msg.role === 'user' 
-                ? 'bg-blue-50/40 border-blue-200/30 text-slate-800 rounded-tr-none shadow-[0_0_15px_rgba(0,255,255,0.1)]' 
-                : 'bg-white/88 border-blue-200/20 text-slate-800 rounded-tl-none border-l-2 border-l-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.05)]'
+              variant === 'workspace'
+                ? (msg.role === 'user'
+                    ? 'bg-[#e20246]/10 border-[#e20246]/25 text-white/90 rounded-tr-none'
+                    : 'bg-white/[0.045] border-white/10 text-white/85 rounded-tl-none border-l-2 border-l-[#e20246]')
+                : (msg.role === 'user'
+                    ? 'bg-blue-50/40 border-blue-200/30 text-slate-800 rounded-tr-none shadow-[0_0_15px_rgba(0,255,255,0.1)]'
+                    : 'bg-white/88 border-blue-200/20 text-slate-800 rounded-tl-none border-l-2 border-l-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.05)]')
             }`}>
               {msg.image && (
                 <img src={msg.image.content} alt="User Upload" className="max-w-full rounded-md mb-2 max-h-48 object-contain" />
@@ -129,8 +143,8 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             exit={{ opacity: 0 }}
             className="self-start max-w-[85%]"
           >
-            <div className="text-[10px] mb-1 font-mono tracking-widest text-blue-700">A.D.V.I.S. // AUDIO INPUT</div>
-            <div className="p-3 rounded-lg bg-white/88 border border-blue-200/20 text-blue-700 border-l-2 border-l-cyan-400 rounded-tl-none flex items-center gap-2">
+            <div className={`text-[10px] mb-1 font-mono tracking-widest ${variant === 'workspace' ? 'text-white/40' : 'text-blue-700'}`}>A.D.V.I.S. // AUDIO INPUT</div>
+            <div className={`p-3 rounded-lg border rounded-tl-none flex items-center gap-2 ${variant === 'workspace' ? 'bg-white/[0.045] border-white/10 text-cyan-200 border-l-2 border-l-cyan-400' : 'bg-white/88 border-blue-200/20 text-blue-700 border-l-2 border-l-cyan-400'}`}>
               <span className="text-sm font-mono tracking-widest animate-pulse">Listening...</span>
               <div className="flex gap-1 items-center h-4 ml-2">
                 <div className="w-1 bg-cyan-400 animate-[pulse_1s_ease-in-out_infinite] h-2"></div>
@@ -148,8 +162,8 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             exit={{ opacity: 0 }}
             className="self-start max-w-[85%]"
           >
-            <div className="text-[10px] mb-1 font-mono tracking-widest text-orange-400/50">A.D.V.I.S. // PROCESSING</div>
-            <div className="p-3 rounded-lg bg-white/88 border border-orange-500/20 text-orange-400 border-l-2 border-l-orange-400 rounded-tl-none flex items-center gap-2">
+            <div className={`text-[10px] mb-1 font-mono tracking-widest ${variant === 'workspace' ? 'text-amber-200/50' : 'text-orange-400/50'}`}>A.D.V.I.S. // PROCESSING</div>
+            <div className={`p-3 rounded-lg border border-l-2 rounded-tl-none flex items-center gap-2 ${variant === 'workspace' ? 'bg-white/[0.045] border-white/10 text-amber-200 border-l-amber-300' : 'bg-white/88 border-orange-500/20 text-orange-400 border-l-orange-400'}`}>
               <span className="text-sm font-mono tracking-widest animate-pulse">Analyzing...</span>
               <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
               <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { HologramCore } from './HologramCore';
 import { ChatPanel } from './ChatPanel';
 import { InputArea } from './InputArea';
-import { Sidebar } from './Sidebar';
+import { Sidebar, menuItems } from './Sidebar';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
@@ -29,6 +29,9 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
+import { LEARNING_LESSONS } from './learning/LessonCatalog';
+import { WorkspaceCommandCenter } from './UnifiedWorkspaceCenter';
+import type { WorkspaceSnapshotData } from './workspace/WorkspaceSessionStore';
 import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
@@ -127,8 +130,9 @@ export interface ChatMessage {
   image?: { content: string, mimeType: string };
 }
 
-import { LearningSession } from './LearnEngine/LearnTypes';
+import type { LearningSession, ChemistryIntent } from './LearnEngine/LearnTypes';
 import { buildChemistryLesson } from './LearnEngine/LessonBuilder';
+import { CHEMISTRY_DATABASE } from './LearnEngine/ChemistryDatabase';
 import { LearnWorkspace } from './LearnEngine/LearnWorkspace';
 import { ChemistryVisuals } from './LearnEngine/ChemistryVisuals';
 import { MolecularVisuals } from './LearnEngine/MolecularVisuals';
@@ -263,7 +267,14 @@ function AppContent() {
     }
   }, [wakeWordEnergy]);
   const [currentView, setCurrentView] = useState<string>('home');
+  const [workspaceCommandOpen, setWorkspaceCommandOpen] = useState(false);
+  const [workspaceSaveOpen, setWorkspaceSaveOpen] = useState(false);
+  const [savedWorkspacesOpen, setSavedWorkspacesOpen] = useState(false);
+  const [workspaceAssistantOpen, setWorkspaceAssistantOpen] = useState(false);
+  const [savedWorkspaceCount, setSavedWorkspaceCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
   const [cvEnabled, setCvEnabled] = useState<boolean>(false);
@@ -288,6 +299,7 @@ function AppContent() {
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
   const [showLessonRunner, setShowLessonRunner] = useState<boolean>(false);
+  const [requestedLessonId, setRequestedLessonId] = useState<string | null>(null);
 
   useEffect(() => {
     setHiddenComponentIds([]);
@@ -607,6 +619,14 @@ function AppContent() {
   };
 
   const [barnDoorActive, setBarnDoorActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!barnDoorActive) return;
+    setWorkspaceCommandOpen(false);
+    setWorkspaceSaveOpen(false);
+    setSavedWorkspacesOpen(false);
+    setWorkspaceAssistantOpen(false);
+  }, [barnDoorActive]);
   
   const [biometricActive, setBiometricActive] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -1576,6 +1596,313 @@ function AppContent() {
 
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
+  const workspaceActiveSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const workspaceActiveModel = workspaceActiveSpatialId ? SPATIAL_LIBRARY[workspaceActiveSpatialId] : null;
+  const workspaceSelectedComponent = workspaceActiveModel?.components?.find((component) => component.id === selectedComponentId) || null;
+  const activeChemistryEntity = activeLearningSession?.context?.entity || null;
+  const activeChemistryFormula = typeof activeChemistryEntity === 'string' && CHEMISTRY_DATABASE[activeChemistryEntity]
+    ? activeChemistryEntity
+    : (sessionMolecule.canonicalOriginFormula || null);
+  const activeChemistryName = typeof activeChemistryEntity === 'string'
+    ? (CHEMISTRY_DATABASE[activeChemistryEntity]?.name || activeChemistryEntity)
+    : '';
+  const workspaceSelectedMoleculeAtom = sessionMolecule.molecule?.atoms.find((atom) => atom.id === sessionMolecule.selectedAtomId) || null;
+  const workspaceSelectedMoleculeBond = sessionMolecule.molecule?.bonds.find((bond) => bond.id === sessionMolecule.selectedBondId) || null;
+  const workspaceSelectedComponentLabel = workspaceSelectedComponent?.name
+    || (workspaceSelectedMoleculeAtom ? `${workspaceSelectedMoleculeAtom.element} atom` : '')
+    || (workspaceSelectedMoleculeBond ? 'Selected molecular bond' : '')
+    || null;
+  const workspaceContextLabel = workspaceActiveModel?.name
+    || activeChemistryName
+    || (sessionMolecule.isSessionActive ? `Molecular builder · ${sessionMolecule.canonicalOriginFormula || 'custom structure'}` : '')
+    || (currentView === 'home' ? 'Home workspace' : 'No active selection');
+  const workspaceSnapshot = useMemo<WorkspaceSnapshotData>(() => ({
+    currentView,
+    currentSpatialObject,
+    selectedComponentId,
+    spatialMode,
+    isExploded,
+    isPresentationMode,
+    presentationStep,
+    explodedFactor,
+    xrayEnabled,
+    blueprintEnabled,
+    showLabels,
+    measurementMode,
+    isEngineeringMode,
+    showInnovationLab,
+    isKinematicPlaying,
+    kinematicSpeed,
+    kinematicTimeOffset,
+    v12Rpm,
+    v12Direction,
+    v8Rpm,
+    isV8KinematicPlaying,
+    v8KinematicSpeed,
+    v8KinematicTimeOffset,
+    v8CrankAngleDeg,
+    isMagnifierFocused,
+    lodTier,
+    focusedCylinder,
+    chargeFlowEnabled,
+    vectorsEnabled,
+    soundEnabled,
+    themeColor,
+    speechRate,
+    hologramIntensity,
+    lessonRunnerOpen: showLessonRunner,
+    lessonRunnerId: requestedLessonId || (showLessonRunner
+      ? (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')
+      : null),
+    chemistryFormula: activeChemistryFormula,
+    chemistrySessionMode: activeChemistryFormula && activeLearningSession
+      ? 'LESSON'
+      : (sessionMolecule.isSessionActive && sessionMolecule.canonicalOriginFormula ? 'CANONICAL' : null),
+    chemistryIntent: activeLearningSession?.context?.intent || null,
+    chemistryLearningMode: activeLearningSession?.mode || null,
+  }), [
+    currentView, currentSpatialObject, selectedComponentId, spatialMode, isExploded, isPresentationMode,
+    presentationStep, explodedFactor, xrayEnabled, blueprintEnabled, showLabels, measurementMode,
+    isEngineeringMode, showInnovationLab, isKinematicPlaying, kinematicSpeed, kinematicTimeOffset,
+    v12Rpm, v12Direction, v8Rpm, isV8KinematicPlaying, v8KinematicSpeed, v8KinematicTimeOffset,
+    v8CrankAngleDeg, isMagnifierFocused, lodTier, focusedCylinder, chargeFlowEnabled, vectorsEnabled,
+    soundEnabled, themeColor, speechRate, hologramIntensity, showLessonRunner, requestedLessonId,
+    activeChemistryFormula, activeChemistryEntity, sessionMolecule.isSessionActive, sessionMolecule.canonicalOriginFormula,
+  ]);
+
+  const syncScientificWorkspaceContext = (objectId: string | null) => {
+    const scientificStore = useScientificStore.getState();
+    if (objectId === 'v8_engine_scientific' || objectId === 'v8_engine') {
+      scientificStore.setActiveModel('four_stroke_engine_v1');
+    } else if (objectId === 'human_anatomy_scientific') {
+      scientificStore.setActiveModel('human_cardiovascular_atlas');
+    } else {
+      scientificStore.setActiveModel(null);
+    }
+  };
+
+  const handleWorkspaceSelectSpatialObject = (objectId: string, mode: SpatialMode = 'INSPECTION') => {
+    if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE' || SPATIAL_LIBRARY[objectId].modelStatus === 'AWAITING_ASSET') return;
+    handleOpenLessonModel(objectId);
+    syncScientificWorkspaceContext(objectId);
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
+    if (mode !== 'INSPECTION') changeSpatialMode(mode);
+    setCurrentView('home');
+  };
+
+  const handleLessonOpenModel = (modelId: string) => {
+    const model = SPATIAL_LIBRARY[modelId];
+    if (!model || model.modelStatus === 'UNAVAILABLE' || model.modelStatus === 'AWAITING_ASSET') return;
+    // LessonRunner calls this when its declared lesson model is needed. Keep the
+    // runner and its progress open while switching the scene underneath it.
+    handleOpenLessonModel(modelId);
+    syncScientificWorkspaceContext(modelId);
+    setShowInnovationLab(false);
+    setCurrentView('home');
+  };
+
+  const handleWorkspaceSelectComponent = (modelId: string, componentId: string) => {
+    const model = SPATIAL_LIBRARY[modelId];
+    if (!model || model.modelStatus === 'UNAVAILABLE' || !model.components.some((component) => component.id === componentId)) return;
+    handleOpenLessonModel(modelId);
+    syncScientificWorkspaceContext(modelId);
+    setSelectedComponentId(componentId);
+    setHighlightedComponentId(componentId);
+    setCurrentView('home');
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
+    pushRecentAction('SELECT_COMPONENT', componentId, model.components.find((component) => component.id === componentId)?.name || componentId);
+  };
+
+  const handleWorkspaceSelectMolecule = (formula: string) => {
+    if (!CHEMISTRY_DATABASE[formula]) return;
+    syncScientificWorkspaceContext(null);
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
+    sessionMolecule.closeSession();
+    setCurrentSpatialObject(null);
+    setSelectedComponentId(null);
+    setActiveLearningSession(buildChemistryLesson(formula, 'SHOW_STRUCTURE', 'SHOW_ME'));
+    changeSpatialMode('INSPECTION');
+    setCurrentView('home');
+  };
+
+  const handleWorkspaceStartChemistryLesson = (subject: string, intent?: string) => {
+    const supportedIntents: ChemistryIntent[] = [
+      'SHOW_STRUCTURE',
+      'TEACH_PROCESS',
+      'LEWIS_STRUCTURE',
+      'IONIC_BOND_FORMATION',
+      'HYBRIDIZATION',
+      'UNKNOWN',
+    ];
+    const resolvedIntent: ChemistryIntent = supportedIntents.includes(intent as ChemistryIntent)
+      ? intent as ChemistryIntent
+      : intent === 'VSEPR' || intent === 'SHOW_ME'
+        ? 'SHOW_STRUCTURE'
+        : 'TEACH_PROCESS';
+
+    sessionMolecule.closeSession();
+    setCurrentSpatialObject(null);
+    setSelectedComponentId(null);
+    setHoveredComponentId(null);
+    setHighlightedComponentId(null);
+    syncScientificWorkspaceContext(null);
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
+    setCurrentView('home');
+    setActiveLearningSession(buildChemistryLesson(subject, resolvedIntent, 'TEACH_ME'));
+    changeSpatialMode('INSPECTION');
+  };
+
+  const handleWorkspaceOpenLesson = (lessonId: string) => {
+    const lesson = LEARNING_LESSONS.find((candidate) => candidate.id === lessonId);
+    if (!lesson) return;
+
+    const keepSpatialWorkspace = Boolean(currentSpatialObject);
+    sessionMolecule.closeSession();
+    setShowInnovationLab(false);
+    setCurrentView('home');
+
+    if (keepSpatialWorkspace) {
+      // Keep the active scene and visible selection behind the lesson overlay;
+      // the lesson runner separately checks whether that selection belongs to its model.
+      const activeSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+      syncScientificWorkspaceContext(activeSpatialId || null);
+    } else {
+      setActiveLearningSession(null);
+      setSelectedComponentId(null);
+      setHoveredComponentId(null);
+      setHighlightedComponentId(null);
+      syncScientificWorkspaceContext(null);
+      changeSpatialMode('INSPECTION');
+    }
+
+    setRequestedLessonId(lessonId);
+    setShowLessonRunner(true);
+  };
+
+  const handleRestoreWorkspace = (snapshot: WorkspaceSnapshotData) => {
+    const filterKnownIds = (value: string | string[] | null): string | string[] | null => {
+      const inputIds = Array.isArray(value) ? value : value ? [value] : [];
+      const validIds = inputIds.filter((id) =>
+        Boolean(SPATIAL_LIBRARY[id])
+        && SPATIAL_LIBRARY[id].modelStatus !== 'UNAVAILABLE'
+        && SPATIAL_LIBRARY[id].modelStatus !== 'AWAITING_ASSET'
+      ).slice(0, 4);
+      if (!validIds.length) return null;
+      return Array.isArray(value) ? validIds : validIds[0];
+    };
+    const restoredSpatialObject = filterKnownIds(snapshot.currentSpatialObject);
+    const restoredSpatialId = Array.isArray(restoredSpatialObject) ? restoredSpatialObject[0] : restoredSpatialObject;
+    const restoredModel = restoredSpatialId ? SPATIAL_LIBRARY[restoredSpatialId] : null;
+    const restoredComponentId = snapshot.selectedComponentId && restoredModel?.components.some((component) => component.id === snapshot.selectedComponentId)
+      ? snapshot.selectedComponentId
+      : null;
+    const chemistryFormula = snapshot.chemistryFormula && CHEMISTRY_DATABASE[snapshot.chemistryFormula]
+      ? snapshot.chemistryFormula
+      : null;
+    const restoredLessonId = snapshot.lessonRunnerId && LEARNING_LESSONS.some((lesson) => lesson.id === snapshot.lessonRunnerId)
+      ? snapshot.lessonRunnerId
+      : null;
+    const hasChemistrySession = Boolean(chemistryFormula && snapshot.chemistrySessionMode);
+
+    if (restoredSpatialObject) syncScientificWorkspaceContext(restoredSpatialId);
+    else syncScientificWorkspaceContext(null);
+
+    if (hasChemistrySession && chemistryFormula && snapshot.chemistrySessionMode === 'LESSON') {
+      sessionMolecule.closeSession();
+      setCurrentSpatialObject(null);
+      setActiveLearningSession(buildChemistryLesson(
+        chemistryFormula,
+        snapshot.chemistryIntent || 'SHOW_STRUCTURE',
+        snapshot.chemistryLearningMode || 'SHOW_ME',
+      ));
+    } else if (hasChemistrySession && chemistryFormula && snapshot.chemistrySessionMode === 'CANONICAL') {
+      setActiveLearningSession(null);
+      setCurrentSpatialObject(null);
+      sessionMolecule.loadCanonical(chemistryFormula);
+    } else {
+      sessionMolecule.closeSession();
+      setActiveLearningSession(null);
+      setCurrentSpatialObject(restoredSpatialObject);
+    }
+
+    const validView = menuItems.some((item) => item.id === snapshot.currentView) ? snapshot.currentView : 'home';
+    setCurrentView(validView);
+    setSelectedComponentId(restoredComponentId);
+    setHoveredComponentId(null);
+    setHighlightedComponentId(restoredComponentId);
+    setIsolatedComponentId(null);
+    setHiddenComponentIds([]);
+    const restoredMode = restoredSpatialObject ? snapshot.spatialMode : 'INSPECTION';
+    setSpatialMode(restoredMode);
+    setIsExploded(Boolean(restoredSpatialObject && snapshot.isExploded));
+    setExplodedFactor(restoredSpatialObject ? Math.max(0, Math.min(1, snapshot.explodedFactor)) : 0);
+    setIsPresentationMode(Boolean(restoredSpatialObject && restoredMode === 'DEMO' && snapshot.isPresentationMode));
+    setPresentationStep(restoredSpatialObject && restoredMode === 'DEMO' ? snapshot.presentationStep : 0);
+    setXrayEnabled(snapshot.xrayEnabled);
+    setBlueprintEnabled(snapshot.blueprintEnabled && !snapshot.xrayEnabled);
+    setShowLabels(snapshot.showLabels);
+    setMeasurementMode(snapshot.measurementMode);
+    setIsEngineeringMode(snapshot.isEngineeringMode);
+    setShowInnovationLab(snapshot.showInnovationLab);
+    setIsKinematicPlaying(snapshot.isKinematicPlaying);
+    setKinematicSpeed(snapshot.kinematicSpeed);
+    setKinematicTimeOffset(snapshot.kinematicTimeOffset);
+    setV12Rpm(snapshot.v12Rpm);
+    setV12Direction(snapshot.v12Direction);
+    setV8Rpm(snapshot.v8Rpm);
+    setIsV8KinematicPlaying(snapshot.isV8KinematicPlaying);
+    setV8KinematicSpeed(snapshot.v8KinematicSpeed);
+    setV8KinematicTimeOffset(snapshot.v8KinematicTimeOffset);
+    setV8CrankAngleDeg(snapshot.v8CrankAngleDeg);
+    setIsMagnifierFocused(snapshot.isMagnifierFocused);
+    setLodTier(snapshot.lodTier);
+    setFocusedCylinder(snapshot.focusedCylinder);
+    setChargeFlowEnabled(snapshot.chargeFlowEnabled);
+    setVectorsEnabled(snapshot.vectorsEnabled);
+    setSoundEnabled(snapshot.soundEnabled);
+    setThemeColor(/^#[0-9a-f]{6}$/i.test(snapshot.themeColor) ? snapshot.themeColor : '#e20246');
+    setSpeechRate(snapshot.speechRate);
+    setHologramIntensity(snapshot.hologramIntensity);
+    setRequestedLessonId(restoredLessonId);
+    setShowLessonRunner(Boolean(snapshot.lessonRunnerOpen && restoredLessonId));
+    setWorkspaceCommandOpen(false);
+    setSavedWorkspacesOpen(false);
+    setWorkspaceSaveOpen(false);
+    pushRecentAction('WORKSPACE_RESTORED', restoredSpatialId, restoredModel?.name || (activeChemistryFormula ? (CHEMISTRY_DATABASE[activeChemistryFormula]?.name || activeChemistryFormula) : 'Saved workspace'));
+    setWorkspaceAssistantOpen(false);
+  };
+
+  const handleAskAboutWorkspace = () => {
+    const selectionLabel = workspaceSelectedComponent?.name
+      || (workspaceSelectedMoleculeAtom ? `${workspaceSelectedMoleculeAtom.element} atom` : '')
+      || (workspaceSelectedMoleculeBond ? 'selected molecular bond' : '');
+    const prompt = selectionLabel
+      ? `Explain the selected ${selectionLabel} in this workspace. Describe its role, relevant relationships and what the visible controls or analysis can tell us. Distinguish illustrative behavior from validated results.`
+      : "Explain this ADVIS workspace and how its visible controls connect to the active learning or engineering context. Distinguish illustrative behavior from validated results.";
+    void handleSendMessage(prompt);
+  };
+
+  const lessonRunnerInitialId = requestedLessonId || (currentSpatialObject === 'hydrogen_atom'
+    ? 'hydrogen-atom-probability-cloud'
+    : 'v8-four-stroke-explorer');
+  const activeLessonRunner = showLessonRunner
+    ? LEARNING_LESSONS.find((lesson) => lesson.id === lessonRunnerInitialId) || null
+    : null;
+  const lessonRunnerSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const lessonRunnerSelectedComponentId = activeLessonRunner
+    && activeLessonRunner.modelId === lessonRunnerSpatialId
+    && workspaceActiveModel?.components?.some((component) => component.id === selectedComponentId)
+      ? selectedComponentId
+      : null;
+
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
 
   return (
@@ -1746,8 +2073,47 @@ function AppContent() {
     {/* UI Layer */}
     <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
       <div className={`transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
-        <MobileNav currentView={currentView} setView={setCurrentView} />
+        <MobileNav
+          currentView={currentView}
+          setView={setCurrentView}
+          onOpenCommandPalette={() => setWorkspaceCommandOpen(true)}
+          onOpenAssistant={() => setWorkspaceAssistantOpen(true)}
+          onSaveWorkspace={() => setWorkspaceSaveOpen(true)}
+          onOpenSavedWorkspaces={() => setSavedWorkspacesOpen(true)}
+          savedWorkspaceCount={savedWorkspaceCount}
+        />
       </div>
+      {!barnDoorActive && (
+      <WorkspaceCommandCenter
+        currentView={currentView}
+        systemState={systemState}
+        isSpatial={isSpatial}
+        activeContextLabel={workspaceContextLabel}
+        selectedComponentLabel={workspaceSelectedComponentLabel}
+        currentSpatialObject={currentSpatialObject}
+        selectedComponentId={selectedComponentId}
+        messages={messages}
+        audioLevel={audioLevel}
+        snapshot={workspaceSnapshot}
+        commandOpen={workspaceCommandOpen}
+        setCommandOpen={setWorkspaceCommandOpen}
+        saveOpen={workspaceSaveOpen}
+        setSaveOpen={setWorkspaceSaveOpen}
+        savedOpen={savedWorkspacesOpen}
+        setSavedOpen={setSavedWorkspacesOpen}
+        assistantOpen={workspaceAssistantOpen}
+        setAssistantOpen={setWorkspaceAssistantOpen}
+        onNavigate={setCurrentView}
+        onSelectSpatialObject={handleWorkspaceSelectSpatialObject}
+        onSelectComponent={handleWorkspaceSelectComponent}
+        onSelectMolecule={handleWorkspaceSelectMolecule}
+        onOpenLesson={handleWorkspaceOpenLesson}
+        onRestoreWorkspace={handleRestoreWorkspace}
+        onAskAssistant={handleAskAboutWorkspace}
+        onSendMessage={(message) => { void handleSendMessage(message); }}
+        onSavedCountChange={setSavedWorkspaceCount}
+      />
+      )}
       <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
         <div className={`hidden lg:block transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
           <Sidebar currentView={currentView} setView={setCurrentView} />
@@ -1758,17 +2124,8 @@ function AppContent() {
             <div className="pointer-events-none absolute inset-0 z-20 flex items-start justify-end p-2 sm:p-3 lg:p-4">
               <ScientificLaunchpad
                 onOpenView={(view) => setCurrentView(view)}
-                onSelectMolecule={(formulaOrKey) => {
-                  sessionMolecule.closeSession();
-                  setCurrentSpatialObject(null);
-                  setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-                }}
-                onSelectSpatialObject={(objectId) => {
-                  sessionMolecule.closeSession();
-                  setActiveLearningSession(null);
-                  setCurrentSpatialObject(objectId);
-                  changeSpatialMode('INSPECTION');
-                }}
+                onSelectMolecule={handleWorkspaceSelectMolecule}
+                onSelectSpatialObject={handleWorkspaceSelectSpatialObject}
               />
             </div>
           )}
@@ -1830,12 +2187,15 @@ function AppContent() {
         blueprintEnabled={blueprintEnabled}
         onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
         onOpenEngineeringMode={() => setIsEngineeringMode(true)}
-        onOpenLessonRunner={() => setShowLessonRunner(true)}
+        onOpenLessonRunner={() => { setRequestedLessonId(null); setShowLessonRunner(true); }}
         onExitSpatial={() => {
           sessionMolecule.closeSession();
           setCurrentSpatialObject(null);
           setSelectedComponentId(null);
           setHoveredComponentId(null);
+          setHighlightedComponentId(null);
+          setCurrentView('home');
+          syncScientificWorkspaceContext(null);
           changeSpatialMode('INSPECTION');
         }}
         selectedComponentId={selectedComponentId}
@@ -1846,22 +2206,9 @@ function AppContent() {
           setCameraPermissionError(null);
           setCvEnabled(!cvEnabled);
         }}
-        onSelectMolecule={(formulaOrKey) => {
-          sessionMolecule.closeSession();
-          setCurrentSpatialObject(null);
-          setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-        }}
-        onSelectSpatialObject={(objectId, mode) => {
-          sessionMolecule.closeSession();
-          setActiveLearningSession(null);
-          setCurrentSpatialObject(objectId);
-          changeSpatialMode(mode || 'INSPECTION');
-        }}
-        onStartLesson={(subject, intent: any) => {
-          sessionMolecule.closeSession();
-          setCurrentSpatialObject(null);
-          setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
-        }}
+        onSelectMolecule={handleWorkspaceSelectMolecule}
+        onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
+        onStartLesson={(subject, intent: any) => handleWorkspaceStartChemistryLesson(subject, intent)}
         onOpenView={(view) => setCurrentView(view)}
         presentationStep={presentationStep}
         isolatedComponentId={isolatedComponentId}
@@ -1880,10 +2227,10 @@ function AppContent() {
 
     <LessonRunner
       open={showLessonRunner}
-      onClose={() => setShowLessonRunner(false)}
-      initialLessonId={currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer'}
-      selectedComponentId={selectedComponentId}
-      onOpenModel={handleOpenLessonModel}
+      onClose={() => { setShowLessonRunner(false); setRequestedLessonId(null); }}
+      initialLessonId={lessonRunnerInitialId}
+      selectedComponentId={lessonRunnerSelectedComponentId}
+      onOpenModel={handleLessonOpenModel}
       onAction={handleLessonAction}
     />
 
@@ -1971,27 +2318,16 @@ function AppContent() {
       triggerCleanSlate={() => requireBiometric(handleCleanSlate)}
       cvEnabled={cvEnabled}
       setCvEnabled={setCvEnabled}
-      onSelectMolecule={(formulaOrKey) => {
-        sessionMolecule.closeSession();
-        setCurrentSpatialObject(null);
-        setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-      }}
+      onSelectMolecule={handleWorkspaceSelectMolecule}
       onLoadMoleculeBuilder={(formulaOrKey) => {
         setActiveLearningSession(null);
         setCurrentSpatialObject(null);
+        setSelectedComponentId(null);
         sessionMolecule.loadCanonical(formulaOrKey);
+        setCurrentView('home');
       }}
-      onSelectSpatialObject={(objectId, mode) => {
-        sessionMolecule.closeSession();
-        setActiveLearningSession(null);
-        setCurrentSpatialObject(objectId);
-        changeSpatialMode(mode || 'INSPECTION');
-      }}
-      onStartLesson={(subject, intent: any) => {
-        sessionMolecule.closeSession();
-        setCurrentSpatialObject(null);
-        setActiveLearningSession(buildChemistryLesson(subject, intent || 'VSEPR', 'TEACH_ME'));
-      }}
+      onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
+      onStartLesson={(subject, intent: any) => handleWorkspaceStartChemistryLesson(subject, intent)}
       handTracking={handTracking}
       activeSpatialObject={currentSpatialObject}
       activeLearningSession={activeLearningSession}
