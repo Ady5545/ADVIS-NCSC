@@ -365,8 +365,8 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
   }, [commandOpen, saveOpen, savedOpen, assistantOpen, setCommandOpen, setSaveOpen, setSavedOpen, setAssistantOpen]);
 
   const commands = useMemo(
-    () => buildCommands(activeContextLabel, Boolean(selectedComponentId || currentSpatialObject)),
-    [activeContextLabel, selectedComponentId, currentSpatialObject],
+    () => buildCommands(activeContextLabel, Boolean(selectedComponentId || currentSpatialObject || selectedComponentLabel)),
+    [activeContextLabel, selectedComponentId, selectedComponentLabel, currentSpatialObject],
   );
   const filteredCommands = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
