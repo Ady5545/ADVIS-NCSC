@@ -578,7 +578,7 @@ export function HologramCore({
         "  vec3 p = normalize(vObjectPosition);",
         "  float flowRate = 0.72 + uActivity * 0.10 + uVoice * 0.08;",
         "  vec3 drift = vec3(uTime * 0.025, -uTime * 0.016, uTime * 0.020) * flowRate;",
-        "  vec3 flowP = vec3(p.x * 0.86 + p.z * 0.22, p.y * 1.28, p.z * 0.86 - p.x * 0.22);"
+        "  vec3 flowP = vec3(p.x * 0.86 + p.z * 0.22, p.y * 1.28, p.z * 0.86 - p.x * 0.22);",
         "  vec3 warp = vec3(",
         "    fbm(p * 2.6 + drift),",
         "    fbm(p * 2.6 + vec3(7.3, 1.7, -2.4) - drift),",
