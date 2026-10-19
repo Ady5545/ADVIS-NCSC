@@ -274,13 +274,7 @@ function AppContent() {
   const [savedWorkspaceCount, setSavedWorkspaceCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!barnDoorActive) return;
-    setWorkspaceCommandOpen(false);
-    setWorkspaceSaveOpen(false);
-    setSavedWorkspacesOpen(false);
-    setWorkspaceAssistantOpen(false);
-  }, [barnDoorActive]);
+
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
   const [cvEnabled, setCvEnabled] = useState<boolean>(false);
@@ -625,6 +619,14 @@ function AppContent() {
   };
 
   const [barnDoorActive, setBarnDoorActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!barnDoorActive) return;
+    setWorkspaceCommandOpen(false);
+    setWorkspaceSaveOpen(false);
+    setSavedWorkspacesOpen(false);
+    setWorkspaceAssistantOpen(false);
+  }, [barnDoorActive]);
   
   const [biometricActive, setBiometricActive] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
