@@ -532,7 +532,7 @@ export function HologramCore({
         "  gl_Position = projectionMatrix * mvPosition;",
         "  gl_PointSize = clamp(aSize * (300.0 / max(1.0, -mvPosition.z)) * (1.0 + uActivity * 0.18 + uVoice * 0.16), 2.6, 12.0);",
         "}",
-      ].join("\\n"),
+      ].join("\n"),
       fragmentShader: [
         "precision highp float;",
         "varying vec3 vColor;",
@@ -545,7 +545,7 @@ export function HologramCore({
         "  if (alpha < 0.012) discard;",
         "  gl_FragColor = vec4(vColor * (0.64 + hotCenter * 1.20), alpha);",
         "}",
-      ].join("\\n"),
+      ].join("\n"),
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
