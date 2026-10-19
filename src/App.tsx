@@ -1645,9 +1645,10 @@ function AppContent() {
     activeChemistryFormula, activeChemistryEntity, sessionMolecule.isSessionActive, sessionMolecule.canonicalOriginFormula,
   ]);
 
-  const handleWorkspaceSelectSpatialObject = (objectId: string) => {
+  const handleWorkspaceSelectSpatialObject = (objectId: string, mode: SpatialMode = 'INSPECTION') => {
     if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE') return;
     handleOpenLessonModel(objectId);
+    if (mode !== 'INSPECTION') changeSpatialMode(mode);
     setCurrentView('home');
   };
 
@@ -1937,8 +1938,45 @@ function AppContent() {
     {/* UI Layer */}
     <div className="absolute inset-0 z-10 flex flex-col pointer-events-none transition-opacity duration-1000 opacity-100">
       <div className={`transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
-        <MobileNav currentView={currentView} setView={setCurrentView} />
+        <MobileNav
+          currentView={currentView}
+          setView={setCurrentView}
+          onOpenCommandPalette={() => setWorkspaceCommandOpen(true)}
+          onOpenAssistant={() => setWorkspaceAssistantOpen(true)}
+          onSaveWorkspace={() => setWorkspaceSaveOpen(true)}
+          onOpenSavedWorkspaces={() => setSavedWorkspacesOpen(true)}
+          savedWorkspaceCount={savedWorkspaceCount}
+        />
       </div>
+      <WorkspaceCommandCenter
+        currentView={currentView}
+        systemState={systemState}
+        isSpatial={isSpatial}
+        activeContextLabel={workspaceContextLabel}
+        selectedComponentLabel={workspaceSelectedComponent?.name || null}
+        currentSpatialObject={currentSpatialObject}
+        selectedComponentId={selectedComponentId}
+        messages={messages}
+        audioLevel={audioLevel}
+        snapshot={workspaceSnapshot}
+        commandOpen={workspaceCommandOpen}
+        setCommandOpen={setWorkspaceCommandOpen}
+        saveOpen={workspaceSaveOpen}
+        setSaveOpen={setWorkspaceSaveOpen}
+        savedOpen={savedWorkspacesOpen}
+        setSavedOpen={setSavedWorkspacesOpen}
+        assistantOpen={workspaceAssistantOpen}
+        setAssistantOpen={setWorkspaceAssistantOpen}
+        onNavigate={setCurrentView}
+        onSelectSpatialObject={handleWorkspaceSelectSpatialObject}
+        onSelectComponent={handleWorkspaceSelectComponent}
+        onSelectMolecule={handleWorkspaceSelectMolecule}
+        onOpenLesson={handleWorkspaceOpenLesson}
+        onRestoreWorkspace={handleRestoreWorkspace}
+        onAskAssistant={handleAskAboutWorkspace}
+        onSendMessage={(message) => { void handleSendMessage(message); }}
+        onSavedCountChange={setSavedWorkspaceCount}
+      />
       <div className="flex-1 flex overflow-hidden p-2 md:p-6 gap-6 relative mt-16 lg:mt-0">
         <div className={`hidden lg:block transition-all duration-1000 ${isSpatial ? 'opacity-0 pointer-events-none -translate-x-full' : 'opacity-100 translate-x-0'}`}>
           <Sidebar currentView={currentView} setView={setCurrentView} />
@@ -1949,17 +1987,8 @@ function AppContent() {
             <div className="pointer-events-none absolute inset-0 z-20 flex items-start justify-end p-2 sm:p-3 lg:p-4">
               <ScientificLaunchpad
                 onOpenView={(view) => setCurrentView(view)}
-                onSelectMolecule={(formulaOrKey) => {
-                  sessionMolecule.closeSession();
-                  setCurrentSpatialObject(null);
-                  setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-                }}
-                onSelectSpatialObject={(objectId) => {
-                  sessionMolecule.closeSession();
-                  setActiveLearningSession(null);
-                  setCurrentSpatialObject(objectId);
-                  changeSpatialMode('INSPECTION');
-                }}
+                onSelectMolecule={handleWorkspaceSelectMolecule}
+                onSelectSpatialObject={handleWorkspaceSelectSpatialObject}
               />
             </div>
           )}
@@ -2021,7 +2050,7 @@ function AppContent() {
         blueprintEnabled={blueprintEnabled}
         onToggleBlueprint={() => setBlueprintEnabled(!blueprintEnabled)}
         onOpenEngineeringMode={() => setIsEngineeringMode(true)}
-        onOpenLessonRunner={() => setShowLessonRunner(true)}
+        onOpenLessonRunner={() => { setRequestedLessonId(null); setShowLessonRunner(true); }}
         onExitSpatial={() => {
           sessionMolecule.closeSession();
           setCurrentSpatialObject(null);
@@ -2037,17 +2066,8 @@ function AppContent() {
           setCameraPermissionError(null);
           setCvEnabled(!cvEnabled);
         }}
-        onSelectMolecule={(formulaOrKey) => {
-          sessionMolecule.closeSession();
-          setCurrentSpatialObject(null);
-          setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
-        }}
-        onSelectSpatialObject={(objectId, mode) => {
-          sessionMolecule.closeSession();
-          setActiveLearningSession(null);
-          setCurrentSpatialObject(objectId);
-          changeSpatialMode(mode || 'INSPECTION');
-        }}
+        onSelectMolecule={handleWorkspaceSelectMolecule}
+        onSelectSpatialObject={(objectId, mode) => handleWorkspaceSelectSpatialObject(objectId, mode || 'INSPECTION')}
         onStartLesson={(subject, intent: any) => {
           sessionMolecule.closeSession();
           setCurrentSpatialObject(null);
@@ -2071,8 +2091,8 @@ function AppContent() {
 
     <LessonRunner
       open={showLessonRunner}
-      onClose={() => setShowLessonRunner(false)}
-      initialLessonId={currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer'}
+      onClose={() => { setShowLessonRunner(false); setRequestedLessonId(null); }}
+      initialLessonId={requestedLessonId || (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')}
       selectedComponentId={selectedComponentId}
       onOpenModel={handleOpenLessonModel}
       onAction={handleLessonAction}
