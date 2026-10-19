@@ -53,57 +53,10 @@ function createParticleCloud(
 }
 
 
-/**
- * Builds a smooth, cloud-edged nebula body. The displacement is coherent in
- * direction-space (not per-vertex random), so it creates broad billowing lobes
- * and smaller vapor folds instead of a jagged or potato-like silhouette.
- * The same phase is shared by the body, atmosphere and corona so their contours
- * remain layered versions of one shape.
- */
-function createNebulaSilhouetteGeometry(
-  radius: number,
-  widthSegments: number,
-  heightSegments: number,
-  phase = 0.73,
-): THREE.BufferGeometry {
-  const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
-  const position = geometry.attributes.position as THREE.BufferAttribute;
-  const direction = new THREE.Vector3();
-
-  for (let i = 0; i < position.count; i++) {
-    direction.fromBufferAttribute(position, i).normalize();
-    const x = direction.x;
-    const y = direction.y;
-    const z = direction.z;
-
-    const broadCloud = Math.sin(x * 2.8 + y * 1.6 + phase)
-      * Math.cos(z * 3.2 - y * 1.7 - phase * 0.35);
-    const cloudLobes = Math.sin(x * 4.3 + z * 3.8 + phase * 1.2)
-      * Math.cos(y * 4.7 - x * 1.8 + phase * 0.6);
-    const vaporFolds = Math.sin(x * 7.2 + y * 5.3 - z * 6.8 + phase * 2.1)
-      * Math.cos(z * 5.8 - y * 4.2 + phase * 0.8);
-
-    // The broad term makes the overall silhouette irregular; finer terms
-    // shape wispy lobes without creating sharp spikes or disconnected chunks.
-    const displacement = radius * (
-      broadCloud * 0.085
-      + cloudLobes * 0.036
-      + vaporFolds * 0.014
-    );
-    const deformedRadius = radius + displacement;
-    position.setXYZ(
-      i,
-      x * deformedRadius,
-      y * deformedRadius,
-      z * deformedRadius,
-    );
-  }
-
-  position.needsUpdate = true;
-  geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
-  return geometry;
-}
+// Keep the planetary outline perfectly spherical; let the shader carry the organic nebula detail.
+const PLANET_RADIUS = 1.645;
+const ATMOSPHERE_RADIUS = 1.848;
+const CORONA_RADIUS = 1.736;
 
 interface EjectionCloud {
   geometry: THREE.BufferGeometry;
@@ -525,9 +478,10 @@ export function HologramCore({
   // Wide translucent ribbons carry the gas motion; fewer point sprites remain only as glowing condensates.
   const ejectionCloud = useMemo(() => createEjectionCloud(84), []);
   const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(30), []);
-  const planetGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.645, 144, 144), []);
-  const atmosphereGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.848, 112, 112), []);
-  const glowGeometry = useMemo(() => createNebulaSilhouetteGeometry(1.736, 96, 96), []);
+  // High-resolution true spheres preserve a clean silhouette while the shader supplies all organic cloud variation.
+  const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 160, 160), []);
+  const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(ATMOSPHERE_RADIUS, 128, 128), []);
+  const glowGeometry = useMemo(() => new THREE.SphereGeometry(CORONA_RADIUS, 112, 112), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -626,11 +580,11 @@ export function HologramCore({
         "  float cloud = fbm(p * 3.15 + (warp - 0.5) * 1.9 + drift);",
         "  float detail = fbm(p * 5.45 + (warp - 0.5) * 2.1 - drift);",
         "  float vapor = fbm(p * 8.4 + (warp - 0.5) * 3.0 + drift * 1.5);",
-        "  float clouds = smoothstep(0.29, 0.68, cloud * 0.62 + detail * 0.25 + vapor * 0.13);",
-        "  float pink = smoothstep(0.34, 0.67, warp.x * 0.60 + cloud * 0.40);",
-        "  float blue = smoothstep(0.34, 0.67, warp.z * 0.56 + cloud * 0.44);",
+        "  float clouds = smoothstep(0.31, 0.67, cloud * 0.58 + detail * 0.27 + vapor * 0.15);",
+        "  float pink = smoothstep(0.37, 0.66, warp.x * 0.58 + cloud * 0.30 + vapor * 0.12);",
+        "  float blue = smoothstep(0.36, 0.66, warp.z * 0.52 + cloud * 0.34 + detail * 0.14);",
         "  float gold = smoothstep(0.61, 0.82, warp.y * 0.58 + detail * 0.42);",
-        "  float hotCloud = pow(smoothstep(0.48, 0.70, cloud * 0.68 + detail * 0.32), 1.5) * clouds;",
+        "  float hotCloud = pow(smoothstep(0.50, 0.72, cloud * 0.58 + detail * 0.27 + vapor * 0.15), 1.45) * clouds;",
         "  float filaments = pow(1.0 - abs(sin((cloud * 1.05 + detail * 0.28 + vapor * 0.17 + warp.y * 0.22) * 6.8 + p.y * 1.4)), 4.7);",
         "  filaments *= smoothstep(0.40, 0.64, cloud);",
         "  vec3 deep = vec3(0.008, 0.009, 0.027);",
@@ -651,12 +605,14 @@ export function HologramCore({
         "  float gasSpark = pow(smoothstep(0.62, 0.88, detail), 2.4) * smoothstep(0.38, 0.66, cloud);",
         "  col += cyanGas * gasSpark * 0.32;",
         "  float flowingBands = pow(max(0.0, 1.0 - abs(sin(p.y * 7.2 + p.x * 2.4 + warp.z * 3.2 + cloud * 1.6))), 4.0) * smoothstep(0.33, 0.62, cloud);",
-        "  col += mix(nebulaBlue, hotRose, pink) * flowingBands * 0.16;",
+        "  col += mix(nebulaBlue, hotRose, pink) * flowingBands * 0.18;",
+        "  col += mix(vec3(0.16, 0.40, 1.0), vec3(1.0, 0.24, 0.57), pink) * filaments * clouds * 0.10;",
         "  vec3 normal = normalize(vNormalView);",
         "  vec3 viewDir = normalize(vViewPosition);",
         "  float planetLighting = 0.24 + 0.76 * smoothstep(-0.35, 0.70, dot(normal, normalize(vec3(-0.42, 0.30, 0.85))));",
         "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.8);",
         "  col *= planetLighting;",
+        "  col += vec3(0.10, 0.30, 0.82) * (1.0 - clouds) * 0.07 * planetLighting;",
         "  col += vec3(0.10, 0.29, 0.92) * rim * (0.46 + uActivity * 0.20);",
         "  col += vec3(0.98, 0.10, 0.38) * pow(rim, 3.4) * (0.22 + uActivity * 0.10);",
         "  col += vec3(0.20, 0.66, 1.0) * pow(rim, 5.0) * (0.58 + uVoice * 0.38);",
