@@ -1692,6 +1692,17 @@ function AppContent() {
     setCurrentView('home');
   };
 
+  const handleLessonOpenModel = (modelId: string) => {
+    const model = SPATIAL_LIBRARY[modelId];
+    if (!model || model.modelStatus === 'UNAVAILABLE' || model.modelStatus === 'AWAITING_ASSET') return;
+    // LessonRunner calls this when its declared lesson model is needed. Keep the
+    // runner and its progress open while switching the scene underneath it.
+    handleOpenLessonModel(modelId);
+    syncScientificWorkspaceContext(modelId);
+    setShowInnovationLab(false);
+    setCurrentView('home');
+  };
+
   const handleWorkspaceSelectComponent = (modelId: string, componentId: string) => {
     const model = SPATIAL_LIBRARY[modelId];
     if (!model || model.modelStatus === 'UNAVAILABLE' || !model.components.some((component) => component.id === componentId)) return;
@@ -2219,7 +2230,7 @@ function AppContent() {
       onClose={() => { setShowLessonRunner(false); setRequestedLessonId(null); }}
       initialLessonId={lessonRunnerInitialId}
       selectedComponentId={lessonRunnerSelectedComponentId}
-      onOpenModel={handleWorkspaceSelectSpatialObject}
+      onOpenModel={handleLessonOpenModel}
       onAction={handleLessonAction}
     />
 
