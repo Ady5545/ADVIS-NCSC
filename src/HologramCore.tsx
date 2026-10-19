@@ -453,6 +453,7 @@ export function HologramCore({
   const nebulaVolumeRef = useRef<THREE.Mesh>(null);
   const volumeCameraWorldRef = useRef(new THREE.Vector3());
   const volumeCameraLocalRef = useRef(new THREE.Vector3());
+  const volumeDrawingBufferRef = useRef(new THREE.Vector2());
   const volumeStateModeRef = useRef(0.08);
   const volumeListeningRef = useRef(0);
   const volumeErrorRef = useRef(0);
@@ -1038,7 +1039,20 @@ export function HologramCore({
       volumeCameraLocalRef.current.copy(volumeCameraWorldRef.current);
       nebulaVolumeRef.current.worldToLocal(volumeCameraLocalRef.current);
       materials.nebulaVolume.uniforms.uCameraLocal.value.copy(volumeCameraLocalRef.current);
-      materials.nebulaVolume.uniforms.uSteps.value = state.gl.getPixelRatio() > 1.45 ? 16 : 22;
+
+      // Bound total fragment work on retina/mobile and large desktop canvases.
+      // Reuse the target vector to avoid allocations inside the frame loop.
+      state.gl.getDrawingBufferSize(volumeDrawingBufferRef.current);
+      const drawingBufferPixels = volumeDrawingBufferRef.current.x * volumeDrawingBufferRef.current.y;
+      const pixelRatio = state.gl.getPixelRatio();
+      const sampleBudget = pixelRatio > 1.45 || drawingBufferPixels > 2_200_000
+        ? 12
+        : drawingBufferPixels > 1_100_000
+          ? 14
+          : drawingBufferPixels > 500_000
+            ? 16
+            : 18;
+      materials.nebulaVolume.uniforms.uSteps.value = sampleBudget;
     }
 
     if (nucleusRef.current) {
