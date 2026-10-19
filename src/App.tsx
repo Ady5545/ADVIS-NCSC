@@ -1589,12 +1589,15 @@ function AppContent() {
   const workspaceActiveSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
   const workspaceActiveModel = workspaceActiveSpatialId ? SPATIAL_LIBRARY[workspaceActiveSpatialId] : null;
   const workspaceSelectedComponent = workspaceActiveModel?.components?.find((component) => component.id === selectedComponentId) || null;
-  const activeChemistryEntity = (activeLearningSession as any)?.context?.entity || null;
-  const activeChemistryFormula = typeof activeChemistryEntity?.formula === 'string'
-    ? activeChemistryEntity.formula
+  const activeChemistryEntity = activeLearningSession?.context?.entity || null;
+  const activeChemistryFormula = typeof activeChemistryEntity === 'string' && CHEMISTRY_DATABASE[activeChemistryEntity]
+    ? activeChemistryEntity
     : (sessionMolecule.canonicalOriginFormula || null);
+  const activeChemistryName = typeof activeChemistryEntity === 'string'
+    ? (CHEMISTRY_DATABASE[activeChemistryEntity]?.name || activeChemistryEntity)
+    : '';
   const workspaceContextLabel = workspaceActiveModel?.name
-    || (typeof activeChemistryEntity?.name === 'string' ? activeChemistryEntity.name : '')
+    || activeChemistryName
     || (sessionMolecule.isSessionActive ? `Molecular builder · ${sessionMolecule.canonicalOriginFormula || 'custom structure'}` : '')
     || (currentView === 'home' ? 'Home workspace' : 'No active selection');
   const workspaceSnapshot = useMemo<WorkspaceSnapshotData>(() => ({
@@ -1632,9 +1635,13 @@ function AppContent() {
     speechRate,
     hologramIntensity,
     lessonRunnerOpen: showLessonRunner,
-    lessonRunnerId: requestedLessonId,
+    lessonRunnerId: requestedLessonId || (showLessonRunner
+      ? (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')
+      : null),
     chemistryFormula: activeChemistryFormula,
     chemistrySessionMode: activeChemistryEntity ? 'LESSON' : (sessionMolecule.isSessionActive && sessionMolecule.canonicalOriginFormula ? 'CANONICAL' : null),
+    chemistryIntent: activeLearningSession?.context?.intent || null,
+    chemistryLearningMode: activeLearningSession?.mode || null,
   }), [
     currentView, currentSpatialObject, selectedComponentId, spatialMode, isExploded, isPresentationMode,
     presentationStep, explodedFactor, xrayEnabled, blueprintEnabled, showLabels, measurementMode,
@@ -1660,6 +1667,9 @@ function AppContent() {
     if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE' || SPATIAL_LIBRARY[objectId].modelStatus === 'AWAITING_ASSET') return;
     handleOpenLessonModel(objectId);
     syncScientificWorkspaceContext(objectId);
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
     if (mode !== 'INSPECTION') changeSpatialMode(mode);
     setCurrentView('home');
   };
@@ -1681,6 +1691,9 @@ function AppContent() {
   const handleWorkspaceSelectMolecule = (formula: string) => {
     if (!CHEMISTRY_DATABASE[formula]) return;
     syncScientificWorkspaceContext(null);
+    setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
     sessionMolecule.closeSession();
     setCurrentSpatialObject(null);
     setSelectedComponentId(null);
@@ -1711,6 +1724,8 @@ function AppContent() {
     setHighlightedComponentId(null);
     syncScientificWorkspaceContext(null);
     setShowInnovationLab(false);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
     setCurrentView('home');
     setActiveLearningSession(buildChemistryLesson(subject, resolvedIntent, 'TEACH_ME'));
     changeSpatialMode('INSPECTION');
@@ -1735,7 +1750,11 @@ function AppContent() {
   const handleRestoreWorkspace = (snapshot: WorkspaceSnapshotData) => {
     const filterKnownIds = (value: string | string[] | null): string | string[] | null => {
       const inputIds = Array.isArray(value) ? value : value ? [value] : [];
-      const validIds = inputIds.filter((id) => Boolean(SPATIAL_LIBRARY[id]) && SPATIAL_LIBRARY[id].modelStatus !== 'UNAVAILABLE').slice(0, 4);
+      const validIds = inputIds.filter((id) =>
+        Boolean(SPATIAL_LIBRARY[id])
+        && SPATIAL_LIBRARY[id].modelStatus !== 'UNAVAILABLE'
+        && SPATIAL_LIBRARY[id].modelStatus !== 'AWAITING_ASSET'
+      ).slice(0, 4);
       if (!validIds.length) return null;
       return Array.isArray(value) ? validIds : validIds[0];
     };
@@ -1759,7 +1778,11 @@ function AppContent() {
     if (hasChemistrySession && chemistryFormula && snapshot.chemistrySessionMode === 'LESSON') {
       sessionMolecule.closeSession();
       setCurrentSpatialObject(null);
-      setActiveLearningSession(buildChemistryLesson(chemistryFormula, 'SHOW_STRUCTURE', 'SHOW_ME'));
+      setActiveLearningSession(buildChemistryLesson(
+        chemistryFormula,
+        snapshot.chemistryIntent || 'SHOW_STRUCTURE',
+        snapshot.chemistryLearningMode || 'SHOW_ME',
+      ));
     } else if (hasChemistrySession && chemistryFormula && snapshot.chemistrySessionMode === 'CANONICAL') {
       setActiveLearningSession(null);
       setCurrentSpatialObject(null);
