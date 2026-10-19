@@ -35,6 +35,8 @@ jobs:
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Validate serverless API syntax
         run: node --check api/advis.js && node --check api/history.js
