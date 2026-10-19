@@ -114,11 +114,11 @@ export function ScientificLaunchpad({
           onClick={() => setIsExpanded(true)}
           aria-label="Open ADVIS explorer"
           aria-expanded={false}
-          className="flex items-center gap-2.5 rounded-full border border-slate-300/80 bg-white/95 px-4 py-3 text-left text-sm font-semibold text-slate-800 shadow-[0_8px_26px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-rose-300 hover:bg-white focus-visible:outline-offset-4"
+          className="flex items-center gap-2.5 rounded-full border border-white/12 bg-[#101014]/92 px-4 py-3 text-left text-sm font-semibold text-[#f3f3f5] shadow-[0_10px_30px_rgba(0,0,0,0.58)] backdrop-blur-2xl transition hover:border-[#e20246]/60 hover:bg-[#171116] focus-visible:outline-offset-4"
         >
           <span className="advis-icon-surface h-8 w-8 shrink-0"><Sparkles size={15} aria-hidden="true" /></span>
           <span>Explore ADVIS</span>
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-500">5 spaces</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-slate-400">5 spaces</span>
           <ArrowRight size={15} className="text-rose-500" aria-hidden="true" />
         </button>
       </div>
@@ -128,7 +128,7 @@ export function ScientificLaunchpad({
   return (
     <section
       aria-label="ADVIS home workspace"
-      className="pointer-events-auto custom-scrollbar flex w-[min(25rem,calc(100vw-1.5rem))] max-h-[calc(100dvh-6.5rem)] flex-col gap-3 overflow-y-auto rounded-2xl border border-slate-300/80 bg-white/94 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:w-[min(25rem,34vw)] sm:gap-3.5 sm:p-4"
+      className="pointer-events-auto custom-scrollbar flex w-[min(25rem,calc(100vw-1.5rem))] max-h-[calc(100dvh-6.5rem)] flex-col gap-3 overflow-y-auto rounded-2xl border border-white/12 bg-[#0c0c10]/92 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.62)] backdrop-blur-2xl sm:w-[min(25rem,34vw)] sm:gap-3.5 sm:p-4"
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -136,10 +136,10 @@ export function ScientificLaunchpad({
             <Sparkles size={12} aria-hidden="true" />
             <span>ADVIS · Spatial intelligence</span>
           </div>
-          <h1 className="text-balance text-lg font-semibold tracking-tight text-[#172b4d] sm:text-xl">
+          <h1 className="text-balance text-lg font-semibold tracking-tight text-[#f3f3f5] sm:text-xl">
             One Core. Every scientific world.
           </h1>
-          <p className="mt-1 text-xs leading-5 text-slate-600">
+          <p className="mt-1 text-xs leading-5 text-slate-300">
             Pick a destination; the Core stays in view.
           </p>
         </div>
@@ -147,7 +147,7 @@ export function ScientificLaunchpad({
           type="button"
           onClick={() => setIsExpanded(false)}
           aria-label="Collapse explorer"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-rose-300 hover:text-rose-600 focus-visible:outline-offset-2"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-[#e20246]/70 hover:bg-[#e20246]/10 hover:text-white focus-visible:outline-offset-2"
         >
           <X size={15} aria-hidden="true" />
         </button>
@@ -162,17 +162,17 @@ export function ScientificLaunchpad({
               type="button"
               onClick={() => onOpenView(destination.view)}
               aria-label={destination.title}
-              className="group flex min-h-[58px] items-center gap-3 rounded-2xl border border-slate-300/90 bg-white/90 px-2.5 py-2 text-left shadow-[0_4px_12px_rgba(0,0,0,0.10)] transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-rose-300 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.16)] focus-visible:outline-offset-2 sm:px-3"
+              className="group flex min-h-[58px] items-center gap-3 rounded-2xl border border-white/10 bg-[#17171c]/84 px-2.5 py-2 text-left shadow-[0_5px_16px_rgba(0,0,0,0.28)] transition-[background,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-[#e20246]/55 hover:bg-[#211116]/95 hover:shadow-[0_9px_24px_rgba(0,0,0,0.38)] focus-visible:outline-offset-2 sm:px-3"
             >
               <span className="advis-icon-surface flex h-9 w-9 shrink-0 items-center justify-center transition-transform group-hover:scale-[1.04]">
                 <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-[13px] font-semibold text-slate-800">{destination.title}</span>
+                  <span className="text-[13px] font-semibold text-slate-100">{destination.title}</span>
                   <ArrowRight size={13} className="shrink-0 text-rose-400 transition-transform group-hover:translate-x-0.5 group-hover:text-rose-600" aria-hidden="true" />
                 </span>
-                <span className="mt-0.5 block text-[10px] leading-4 text-slate-500 sm:text-[11px]">{destination.description}</span>
+                <span className="mt-0.5 block text-[10px] leading-4 text-slate-400 sm:text-[11px]">{destination.description}</span>
               </span>
               <span className="hidden shrink-0 text-[8px] font-semibold tracking-[0.1em] text-slate-400 2xl:block">{destination.category}</span>
             </button>
@@ -181,17 +181,17 @@ export function ScientificLaunchpad({
       </div>
 
       {directStarts.length > 0 && (
-        <div className="rounded-xl border border-slate-200/90 bg-slate-50/85 p-2.5">
+        <div className="rounded-xl border border-white/10 bg-[#121216]/80 p-2.5">
           <button
             type="button"
             aria-expanded={showQuickStarts}
             aria-controls="advis-quick-starts"
             onClick={() => setShowQuickStarts((open) => !open)}
-            className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1 text-left text-xs font-semibold text-slate-800 transition hover:text-rose-600 focus-visible:outline-offset-2"
+            className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1 text-left text-xs font-semibold text-slate-100 transition hover:text-rose-300 focus-visible:outline-offset-2"
           >
             <span>Quick starts</span>
             <span className="flex items-center gap-2">
-              <span className="text-[10px] font-normal text-slate-500">Models & molecules</span>
+              <span className="text-[10px] font-normal text-slate-400">Models & molecules</span>
               {showQuickStarts ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
             </span>
           </button>
@@ -206,7 +206,7 @@ export function ScientificLaunchpad({
                     if (item.type === 'molecule') onSelectMolecule(item.id);
                     else onSelectSpatialObject(item.id);
                   }}
-                  className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-left text-[11px] font-medium text-slate-800 transition-[color,border-color,background-color,box-shadow] hover:border-rose-300 hover:bg-rose-50/70 hover:text-rose-800 hover:shadow-sm focus-visible:outline-offset-2"
+                  className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-white/12 bg-[#1b1b21] px-2.5 py-1.5 text-left text-[11px] font-medium text-slate-100 transition-[color,border-color,background-color,box-shadow] hover:border-[#e20246]/55 hover:bg-[#2a1119] hover:text-rose-100 hover:shadow-sm focus-visible:outline-offset-2"
                 >
                   {item.type === 'molecule' ? (
                     <Atom size={12} className="shrink-0 text-blue-600" aria-hidden="true" />
@@ -221,7 +221,7 @@ export function ScientificLaunchpad({
         </div>
       )}
 
-      <p className="text-center text-[10px] leading-4 text-slate-500">
+      <p className="text-center text-[10px] leading-4 text-slate-400">
         You can also ask ADVIS using the command dock below.
       </p>
     </section>
