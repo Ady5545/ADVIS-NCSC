@@ -144,15 +144,39 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
             cos(p.x * 1.6 + uTime * 0.08)
           ) * (0.20 + uStateMode * 0.035);
 
-          float broad = noise3((p + warp) * 2.20 + drift);
-          float detail = noise3((p + warp * 1.65) * 4.65
-            + vec3(3.1, -2.7, 6.4) - drift * 1.35);
+          // Stretch the cloud field along a dominant flow direction. This turns
+          // round, disconnected blobs into overlapping billows and long vapor
+          // structures without deforming the planet or drawing rigid ribbons.
+          vec3 flowAxis = normalize(vec3(0.54, 0.37, 0.76));
+          vec3 flowTangent = normalize(vec3(-0.815, 0.0, 0.58));
+          vec3 flowBitangent = normalize(cross(flowAxis, flowTangent));
+          vec3 warpedPoint = p + warp;
+          vec3 flowPoint = vec3(
+            dot(warpedPoint, flowAxis),
+            dot(warpedPoint, flowTangent),
+            dot(warpedPoint, flowBitangent)
+          );
+          vec3 flowDrift = vec3(
+            dot(drift, flowAxis),
+            dot(drift, flowTangent),
+            dot(drift, flowBitangent)
+          );
+
+          // Lower axial frequency makes the masses longer along the flow;
+          // the finer field erodes their edges into curling, translucent wisps.
+          float broad = noise3(flowPoint * vec3(1.35, 2.05, 2.05) + flowDrift);
+          float detail = noise3(flowPoint * vec3(2.45, 4.40, 4.40)
+            + vec3(3.1, -2.7, 6.4) - flowDrift * 1.35);
           float filament = pow(max(0.0, 1.0 - abs(sin(
-            (broad * 0.92 + detail * 0.43 + p.y * 0.14) * 7.2 + p.x * 1.45
+            (broad * 0.92 + detail * 0.43 + dot(p, flowBitangent) * 0.14) * 7.2
+              + dot(p, flowAxis) * 1.45
           ))), 4.0);
 
           float cloudField = broad * 0.66 + detail * 0.34 + filament * 0.045;
-          float cloudDensity = pow(smoothstep(0.455, 0.705, cloudField), 1.15);
+          float cloudMass = pow(smoothstep(0.455, 0.705, cloudField), 1.15);
+          float filamentDensity = pow(max(0.0, filament - 0.52), 2.0)
+            * 0.18 * smoothstep(0.43, 0.62, broad);
+          float cloudDensity = max(cloudMass, filamentDensity);
 
           // Fade both boundaries softly; density is broken up by the field,
           // leaving dark negative space instead of a uniformly filled sphere.
