@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Box, Cylinder, RoundedBox, Sphere, Torus, Tube } from '@react-three/drei';
 import type { AdvancedEngineeringModelProps } from './AdvancedEngineeringModels';
+import { V8_BANK_ANGLE as BANK, V8_CYLINDER_Z as Z, V8_THROW_PHASES as THROW_PHASES, resolveV8PistonKinematics, resolveV8ValveLift } from '../scientific/V8Kinematics';
 
 type State = AdvancedEngineeringModelProps & {
   crankAngleRef?: React.MutableRefObject<number> | null;
@@ -11,11 +12,7 @@ type State = AdvancedEngineeringModelProps & {
   v8Rpm?: number;
 };
 
-const BANK = Math.PI / 4;
-const Z = [-0.78, -0.26, 0.26, 0.78] as const;
-// A conventional 90-degree cross-plane layout has four crank throws in crossed planes.
-// This is a representative educational assembly, not an OEM-specific engine drawing.
-const THROW_PHASES = [0, Math.PI / 2, -Math.PI / 2, Math.PI] as const;
+// Shared bank, bore and throw references keep the renderer aligned with the V8 telemetry HUD.
 
 function M({
   state,
@@ -331,23 +328,16 @@ function V8MovingCylinder({
 }) {
   const pistonRef = useRef<THREE.Group>(null);
   const rodRef = useRef<THREE.Group>(null);
-  const crankRadius = 0.108;
-  const rodLength = 0.32;
-  const crankAxisOffset = -0.325;
 
   useFrame(() => {
-    // Transform the global crank throw into this bank's local coordinate frame.
-    // Bank A is rotated +45 degrees, Bank B -45 degrees in its parent transform.
-    const localThrowAngle = (state.crankAngleRef?.current ?? 0) + THROW_PHASES[index] + side * BANK;
-    const crankX = crankRadius * Math.cos(localThrowAngle);
-    const crankY = crankAxisOffset + crankRadius * Math.sin(localThrowAngle);
-    const verticalRodLength = Math.sqrt(Math.max(0.0001, rodLength * rodLength - crankX * crankX));
-    const pistonY = crankY + verticalRodLength;
+    // Keep the piston TDC positions synchronized with the example firing order in the HUD.
+    const motion = resolveV8PistonKinematics(state.crankAngleRef?.current ?? 0, side, index);
+    const { crankX, crankY, pistonY, rodAngle } = motion;
 
     if (pistonRef.current) pistonRef.current.position.y = pistonY;
     if (rodRef.current) {
       rodRef.current.position.set(crankX * 0.5, (pistonY + crankY) * 0.5, 0);
-      rodRef.current.rotation.z = Math.atan2(crankX, verticalRodLength);
+      rodRef.current.rotation.z = rodAngle;
     }
   });
 
@@ -405,10 +395,8 @@ function V8ValveAssembly({
 
   useFrame(() => {
     const crankAngle = state.crankAngleRef?.current ?? 0;
-    const phase = THROW_PHASES[index] + (valveIndex === 0 ? 0.4 : 2.05) + (side < 0 ? 0 : 0.22);
-    // A smooth phase-linked demonstration curve, not OEM valve-timing data.
-    const camAngle = crankAngle * 0.5 + phase;
-    const lift = Math.max(0, Math.sin(camAngle)) ** 1.4 * 0.027;
+    // Valve lift follows the same 720-degree cylinder cycle as the HUD's firing reference.
+    const lift = resolveV8ValveLift(crankAngle, side, index, valveIndex);
 
     // Valve opens down toward the combustion chamber. Keep the spring seat fixed and
     // compress the visible coil stack progressively toward the moving retainer.
