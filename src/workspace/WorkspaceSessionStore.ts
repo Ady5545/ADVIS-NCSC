@@ -127,7 +127,9 @@ function normalizeSnapshot(raw: unknown): WorkspaceSnapshotData | null {
     chargeFlowEnabled: safeBool(raw.chargeFlowEnabled, true),
     vectorsEnabled: safeBool(raw.vectorsEnabled),
     soundEnabled: safeBool(raw.soundEnabled, true),
-    themeColor: safeString(raw.themeColor, '#e20246', 40) || '#e20246',
+    themeColor: /^#[0-9a-f]{6}$/i.test(typeof raw.themeColor === 'string' ? raw.themeColor : '')
+      ? raw.themeColor as string
+      : '#e20246',
     speechRate: finiteNumber(raw.speechRate, 1.05, 0.5, 2),
     hologramIntensity: finiteNumber(raw.hologramIntensity, 1, 0.1, 1.5),
     lessonRunnerOpen: safeBool(raw.lessonRunnerOpen),
@@ -196,7 +198,9 @@ export function saveWorkspace(name: string, snapshot: WorkspaceSnapshotData): {
     };
     const next = [saved, ...readSavedWorkspaces()].slice(0, MAX_SAVED_WORKSPACES);
     storage.setItem(STORAGE_KEY, JSON.stringify(next.map((entry) => ({
-      ...entry,
+      id: entry.id,
+      name: entry.name,
+      savedAt: entry.savedAt,
       schemaVersion: SCHEMA_VERSION,
       snapshot: normalizeSnapshot(entry),
     }))));
