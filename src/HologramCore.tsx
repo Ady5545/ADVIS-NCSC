@@ -254,7 +254,7 @@ function createNebulaMaterial(accent: THREE.Color, opacity = 1): THREE.ShaderMat
   });
 }
 
-export function HologramCore({
+export function NebulaPlanet({
   systemState,
   audioLevel,
   bass = 0,
@@ -462,3 +462,6 @@ export function HologramCore({
     </group>
   );
 }
+
+// Keep the established import stable while naming the actual visual what it now is.
+export const HologramCore = NebulaPlanet;
