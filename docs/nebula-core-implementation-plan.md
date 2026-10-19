@@ -10,17 +10,23 @@
 
 ## Delivery checkpoints
 
-- **Checkpoint 1 — first 50% (Phases 1–3):** implement the bounded volume renderer, integrate it with the existing core, and refine the cloud field while preserving enough legacy tendrils for comparison. Stop after this checkpoint for user preview/review.
-- **Checkpoint 2 — remaining 50% (Phases 4–6):** lighting/composition, deeper state-response tuning, performance and rendered-preview verification. Do not begin this checkpoint until the user explicitly approves after reviewing Checkpoint 1.
-- Existing state/audio uniforms remain connected where already present; this checkpoint does not expand the later state-response phase.
+- **Checkpoint 1 — first 50% (Phases 1–3):** completed and reviewed by the user as looking good.
+- **Checkpoint 2 — remaining 50% (Phases 4–6):** now implemented in the same draft PR; final CI and preview checks are in progress.
+- Production promotion and merge are still prohibited without explicit user approval.
 
 ## Checkpoint 1 progress
 
-- **Phase 1 — implemented, visual review pending:** src/NebulaVolume.ts uses a bounded spherical proxy, conservative front-to-back integration, early termination, and clips sampling at the near-side inner-core intersection. Its cloud field now uses anisotropic flow coordinates and sparse filament density to avoid only round, isolated blobs.
-- **Phase 2 — integrated, visual review pending:** one volume mesh is driven through existing per-frame uniforms; camera-local coordinates are reused, render order is explicit, disposal is wired, and ray-march sample count adapts to drawing-buffer size/DPI.
-- **Phase 3 — first density pass implemented, visual review pending:** the volume has elongated cloud banks and broken filaments; existing gas sheets are down to 20 and 46 condensate points remain. No further ribbon/particle reduction until the preview has been reviewed.
-- No production promotion or merge has occurred. The current work remains in draft PR #53.
-- The latest two shader/integration refinement commits have not yet completed CI; the current run must be checked before this checkpoint is considered ready to inspect.
+- **Phase 1 — implemented:** bounded spherical proxy, fixed-budget front-to-back ray march, early termination, near-side inner-core clipping, and integrated colour/transmittance.
+- **Phase 2 — implemented:** one volume mesh uses existing frame signals; camera-local coordinates are reused; render order and disposal are explicit; sample count adapts to drawing-buffer size and DPI.
+- **Phase 3 — implemented for the review checkpoint:** anisotropic flow coordinates stretch cloud masses; sparse filament density and broken edges provide negative space; 20 supporting gas sheets and 46 condensates remain for comparison.
+
+## Checkpoint 2 progress
+
+- **Phase 4 — implemented:** a tighter planet terminator and deeper violet shadow fill; directional volume shading and restrained blue-to-rose limb light improve separation without changing camera framing or deforming the sphere.
+- **Phase 5 — implemented:** smoothed state weights now distinguish listening, thinking/analyzing, searching, speaking, and error. They modulate the existing volume uniforms: listening adds a subtle cyan rim, thinking increases turbulence, searching increases drift and outward condensate travel, speaking adds restrained filament response, and error shifts gas toward red. All weights are damped rather than switched abruptly.
+- **Phase 6 — validation in progress:** TypeScript validation has passed on the latest code commit; the Vite build is running, with browser smoke tests queued afterward. Adaptive sampling is capped between 12 and 18 steps for the current display paths (with the shader's hard cap remaining 24).
+- Browser smoke tests previously had three known app-shell/theme failures. The new run must be reviewed separately rather than described as fully green. The latest preview must also be visually checked after the current deployment completes; the assistant has not independently inspected a screenshot of this latest build.
+- No production promotion or merge has occurred. The work remains in draft PR #53.
 
 ## Baseline
 
