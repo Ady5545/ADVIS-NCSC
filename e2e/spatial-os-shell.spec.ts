@@ -108,7 +108,7 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
     return { background: style.backgroundColor, text: style.color };
   });
   expect(explorerSurface.background).not.toContain('255, 255, 255');
-  const explorerTextChannels = explorerSurface.text.match(/\\d+/g)?.map(Number) ?? [];
+  const explorerTextChannels = explorerSurface.text.match(/\d+/g)?.map(Number) ?? [];
   expect(explorerTextChannels).toHaveLength(3);
   expect(Math.min(...explorerTextChannels)).toBeGreaterThan(160);
 
@@ -126,4 +126,51 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
   await quickStarts.click();
   await expect(page.getByRole('button', { name: 'Four-stroke engine' })).toBeVisible();
   await expect(page.locator('canvas').first()).toBeVisible();
+});
+
+
+test('universal workspace search opens with Ctrl+K and searches existing catalogue entries', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+
+  await page.keyboard.press('Control+k');
+  const searchDialog = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
+  await expect(searchDialog).toBeVisible();
+
+  const search = searchDialog.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i);
+  await search.fill('Water');
+  await expect(searchDialog.getByRole('button', { name: /Water · H₂O/i })).toBeVisible();
+  await expect(searchDialog.getByText('Nothing matched that search')).toHaveCount(0);
+
+  await page.keyboard.press('Escape');
+  await expect(searchDialog).toHaveCount(0);
+});
+
+test('workspace snapshot can be saved, resumed and deleted locally', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+
+  await page.getByRole('button', { name: 'Save workspace', exact: true }).click();
+  const saveDialog = page.getByRole('dialog', { name: 'Save this workspace' });
+  await expect(saveDialog).toBeVisible();
+  await saveDialog.getByLabel('Workspace name').fill('Unified workspace smoke test');
+  await saveDialog.getByRole('button', { name: 'Save session' }).click();
+  await expect(page.getByRole('status')).toContainText('Saved');
+
+  await page.getByRole('navigation', { name: 'Workspace navigation' }).getByRole('button', { name: /^Lessons$/i }).click();
+  await page.getByRole('button', { name: /Saved/i }).first().click();
+
+  const savedDialog = page.getByRole('dialog', { name: 'Saved workspaces' });
+  await expect(savedDialog).toBeVisible();
+  const savedItem = savedDialog.getByRole('button', { name: /Unified workspace smoke test/ });
+  await expect(savedItem).toBeVisible();
+  await savedDialog.getByRole('button', { name: 'Restore saved workspace Unified workspace smoke test' }).click();
+  await expect(savedDialog).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'ADVIS home workspace' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Saved/i }).first().click();
+  const restoredList = page.getByRole('dialog', { name: 'Saved workspaces' });
+  await expect(restoredList.getByRole('button', { name: /Unified workspace smoke test/ })).toBeVisible();
+  await restoredList.getByRole('button', { name: 'Delete saved workspace Unified workspace smoke test' }).click();
+  await expect(restoredList.getByRole('button', { name: /Unified workspace smoke test/ })).toHaveCount(0);
 });
