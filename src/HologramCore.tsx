@@ -491,7 +491,6 @@ export function HologramCore({
       side: THREE.FrontSide,
     }),
     coreGlow: new THREE.MeshBasicMaterial({ color: '#ff477f', transparent: true, opacity: 0.20, blending: THREE.AdditiveBlending, depthWrite: false }),
-    coreHighlight: new THREE.MeshBasicMaterial({ color: '#fff0f5', transparent: true, opacity: 0.20, blending: THREE.AdditiveBlending, depthWrite: false }),
     shellInner: new THREE.MeshBasicMaterial({ color: '#a7ddff', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
     shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
     halo: new THREE.MeshBasicMaterial({ color: '#2869e8', transparent: true, opacity: 0.038, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }),
@@ -816,7 +815,6 @@ export function HologramCore({
       <Sphere ref={haloRef} args={[1.42, 48, 48]} material={materials.halo} />
       <Sphere ref={nucleusGlowRef} args={[1.03, 56, 56]} material={materials.coreGlow} />
       <Sphere ref={nucleusRef} args={[0.82, 80, 80]} material={materials.core} />
-      <Sphere args={[0.11, 48, 48]} material={materials.coreHighlight} />
 
       {/* One very quiet geodesic layer remains; the harsh outer polyhedron is gone. */}
       <Icosahedron ref={innerShellRef} args={[1.28, 2]} material={materials.shellInner} />
@@ -828,7 +826,7 @@ export function HologramCore({
         ))}
       </group>
 
-      {/* A few full 3D rings frame the sphere without slicing across its face. */}
+      {/* Round ambient stars sit behind the Core; the soft animated points flow outward from its surface. */}
       <Points ref={outerParticlesRef} positions={outerParticles} stride={3} frustumCulled={false}>
         <primitive object={materials.particles} attach="material" />
       </Points>
