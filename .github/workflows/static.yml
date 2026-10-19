@@ -7,9 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: "advis-validation-${{ github.ref }}"
@@ -31,12 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
-
-      - name: Configure GitHub Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Validate serverless API syntax
         run: node --check api/advis.js && node --check api/history.js
@@ -91,26 +83,11 @@ jobs:
       - name: Run browser startup and narrow-viewport smoke tests
         run: npm run test:e2e
 
-      - name: Upload GitHub Pages artifact
+      - name: Publish static site to gh-pages branch
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-
-  deploy:
-    name: Publish GitHub Pages site
-    needs: validate
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-      contents: read
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
