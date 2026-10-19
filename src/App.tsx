@@ -1669,6 +1669,25 @@ function AppContent() {
     }
   };
 
+  const handleWorkspaceNavigate = (viewId: string) => {
+    const nextView = menuItems.some((item) => item.id === viewId) ? viewId : 'home';
+
+    // Leaving a spatial or learning context must be a real transition, not just a tab-label change over an active scene.
+    sessionMolecule.closeSession();
+    setCurrentSpatialObject(null);
+    setActiveLearningSession(null);
+    setSelectedComponentId(null);
+    setHoveredComponentId(null);
+    setHighlightedComponentId(null);
+    setIsolatedComponentId(null);
+    setHiddenComponentIds([]);
+    setShowLessonRunner(false);
+    setRequestedLessonId(null);
+    setShowInnovationLab(false);
+    syncScientificWorkspaceContext(null);
+    changeSpatialMode('INSPECTION');
+    setCurrentView(nextView);
+  };
   const handleWorkspaceSelectSpatialObject = (objectId: string, mode: SpatialMode = 'INSPECTION') => {
     if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE' || SPATIAL_LIBRARY[objectId].modelStatus === 'AWAITING_ASSET') return;
     handleOpenLessonModel(objectId);
@@ -2336,7 +2355,7 @@ function AppContent() {
         setSavedOpen={setSavedWorkspacesOpen}
         assistantOpen={workspaceAssistantOpen}
         setAssistantOpen={setWorkspaceAssistantOpen}
-        onNavigate={setCurrentView}
+        onNavigate={handleWorkspaceNavigate}
         onSelectSpatialObject={handleWorkspaceSelectSpatialObject}
         onSelectComponent={handleWorkspaceSelectComponent}
         onSelectMolecule={handleWorkspaceSelectMolecule}
