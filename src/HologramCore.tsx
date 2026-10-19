@@ -171,13 +171,16 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
     const bitangent = new THREE.Vector3().crossVectors(axis, tangent).normalize();
     const phase = random() * TAU;
     const flowAngle = THREE.MathUtils.lerp(0.52, 1.55, random()) * (random() < 0.5 ? -1 : 1);
-    const outwardDistance = THREE.MathUtils.lerp(0.40, 1.325, random());
-    const broadRibbon = random() < 0.22;
+    // Most wisps stay close to the surface; a smaller set becomes long, loose tendrils.
+    const outwardDistance = random() < 0.18
+      ? THREE.MathUtils.lerp(1.10, 1.58, random())
+      : THREE.MathUtils.lerp(0.32, 0.98, random());
+    const broadRibbon = random() < 0.12;
     const width = broadRibbon
-      ? THREE.MathUtils.lerp(0.081, 0.131, random())
-      : THREE.MathUtils.lerp(0.0275, 0.0775, random());
-    const bendA = THREE.MathUtils.lerp(0.056, 0.144, random());
-    const bendB = THREE.MathUtils.lerp(0.0225, 0.09375, random());
+      ? THREE.MathUtils.lerp(0.055, 0.094, random())
+      : THREE.MathUtils.lerp(0.019, 0.057, random());
+    const bendA = THREE.MathUtils.lerp(0.085, 0.215, random());
+    const bendB = THREE.MathUtils.lerp(0.038, 0.125, random());
     const color = palette[Math.floor(random() * palette.length)];
     const vertexBase = plume * (segments + 1) * (acrossSteps + 1);
 
@@ -192,7 +195,7 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
         .multiplyScalar(-Math.sin(swirl))
         .addScaledVector(tangent, Math.cos(swirl))
         .normalize();
-      const radius = 1.206 + outwardDistance * Math.pow(u, 1.62);
+      const radius = 1.48 + outwardDistance * Math.pow(u, 1.58);
       const sideBend = Math.sin(u * TAU * 0.54 + phase) * bendA * u;
       const flowBend = Math.sin(u * TAU * 0.39 + phase * 1.4) * bendB * u;
       const center = surfaceNormal.clone().multiplyScalar(radius)
@@ -205,7 +208,8 @@ function createGasPlumeGeometry(count: number): THREE.BufferGeometry {
         const v = across / acrossSteps;
         const vertex = vertexBase + along * (acrossSteps + 1) + across;
         const lateral = (v - 0.5) * 2.0 * plumeWidth;
-        const point = center.clone().addScaledVector(bitangent, lateral);
+        const fold = Math.sin(v * TAU + phase + u * 4.1) * plumeWidth * 0.22;
+        const point = center.clone().addScaledVector(bitangent, lateral).addScaledVector(surfaceNormal, fold);
         positions[vertex * 3] = point.x;
         positions[vertex * 3 + 1] = point.y;
         positions[vertex * 3 + 2] = point.z;
@@ -476,7 +480,8 @@ export function HologramCore({
   // Keep star points outside the gas sphere so they read as distant stars, not specks buried in the core.
   const outerParticles = useMemo(() => createParticleCloud(56, 3.15, 4.35, 0xc7f5ff, 0.58), []);
   // Wide translucent ribbons carry the gas motion; fewer point sprites remain only as glowing condensates.
-  const ejectionCloud = useMemo(() => createEjectionCloud(84), []);
+  // Only a few soft condensates accompany the gas; the cloud field remains the main read.
+  const ejectionCloud = useMemo(() => createEjectionCloud(46), []);
   const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(30), []);
   // High-resolution true spheres preserve a clean silhouette while the shader supplies all organic cloud variation.
   const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 160, 160), []);
@@ -793,10 +798,10 @@ export function HologramCore({
         "  float cloudBody = smoothstep(0.32, 0.68, field);",
         "  float flowWave = sin(u * 21.0 - uTime * (0.48 + uActivity * 0.12) + vSeed * 6.2831853 + sin(u * 8.0 + vSeed * 7.0) * 1.3 + vUv.y * 3.6);",
         "  float filamentPattern = pow(max(0.0, 1.0 - abs(sin((field * 1.4 + fine * 0.5 + vSeed * 0.12 + flowWave * 0.035) * 8.0))), 3.0);",
-        "  float wispyMask = smoothstep(0.16, 0.66, field * 0.72 + cloud * 0.28 + flowWave * 0.055 + vFlow * 0.035);",
-        "  float density = softEdge * life * (0.045 + cloudBody * 0.22 + filamentPattern * 0.11);",
-        "  density *= (0.36 + wispyMask * 0.64) * (0.74 + uActivity * 0.16 + uVoice * 0.12);",
-        "  if (density < 0.014) discard;",
+        "  float wispyMask = smoothstep(0.18, 0.70, field * 0.72 + cloud * 0.28 + flowWave * 0.035 + vFlow * 0.045);",
+        "  float density = softEdge * life * (0.012 + cloudBody * 0.145 + filamentPattern * 0.055);",
+        "  density *= (0.24 + wispyMask * 0.76) * (0.72 + uActivity * 0.12 + uVoice * 0.10);",
+        "  if (density < 0.008) discard;",
         "  vec3 cyan = vec3(0.24, 0.72, 1.0);",
         "  vec3 pearl = vec3(1.0, 0.82, 0.92);",
         "  float blueMist = smoothstep(0.35, 0.68, fine + vColor.b * 0.22 + vFlow * 0.04);",
@@ -804,7 +809,7 @@ export function HologramCore({
         "  vec3 gasColor = mix(vColor, cyan, blueMist * 0.34);",
         "  gasColor = mix(gasColor, pearl, hotMist * 0.30);",
         "  gasColor *= 0.92 + cloudBody * 0.12 + filamentPattern * 0.08;",
-        "  gl_FragColor = vec4(gasColor * (1.05 + uActivity * 0.12 + uVoice * 0.08), min(density, 0.24));",
+        "  gl_FragColor = vec4(gasColor * (0.92 + uActivity * 0.10 + uVoice * 0.07), min(density, 0.16));",
         "}",
       ].join("\n"),
       transparent: true,
@@ -852,7 +857,7 @@ export function HologramCore({
         "  vFade = aFade;",
         "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
         "  gl_Position = projectionMatrix * mvPosition;",
-        "  gl_PointSize = clamp(aSize * (300.0 / max(1.0, -mvPosition.z)) * (1.0 + uActivity * 0.08 + uVoice * 0.08), 2.4, 8.0);",
+        "  gl_PointSize = clamp(aSize * (250.0 / max(1.0, -mvPosition.z)) * (1.0 + uActivity * 0.06 + uVoice * 0.06), 1.6, 4.8);",
         "}",
       ].join("\n"),
       fragmentShader: [
@@ -863,7 +868,7 @@ export function HologramCore({
         "  float distanceFromCenter = length(gl_PointCoord - vec2(0.5));",
         "  float hotCenter = 1.0 - smoothstep(0.02, 0.22, distanceFromCenter);",
         "  float softHalo = 1.0 - smoothstep(0.06, 0.5, distanceFromCenter);",
-        "  float alpha = (hotCenter * 0.50 + softHalo * 0.26) * vFade;",
+        "  float alpha = (hotCenter * 0.38 + softHalo * 0.20) * vFade;",
         "  if (alpha < 0.012) discard;",
         "  gl_FragColor = vec4(vColor * (0.64 + hotCenter * 1.20), alpha);",
         "}",
