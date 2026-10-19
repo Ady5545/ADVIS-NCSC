@@ -486,7 +486,8 @@ export function HologramCore({
   // Wide translucent ribbons carry the gas motion; fewer point sprites remain only as glowing condensates.
   // Only a few soft condensates accompany the gas; the cloud field remains the main read.
   const ejectionCloud = useMemo(() => createEjectionCloud(46), []);
-  const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(30), []);
+  // Keep only a few outer tendrils; the volumetric cloud field now carries the main gas mass.
+  const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(20), []);
   // High-resolution true spheres preserve a clean silhouette while the shader supplies all organic cloud variation.
   const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 160, 160), []);
   const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(ATMOSPHERE_RADIUS, 128, 128), []);
@@ -811,8 +812,8 @@ export function HologramCore({
         "  float flowWave = sin(u * 21.0 - uTime * (0.48 + uActivity * 0.12) + vSeed * 6.2831853 + sin(u * 8.0 + vSeed * 7.0) * 1.3 + vUv.y * 3.6);",
         "  float filamentPattern = pow(max(0.0, 1.0 - abs(sin((field * 1.4 + fine * 0.5 + vSeed * 0.12 + flowWave * 0.035) * 8.0))), 3.0);",
         "  float wispyMask = smoothstep(0.18, 0.70, field * 0.72 + cloud * 0.28 + flowWave * 0.035 + vFlow * 0.045);",
-        "  float density = softEdge * life * (0.012 + cloudBody * 0.145 + filamentPattern * 0.055);",
-        "  density *= (0.24 + wispyMask * 0.76) * (0.72 + uActivity * 0.12 + uVoice * 0.10);",
+        "  float density = softEdge * life * (0.008 + cloudBody * 0.105 + filamentPattern * 0.042);",
+        "  density *= (0.20 + wispyMask * 0.72) * (0.70 + uActivity * 0.10 + uVoice * 0.08);",
         "  if (density < 0.008) discard;",
         "  vec3 cyan = vec3(0.24, 0.72, 1.0);",
         "  vec3 pearl = vec3(1.0, 0.82, 0.92);",
@@ -821,7 +822,7 @@ export function HologramCore({
         "  vec3 gasColor = mix(vColor, cyan, blueMist * 0.34);",
         "  gasColor = mix(gasColor, pearl, hotMist * 0.30);",
         "  gasColor *= 0.92 + cloudBody * 0.12 + filamentPattern * 0.08;",
-        "  gl_FragColor = vec4(gasColor * (0.92 + uActivity * 0.10 + uVoice * 0.07), min(density, 0.16));",
+        "  gl_FragColor = vec4(gasColor * (0.88 + uActivity * 0.09 + uVoice * 0.06), min(density, 0.135));",
         "}",
       ].join("\n"),
       transparent: true,
