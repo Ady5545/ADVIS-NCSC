@@ -40,7 +40,7 @@ test('workspace command palette searches the existing chemistry catalogue', asyn
   const dialog = page.getByRole('dialog', { name: 'Search ADVIS workspace' });
   await expect(dialog).toBeVisible();
   await dialog.getByPlaceholder(/Search destinations, models, components, molecules and lessons/i).fill('Water');
-  await expect(dialog.getByRole('button', { name: /Water · H₂O/i })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /Water · H2O/i })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
 });
@@ -78,4 +78,14 @@ test('workspace sessions save, restore and delete without changing model assets'
   const restoredList = page.getByRole('dialog', { name: 'Saved workspaces' });
   await restoredList.getByRole('button', { name: 'Delete saved workspace Current production shell smoke test' }).click();
   await expect(restoredList.getByRole('button', { name: /Current production shell smoke test/ })).toHaveCount(0);
+});
+
+
+test('mobile navigation exposes the same command search without a new navbar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const searchButton = page.getByRole('button', { name: 'Open ADVIS command search' });
+  await expect(searchButton).toBeVisible();
+  await searchButton.click();
+  await expect(page.getByRole('dialog', { name: 'Search ADVIS workspace' })).toBeVisible();
 });
