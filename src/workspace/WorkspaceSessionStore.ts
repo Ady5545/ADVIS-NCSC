@@ -216,7 +216,9 @@ export function deleteWorkspace(id: string): SavedWorkspace[] {
   try {
     const next = readSavedWorkspaces().filter((entry) => entry.id !== id);
     storage.setItem(STORAGE_KEY, JSON.stringify(next.map((entry) => ({
-      ...entry,
+      id: entry.id,
+      name: entry.name,
+      savedAt: entry.savedAt,
       schemaVersion: SCHEMA_VERSION,
       snapshot: normalizeSnapshot(entry),
     }))));
