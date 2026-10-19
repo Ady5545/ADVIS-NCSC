@@ -242,7 +242,7 @@ function WorkspaceAssistantDock({
             <p className="max-w-xs text-xs leading-relaxed text-white/55">ADVIS can use the active model and selected component context already attached to your session.</p>
           </div>
         ) : (
-          <ChatPanel messages={messages} systemState={systemState} audioLevel={audioLevel} />
+          <ChatPanel messages={messages} systemState={systemState} audioLevel={audioLevel} variant="workspace" />
         )}
       </div>
 
