@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { HologramCore } from './HologramCore';
 import { ChatPanel } from './ChatPanel';
 import { InputArea } from './InputArea';
-import { Sidebar } from './Sidebar';
+import { Sidebar, menuItems } from './Sidebar';
 import { Background } from './Background';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
@@ -29,6 +29,9 @@ import { useScientificStore } from './scientific/ScientificStore';
 import { V12EngineController } from './components/v12/V12EngineController';
 import { V8EngineController } from './components/v8/V8EngineController';
 import { LessonRunner } from './learning/LessonRunner';
+import { LEARNING_LESSONS } from './learning/LessonCatalog';
+import { WorkspaceCommandCenter } from './UnifiedWorkspaceCenter';
+import type { WorkspaceSnapshotData } from './workspace/WorkspaceSessionStore';
 import type { LessonAction } from './learning/LessonSchema';
 import { useEngineTelemetry } from './scientific/EngineKinematicsBus';
 import { CameraPreset } from './scientific/V12ScientificConfig';
@@ -129,6 +132,7 @@ export interface ChatMessage {
 
 import { LearningSession } from './LearnEngine/LearnTypes';
 import { buildChemistryLesson } from './LearnEngine/LessonBuilder';
+import { CHEMISTRY_DATABASE } from './LearnEngine/ChemistryDatabase';
 import { LearnWorkspace } from './LearnEngine/LearnWorkspace';
 import { ChemistryVisuals } from './LearnEngine/ChemistryVisuals';
 import { MolecularVisuals } from './LearnEngine/MolecularVisuals';
@@ -263,6 +267,11 @@ function AppContent() {
     }
   }, [wakeWordEnergy]);
   const [currentView, setCurrentView] = useState<string>('home');
+  const [workspaceCommandOpen, setWorkspaceCommandOpen] = useState(false);
+  const [workspaceSaveOpen, setWorkspaceSaveOpen] = useState(false);
+  const [savedWorkspacesOpen, setSavedWorkspacesOpen] = useState(false);
+  const [workspaceAssistantOpen, setWorkspaceAssistantOpen] = useState(false);
+  const [savedWorkspaceCount, setSavedWorkspaceCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [strictSecurity, setStrictSecurity] = useState<boolean>(false);
@@ -288,6 +297,7 @@ function AppContent() {
   const [spatialMode, setSpatialMode] = useState<SpatialMode>('INSPECTION');
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
   const [showLessonRunner, setShowLessonRunner] = useState<boolean>(false);
+  const [requestedLessonId, setRequestedLessonId] = useState<string | null>(null);
 
   useEffect(() => {
     setHiddenComponentIds([]);
