@@ -59,13 +59,13 @@ function createCloudPuffs(): CloudPuff[] {
         direction.x * radius,
         direction.y * radius,
         direction.z * radius,
-      ],
-      rotation: [random() * TAU, random() * TAU, random() * TAU],
+      ] as [number, number, number],
+      rotation: [random() * TAU, random() * TAU, random() * TAU] as [number, number, number],
       scale: [
         size * stretch,
         size * (0.46 + random() * 0.72),
         size * (0.72 + random() * 1.0),
-      ],
+      ] as [number, number, number],
       color: GAS_COLORS[Math.floor(random() * GAS_COLORS.length)],
       opacity: 0.13 + random() * 0.17,
     };
