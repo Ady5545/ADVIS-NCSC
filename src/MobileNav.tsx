@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Search, Save, FolderOpen, MessageSquare } from 'lucide-react';
 import { menuItems } from './Sidebar';
 
 const primaryDestinationIds = new Set(['home', 'engineering', 'molecules', 'lessons']);
@@ -7,9 +7,19 @@ const primaryDestinationIds = new Set(['home', 'engineering', 'molecules', 'less
 export function MobileNav({
   currentView,
   setView,
+  onOpenCommandPalette,
+  onOpenAssistant,
+  onSaveWorkspace,
+  onOpenSavedWorkspaces,
+  savedWorkspaceCount = 0,
 }: {
   currentView: string;
   setView: (id: string) => void;
+  onOpenCommandPalette?: () => void;
+  onOpenAssistant?: () => void;
+  onSaveWorkspace?: () => void;
+  onOpenSavedWorkspaces?: () => void;
+  savedWorkspaceCount?: number;
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const primaryItems = menuItems.filter((item) =>
@@ -73,6 +83,16 @@ export function MobileNav({
 
           <button
             type="button"
+            onClick={() => { setMoreOpen(false); onOpenCommandPalette?.(); }}
+            aria-label="Search ADVIS"
+            title="Search ADVIS"
+            className="flex h-9 w-8 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-blue-50/80 hover:text-blue-800 focus-visible:outline-offset-2"
+          >
+            <Search size={16} aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
             onClick={() => setMoreOpen((open) => !open)}
             aria-label="More destinations"
             aria-expanded={moreOpen}
@@ -114,6 +134,37 @@ export function MobileNav({
               </button>
             );
           })}
+
+          <div className="col-span-2 my-1 h-px bg-white/10" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => { setMoreOpen(false); onOpenCommandPalette?.(); }}
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-slate-200 transition hover:border-[#e20246]/50 hover:bg-white/[0.04]"
+          >
+            <Search size={15} aria-hidden="true" className="text-[#ff527b]" /> Search everything
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMoreOpen(false); onOpenAssistant?.(); }}
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-slate-200 transition hover:border-[#e20246]/50 hover:bg-white/[0.04]"
+          >
+            <MessageSquare size={15} aria-hidden="true" className="text-[#ff527b]" /> Ask ADVIS
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMoreOpen(false); onSaveWorkspace?.(); }}
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-slate-200 transition hover:border-[#e20246]/50 hover:bg-white/[0.04]"
+          >
+            <Save size={15} aria-hidden="true" className="text-[#ff527b]" /> Save workspace
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMoreOpen(false); onOpenSavedWorkspaces?.(); }}
+            className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-white/10 px-3 py-2 text-left text-xs text-slate-200 transition hover:border-[#e20246]/50 hover:bg-white/[0.04]"
+          >
+            <span className="flex min-w-0 items-center gap-2"><FolderOpen size={15} aria-hidden="true" className="shrink-0 text-[#ff527b]" /><span className="truncate">Saved workspaces</span></span>
+            <span className="rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10px] tabular-nums text-white/65">{savedWorkspaceCount}</span>
+          </button>
         </div>
       )}
     </nav>
