@@ -58,7 +58,9 @@ test('workspace sessions save, restore and delete without changing model assets'
   await expect(saveDialog).toBeVisible();
   await saveDialog.getByLabel('Workspace name').fill('Current production shell smoke test');
   await saveDialog.getByRole('button', { name: 'Save session' }).click();
-  await expect(page.getByRole('status')).toContainText('Saved');
+  // The transient toast is presentation-only and may disappear during a slow
+  // headless WebGL startup; assert the durable state and dialog transition.
+  await expect(saveDialog).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => {
     return window.localStorage.getItem('advis_unified_workspace_sessions_v1') || '';
   })).toContain('Current production shell smoke test');
