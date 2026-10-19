@@ -1750,19 +1750,30 @@ function AppContent() {
   };
 
   const handleWorkspaceOpenLesson = (lessonId: string) => {
-    if (!LEARNING_LESSONS.some((lesson) => lesson.id === lessonId)) return;
+    const lesson = LEARNING_LESSONS.find((candidate) => candidate.id === lessonId);
+    if (!lesson) return;
+
+    const keepSpatialWorkspace = Boolean(currentSpatialObject);
     sessionMolecule.closeSession();
-    setActiveLearningSession(null);
-    setCurrentSpatialObject(null);
-    setSelectedComponentId(null);
-    setHoveredComponentId(null);
-    setHighlightedComponentId(null);
-    syncScientificWorkspaceContext(null);
     setShowInnovationLab(false);
     setCurrentView('home');
+
+    if (keepSpatialWorkspace) {
+      // Keep the active scene and visible selection behind the lesson overlay;
+      // the lesson runner separately checks whether that selection belongs to its model.
+      const activeSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+      syncScientificWorkspaceContext(activeSpatialId || null);
+    } else {
+      setActiveLearningSession(null);
+      setSelectedComponentId(null);
+      setHoveredComponentId(null);
+      setHighlightedComponentId(null);
+      syncScientificWorkspaceContext(null);
+      changeSpatialMode('INSPECTION');
+    }
+
     setRequestedLessonId(lessonId);
     setShowLessonRunner(true);
-    changeSpatialMode('INSPECTION');
   };
 
   const handleRestoreWorkspace = (snapshot: WorkspaceSnapshotData) => {
@@ -1867,6 +1878,19 @@ function AppContent() {
       : "Explain this ADVIS workspace and how its visible controls connect to the active learning or engineering context. Distinguish illustrative behavior from validated results.";
     void handleSendMessage(prompt);
   };
+
+  const lessonRunnerInitialId = requestedLessonId || (currentSpatialObject === 'hydrogen_atom'
+    ? 'hydrogen-atom-probability-cloud'
+    : 'v8-four-stroke-explorer');
+  const activeLessonRunner = showLessonRunner
+    ? LEARNING_LESSONS.find((lesson) => lesson.id === lessonRunnerInitialId) || null
+    : null;
+  const lessonRunnerSpatialId = Array.isArray(currentSpatialObject) ? currentSpatialObject[0] : currentSpatialObject;
+  const lessonRunnerSelectedComponentId = activeLessonRunner
+    && activeLessonRunner.modelId === lessonRunnerSpatialId
+    && workspaceActiveModel?.components.some((component) => component.id === selectedComponentId)
+      ? selectedComponentId
+      : null;
 
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
 
@@ -2193,8 +2217,8 @@ function AppContent() {
     <LessonRunner
       open={showLessonRunner}
       onClose={() => { setShowLessonRunner(false); setRequestedLessonId(null); }}
-      initialLessonId={requestedLessonId || (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')}
-      selectedComponentId={selectedComponentId}
+      initialLessonId={lessonRunnerInitialId}
+      selectedComponentId={lessonRunnerSelectedComponentId}
       onOpenModel={handleWorkspaceSelectSpatialObject}
       onAction={handleLessonAction}
     />
