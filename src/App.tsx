@@ -1645,9 +1645,21 @@ function AppContent() {
     activeChemistryFormula, activeChemistryEntity, sessionMolecule.isSessionActive, sessionMolecule.canonicalOriginFormula,
   ]);
 
+  const syncScientificWorkspaceContext = (objectId: string | null) => {
+    const scientificStore = useScientificStore.getState();
+    if (objectId === 'v8_engine_scientific' || objectId === 'v8_engine') {
+      scientificStore.setActiveModel('four_stroke_engine_v1');
+    } else if (objectId === 'human_anatomy_scientific') {
+      scientificStore.setActiveModel('human_cardiovascular_atlas');
+    } else {
+      scientificStore.setActiveModel(null);
+    }
+  };
+
   const handleWorkspaceSelectSpatialObject = (objectId: string, mode: SpatialMode = 'INSPECTION') => {
-    if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE') return;
+    if (!SPATIAL_LIBRARY[objectId] || SPATIAL_LIBRARY[objectId].modelStatus === 'UNAVAILABLE' || SPATIAL_LIBRARY[objectId].modelStatus === 'AWAITING_ASSET') return;
     handleOpenLessonModel(objectId);
+    syncScientificWorkspaceContext(objectId);
     if (mode !== 'INSPECTION') changeSpatialMode(mode);
     setCurrentView('home');
   };
@@ -1664,6 +1676,7 @@ function AppContent() {
 
   const handleWorkspaceSelectMolecule = (formula: string) => {
     if (!CHEMISTRY_DATABASE[formula]) return;
+    syncScientificWorkspaceContext(null);
     sessionMolecule.closeSession();
     setCurrentSpatialObject(null);
     setSelectedComponentId(null);
@@ -1699,6 +1712,9 @@ function AppContent() {
       ? snapshot.lessonRunnerId
       : null;
     const hasChemistrySession = Boolean(chemistryFormula && snapshot.chemistrySessionMode);
+
+    if (restoredSpatialObject) syncScientificWorkspaceContext(restoredSpatialId);
+    else syncScientificWorkspaceContext(null);
 
     if (hasChemistrySession && chemistryFormula && snapshot.chemistrySessionMode === 'LESSON') {
       sessionMolecule.closeSession();
@@ -2058,6 +2074,7 @@ function AppContent() {
           setHoveredComponentId(null);
           setHighlightedComponentId(null);
           setCurrentView('home');
+          syncScientificWorkspaceContext(null);
           changeSpatialMode('INSPECTION');
         }}
         selectedComponentId={selectedComponentId}
@@ -2096,7 +2113,7 @@ function AppContent() {
       onClose={() => { setShowLessonRunner(false); setRequestedLessonId(null); }}
       initialLessonId={requestedLessonId || (currentSpatialObject === 'hydrogen_atom' ? 'hydrogen-atom-probability-cloud' : 'v8-four-stroke-explorer')}
       selectedComponentId={selectedComponentId}
-      onOpenModel={handleOpenLessonModel}
+      onOpenModel={handleWorkspaceSelectSpatialObject}
       onAction={handleLessonAction}
     />
 
