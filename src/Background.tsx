@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { SystemState } from './App';
 
-export function Background({ systemState, themeColor = '#22d3ee' }: { systemState: SystemState, themeColor?: string }) {
+export function Background({ systemState, themeColor = '#e20246' }: { systemState: SystemState, themeColor?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -25,8 +25,8 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const w = canvas.width;
       const h = canvas.height;
 
-      // 1. Neutral Scientific Visualization Base (Dark Blue-Gray / Slate)
-      ctx.fillStyle = '#090d16';
+      // 1. Deep industrial-black canvas with restrained Rittal-red atmosphere.
+      ctx.fillStyle = '#080809';
       ctx.fillRect(0, 0, w, h);
 
       // 2. Subtle Radial Gradient with Soft Lighting Center
@@ -35,13 +35,14 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         w / 2, h * 0.5, Math.max(w, h) * 0.85
       );
       if (systemState === 'ERROR') {
-        bgGrad.addColorStop(0, 'rgba(30, 10, 15, 0.95)');
-        bgGrad.addColorStop(0.5, 'rgba(18, 7, 10, 0.98)');
-        bgGrad.addColorStop(1, '#050204');
+        bgGrad.addColorStop(0, 'rgba(110, 0, 35, 0.46)');
+        bgGrad.addColorStop(0.5, 'rgba(35, 8, 17, 0.92)');
+        bgGrad.addColorStop(1, '#080809');
       } else {
-        bgGrad.addColorStop(0, 'rgba(15, 23, 42, 0.95)'); // Slate 900
-        bgGrad.addColorStop(0.45, 'rgba(11, 17, 32, 0.98)');
-        bgGrad.addColorStop(1, '#060911');
+        bgGrad.addColorStop(0, 'rgba(226, 2, 70, 0.19)'); // Rittal red focal glow
+        bgGrad.addColorStop(0.34, 'rgba(74, 9, 26, 0.38)');
+        bgGrad.addColorStop(0.68, 'rgba(19, 13, 16, 0.92)');
+        bgGrad.addColorStop(1, '#080809');
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
@@ -51,7 +52,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       ctx.lineWidth = 1;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.025)' 
-        : 'rgba(56, 189, 248, 0.025)'; // Very faint cyan-slate grid
+        : 'rgba(226, 2, 70, 0.12)'; // Very faint cyan-slate grid
 
       ctx.beginPath();
       for (let x = 0; x < w; x += gridSize) {
@@ -68,7 +69,7 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
       const majorGrid = gridSize * 4;
       ctx.strokeStyle = systemState === 'ERROR' 
         ? 'rgba(239, 68, 68, 0.06)' 
-        : 'rgba(56, 189, 248, 0.05)';
+        : 'rgba(255, 49, 95, 0.22)';
       ctx.lineWidth = 1;
 
       for (let x = majorGrid; x < w; x += majorGrid) {
@@ -83,10 +84,12 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         }
       }
 
-      // 4. Subtle Ambient Floating Energy Particle Dust (minimal, non-distracting)
+      // 4. Sparse signal-red energy points — luminous, not noisy.
       ctx.fillStyle = systemState === 'ERROR' 
-        ? 'rgba(239, 68, 68, 0.15)' 
-        : `color-mix(in srgb, ${themeColor} 12%, transparent)`;
+        ? 'rgba(255, 91, 117, 0.3)' 
+        : 'rgba(255, 49, 95, 0.72)';
+      ctx.shadowBlur = systemState === 'ERROR' ? 0 : 10;
+      ctx.shadowColor = 'rgba(226, 2, 70, 0.65)';
       for (let i = 0; i < 8; i++) {
         const px = (Math.sin(time * 0.4 + i * 1.5) * 0.45 + 0.5) * w;
         const py = (Math.cos(time * 0.3 + i * 2.1) * 0.45 + 0.5) * h;
@@ -95,14 +98,15 @@ export function Background({ systemState, themeColor = '#22d3ee' }: { systemStat
         ctx.arc(px, py, pr, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.shadowBlur = 0;
 
-      // 5. Soft Outer Vignette for Depth
+      // 5. Carbon-black vignette preserves contrast around the illuminated Core.
       const vignette = ctx.createRadialGradient(
         w / 2, h / 2, h * 0.35,
         w / 2, h / 2, Math.max(w, h) * 0.75
       );
       vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vignette.addColorStop(1, 'rgba(2, 6, 15, 0.65)');
+      vignette.addColorStop(1, 'rgba(0, 4, 13, 0.46)');
       ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, w, h);
 

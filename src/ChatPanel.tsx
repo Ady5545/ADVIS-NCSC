@@ -100,13 +100,13 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             animate={{ opacity: 1, x: 0 }}
             className={`flex flex-col max-w-[85%] ${msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'}`}
           >
-            <div className={`text-[10px] mb-1 font-mono tracking-widest ${msg.role === 'user' ? 'text-cyan-400/50' : 'text-cyan-400/50'}`}>
+            <div className={`text-[10px] mb-1 font-mono tracking-widest ${msg.role === 'user' ? 'text-blue-700' : 'text-blue-700'}`}>
               {msg.role === 'user' ? 'USER_DIRECTIVE' : 'A.D.V.I.S.'} // {new Date(msg.timestamp).toLocaleTimeString([], { hour12: false })}
             </div>
             <div className={`p-3 rounded-lg backdrop-blur-md border ${
               msg.role === 'user' 
-                ? 'bg-cyan-950/40 border-cyan-500/30 text-cyan-50 rounded-tr-none shadow-[0_0_15px_rgba(0,255,255,0.1)]' 
-                : 'bg-black/40 border-cyan-500/20 text-cyan-100 rounded-tl-none border-l-2 border-l-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.05)]'
+                ? 'bg-blue-50/40 border-blue-200/30 text-slate-800 rounded-tr-none shadow-[0_0_15px_rgba(0,255,255,0.1)]' 
+                : 'bg-white/88 border-blue-200/20 text-slate-800 rounded-tl-none border-l-2 border-l-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.05)]'
             }`}>
               {msg.image && (
                 <img src={msg.image.content} alt="User Upload" className="max-w-full rounded-md mb-2 max-h-48 object-contain" />
@@ -129,8 +129,8 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             exit={{ opacity: 0 }}
             className="self-start max-w-[85%]"
           >
-            <div className="text-[10px] mb-1 font-mono tracking-widest text-cyan-400/50">A.D.V.I.S. // AUDIO INPUT</div>
-            <div className="p-3 rounded-lg bg-black/40 border border-cyan-500/20 text-cyan-400 border-l-2 border-l-cyan-400 rounded-tl-none flex items-center gap-2">
+            <div className="text-[10px] mb-1 font-mono tracking-widest text-blue-700">A.D.V.I.S. // AUDIO INPUT</div>
+            <div className="p-3 rounded-lg bg-white/88 border border-blue-200/20 text-blue-700 border-l-2 border-l-cyan-400 rounded-tl-none flex items-center gap-2">
               <span className="text-sm font-mono tracking-widest animate-pulse">Listening...</span>
               <div className="flex gap-1 items-center h-4 ml-2">
                 <div className="w-1 bg-cyan-400 animate-[pulse_1s_ease-in-out_infinite] h-2"></div>
@@ -149,7 +149,7 @@ export function ChatPanel({ messages, systemState, audioLevel }: { messages: Cha
             className="self-start max-w-[85%]"
           >
             <div className="text-[10px] mb-1 font-mono tracking-widest text-orange-400/50">A.D.V.I.S. // PROCESSING</div>
-            <div className="p-3 rounded-lg bg-black/40 border border-orange-500/20 text-orange-400 border-l-2 border-l-orange-400 rounded-tl-none flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-white/88 border border-orange-500/20 text-orange-400 border-l-2 border-l-orange-400 rounded-tl-none flex items-center gap-2">
               <span className="text-sm font-mono tracking-widest animate-pulse">Analyzing...</span>
               <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
               <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
