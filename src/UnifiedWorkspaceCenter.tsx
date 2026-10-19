@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Activity,
   ArrowDown,
   ArrowRight,
   ArrowUp,
   Atom,
   Box,
-  Check,
   ChevronRight,
   Command,
   CornerDownLeft,
@@ -473,17 +471,17 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
             <span className={`h-1.5 w-1.5 rounded-full ${systemState === 'ERROR' || systemState === 'OFFLINE' ? 'bg-rose-500' : systemState === 'THINKING' || systemState === 'SEARCHING' || systemState === 'ANALYZING' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
             {systemState.replace(/_/g, ' ')}
           </span>
-          <button type="button" onClick={() => setAssistantOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 px-3 text-xs text-white/75 transition hover:border-[#e20246]/50 hover:bg-white/[0.05] hover:text-white">
-            <MessageSquare size={15} aria-hidden="true" /> <span>Assistant</span>
+          <button type="button" onClick={() => setAssistantOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 px-2.5 xl:px-3 text-xs text-white/75 transition hover:border-[#e20246]/50 hover:bg-white/[0.05] hover:text-white">
+            <MessageSquare size={15} aria-hidden="true" /> <span className="hidden xl:inline">Assistant</span>
           </button>
-          <button type="button" onClick={() => { setSavedOpen(true); setNotice(''); }} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 px-3 text-xs text-white/75 transition hover:border-[#e20246]/50 hover:bg-white/[0.05] hover:text-white">
-            <FolderOpen size={15} aria-hidden="true" /><span>Saved</span><span className="rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10px] tabular-nums text-white/65">{savedWorkspaces.length}</span>
+          <button type="button" onClick={() => { setSavedOpen(true); setNotice(''); }} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 px-2.5 xl:px-3 text-xs text-white/75 transition hover:border-[#e20246]/50 hover:bg-white/[0.05] hover:text-white">
+            <FolderOpen size={15} aria-hidden="true" /><span className="hidden xl:inline">Saved</span><span className="rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10px] tabular-nums text-white/65">{savedWorkspaces.length}</span>
           </button>
           <button type="button" onClick={() => setSaveOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#e20246] px-3 text-xs font-semibold text-white transition hover:bg-[#ff315f]">
-            <Save size={15} aria-hidden="true" /> <span>Save workspace</span>
+            <Save size={15} aria-hidden="true" /> <span className="hidden xl:inline">Save workspace</span>
           </button>
           <button type="button" onClick={() => setCommandOpen(true)} aria-label="Search ADVIS commands" className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.035] px-3 text-xs text-white/80 transition hover:border-[#e20246]/60 hover:bg-white/[0.07]">
-            <Search size={15} aria-hidden="true" /><span>Search</span><kbd className="ml-1 rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white/45"><Command size={10} className="inline" aria-hidden="true" /> K</kbd>
+            <Search size={15} aria-hidden="true" /><span className="hidden xl:inline">Search</span><kbd className="ml-1 hidden rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white/45 xl:inline-flex"><Command size={10} className="inline" aria-hidden="true" /> K</kbd>
           </button>
         </div>
       </header>
@@ -578,6 +576,11 @@ export function WorkspaceCommandCenter(props: WorkspaceCommandCenterProps) {
                 <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-[#ff7194]">Workspace session</div>
                 <h2 id="advis-save-workspace-title" className="text-lg font-semibold">Save this workspace</h2>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">Saves navigation, selected context and UI/control state on this device. It does not copy or alter model geometry.</p>
+              {activeContextLabel.toLowerCase().includes('molecular builder') && !snapshot.chemistryFormula && (
+                <p className="mt-3 rounded-xl border border-amber-300/20 bg-amber-400/[0.06] px-3 py-2 text-xs leading-relaxed text-amber-100/80">
+                  This custom molecular builder graph is not included in workspace snapshots yet. Save will preserve the surrounding workspace settings, but not the editable custom structure.
+                </p>
+              )}
               </div>
               <button type="button" onClick={() => setSaveOpen(false)} aria-label="Close save workspace dialog" className="flex h-8 w-8 items-center justify-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white"><X size={16} /></button>
             </div>
