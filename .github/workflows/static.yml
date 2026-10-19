@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: "advis-validation-${{ github.ref }}"
@@ -29,6 +31,10 @@ jobs:
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
+
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
 
       - name: Validate serverless API syntax
         run: node --check api/advis.js && node --check api/history.js
@@ -72,9 +78,9 @@ jobs:
       - name: TypeScript validation
         run: npx tsc --noEmit --pretty false
 
-      - name: Build Vite application
+      - name: Build Vite application for GitHub Pages
         env:
-          VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL }}
+          VITE_ADVIS_API_BASE_URL: ${{ vars.VITE_ADVIS_API_BASE_URL || 'https://advis-ncsc-five.vercel.app' }}
         run: npm run build
 
       - name: Install Chromium for browser smoke tests
@@ -82,3 +88,14 @@ jobs:
 
       - name: Run browser startup and narrow-viewport smoke tests
         run: npm run test:e2e
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name != 'pull_request'
+        id: deployment
+        uses: actions/deploy-pages@v4
