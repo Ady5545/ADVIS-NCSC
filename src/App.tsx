@@ -40,7 +40,7 @@ type ComponentTransform = { position: [number, number, number]; rotation: [numbe
 type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
 type CameraChoreography = {
-  kind: 'enter' | 'switch' | 'exit';
+  kind: 'enter' | 'exit';
   elapsed: number;
   duration: number;
   fromPosition: THREE.Vector3;
@@ -49,18 +49,10 @@ type CameraChoreography = {
   toTarget: THREE.Vector3;
 };
 
-function CameraRig({
-  isSpatial,
-  isHome = false,
-  environmentKey = 'home',
-}: {
-  isSpatial?: boolean;
-  isHome?: boolean;
-  environmentKey?: string;
-}) {
+function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?: boolean }) {
   const gestureState = useGestureEngine();
   const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
-  const previousEnvironmentRef = useRef({ isSpatial: !!isSpatial, key: environmentKey });
+  const previousSpatialRef = useRef(!!isSpatial);
   const choreographyRef = useRef<CameraChoreography | null>(null);
   const interpolatedLookAtRef = useRef(new THREE.Vector3());
 
@@ -120,15 +112,10 @@ function CameraRig({
   }, [gestureState]);
 
   useFrame((state, delta) => {
-    const normalizedKey = environmentKey || 'home';
-    const previous = previousEnvironmentRef.current;
-    const enteredOrExited = previous.isSpatial !== !!isSpatial;
-    const environmentChanged = !!isSpatial && previous.key !== normalizedKey;
+    const enteredOrExited = previousSpatialRef.current !== !!isSpatial;
 
-    if (enteredOrExited || environmentChanged) {
-      const kind: CameraChoreography['kind'] = isSpatial
-        ? (previous.isSpatial ? 'switch' : 'enter')
-        : 'exit';
+    if (enteredOrExited) {
+      const kind: CameraChoreography['kind'] = isSpatial ? 'enter' : 'exit';
       const fromPosition = state.camera.position.clone();
       const fromTarget = lookAtRef.current.clone();
       const toTarget = new THREE.Vector3(0, 0, 0);
@@ -141,15 +128,9 @@ function CameraRig({
       } else {
         const spatialCam = gestureState.spatialCam;
         if (spatialCam) {
-          if (kind === 'enter') {
-            spatialCam.targetRadius = 11.8;
-            spatialCam.targetTheta = 0.32;
-            spatialCam.targetPhi = 1.30;
-          } else {
-            spatialCam.targetRadius = THREE.MathUtils.clamp(spatialCam.targetRadius, 9.5, 15.5);
-            spatialCam.targetTheta += 0.22;
-            spatialCam.targetPhi = THREE.MathUtils.clamp(spatialCam.targetPhi, 0.78, 2.25);
-          }
+          spatialCam.targetRadius = 11.8;
+          spatialCam.targetTheta = 0.32;
+          spatialCam.targetPhi = 1.30;
           const radius = spatialCam.targetRadius;
           const theta = spatialCam.targetTheta;
           const phi = spatialCam.targetPhi;
@@ -167,14 +148,14 @@ function CameraRig({
       choreographyRef.current = {
         kind,
         elapsed: 0,
-        duration: reducedMotion ? 0.12 : (kind === 'switch' ? 0.95 : kind === 'enter' ? 1.18 : 0.92),
+        duration: reducedMotion ? 0.12 : (kind === 'enter' ? 1.18 : 0.92),
         fromPosition,
         toPosition,
         fromTarget,
         toTarget,
       };
     }
-    previousEnvironmentRef.current = { isSpatial: !!isSpatial, key: normalizedKey };
+    previousSpatialRef.current = !!isSpatial;
 
     const choreography = choreographyRef.current;
     if (choreography) {
@@ -188,9 +169,6 @@ function CameraRig({
         state.camera.position.x += arc * 0.52;
         state.camera.position.y += arc * 0.32;
         state.camera.position.z -= arc * 0.18;
-      } else if (choreography.kind === 'switch') {
-        state.camera.position.x += arc * 0.64;
-        state.camera.position.y += arc * 0.24;
       } else {
         state.camera.position.x -= arc * 0.28;
         state.camera.position.y += arc * 0.16;
@@ -1689,36 +1667,20 @@ function AppContent() {
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
-  const environmentKey = Array.isArray(currentSpatialObject)
-    ? `spatial:${currentSpatialObject.join('|')}`
-    : currentSpatialObject
-      ? `spatial:${currentSpatialObject}`
-      : activeLearningSession
-        ? `learning:${activeLearningSession.id}`
-        : sessionMolecule.isSessionActive && sessionMolecule.molecule
-          ? 'molecule-session'
-          : 'home';
-  const [environmentTransition, setEnvironmentTransition] = useState<'enter' | 'switch' | 'exit' | null>(null);
-  const previousEnvironmentRef = useRef({ isSpatial, environmentKey });
+  const [environmentTransition, setEnvironmentTransition] = useState<'enter' | 'exit' | null>(null);
+  const previousSpatialRef = useRef(isSpatial);
 
   useEffect(() => {
-    const previous = previousEnvironmentRef.current;
-    previousEnvironmentRef.current = { isSpatial, environmentKey };
+    const previous = previousSpatialRef.current;
+    previousSpatialRef.current = isSpatial;
 
-    const nextTransition =
-      !previous.isSpatial && isSpatial ? 'enter'
-        : previous.isSpatial && !isSpatial ? 'exit'
-          : isSpatial && previous.environmentKey !== environmentKey ? 'switch'
-            : null;
+    const nextTransition = !previous && isSpatial ? 'enter' : previous && !isSpatial ? 'exit' : null;
     if (!nextTransition) return;
 
     setEnvironmentTransition(nextTransition);
-    const timeout = window.setTimeout(
-      () => setEnvironmentTransition(null),
-      nextTransition === 'switch' ? 980 : 1180,
-    );
+    const timeout = window.setTimeout(() => setEnvironmentTransition(null), 1180);
     return () => window.clearTimeout(timeout);
-  }, [isSpatial, environmentKey]);
+  }, [isSpatial]);
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
@@ -1823,7 +1785,6 @@ function AppContent() {
           <CameraRig
             isSpatial={isSpatial}
             isHome={!currentSpatialObject && !activeLearningSession && !sessionMolecule.isSessionActive}
-            environmentKey={environmentKey}
           />
           {isEngineeringMode && <color attach="background" args={['#101013']} />}
           {!isEngineeringMode && (
