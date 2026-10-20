@@ -1694,9 +1694,9 @@ function AppContent() {
     : currentSpatialObject
       ? `spatial:${currentSpatialObject}`
       : activeLearningSession
-        ? 'learning-session'
+        ? `learning:${activeLearningSession.id}`
         : sessionMolecule.isSessionActive && sessionMolecule.molecule
-          ? `molecule:${sessionMolecule.molecule.formula}`
+          ? 'molecule-session'
           : 'home';
   const [environmentTransition, setEnvironmentTransition] = useState<'enter' | 'switch' | 'exit' | null>(null);
   const previousEnvironmentRef = useRef({ isSpatial, environmentKey });
