@@ -902,15 +902,17 @@ export function ViewModal({
           </div>
           <div className="flex-1 overflow-y-auto p-4 font-sans custom-scrollbar sm:p-6">
             <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={currentView}
-                initial={{ opacity: 0, y: 8, filter: 'blur(2px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -5, filter: 'blur(1px)' }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {renderContent()}
-              </motion.div>
+              {currentView !== 'home' && (
+                <motion.div
+                  key={currentView}
+                  initial={{ opacity: 0, y: 8, filter: 'blur(2px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -5, filter: 'blur(1px)' }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {renderContent()}
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </motion.div>
