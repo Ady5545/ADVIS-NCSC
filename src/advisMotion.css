@@ -1,0 +1,152 @@
+/*
+ * ADVIS interaction motion language.
+ * Motion communicates state, hierarchy, focus and physical response.
+ */
+:root {
+  --advis-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --advis-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --advis-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --advis-motion-fast: 150ms;
+  --advis-motion-normal: 240ms;
+  --advis-motion-slow: 420ms;
+}
+
+/* Shared tactile response for real controls. */
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
+  transition-duration: var(--advis-motion-normal);
+  transition-timing-function: var(--advis-ease-standard);
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 49, 95, 0.9);
+  outline-offset: 3px;
+}
+
+/* Sidebar navigation: hover is spatial, active state is persistent. */
+.advis-nav-link {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform-origin: left center;
+}
+
+.advis-nav-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(226, 2, 70, 0.18), transparent 72%);
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity var(--advis-motion-normal) var(--advis-ease-standard),
+              transform var(--advis-motion-normal) var(--advis-ease-standard);
+}
+
+.advis-nav-link:hover::after,
+.advis-nav-link[aria-current="page"]::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.advis-nav-link svg {
+  transition: transform var(--advis-motion-normal) var(--advis-ease-standard),
+              filter var(--advis-motion-normal) var(--advis-ease-standard);
+}
+
+.advis-nav-link:hover svg {
+  transform: translateX(2px) scale(1.06);
+  filter: drop-shadow(0 0 6px rgba(255, 49, 95, 0.28));
+}
+
+.advis-nav-link[aria-current="page"] svg {
+  filter: drop-shadow(0 0 7px rgba(255, 49, 95, 0.34));
+}
+
+/* A quiet entrance used by environment-level surfaces. */
+.advis-environment-enter {
+  animation: advis-environment-enter var(--advis-motion-slow) var(--advis-ease-emphasized) both;
+  will-change: opacity, transform, filter;
+}
+
+@keyframes advis-environment-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.992);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Stagger only intentional children; never use this on large model trees. */
+.advis-motion-stagger > * {
+  animation: advis-stagger-in var(--advis-motion-slow) var(--advis-ease-emphasized) both;
+}
+
+.advis-motion-stagger > *:nth-child(1) { animation-delay: 30ms; }
+.advis-motion-stagger > *:nth-child(2) { animation-delay: 70ms; }
+.advis-motion-stagger > *:nth-child(3) { animation-delay: 110ms; }
+.advis-motion-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.advis-motion-stagger > *:nth-child(5) { animation-delay: 190ms; }
+.advis-motion-stagger > *:nth-child(6) { animation-delay: 230ms; }
+
+@keyframes advis-stagger-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 7px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Contextual surfaces open with depth instead of a flat fade. */
+.advis-surface-enter {
+  animation: advis-surface-enter 320ms var(--advis-ease-emphasized) both;
+  transform-origin: top center;
+}
+
+@keyframes advis-surface-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -5px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.advis-surface-exit {
+  animation: advis-surface-exit 180ms var(--advis-ease-exit) both;
+}
+
+@keyframes advis-surface-exit {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to { opacity: 0; transform: translate3d(0, -3px, 0) scale(0.99); }
+}
+
+/* Respect reduced-motion without removing functional state changes. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
