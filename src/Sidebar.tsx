@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import './advisMotion.css';
 
 type NavigationSection = 'Workspace' | 'Explore' | 'Learn & experiment' | 'System';
 
@@ -54,22 +55,30 @@ export function Sidebar({
 }) {
   return (
     <aside className="flex h-full max-h-full w-64 shrink-0 flex-col gap-5 overflow-y-auto pr-1 custom-scrollbar pointer-events-auto">
-      <button
+      <motion.button
         type="button"
         onClick={() => setView('home')}
         aria-label="ADVIS Home"
         className="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-blue-50/80 focus-visible:outline-offset-4"
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.985 }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
-        <span aria-hidden="true" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200/80 bg-gradient-to-br from-white to-blue-50 shadow-[0_8px_24px_rgba(56,105,189,0.12)]">
+        <motion.span
+          aria-hidden="true"
+          className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200/80 bg-gradient-to-br from-white to-blue-50 shadow-[0_8px_24px_rgba(56,105,189,0.12)]"
+          whileHover={{ rotate: 4, scale: 1.04 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        >
           <span className="absolute h-7 w-7 rotate-45 rounded-full border border-blue-300/90" />
           <span className="absolute h-5 w-5 -rotate-45 rounded-full border border-indigo-300/90" />
           <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-white via-blue-400 to-blue-700 shadow-[0_0_12px_rgba(40,100,232,0.35)]" />
-        </span>
+        </motion.span>
         <span className="min-w-0">
           <span className="block text-lg font-semibold tracking-[0.16em] text-slate-800">ADVIS</span>
           <span className="mt-0.5 block text-[10px] tracking-wide text-slate-500">Spatial intelligence</span>
         </span>
-      </button>
+      </motion.button>
 
       <nav aria-label="Workspace navigation" className="flex min-h-0 flex-col gap-5 pb-3">
         {navigationSections.map((section) => {
@@ -77,7 +86,13 @@ export function Sidebar({
           if (!items.length) return null;
 
           return (
-            <div key={section} className="advis-nav-section">
+            <motion.div
+              key={section}
+              className="advis-nav-section"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.32, delay: navigationSections.indexOf(section) * 0.035, ease: [0.22, 1, 0.36, 1] }}
+            >
               <h2 className="advis-nav-section-label">{section}</h2>
               {items.map((item) => {
                 const isActive = currentView === item.id;
@@ -90,16 +105,34 @@ export function Sidebar({
                     onClick={() => setView(item.id)}
                     aria-current={isActive ? 'page' : undefined}
                     className="advis-nav-link group"
-                    whileHover={{ x: 3 }}
-                    transition={{ duration: 0.16 }}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.985 }}
+                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <Icon size={17} strokeWidth={1.8} className="shrink-0" aria-hidden="true" />
+                    <motion.span
+                      aria-hidden="true"
+                      className="relative flex shrink-0 items-center justify-center"
+                      animate={{
+                        scale: isActive ? 1.05 : 1,
+                        x: isActive ? 1 : 0,
+                      }}
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <Icon size={17} strokeWidth={1.8} />
+                    </motion.span>
                     <span className="truncate text-[13px] font-medium tracking-normal">{item.label}</span>
-                    {isActive && <span aria-hidden="true" className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(40,100,232,0.35)]" />}
+                    {isActive && (
+                      <motion.span
+                        layoutId="advis-active-nav-dot"
+                        aria-hidden="true"
+                        className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(40,100,232,0.35)]"
+                        transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+                      />
+                    )}
                   </motion.button>
                 );
               })}
-            </div>
+            </motion.div>
           );
         })}
       </nav>
