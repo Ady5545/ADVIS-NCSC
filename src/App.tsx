@@ -39,9 +39,22 @@ import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentati
 type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };
 type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
 
+type CameraChoreography = {
+  kind: 'enter' | 'exit';
+  elapsed: number;
+  duration: number;
+  fromPosition: THREE.Vector3;
+  toPosition: THREE.Vector3;
+  fromTarget: THREE.Vector3;
+  toTarget: THREE.Vector3;
+};
+
 function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?: boolean }) {
   const gestureState = useGestureEngine();
   const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
+  const previousSpatialRef = useRef(!!isSpatial);
+  const choreographyRef = useRef<CameraChoreography | null>(null);
+  const interpolatedLookAtRef = useRef(new THREE.Vector3());
 
   useEffect(() => {
     const handlePreset = (e: any) => {
@@ -98,8 +111,85 @@ function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?
     };
   }, [gestureState]);
 
-  useFrame((state) => {
-    // The Home Core is a centered hero object; pointer-driven camera drift belongs to spatial inspection.
+  useFrame((state, delta) => {
+    const enteredOrExited = previousSpatialRef.current !== !!isSpatial;
+
+    if (enteredOrExited) {
+      const kind: CameraChoreography['kind'] = isSpatial ? 'enter' : 'exit';
+      const fromPosition = state.camera.position.clone();
+      const fromTarget = lookAtRef.current.clone();
+      const toTarget = new THREE.Vector3(0, 0, 0);
+      const reducedMotion = typeof window !== 'undefined'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let toPosition: THREE.Vector3;
+
+      if (kind === 'exit') {
+        toPosition = new THREE.Vector3(0, 0, 15);
+      } else {
+        const spatialCam = gestureState.spatialCam;
+        if (spatialCam) {
+          spatialCam.targetRadius = 11.8;
+          spatialCam.targetTheta = 0.32;
+          spatialCam.targetPhi = 1.30;
+          const radius = spatialCam.targetRadius;
+          const theta = spatialCam.targetTheta;
+          const phi = spatialCam.targetPhi;
+          toPosition = new THREE.Vector3(
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.cos(theta),
+          );
+          gestureState.cameraTarget.copy(toPosition);
+        } else {
+          toPosition = new THREE.Vector3(1.2, 2.9, 11.2);
+        }
+      }
+
+      choreographyRef.current = {
+        kind,
+        elapsed: 0,
+        duration: reducedMotion ? 0.12 : (kind === 'enter' ? 1.18 : 0.92),
+        fromPosition,
+        toPosition,
+        fromTarget,
+        toTarget,
+      };
+    }
+    previousSpatialRef.current = !!isSpatial;
+
+    const choreography = choreographyRef.current;
+    if (choreography) {
+      choreography.elapsed += Math.min(delta, 0.05);
+      const progress = THREE.MathUtils.clamp(choreography.elapsed / choreography.duration, 0, 1);
+      const eased = progress * progress * (3 - 2 * progress);
+      state.camera.position.copy(choreography.fromPosition).lerp(choreography.toPosition, eased);
+      const arc = Math.sin(Math.PI * eased);
+
+      if (choreography.kind === 'enter') {
+        state.camera.position.x += arc * 0.52;
+        state.camera.position.y += arc * 0.32;
+        state.camera.position.z -= arc * 0.18;
+      } else {
+        state.camera.position.x -= arc * 0.28;
+        state.camera.position.y += arc * 0.16;
+        state.camera.position.z += arc * 0.16;
+      }
+
+      interpolatedLookAtRef.current
+        .copy(choreography.fromTarget)
+        .lerp(choreography.toTarget, eased);
+      lookAtRef.current.copy(interpolatedLookAtRef.current);
+      state.camera.lookAt(interpolatedLookAtRef.current);
+
+      if (progress >= 1) {
+        state.camera.position.copy(choreography.toPosition);
+        lookAtRef.current.copy(choreography.toTarget);
+        choreographyRef.current = null;
+      }
+      return;
+    }
+
+    // The Core stays centered at home; spatial inspection owns camera orbit and zoom.
     if (isHome && !isSpatial) {
       state.camera.position.x += (0 - state.camera.position.x) * 0.12;
       state.camera.position.y += (0 - state.camera.position.y) * 0.12;
@@ -109,7 +199,7 @@ function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?
       return;
     }
 
-    const lerpSpeed = isSpatial ? 0.35 : 0.05;
+    const lerpSpeed = isSpatial ? 0.28 : 0.05;
     state.camera.position.x += (gestureState.cameraTarget.x - state.camera.position.x) * lerpSpeed;
     state.camera.position.y += (gestureState.cameraTarget.y - state.camera.position.y) * lerpSpeed;
     state.camera.position.z += (gestureState.cameraTarget.z - state.camera.position.z) * lerpSpeed;
@@ -1577,11 +1667,52 @@ function AppContent() {
   useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
 
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
+  const [environmentTransition, setEnvironmentTransition] = useState<'enter' | 'exit' | null>(null);
+  const previousSpatialRef = useRef(isSpatial);
+
+  useEffect(() => {
+    const previous = previousSpatialRef.current;
+    previousSpatialRef.current = isSpatial;
+
+    const nextTransition = !previous && isSpatial ? 'enter' : previous && !isSpatial ? 'exit' : null;
+    if (!nextTransition) return;
+
+    setEnvironmentTransition(nextTransition);
+    const timeout = window.setTimeout(() => setEnvironmentTransition(null), 1180);
+    return () => window.clearTimeout(timeout);
+  }, [isSpatial]);
 
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
       <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#101013] text-slate-900 selection:bg-red-500/20' : 'bg-[#080809] text-slate-800 selection:bg-red-500/20'}`}>
       
+      {/* Low-profile environment transition: reinforces the camera hand-off without blocking input. */}
+      {environmentTransition && (
+        <motion.div
+          key={environmentTransition}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[55] overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.46, 0] }}
+          transition={{ duration: 0.96, times: [0, 0.28, 1], ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            background: environmentTransition === 'exit'
+              ? 'radial-gradient(ellipse at 50% 50%, rgba(226,2,70,0.08) 0%, rgba(7,7,9,0.68) 72%, rgba(7,7,9,0.1) 100%)'
+              : 'radial-gradient(ellipse at 50% 50%, rgba(226,2,70,0.12) 0%, rgba(7,7,9,0.58) 68%, rgba(7,7,9,0.08) 100%)',
+          }}
+        >
+          <motion.div
+            className="absolute inset-0"
+            initial={{ scale: 0.88, opacity: 0 }}
+            animate={{ scale: [0.88, 1.04, 1.12], opacity: [0, 0.24, 0] }}
+            transition={{ duration: 0.96, times: [0, 0.3, 1], ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              background: 'radial-gradient(circle at 50% 50%, transparent 20%, rgba(226,2,70,0.18) 48%, transparent 72%)',
+            }}
+          />
+        </motion.div>
+      )}
+
       {/* Action Preview Overlay */}
       {actionPreview && (
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none animate-fade-in-down">

@@ -105,10 +105,18 @@ export function Sidebar({
                     onClick={() => setView(item.id)}
                     aria-current={isActive ? 'page' : undefined}
                     className="advis-nav-link group"
-                    whileHover={{ x: 4 }}
+                    whileHover={{ x: 4, scale: 1.008 }}
                     whileTap={{ scale: 0.985 }}
                     transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                   >
+                    {isActive && (
+                      <motion.span
+                        layoutId="advis-active-nav-rail"
+                        aria-hidden="true"
+                        className="pointer-events-none absolute bottom-2 left-0.5 top-2 w-[3px] rounded-full bg-[#e20246] shadow-[0_0_12px_rgba(226,2,70,0.55)]"
+                        transition={{ type: 'spring', stiffness: 520, damping: 38 }}
+                      />
+                    )}
                     <motion.span
                       aria-hidden="true"
                       className="relative flex shrink-0 items-center justify-center"
