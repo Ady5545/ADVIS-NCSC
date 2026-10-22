@@ -610,15 +610,15 @@ export function HologramCore({
         "  float hotCloud = pow(smoothstep(0.51, 0.73, cloudField), 1.32) * clouds;",
         "  float filaments = pow(1.0 - abs(sin((cloud * 1.05 + detail * 0.28 + vapor * 0.17 + warp.y * 0.22) * 5.8 + p.y * 1.1)), 5.0);",
         "  filaments *= smoothstep(0.40, 0.64, cloud);",
-        "  vec3 deep = vec3(0.008, 0.009, 0.027);",
-        "  vec3 indigo = vec3(0.045, 0.055, 0.19);",
+        "  vec3 deep = vec3(0.020, 0.040, 0.135);",
+        "  vec3 indigo = vec3(0.095, 0.16, 0.46);",
         "  vec3 rose = vec3(1.0, 0.055, 0.30);",
         "  vec3 hotRose = vec3(1.0, 0.24, 0.52);",
-        "  vec3 nebulaBlue = vec3(0.10, 0.36, 1.0);",
-        "  vec3 cyanGas = vec3(0.27, 0.78, 1.0);",
+        "  vec3 nebulaBlue = vec3(0.16, 0.46, 1.0);",
+        "  vec3 cyanGas = vec3(0.30, 0.82, 1.0);", 
         "  vec3 col = mix(deep, indigo, 0.24 + clouds * 0.54);",
-        "  col = mix(col, nebulaBlue, blue * (0.22 + clouds * 0.30));",
-        "  col = mix(col, rose, pink * (0.24 + clouds * 0.38));",
+        "  col = mix(col, nebulaBlue, blue * (0.34 + clouds * 0.40));", 
+        "  col = mix(col, rose, pink * (0.18 + clouds * 0.28));", 
         "  col = mix(col, hotRose, hotCloud * 0.44);",
         "  col = mix(col, vec3(1.0, 0.68, 0.83), hotCloud * 0.26);",
         "  col += cyanGas * pow(blue, 1.45) * clouds * 0.20;",
@@ -633,11 +633,11 @@ export function HologramCore({
         "  vec3 normal = normalize(vNormalView);",
         "  vec3 viewDir = normalize(vViewPosition);",
         "  float lightFacing = dot(normal, normalize(vec3(-0.42, 0.30, 0.85)));",
-        "  float planetLighting = 0.10 + 0.90 * smoothstep(-0.26, 0.56, lightFacing);",
+        "  float planetLighting = 0.22 + 0.78 * smoothstep(-0.30, 0.50, lightFacing);", 
         "  float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.35);",
         "  col *= planetLighting;",
         "  col += vec3(0.09, 0.22, 0.62) * (1.0 - clouds) * 0.055 * planetLighting;",
-        "  col += vec3(0.025, 0.032, 0.15) * (1.0 - planetLighting);",
+        "  col += vec3(0.08, 0.12, 0.40) * (1.0 - planetLighting);", 
         "  col += vec3(0.09, 0.29, 1.0) * rim * (0.34 + uActivity * 0.14);",
         "  col += vec3(0.98, 0.10, 0.38) * pow(rim, 3.8) * (0.13 + uActivity * 0.07);",
         "  col += vec3(0.20, 0.66, 1.0) * pow(rim, 5.7) * (0.48 + uVoice * 0.30);",
@@ -838,7 +838,7 @@ export function HologramCore({
       blending: THREE.AdditiveBlending,
       toneMapped: false,
     }),
-    coreGlow: new THREE.MeshBasicMaterial({ color: '#ff477f', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false }),
+    coreGlow: new THREE.MeshBasicMaterial({ color: '#248dff', transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }),
     shellInner: new THREE.MeshBasicMaterial({ color: '#a7ddff', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.NormalBlending, depthWrite: false }),
     shellOuter: new THREE.MeshBasicMaterial({ color: '#4c2a92', transparent: true, opacity: 0.025, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false }),
     halo: new THREE.MeshBasicMaterial({ color: '#2869e8', transparent: true, opacity: 0.038, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }),
@@ -903,8 +903,8 @@ export function HologramCore({
   useEffect(() => {
     // Keep the gas rose-forward, with blue/cyan edges and warm distant stars.
     const base = colors.technical.clone();
-    materials.coreGlow.color.copy(colors.plasma.clone().lerp(colors.technical, 0.12));
-    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.18));
+    materials.coreGlow.color.copy(colors.technical.clone().lerp(colors.plasma, 0.14));
+    materials.halo.color.copy(base.clone().lerp(colors.plasma, 0.10));
     materials.grid.color.copy(base.clone().lerp(colors.hot, 0.12));
     materials.radial.color.copy(new THREE.Color('#49bdff'));
     materials.arc.color.copy(colors.hot);
@@ -1085,7 +1085,7 @@ export function HologramCore({
 
     if (nucleusGlowRef.current) {
       nucleusGlowRef.current.scale.setScalar((1.015 + curBass * 0.035 + voice * 0.025) * collapse);
-      materials.coreGlow.opacity = Math.min(0.15, (0.035 + activity * 0.018 + voice * 0.035 + theatre.halo * 0.012) * hologramIntensity) * opacityFactor;
+      materials.coreGlow.opacity = Math.min(0.24, (0.095 + activity * 0.035 + voice * 0.055 + theatre.halo * 0.025) * hologramIntensity) * opacityFactor;
     }
 
     if (innerShellRef.current) {
