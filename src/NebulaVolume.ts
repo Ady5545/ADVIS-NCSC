@@ -180,7 +180,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
           ))), 4.0);
 
           float cloudField = broad * 0.66 + detail * 0.34 + filament * 0.045;
-          float cloudMass = pow(smoothstep(0.455, 0.705, cloudField), 1.15);
+          float cloudMass = pow(smoothstep(0.415, 0.68, cloudField), 1.15);
           float filamentDensity = pow(max(0.0, filament - 0.52), 2.0)
             * 0.18 * smoothstep(0.43, 0.62, broad);
           float cloudDensity = max(cloudMass, filamentDensity);
@@ -195,13 +195,13 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
             + uThinking * 0.12 + uSearching * 0.06 + uSpeaking * 0.04;
           if (density < 0.012) continue;
 
-          float stepAlpha = 1.0 - exp(-density * stepLength * 0.34);
+          float stepAlpha = 1.0 - exp(-density * stepLength * 0.46);
           stepAlpha *= clamp(uOpacity, 0.0, 1.0);
 
           float roseMix = smoothstep(0.37, 0.70, broad * 0.54 + detail * 0.46 + p.y * 0.09);
           float cyanMask = smoothstep(0.62, 0.82, detail + broad * 0.18)
             * (1.0 - roseMix) * 0.70;
-          vec3 gasColor = mix(vec3(0.075, 0.10, 0.42), vec3(0.98, 0.055, 0.34), roseMix);
+          vec3 gasColor = mix(vec3(0.10, 0.16, 0.58), vec3(0.98, 0.055, 0.34), roseMix);
           gasColor = mix(gasColor, vec3(0.10, 0.58, 1.0), cyanMask);
           float listeningRim = pow(max(0.0, 1.0 - abs(dot(normalize(p), -rayDirection))), 2.0) * uListening;
           gasColor = mix(gasColor, vec3(0.16, 0.76, 1.0), listeningRim * 0.24);
