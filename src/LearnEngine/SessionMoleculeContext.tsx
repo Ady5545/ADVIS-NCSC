@@ -168,7 +168,7 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
           atomA: bond.atomA,
           atomB: bond.atomB,
           order: bond.order,
-          length: Number.isFinite(bond.length)
+          length: typeof bond.length === 'number' && Number.isFinite(bond.length)
             ? bond.length
             : atomA.position.distanceTo(atomB.position),
           type: bond.type,
