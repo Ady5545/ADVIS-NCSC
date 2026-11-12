@@ -50,10 +50,12 @@ function makeVoluteGeometry(
   tubeRadius: number,
   angleOffset = 0,
   zOffset = 0,
-): THREE.TubeGeometry {
+): THREE.BufferGeometry {
   const points: THREE.Vector3[] = [];
   const turns = Math.PI * 1.78;
   const start = -Math.PI * 0.72 + angleOffset;
+  const tubularSegments = 180;
+  const radialSegments = 24;
 
   for (let i = 0; i <= 150; i += 1) {
     const t = i / 150;
@@ -63,7 +65,45 @@ function makeVoluteGeometry(
   }
 
   const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
-  return new THREE.TubeGeometry(curve, 180, tubeRadius, 20, false);
+  const frames = curve.computeFrenetFrames(tubularSegments, false);
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  // A real volute grows in flow area as it winds around the scroll.
+  // The cross-section therefore expands progressively rather than staying a constant tube.
+  for (let i = 0; i <= tubularSegments; i += 1) {
+    const t = i / tubularSegments;
+    const center = curve.getPointAt(t);
+    const areaGrowth = 0.56 + 0.88 * t;
+    const normalRadius = tubeRadius * areaGrowth;
+    const binormalRadius = tubeRadius * areaGrowth * 0.76;
+
+    for (let j = 0; j <= radialSegments; j += 1) {
+      const angle = (j / radialSegments) * Math.PI * 2;
+      const normal = frames.normals[i];
+      const binormal = frames.binormals[i];
+      const vertex = center
+        .clone()
+        .addScaledVector(normal, Math.cos(angle) * normalRadius)
+        .addScaledVector(binormal, Math.sin(angle) * binormalRadius);
+      positions.push(vertex.x, vertex.y, vertex.z);
+    }
+  }
+
+  for (let i = 0; i < tubularSegments; i += 1) {
+    for (let j = 0; j < radialSegments; j += 1) {
+      const a = i * (radialSegments + 1) + j;
+      const b = a + radialSegments + 1;
+      indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 function makePipeGeometry(
@@ -99,8 +139,12 @@ function makeSweptBladeGeometry(
   for (let blade = 0; blade < count; blade += 1) {
     const bladeAngle = (blade / count) * Math.PI * 2;
 
+    const verticesPerSkin = (radialSteps + 1) * (chordSteps + 1);
+    const lowerBase = positions.length / 3;
+    const upperBase = lowerBase + verticesPerSkin;
+
     for (const skin of [-1, 1]) {
-      const base = positions.length / 3;
+      const base = skin < 0 ? lowerBase : upperBase;
 
       for (let rStep = 0; rStep <= radialSteps; rStep += 1) {
         const radialT = rStep / radialSteps;
@@ -130,6 +174,22 @@ function makeSweptBladeGeometry(
           indices.push(a, b, a + 1, b, b + 1, a + 1);
         }
       }
+    }
+
+    // Close the blade perimeter so the swept airfoil reads as a solid component.
+    const boundary: number[] = [];
+    for (let c = 0; c <= chordSteps; c += 1) boundary.push(c);
+    for (let r = 1; r <= radialSteps; r += 1) boundary.push(r * (chordSteps + 1) + chordSteps);
+    for (let c = chordSteps - 1; c >= 0; c -= 1) boundary.push(radialSteps * (chordSteps + 1) + c);
+    for (let r = radialSteps - 1; r >= 1; r -= 1) boundary.push(r * (chordSteps + 1));
+
+    for (let edge = 0; edge < boundary.length; edge += 1) {
+      const next = (edge + 1) % boundary.length;
+      const lowerA = lowerBase + boundary[edge];
+      const lowerB = lowerBase + boundary[next];
+      const upperA = upperBase + boundary[edge];
+      const upperB = upperBase + boundary[next];
+      indices.push(lowerA, upperA, lowerB, lowerB, upperA, upperB);
     }
   }
 
@@ -257,24 +317,11 @@ function TurboRotor({
         <Pbr state={state} color={turbine ? '#777d86' : '#9da8b4'} metalness={0.94} roughness={0.2} />
       </Cylinder>
       <mesh geometry={mainBlades} castShadow receiveShadow>
-        <meshPhysicalMaterial
-          color={turbine ? '#9b9fa7' : '#d5dbe2'}
-          metalness={0.94}
-          roughness={0.2}
-          clearcoat={0.25}
-          side={THREE.DoubleSide}
-          envMapIntensity={1.5}
-        />
+        <Pbr state={state} color={turbine ? '#9b9fa7' : '#d5dbe2'} metalness={0.94} roughness={0.2} />
       </mesh>
       {splitterBlades && (
         <mesh geometry={splitterBlades} castShadow receiveShadow>
-          <meshPhysicalMaterial
-            color="#aeb8c3"
-            metalness={0.92}
-            roughness={0.22}
-            side={THREE.DoubleSide}
-            envMapIntensity={1.45}
-          />
+          <Pbr state={state} color="#aeb8c3" metalness={0.92} roughness={0.22} />
         </mesh>
       )}
       <Sphere args={[0.115, 32, 20]} scale={[1, 1, 0.62]} position={[0, 0, 0.035]}>
