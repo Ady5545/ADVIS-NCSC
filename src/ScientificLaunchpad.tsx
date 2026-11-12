@@ -65,7 +65,6 @@ const destinations = [
 
 const directStartDefinitions = [
   { label: 'Four-stroke engine', id: 'v8_engine_scientific', type: 'spatial' },
-  { label: 'Human anatomy', id: 'human_anatomy_scientific', type: 'spatial' },
   { label: 'V12 engine', id: 'v12_engine', type: 'spatial' },
   { label: 'Servo motor', id: 'servo_motor', type: 'spatial' },
   { label: 'Solar tracker', id: 'heliomotion', type: 'spatial' },
