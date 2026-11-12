@@ -39,6 +39,8 @@ module.exports = function advisHealthHandler(req, res) {
     service: "advis-api",
     status: "online",
     gemini: geminiConfigured ? "configured" : "not_configured",
+    localKnowledge: "enabled",
+    webSearch: "keyless_bing_rss_with_wikipedia_fallback",
     model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     multimodalModel: process.env.GEMINI_MULTIMODAL_MODEL || "gemini-3.8-flash"
   });
