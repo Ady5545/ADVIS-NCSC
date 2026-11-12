@@ -64,10 +64,9 @@ const destinations = [
 ] as const;
 
 const directStartDefinitions = [
-  { label: 'Four-stroke engine', id: 'v8_engine_scientific', type: 'spatial' },
-  { label: 'V12 engine', id: 'v12_engine', type: 'spatial' },
-  { label: 'Servo motor', id: 'servo_motor', type: 'spatial' },
-  { label: 'Solar tracker', id: 'heliomotion', type: 'spatial' },
+  // Curated showcase models only: the precision V8 and V12 assemblies.
+  { label: 'V8 Engine', id: 'v8_engine', type: 'spatial' },
+  { label: 'V12 Engine', id: 'v12_engine', type: 'spatial' },
   { label: 'Water · H₂O', id: 'H2O', type: 'molecule' },
   { label: 'Carbon dioxide · CO₂', id: 'CO2', type: 'molecule' },
   { label: 'Methane · CH₄', id: 'CH4', type: 'molecule' },
