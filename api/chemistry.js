@@ -139,7 +139,7 @@ function parseSdf(sdf) {
       sourceAtoms.push({
         sourceIndex: index + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0,
         ...(parity === 1 ? { stereo: "TETRAHEDRAL_CW" } :
-          parity === 2 ? { stereo: "TETRAHEDRAL_CCW" :
+          parity === 2 ? { stereo: "TETRAHEDRAL_CCW" } :
           parity === 3 ? { stereo: "TETRAHEDRAL_UNSPECIFIED" } : {})
       });
     }
