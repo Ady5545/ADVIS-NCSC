@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSessionMolecule } from './SessionMoleculeContext';
+import { CHEMISTRY_UI, ChemistryStatusPill, formatMolecularFormula } from './ChemistryWorkspaceUI';
 import { 
   Atom, 
   FlaskConical, 
@@ -19,9 +20,10 @@ import {
 export interface MolecularBuilderHUDProps {
   measurementMode?: boolean;
   onToggleMeasurement?: () => void;
+  visible?: boolean;
 }
 
-export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: MolecularBuilderHUDProps) {
+export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visible = true }: MolecularBuilderHUDProps) {
   const {
     molecule,
     selectedAtomId,
@@ -41,11 +43,14 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
     selectAtom
   } = useSessionMolecule();
 
+  if (!visible) return null;
+
   if (moleculeLoadStatus === 'LOADING') {
     return (
-      <aside className="absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-blue-200 bg-white/95 p-4 text-slate-800 shadow-2xl pointer-events-auto">
-        <div className="flex items-center gap-2 text-blue-700 font-mono text-xs font-semibold tracking-wider">
-          <FlaskConical className="h-4 w-4" /> RESOLVING MOLECULE
+      <aside className={`absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] ${CHEMISTRY_UI.panel} p-4 pointer-events-auto`}>
+        <div className="flex items-center justify-between gap-2">
+          <div className={`flex items-center gap-2 ${CHEMISTRY_UI.eyebrow}`}><FlaskConical className="h-4 w-4" /> Resolving molecule</div>
+          <ChemistryStatusPill status="LOADING" />
         </div>
         <p className="mt-2 text-xs text-slate-600">Retrieving the compound identity, molecular graph, and available 3D conformer from PubChem…</p>
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full w-2/3 rounded-full bg-blue-600 animate-pulse" /></div>
@@ -55,9 +60,10 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
 
   if (moleculeLoadStatus === 'ERROR') {
     return (
-      <aside className="absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-amber-200 bg-white/95 p-4 text-slate-800 shadow-2xl pointer-events-auto">
-        <div className="flex items-center gap-2 text-amber-700 font-mono text-xs font-semibold tracking-wider">
-          <AlertTriangle className="h-4 w-4" /> STRUCTURE NOT VERIFIED
+      <aside className={`absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] ${CHEMISTRY_UI.panel} p-4 pointer-events-auto`}>
+        <div className="flex items-center justify-between gap-2">
+          <div className={`flex items-center gap-2 ${CHEMISTRY_UI.eyebrow}`}><AlertTriangle className="h-4 w-4" /> Structure status</div>
+          <ChemistryStatusPill status="ERROR" label="NOT VERIFIED" />
         </div>
         <p className="mt-2 text-xs leading-relaxed text-slate-600">{moleculeLoadError || 'No verified 3D structure is currently available for this input.'}</p>
         <p className="mt-2 text-[10px] text-slate-500">Try a more specific compound name, an exact SMILES string prefixed with SMILES:, or a returned CID.</p>
@@ -74,16 +80,16 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
     <aside 
       id="molecular-builder-hud"
       aria-label="Interactive Molecular Builder HUD"
-      className="absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-blue-200/30 bg-white/85 backdrop-blur-md p-4 text-slate-800 shadow-2xl transition-all duration-300 pointer-events-auto"
+      className={`absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] ${CHEMISTRY_UI.panel} p-4 transition-all duration-300 pointer-events-auto`}
     >
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-blue-200/20 pb-3">
+      <header className={CHEMISTRY_UI.panelHeader}>
         <div className="flex items-center space-x-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50/70 border border-blue-200/40 text-blue-700">
             <FlaskConical className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-xs font-semibold tracking-wider text-blue-700 font-mono uppercase">
+            <h2 className={CHEMISTRY_UI.eyebrow}>
               Molecular Builder
             </h2>
             <p className="text-[10px] text-slate-500 font-mono">
@@ -110,11 +116,11 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
       </header>
 
       {/* Primary Structure Identification */}
-      <section className="mt-3 rounded-lg bg-white/80 border border-slate-200 p-3">
+      <section className="mt-3 rounded-lg border border-blue-100 bg-white/75 p-3">
         <div className="flex items-baseline justify-between">
           <div className="flex items-baseline space-x-2">
             <span className="text-2xl font-bold font-mono text-blue-700 tracking-wide">
-              {analysis?.formula || 'C'}
+              {formatMolecularFormula(analysis?.formula || 'C')}
             </span>
             <span className="text-[11px] text-slate-500 font-mono">
               ({molecule.atoms.length} {molecule.atoms.length === 1 ? 'atom' : 'atoms'}, {molecule.bonds.length} {molecule.bonds.length === 1 ? 'bond' : 'bonds'})
@@ -129,8 +135,8 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
         {/* Geometry & Hybridization Meta */}
         <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] font-mono">
           <div className="rounded bg-white/60 p-1.5 border border-slate-200/80">
-            <span className="text-slate-500 block text-[9px]">HYBRIDIZATION</span>
-            <span className="text-blue-700 font-semibold">{analysis?.estimatedHybridization || 'sp³'}</span>
+            <span className={`block ${CHEMISTRY_UI.label}`}>HYBRIDIZATION</span>
+            <span className="font-semibold text-blue-800">{analysis?.estimatedHybridization || 'sp³'}</span>
           </div>
           <div className="rounded bg-white/60 p-1.5 border border-slate-200/80">
             <span className="text-slate-500 block text-[9px]">NET CHARGE</span>
@@ -150,12 +156,12 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
       </section>
 
       {/* Selected Atom or Active Node Info */}
-      <section className="mt-3 rounded-lg bg-white/60 border border-slate-200/80 p-2.5">
+      <section className="mt-3 rounded-lg border border-blue-100 bg-blue-50/30 p-2.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[10px] font-mono uppercase text-slate-500 flex items-center gap-1">
+          <span className={`flex items-center gap-1 ${CHEMISTRY_UI.label}`}>
             <Atom className="h-3 w-3 text-blue-700" /> Active Focus:
           </span>
-          <span className="font-mono text-blue-700 font-medium">
+          <span className="font-mono text-blue-800 font-medium">
             {selectedAtom ? `${selectedAtom.element} (${selectedAtom.id})` : (lastAddedAtomId ? `Last: ${lastAddedAtomId}` : 'None')}
           </span>
         </div>
@@ -184,12 +190,12 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
 
       {/* Educational Valence Warnings */}
       {analysis && analysis.warnings.length > 0 && (
-        <section className="mt-3 rounded-lg bg-amber-950/30 border border-amber-500/30 p-2.5 text-[11px] text-amber-200 font-mono">
-          <div className="flex items-center gap-1.5 text-amber-400 font-semibold mb-1">
+        <section className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-[11px] font-mono text-amber-900">
+          <div className="mb-1 flex items-center gap-1.5 font-semibold text-amber-800">
             <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Educational Valence Notes</span>
           </div>
-          <ul className="space-y-1 text-[10px] text-amber-200/90 list-disc list-inside">
+          <ul className="list-inside list-disc space-y-1 text-[10px] text-amber-900/90">
             {analysis.warnings.map((w, i) => (
               <li key={i}>{w}</li>
             ))}
@@ -198,15 +204,15 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
       )}
 
       {analysis && analysis.warnings.length === 0 && (
-        <div className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 p-2 text-[10px] text-emerald-300 font-mono">
+        <div className="mt-2.5 flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 p-2 font-mono text-[10px] text-emerald-800">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
           <span>Valence & octet satisfied with 0 net formal charge.</span>
         </div>
       )}
 
       {/* Quick Interactive Construction Actions */}
-      <footer className="mt-3 pt-2 border-t border-slate-200">
-        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block mb-1.5">
+      <footer className={`mt-3 border-t pt-2 ${CHEMISTRY_UI.divider}`}>
+        <span className={`mb-1.5 block ${CHEMISTRY_UI.label}`}>
           Interactive Direct Commands
         </span>
         
