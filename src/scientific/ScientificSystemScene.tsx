@@ -99,7 +99,9 @@ export function ScientificSystemScene({
   }, [isKinematicPlaying, simulation]);
 
   // Effective explosion factor: honor isExploded and explodedFactor or store
-  const effectiveExplosionFactor = isHumanAnatomy && anatomyView !== 'organs'\n    ? 0\n    : isExploded ? Math.max(0.65, explodedFactor || storeExplode) : explodedFactor || storeExplode;
+  const effectiveExplosionFactor = isHumanAnatomy && anatomyView !== 'organs'
+    ? 0
+    : isExploded ? Math.max(0.65, explodedFactor || storeExplode) : explodedFactor || storeExplode;
 
   // Connected drivers and driven components
   const { driverIds, drivenIds } = useMemo(() => {
