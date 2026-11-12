@@ -58,7 +58,7 @@ try {
   const renderer = await readFile(resolve('src/generators/TurboPrecision.tsx'), 'utf8');
   const scene = await readFile(resolve('src/SpatialObjectEngine.tsx'), 'utf8');
   for (const id of ids) {
-    assert.match(renderer, new RegExp(`case\\\\s+['"]${id}['"]`), 'renderer is missing a component case for ' + id);
+    assert.ok(renderer.includes(`case '${id}':`) || renderer.includes(`case \"${id}\":`), 'renderer is missing a component case for ' + id);
   }
   assert.match(renderer, /makeSweptBladeGeometry/, 'curved rotor blade generator is required');
   assert.match(renderer, /areaGrowth/, 'volute cross-section must expand along its scroll');
