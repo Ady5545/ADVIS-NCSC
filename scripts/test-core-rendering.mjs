@@ -25,8 +25,8 @@ for (const [name, shader] of shaderSources) {
 
 assert.match(core, /for \(int octave = 0; octave < 3; octave\+\+\)/,
   'The approved three-octave volumetric nebula detail must remain intact.');
-assert.equal((core.match(/side: THREE\.DoubleSide/g) || []).length, 2,
-  'Both nebula and atmosphere shells must preserve their approved transparent two-sided rendering.');
+assert.equal((core.match(/side: THREE\.DoubleSide/g) || []).length, 3,
+  'Nebula, atmosphere, and gas ribbon materials must preserve their approved transparent two-sided rendering.');
 assert.match(core, /ribbon\.geometry\.dispose\(\)/,
   'Ribbon GPU geometry must be disposed when the Core unmounts.');
 
