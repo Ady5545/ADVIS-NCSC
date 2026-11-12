@@ -11,7 +11,7 @@ import { renderSuspensionPrecisionComponent } from './generators/SuspensionPreci
 import { renderSteeringPrecisionComponent } from './generators/SteeringPrecision';
 import { renderPmsmPrecisionComponent } from './generators/PmsmPrecision';
 import { renderJetEnginePrecisionComponent } from './generators/JetEnginePrecision';
-import { V12UltimateCutaway } from './generators/V12UltimateCutaway';
+import { V12UltimateCutawayPart } from './generators/V12UltimateCutaway';
 import { CadAssetRenderer } from './cad/CadAssetRenderer';
 import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ScientificSystemScene } from './scientific/ScientificSystemScene';
@@ -224,10 +224,14 @@ function ProceduralAssemblyAutoFitter({
     (obj.components && obj.components.length > 0 && obj.components.some(c => c.assetPath && c.assetPath.endsWith('.glb')))
   );
   
-  // Fit the V8 as a substantial whole in normal mode and fit its wider bounds when exploded.
+  // Keep both long automotive assemblies framed when all of their independent
+  // component groups fan out. V12 gets extra breathing room for its two banks.
+  const isExplodedLayout = explodedFactor > 0 || isExploded;
   const targetViewportFraction = obj.id === 'v8_engine'
-    ? (explodedFactor > 0 || isExploded ? 0.76 : 0.90)
-    : 0.75;
+    ? (isExplodedLayout ? 0.76 : 0.90)
+    : obj.id === 'v12_engine'
+      ? (isExplodedLayout ? 0.62 : 0.78)
+      : 0.75;
 
   // Use defaultScale as fallback initial scale
   const [fittedScale, setFittedScale] = useState<number>(() => {
@@ -898,25 +902,24 @@ function EngineeringComponentRenderer({
     );
   }
 
-  // The V12 is rendered as one cohesive industrial cutaway assembly so its internal
-  // geometry remains spatially connected instead of appearing as separate primitive blocks.
+  // Each V12 component now renders its own real geometry group. The outer
+  // component ref remains the single authority for selection, hide/show,
+  // isolation and exploded transforms.
   if (objectId === 'v12_engine') {
-    if (id === 'v12.engine_block') {
-      return (
-        <V12UltimateCutaway
-          isHovered={isHovered}
-          isSelected={isSelected}
-          xrayEnabled={xrayEnabled}
-          blueprintEnabled={blueprintEnabled}
-          v12Rpm={v12Rpm}
-          v12Direction={v12Direction}
-          focusedCylinder={focusedCylinder}
-          crankAngleRef={crankAngleRef}
-          sysTimeRef={sysTimeRef}
-        />
-      );
-    }
-    return null;
+    return (
+      <V12UltimateCutawayPart
+        partId={id}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        xrayEnabled={xrayEnabled}
+        blueprintEnabled={blueprintEnabled}
+        v12Rpm={v12Rpm}
+        v12Direction={v12Direction}
+        focusedCylinder={focusedCylinder}
+        crankAngleRef={crankAngleRef}
+        sysTimeRef={sysTimeRef}
+      />
+    );
   }
 
   // Real multi-component V8 (15 genuine parts: block, crankshaft, per-bank pistons/heads/
