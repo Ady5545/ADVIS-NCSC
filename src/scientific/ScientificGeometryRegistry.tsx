@@ -228,28 +228,78 @@ class ScientificGeometryRegistryClass {
       );
     });
 
-    // Anatomy: Organ
+    // Anatomy: organ-specific meshes with recognizable external morphology.
     this.registerGeometry('anatomical_organ', ({ params, materialProps }) => {
       const r = params.radius ?? 0.6;
       if (params.organType === 'heart') {
         return (
           <group>
-            <mesh castShadow receiveShadow scale={[1, 1.2, 0.9]}>
-              <sphereGeometry args={[r, 48, 32]} />
-              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
+            <mesh castShadow receiveShadow position={[-r * 0.25, r * 0.12, 0]} rotation={[0, 0, -0.18]} scale={[0.72, 0.86, 0.72]}>
+              <sphereGeometry args={[r, 48, 36]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.35} clearcoat={0.32} clearcoatRoughness={0.38} />
             </mesh>
-            {/* Left Ventricle Muscular Apex */}
-            <mesh position={[0.15, -r * 0.4, 0.1]} scale={[0.7, 0.9, 0.7]}>
-              <coneGeometry args={[r * 0.65, r * 1.1, 32]} />
-              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
+            <mesh castShadow receiveShadow position={[r * 0.28, r * 0.08, 0.015]} rotation={[0, 0, 0.2]} scale={[0.7, 0.9, 0.74]}>
+              <sphereGeometry args={[r, 48, 36]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.35} clearcoat={0.32} clearcoatRoughness={0.38} />
             </mesh>
+            <mesh castShadow receiveShadow position={[r * 0.04, -r * 0.48, 0.02]} rotation={[0, 0, Math.PI]} scale={[0.48, 0.88, 0.5]}>
+              <coneGeometry args={[r * 0.78, r * 1.12, 48, 1]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.35} clearcoat={0.32} clearcoatRoughness={0.38} />
+            </mesh>
+            {[-1, 1].map((side) => (
+              <mesh key={side} position={[side * r * 0.22, r * 0.78, 0]} rotation={[0, 0, side * 0.2]}>
+                <cylinderGeometry args={[r * 0.085, r * 0.11, r * 0.55, 24]} />
+                <meshPhysicalMaterial color="#a83242" roughness={0.48} />
+              </mesh>
+            ))}
+          </group>
+        );
+      }
+      if (params.organType === 'lung_left' || params.organType === 'lung_right') {
+        const isLeft = params.organType === 'lung_left';
+        return (
+          <group>
+            <mesh castShadow receiveShadow position={[0, r * 0.12, 0]} scale={[0.72, 1.12, 0.58]}>
+              <sphereGeometry args={[r, 56, 40]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} clearcoat={0.16} clearcoatRoughness={0.52} />
+            </mesh>
+            <mesh castShadow receiveShadow position={[isLeft ? r * 0.1 : -r * 0.1, -r * 0.35, r * 0.015]} scale={[0.68, 0.68, 0.56]}>
+              <sphereGeometry args={[r, 48, 36]} />
+              <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} clearcoat={0.16} clearcoatRoughness={0.52} />
+            </mesh>
+            <mesh position={[0, r * 0.05, r * 0.58]} rotation={[0, 0, isLeft ? -0.12 : 0.12]}>
+              <torusGeometry args={[r * 0.54, r * 0.012, 8, 48, Math.PI * 0.92]} />
+              <meshStandardMaterial color="#d98aa6" roughness={0.8} transparent opacity={0.62} />
+            </mesh>
+          </group>
+        );
+      }
+      if (params.organType === 'brain') {
+        return (
+          <group>
+            {[-1, 1].map((side) => (
+              <mesh key={side} castShadow receiveShadow position={[side * r * 0.28, 0, 0]} scale={[0.72, 0.9, 0.78]}>
+                <sphereGeometry args={[r, 56, 40]} />
+                <meshPhysicalMaterial {...materialProps} envMapIntensity={1.25} clearcoat={0.18} clearcoatRoughness={0.5} />
+              </mesh>
+            ))}
+            <mesh position={[0, -r * 0.66, -r * 0.12]} scale={[r * 0.22, r * 0.52, r * 0.24]}>
+              <capsuleGeometry args={[1, 1, 8, 20]} />
+              <meshPhysicalMaterial color={materialProps.color} roughness={0.64} />
+            </mesh>
+            {Array.from({ length: 7 }, (_, i) => (
+              <mesh key={i} position={[0, r * (0.48 - i * 0.14), r * 0.68]} rotation={[0, 0, (i - 3) * 0.13]}>
+                <torusGeometry args={[r * (0.42 + (i % 2) * 0.06), r * 0.018, 8, 48, Math.PI * 1.25]} />
+                <meshStandardMaterial color="#d99aa9" roughness={0.82} transparent opacity={0.55} />
+              </mesh>
+            ))}
           </group>
         );
       }
       return (
         <mesh castShadow receiveShadow>
-          <sphereGeometry args={[r, 24, 16]} />
-          <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
+          <sphereGeometry args={[r, 56, 40]} />
+          <meshPhysicalMaterial {...materialProps} envMapIntensity={1.25} clearcoat={0.18} />
         </mesh>
       );
     });
