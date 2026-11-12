@@ -202,8 +202,9 @@ function normalize(value) {
 function isKnowledgeQuestion(message) {
   const text = normalize(message);
   if (!text || text.length < 4) return false;
-  if (/\b(what do you think|what is your opinion|should i|can you build|can you make|write me|draft me|design me)\b/.test(text)) return false;
-  return /^(what|why|how|explain|define|describe|tell me|difference|compare|give me|can you explain|is|are|does|do|who|when|where)\b/.test(text);
+  if (/^(how do i|how can i|where am i|where is my|what is my|what are my|what should i|should i|can you|do you|are you|will you|write|draft|plan|design)\b/.test(text)) return false;
+  if (/\b(what do you think|what is your opinion|can you build|can you make|write me|draft me|design me)\b/.test(text)) return false;
+  return /^(what|why|how|explain|define|describe|tell me|difference|compare|give me|can you explain|who is|who was|when is|when was|when did|where is|where was|is|are|does|do)\b/.test(text);
 }
 
 function getLocalKnowledgeReply(message) {
