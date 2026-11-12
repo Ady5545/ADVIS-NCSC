@@ -30,6 +30,8 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
     canonicalOriginFormula,
     analysis,
     isSessionActive,
+    moleculeLoadStatus,
+    moleculeLoadError,
     addAtom,
     removeAtom,
     changeBondOrder,
@@ -39,9 +41,31 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
     selectAtom
   } = useSessionMolecule();
 
-  if (!isSessionActive || !molecule || molecule.atoms.length === 0) {
-    return null;
+  if (moleculeLoadStatus === 'LOADING') {
+    return (
+      <aside className="absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-blue-200 bg-white/95 p-4 text-slate-800 shadow-2xl pointer-events-auto">
+        <div className="flex items-center gap-2 text-blue-700 font-mono text-xs font-semibold tracking-wider">
+          <FlaskConical className="h-4 w-4" /> RESOLVING MOLECULE
+        </div>
+        <p className="mt-2 text-xs text-slate-600">Retrieving the compound identity, molecular graph, and available 3D conformer from PubChem…</p>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full w-2/3 rounded-full bg-blue-600 animate-pulse" /></div>
+      </aside>
+    );
   }
+
+  if (moleculeLoadStatus === 'ERROR') {
+    return (
+      <aside className="absolute top-20 right-6 z-30 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-amber-200 bg-white/95 p-4 text-slate-800 shadow-2xl pointer-events-auto">
+        <div className="flex items-center gap-2 text-amber-700 font-mono text-xs font-semibold tracking-wider">
+          <AlertTriangle className="h-4 w-4" /> STRUCTURE NOT VERIFIED
+        </div>
+        <p className="mt-2 text-xs leading-relaxed text-slate-600">{moleculeLoadError || 'No verified 3D structure is currently available for this input.'}</p>
+        <p className="mt-2 text-[10px] text-slate-500">Try a more specific compound name or an exact SMILES string.</p>
+      </aside>
+    );
+  }
+
+  if (!isSessionActive || !molecule || molecule.atoms.length === 0) return null;
 
   const selectedAtom = molecule.atoms.find(a => a.id === selectedAtomId) || null;
   const currentAtomId = selectedAtomId || lastAddedAtomId;
@@ -63,11 +87,13 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
               Molecular Builder
             </h2>
             <p className="text-[10px] text-slate-500 font-mono">
-              {source === 'LIBRARY_DERIVATIVE' 
-                ? `Derivative of ${canonicalOriginFormula || 'Canonical'}` 
-                : source === 'CUSTOM_BUILDER' 
-                  ? 'Interactive Session Graph' 
-                  : 'Canonical Library'}
+              {source === 'REMOTE_REFERENCE'
+                ? 'Verified 3D reference • PubChem'
+                : source === 'LIBRARY_DERIVATIVE'
+                  ? `Derivative of ${canonicalOriginFormula || 'Canonical'}`
+                  : source === 'CUSTOM_BUILDER'
+                    ? 'Interactive Session Graph'
+                    : 'Canonical Library'}
             </p>
           </div>
         </div>
