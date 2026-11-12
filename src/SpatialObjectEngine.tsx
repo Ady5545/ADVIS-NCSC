@@ -223,6 +223,13 @@ function ProceduralAssemblyAutoFitter({
     (obj.assetPath && obj.assetPath.endsWith('.glb')) ||
     (obj.components && obj.components.length > 0 && obj.components.some(c => c.assetPath && c.assetPath.endsWith('.glb')))
   );
+  // Scientific anatomy is authored in compact anatomical coordinates. The
+  // parent spatial group begins at a 0.001 transition scale, so measuring its
+  // descendants here produces a microscopic bounding box and an enormous
+  // fittedScale. That pushes every anatomy mesh outside the camera frustum.
+  // Keep this model at a deliberate, stable scale instead of measuring through
+  // the transitioning ancestor.
+  const isHumanAnatomy = obj.id === 'human_anatomy_scientific';
   
   // Keep both long automotive assemblies framed when all of their independent
   // component groups fan out. V12 gets extra breathing room for its two banks.
@@ -239,9 +246,15 @@ function ProceduralAssemblyAutoFitter({
   });
 
   useLayoutEffect(() => {
-    // GLTF models internally scale their own clone via calculateAutoFitScale
+    // GLTF models internally scale their own clone via calculateAutoFitScale.
+    // The anatomy scene uses local coordinates and must not be auto-fit while
+    // its transitioning ancestor is still at scale 0.001.
     if (isGltf) {
       setFittedScale(1.0);
+      return;
+    }
+    if (isHumanAnatomy) {
+      setFittedScale(2.8);
       return;
     }
 
