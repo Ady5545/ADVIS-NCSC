@@ -357,6 +357,16 @@ export function TurboCompressorHousing({ state }: { state: TurboState }) {
       <Torus args={[0.345, 0.035, 16, 88]} position={[0, 0, 0.055]}>
         <Pbr state={state} color="#d5dce3" metalness={0.82} roughness={0.22} />
       </Torus>
+      {/* Machined rear joint face and a broad V-band clamp seat. */}
+      <Torus args={[0.505, 0.025, 12, 88]} position={[0, 0, -0.085]}>
+        <Pbr state={state} color="#424b54" metalness={0.9} roughness={0.34} />
+      </Torus>
+      <Box args={[0.11, 0.075, 0.075]} position={[0.49, 0.07, -0.085]}>
+        <Pbr state={state} color="#525b64" metalness={0.88} roughness={0.34} />
+      </Box>
+      <Cylinder args={[0.016, 0.016, 0.09, 12]} position={[0.49, 0.07, -0.085]} rotation={[Math.PI / 2, 0, 0]}>
+        <Pbr state={state} color="#c3cbd2" metalness={0.96} roughness={0.2} />
+      </Cylinder>
       <Cylinder args={[0.34, 0.34, 0.075, 64, 1, true]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.025]}>
         <Pbr state={state} color="#7d8995" metalness={0.76} roughness={0.34} />
       </Cylinder>
@@ -395,6 +405,25 @@ export function TurboTurbineHousing({ state }: { state: TurboState }) {
       <Torus args={[0.32, 0.034, 14, 80]} position={[0, 0, 0.02]}>
         <Pbr state={state} color="#9b7454" metalness={0.72} roughness={0.34} />
       </Torus>
+      {/* Turbine-side V-band joint with clamp lug and tightening bolt. */}
+      <Torus args={[0.49, 0.026, 12, 88]} position={[0, 0, 0.105]}>
+        <Pbr state={state} color="#353b40" metalness={0.9} roughness={0.42} />
+      </Torus>
+      <Box args={[0.11, 0.075, 0.075]} position={[0.47, 0.12, 0.105]}>
+        <Pbr state={state} color="#45403b" metalness={0.84} roughness={0.5} />
+      </Box>
+      <Cylinder args={[0.016, 0.016, 0.09, 12]} position={[0.47, 0.12, 0.105]} rotation={[Math.PI / 2, 0, 0]}>
+        <Pbr state={state} color="#c1c7cc" metalness={0.94} roughness={0.25} />
+      </Cylinder>
+      {/* Flat twin-scroll T3-style inlet flange and perimeter bolt heads. */}
+      <Box args={[0.94, 0.13, 0.38]} position={[0, -0.37, 0]}>
+        <Pbr state={state} color="#594536" metalness={0.52} roughness={0.76} />
+      </Box>
+      {[-0.36, 0.36].map((x) => [-0.115, 0.115].map((z) => (
+        <Cylinder key={x + '-' + z} args={[0.025, 0.025, 0.04, 6]} position={[x, -0.292, z]}>
+          <Pbr state={state} color="#b1a79c" metalness={0.9} roughness={0.32} />
+        </Cylinder>
+      )))}
       <Cylinder args={[0.335, 0.335, 0.08, 64, 1, true]} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.02]}>
         <Pbr state={state} color="#59463a" metalness={0.58} roughness={0.5} />
       </Cylinder>
@@ -430,6 +459,18 @@ export function TurboCenterHousing({ state }: { state: TurboState }) {
       <Cylinder args={[0.055, 0.055, 0.18, 24]} position={[0, 0.22, 0.12]}>
         <Pbr state={state} color="#b68a4f" metalness={0.86} roughness={0.24} />
       </Cylinder>
+      {/* Oil-feed flange bolts and drain-return flange. */}
+      <Box args={[0.19, 0.045, 0.16]} position={[0, 0.16, 0]}>
+        <Pbr state={state} color="#59636d" metalness={0.76} roughness={0.46} />
+      </Box>
+      {[-0.065, 0.065].map((x) => (
+        <Cylinder key={x} args={[0.012, 0.012, 0.025, 6]} position={[x, 0.19, 0.07]}>
+          <Pbr state={state} color="#c2c9cf" metalness={0.94} roughness={0.22} />
+        </Cylinder>
+      ))}
+      <Box args={[0.20, 0.045, 0.16]} position={[0.04, -0.28, 0.04]}>
+        <Pbr state={state} color="#626c75" metalness={0.78} roughness={0.46} />
+      </Box>
       <Cylinder args={[0.055, 0.055, 0.18, 24]} position={[0, 0.22, -0.12]}>
         <Pbr state={state} color="#b68a4f" metalness={0.86} roughness={0.24} />
       </Cylinder>
@@ -558,8 +599,18 @@ export function TurboTurbineOutlet({ state }: { state: TurboState }) {
 export function TurboWastegate({ state }: { state: TurboState }) {
   return (
     <group>
+      {/* Two-piece mounting bracket ties the actuator canister to the hot-side casting. */}
+      <Box args={[0.25, 0.045, 0.18]} position={[0, -0.13, -0.08]}>
+        <Pbr state={state} color="#4d555d" metalness={0.84} roughness={0.42} />
+      </Box>
+      <Box args={[0.045, 0.19, 0.15]} position={[-0.085, -0.035, -0.08]}>
+        <Pbr state={state} color="#606a73" metalness={0.86} roughness={0.38} />
+      </Box>
+      <Box args={[0.045, 0.19, 0.15]} position={[0.085, -0.035, -0.08]}>
+        <Pbr state={state} color="#606a73" metalness={0.86} roughness={0.38} />
+      </Box>
       <Cylinder args={[0.115, 0.115, 0.22, 40]} position={[0, 0.05, 0]}>
-        <Pbr state={state} color="#9da7b2" metalness={0.72} roughness={0.31} />
+        <Pbr state={state} color="#9da7b2" metalness={0.72} roughness={0.38} />
       </Cylinder>
       <Torus args={[0.112, 0.014, 10, 40]} position={[0, 0.16, 0]}>
         <Pbr state={state} color="#c7d0d9" metalness={0.84} roughness={0.24} />
@@ -570,6 +621,13 @@ export function TurboWastegate({ state }: { state: TurboState }) {
       <RoundedBox args={[0.14, 0.055, 0.10]} radius={0.018} smoothness={3} position={[0, -0.30, 0]}>
         <Pbr state={state} color="#555e68" metalness={0.72} roughness={0.34} />
       </RoundedBox>
+      {/* Clevis and connecting rod terminate at the wastegate lever arm. */}
+      <Cylinder args={[0.012, 0.012, 0.16, 12]} position={[0.06, -0.39, 0.02]} rotation={[0, 0, Math.PI / 2]}>
+        <Pbr state={state} color="#d0d6dc" metalness={0.96} roughness={0.18} />
+      </Cylinder>
+      <Sphere args={[0.022, 16, 12]} position={[0.14, -0.39, 0.02]}>
+        <Pbr state={state} color="#aab3bb" metalness={0.9} roughness={0.24} />
+      </Sphere>
       <Torus args={[0.038, 0.009, 8, 24]} position={[0, -0.30, 0.07]} rotation={[Math.PI / 2, 0, 0]}>
         <Pbr state={state} color="#c0c8d1" metalness={0.9} roughness={0.2} />
       </Torus>
@@ -641,9 +699,14 @@ export function TurboWaterCoolingLines({ state }: { state: TurboState }) {
         <Pbr state={state} color="#6c9eb8" metalness={0.78} roughness={0.25} />
       </mesh>
       {[-0.22, 0.22].map((x) => (
-        <Torus key={x} args={[0.035, 0.008, 8, 24]} position={[x, 0.36, 0]}>
-          <Pbr state={state} color="#b8c2cc" metalness={0.9} roughness={0.22} />
-        </Torus>
+        <group key={x} position={[x, 0.36, 0]}>
+          <Cylinder args={[0.035, 0.035, 0.035, 16]} rotation={[0, 0, Math.PI / 2]}>
+            <Pbr state={state} color="#b8c2cc" metalness={0.9} roughness={0.28} />
+          </Cylinder>
+          <Torus args={[0.027, 0.006, 8, 24]} rotation={[0, Math.PI / 2, 0]}>
+            <Pbr state={state} color="#687681" metalness={0.88} roughness={0.3} />
+          </Torus>
+        </group>
       ))}
     </group>
   );
@@ -654,9 +717,23 @@ export function TurboHousingFasteners({ state, turbine = false }: { state: Turbo
   return (
     <group>
       <BoltCircle state={state} radius={radius} count={12} z={0.09} boltRadius={0.018} />
-      <Torus args={[radius, 0.012, 8, 96]} position={[0, 0, 0.08]}>
-        <Pbr state={state} color={turbine ? '#987456' : '#cbd5e1'} metalness={0.9} roughness={0.22} />
+      {/* A broad machined retaining band with discrete fasteners, not decorative wire loops. */}
+      <Torus args={[radius, 0.024, 12, 96]} position={[0, 0, 0.08]}>
+        <Pbr state={state} color={turbine ? '#514238' : '#515b65'} metalness={0.9} roughness={0.36} />
       </Torus>
+      {Array.from({ length: 12 }).map((_, index) => {
+        const angle = (index / 12) * Math.PI * 2;
+        return (
+          <Cylinder
+            key={index}
+            args={[0.018, 0.018, 0.035, 6]}
+            position={[Math.cos(angle) * radius, Math.sin(angle) * radius, 0.10]}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <Pbr state={state} color="#c2c9d0" metalness={0.94} roughness={0.22} />
+          </Cylinder>
+        );
+      })}
     </group>
   );
 }
