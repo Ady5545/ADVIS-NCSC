@@ -1029,13 +1029,16 @@ function EngineManagementHarness({ s }: { s: S }) {
 // ---------------------------------------------------------------------------
 export type V12AssemblyPartId =
   | 'v12.engine_block'
-  | 'v12.piston_left_bank'
-  | 'v12.piston_right_bank'
-  | 'v12.connecting_rods'
+  | 'v12.cylinder_bank_left'
+  | 'v12.cylinder_bank_right'
+  | 'v12.cylinder_head_left'
+  | 'v12.cylinder_head_right'
+  | `v12.piston_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12}`
+  | `v12.conrod_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12}`
   | 'v12.crankshaft'
-  | 'v12.valvetrain'
   | 'v12.intake_plenum'
-  | 'v12.exhaust_manifold'
+  | 'v12.exhaust_left'
+  | 'v12.exhaust_right'
   | 'v12.cooling_system'
   | 'v12.lubrication_system'
   | 'v12.electronics_sensors';
@@ -1128,7 +1131,7 @@ export function V12UltimateCutawayPart({ partId, ...state }: V12UltimatePartProp
 // Keep the cohesive composition export available for callers that need a
 // single scene node; the spatial engine itself uses the modular part export.
 export function V12UltimateCutaway(state: V12UltimateProps) {
-  const partIds = [
+  const partIds: V12AssemblyPartId[] = [
     'v12.engine_block',
     'v12.cylinder_bank_left',
     'v12.cylinder_bank_right',
