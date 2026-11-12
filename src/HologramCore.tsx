@@ -123,8 +123,6 @@ function createGasRibbons(): GasRibbon[] {
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-
     ribbons.push({
       geometry,
       color: GAS_COLORS[Math.floor(random() * GAS_COLORS.length)],
@@ -166,7 +164,7 @@ float noise3(vec3 p) {
 float fbm(vec3 p) {
   float value = 0.0;
   float amplitude = 0.5;
-  for (int octave = 0; octave < 3; octave++) {
+  for (int octave = 0; octave < 2; octave++) {
     value += amplitude * noise3(p);
     p = p * 2.02 + vec3(17.1, 9.2, 13.7);
     amplitude *= 0.5;
@@ -232,6 +230,7 @@ void main() {
   float alpha = clamp((0.09 + cloudBody * 0.60 + filaments * 0.12 + fresnel * 0.34) * uOpacity, 0.0, 0.94);
   alpha *= mix(0.62, 1.0, smoothstep(0.05, 0.48, density));
   gl_FragColor = vec4(color * (1.25 + uEnergy * 0.34), alpha);
+  #include <colorspace_fragment>
 }
 `;
 
@@ -256,6 +255,7 @@ void main() {
   cloudColor = mix(cloudColor, vec3(0.96, 0.24, 0.66), smoothstep(0.52, 0.88, hazeA) * 0.44);
   float alpha = clamp((0.015 + haze * 0.09 + rim * 0.31) * uOpacity, 0.0, 0.40);
   gl_FragColor = vec4(cloudColor * (1.25 + uEnergy * 0.30), alpha);
+  #include <colorspace_fragment>
 }
 `;
 
@@ -298,6 +298,7 @@ void main() {
   float brightSpine = pow(max(0.0, 1.0 - across), 4.0);
   vec3 gasColor = coolerEdge * (0.72 + turbulence * 0.42 + brightSpine * 0.52);
   gl_FragColor = vec4(gasColor, alpha);
+  #include <colorspace_fragment>
 }
 `;
 
@@ -313,7 +314,7 @@ function createNebulaMaterial(accent: THREE.Color, opacity = 1): THREE.ShaderMat
     fragmentShader: nebulaFragmentShader,
     transparent: true,
     depthWrite: false,
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
     blending: THREE.NormalBlending,
     toneMapped: false,
   });
@@ -356,7 +357,7 @@ export function NebulaPlanet({
       fragmentShader: atmosphereFragmentShader,
       transparent: true,
       depthWrite: false,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
       blending: THREE.AdditiveBlending,
       toneMapped: false,
     }),
