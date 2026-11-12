@@ -1,4 +1,6 @@
 import React from 'react';
+import * as THREE from 'three';
+import { Tube } from '@react-three/drei';
 
 export interface GeometryRenderContext {
   params: Record<string, any>;
@@ -249,6 +251,130 @@ class ScientificGeometryRegistryClass {
           <sphereGeometry args={[r, 24, 16]} />
           <meshPhysicalMaterial {...materialProps} envMapIntensity={1.2} />
         </mesh>
+      );
+    });
+
+
+    // Anatomy: selectable full-body parts, muscles, bones and articulations.
+    this.registerGeometry('anatomical_shape', ({ params, materialProps }) => {
+      const parts = Array.isArray(params.parts) ? params.parts : [];
+      const material = <meshPhysicalMaterial {...materialProps} envMapIntensity={1.25} clearcoat={0.12} clearcoatRoughness={0.42} />;
+      return (
+        <group>
+          {parts.map((part: any, index: number) => {
+            const position = part.position || [0, 0, 0];
+            const rotation = part.rotation || [0, 0, 0];
+            const radius = part.radius ?? 0.04;
+            const length = part.length ?? 0.18;
+            const headRadius = part.headRadius ?? radius * 1.8;
+
+            if (part.shape === 'ellipsoid') {
+              return (
+                <mesh key={index} position={position} rotation={rotation} scale={part.scale || [1, 1, 1]} castShadow receiveShadow>
+                  <sphereGeometry args={[1, 28, 20]} />
+                  {material}
+                </mesh>
+              );
+            }
+
+            if (part.shape === 'capsule') {
+              return (
+                <group key={index} position={position} rotation={rotation}>
+                  <mesh castShadow receiveShadow>
+                    <cylinderGeometry args={[radius, radius, length, 20, 1]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, length / 2, 0]} castShadow receiveShadow>
+                    <sphereGeometry args={[radius, 20, 14]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, -length / 2, 0]} castShadow receiveShadow>
+                    <sphereGeometry args={[radius, 20, 14]} />
+                    {material}
+                  </mesh>
+                </group>
+              );
+            }
+
+            if (part.shape === 'muscle') {
+              return (
+                <group key={index} position={position} rotation={rotation}>
+                  {/* Fusiform muscle belly with tapered tendon ends. */}
+                  <mesh castShadow receiveShadow scale={[radius * 1.05, length * 0.34, radius * 0.82]}>
+                    <sphereGeometry args={[1, 24, 18]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, length * 0.34, 0]} scale={[radius * 0.30, length * 0.20, radius * 0.30]}>
+                    <sphereGeometry args={[1, 18, 12]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, -length * 0.34, 0]} scale={[radius * 0.30, length * 0.20, radius * 0.30]}>
+                    <sphereGeometry args={[1, 18, 12]} />
+                    {material}
+                  </mesh>
+                </group>
+              );
+            }
+
+            if (part.shape === 'bone') {
+              return (
+                <group key={index} position={position} rotation={rotation}>
+                  <mesh castShadow receiveShadow>
+                    <cylinderGeometry args={[radius, radius * 0.92, length * 0.78, 18, 1]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, length * 0.38, 0]} scale={[headRadius, headRadius * 0.78, headRadius]}>
+                    <sphereGeometry args={[1, 20, 14]} />
+                    {material}
+                  </mesh>
+                  <mesh position={[0, -length * 0.38, 0]} scale={[headRadius * 0.92, headRadius * 0.76, headRadius * 0.94]}>
+                    <sphereGeometry args={[1, 20, 14]} />
+                    {material}
+                  </mesh>
+                </group>
+              );
+            }
+
+            if (part.shape === 'joint') {
+              return (
+                <group key={index} position={position} rotation={rotation}>
+                  <mesh castShadow receiveShadow>
+                    <sphereGeometry args={[radius, 24, 18]} />
+                    {material}
+                  </mesh>
+                  <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1.12, 1.12, 1.12]}>
+                    <torusGeometry args={[radius * 0.78, radius * 0.11, 8, 24]} />
+                    <meshPhysicalMaterial color="#b9e0df" metalness={0.02} roughness={0.34} transparent opacity={0.8} />
+                  </mesh>
+                </group>
+              );
+            }
+
+            if (part.shape === 'rib' && Array.isArray(part.points) && part.points.length >= 2) {
+              const curve = new THREE.CatmullRomCurve3(
+                part.points.map((point: number[]) => new THREE.Vector3(point[0], point[1], point[2])),
+                false,
+                'centripetal',
+              );
+              return (
+                <Tube key={index} args={[curve, 32, radius, 10, false]}>
+                  {material}
+                </Tube>
+              );
+            }
+
+            if (part.shape === 'box') {
+              return (
+                <mesh key={index} position={position} rotation={rotation} scale={part.scale || [1, 1, 1]} castShadow receiveShadow>
+                  <boxGeometry args={[1, 1, 1]} />
+                  {material}
+                </mesh>
+              );
+            }
+
+            return null;
+          })}
+        </group>
       );
     });
 
