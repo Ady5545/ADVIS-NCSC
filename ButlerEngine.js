@@ -447,7 +447,7 @@ function getHardcodedConversationReply(message) {
     .trim()
     .replace(/[’]/g, "'")
     .replace(/[.!?,;:]+$/g, "")
-    .replace(/\\s+/g, " ");
+    .replace(/\s+/g, " ");
 
   const geminiConfigured = Boolean(
     process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim()
@@ -997,11 +997,11 @@ ${contextSummary}
     console.error("Scientific AI Core Gemini Error:", errorMessage);
 
     let userMessage = "The Gemini service could not complete that request. Please retry; if the issue continues, check the Vercel function logs.";
-    if (/api key|unauthorized|permission denied|\\b401\\b|\\b403\\b|invalid.*key/i.test(errorMessage)) {
+    if (/api key|unauthorized|permission denied|\b401\b|\b403\b|invalid.*key/i.test(errorMessage)) {
       userMessage = "Gemini rejected the server credential. Check that GEMINI_API_KEY is valid and enabled for the Gemini Developer API in the Vercel production environment.";
-    } else if (/quota|resource exhausted|rate limit|\\b429\\b/i.test(errorMessage)) {
+    } else if (/quota|resource exhausted|rate limit|\b429\b/i.test(errorMessage)) {
       userMessage = "The Gemini service is temporarily unavailable because its request quota or rate limit was reached. Check the API project's usage limits.";
-    } else if (/model.*not found|not found.*model|unsupported model|\\b404\\b/i.test(errorMessage)) {
+    } else if (/model.*not found|not found.*model|unsupported model|\b404\b/i.test(errorMessage)) {
       userMessage = "The configured Gemini model is unavailable. Check GEMINI_MODEL and GEMINI_MULTIMODAL_MODEL; the default model is gemini-3.8-flash.";
     }
 
