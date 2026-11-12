@@ -81,8 +81,9 @@ export function V8EngineController(props: V8EngineControllerProps) {
   const toggleIsolate = () => {
     if (isolatedComponentId) {
       onToggleIsolate(null);
-    } else if (selectedComponentId) {
-      onToggleIsolate(selectedComponentId);
+    } else {
+      // Give the control a useful default target even before a part is selected.
+      onToggleIsolate(selectedComponentId || 'v8_block');
     }
   };
 
