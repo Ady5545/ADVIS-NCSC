@@ -414,6 +414,7 @@ function Bank({
   return (
     <group position={[0, 0, zOff]} rotation={[0, 0, beta]}>
       {showCylinderStructure && (
+        <>
       {/* ---- cylinder barrels (sectioned open on the outboard side) ---- */}
       {ZS.map((z, i) => {
         const number = side === 'left' ? i + 1 : i + 7;
@@ -460,9 +461,11 @@ function Bank({
 
       {/* deck plate */}
       <Box s={s} size={[0.58, 0.05, 3.12]} pos={[0, DECK_Y + 0.025, 0]} color="#79828a" radius={0.012} />
+        </>
       )}
 
       {showCylinderHead && (
+        <>
       {/* ---- cylinder head ---- */}
       <Box s={s} size={[HEAD_W, HEAD_H, HEAD_LEN]} pos={[0, HEAD_Y0 + HEAD_H / 2, 0]} color={C.head} radius={0.03} />
       {ZS.map((z, i) => (
@@ -477,9 +480,11 @@ function Bank({
       ))}
       <Bolts s={s} pts={flangeBolts} r={0.012} h={0.025} axis="x" />
       <Bolts s={s} pts={headBolts} r={0.017} h={0.022} />
+        </>
       )}
 
       {showCamCovers && (
+        <>
       {/* ---- cam cover ---- */}
       <Box s={s} size={[0.58, COVER_H, 3.1]} pos={[0, coverY, 0]} color={C.red} kind="red" radius={0.05} />
       {/* polished spine */}
@@ -501,9 +506,11 @@ function Bank({
       <Box s={s} size={[0.66, 0.36, 0.08]} pos={[0, 1.27, 1.61]} color="#4c555d" radius={0.03} />
       <Box s={s} size={[0.58, 0.22, 0.09]} pos={[0, 1.54, 1.61]} color={C.red} kind="red" radius={0.04} />
       <Box s={s} size={[0.66, 0.36, 0.04]} pos={[0, 1.27, -1.59]} color="#4c555d" radius={0.02} />
+        </>
       )}
 
       {showFuelSystem && (
+        <>
       {/* ---- fuel rail + injectors on the inboard face ---- */}
       <mesh position={[-sign * 0.43, 1.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.02, 0.02, 3.0, 16]} />
@@ -515,6 +522,7 @@ function Bank({
           <Cyl s={s} r={0.026} h={0.03} pos={[-sign * 0.43, 1.255, z]} color="#14171a" kind="rubber" seg={14} />
         </group>
       ))}
+        </>
       )}
       {/* ---- independently selectable pistons and connecting rods ---- */}
       {pistonMode !== 'none' && ZS.map((_, i) => (
