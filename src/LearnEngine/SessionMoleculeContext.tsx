@@ -87,6 +87,8 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
   const [source, setSource] = useState<MolecularSourceType>('EMPTY');
   const [canonicalOriginFormula, setCanonicalOriginFormula] = useState<string | null>(null);
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
+  const [moleculeLoadStatus, setMoleculeLoadStatus] = useState<MoleculeLoadStatus>('IDLE');
+  const [moleculeLoadError, setMoleculeLoadError] = useState<string | null>(null);
   const [actionHistory, setActionHistory] = useState<Array<{ action: string; snapshot: MoleculeData; timestamp: number }>>([]);
 
   // Compute live real-time analysis whenever molecule changes
