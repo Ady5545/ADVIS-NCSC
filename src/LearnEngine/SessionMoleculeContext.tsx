@@ -152,7 +152,7 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
       const payload = await response.json();
       if (!response.ok) {
         const candidates = Array.isArray(payload.candidates) && payload.candidates.length
-          ? ' Candidates: ' + payload.candidates.map((item: any) => [item.name, item.formula].filter(Boolean).join(' — ')).join('; ')
+          ? ' Candidates: ' + payload.candidates.map((item: any) => [item.name, item.formula, 'CID:' + item.cid].filter(Boolean).join(' — ')).join('; ')
           : '';
         throw new Error((payload.error || 'The compound could not be resolved.') + candidates);
       }
@@ -162,7 +162,7 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
 
       const atoms: AtomData[] = payload.atoms.map((atom: any, index: number) => ({
         id: String(atom.id || `atom_${index}`),
-        element: String(atom.element || '').toUpperCase(),
+        element: String(atom.element || '').trim().toLowerCase().replace(/^[a-z]/, (letter: string) => letter.toUpperCase()),
         position: new THREE.Vector3(Number(atom.x), Number(atom.y), Number(atom.z)),
         charge: Number(atom.charge) || 0,
         metadata: { coordinateSource: 'PubChem 3D conformer' }
