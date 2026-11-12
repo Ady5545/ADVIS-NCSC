@@ -5,6 +5,8 @@ export interface AtomData {
   element: string;
   position: THREE.Vector3;
   charge?: number;
+  isotope?: number;
+  stereo?: string;
   hybridization?: string;
   metadata?: any;
 }
@@ -16,6 +18,7 @@ export interface BondData {
   order: number;
   length: number;
   type: 'covalent' | 'ionic' | 'hydrogen' | 'aromatic';
+  stereo?: string;
 }
 
 export interface FunctionalGroupData {
