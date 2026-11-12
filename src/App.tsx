@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows } from '@react-three/drei';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Environment, ContactShadows, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -42,6 +42,22 @@ import { playMoleculePresentation, playV12Presentation, stopAllTheatrePresentati
 
 type ComponentTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] };
 type TransformHistoryEntry = { id: string; before: ComponentTransform | null; after: ComponentTransform };
+
+// Adapt render resolution to measured frame rate. The scene and its controls stay
+// enabled; only pixel density changes on slower devices.
+function AdaptiveCanvasQuality() {
+  const setDpr = useThree((state) => state.setDpr);
+
+  return (
+    <PerformanceMonitor
+      onChange={({ factor }) => {
+        const nextDpr = 0.78 + factor * 0.52;
+        setDpr(Math.round(nextDpr * 100) / 100);
+      }}
+      onFallback={() => setDpr(0.78)}
+    />
+  );
+}
 
 function CameraRig({ isSpatial }: { isSpatial?: boolean }) {
   const gestureState = useGestureEngine();
@@ -1952,38 +1968,37 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          shadows={isSpatial}
+          dpr={[0.78, 1.3]}
+          gl={{ antialias: false }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
         >
-          {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
-          <EnvironmentErrorBoundary>
-            <React.Suspense fallback={null}>
-              <Environment preset="studio" environmentIntensity={0.48} background={false} />
-            </React.Suspense>
-          </EnvironmentErrorBoundary>
+          <AdaptiveCanvasQuality />
 
-          {/* Calibrated Studio 3-Point Engineering Lighting Rig */}
-          {/* 1. Low neutral ambient light: Establishes depth and prevents washed-out cavities */}
-          <ambientLight intensity={0.4} color="#f8fafc" />
+          {/* Studio HDR is needed for material-rich spatial models, not the unlit Core. */}
+          {isSpatial && (
+            <EnvironmentErrorBoundary>
+              <React.Suspense fallback={null}>
+                <Environment preset="studio" environmentIntensity={0.48} background={false} />
+              </React.Suspense>
+            </EnvironmentErrorBoundary>
+          )}
 
-          {/* 2. Key Light: High-angle front-right directional source establishing primary form and crisp shadow separation */}
-          <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+          {isSpatial && (
+            <>
+              {/* Calibrated Studio 3-Point Engineering Lighting Rig */}
+              <ambientLight intensity={0.4} color="#f8fafc" />
+              <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+              <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
+              <directionalLight position={[0, 14, -14]} intensity={0.75} color="#e2e8f0" />
+              <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
-          {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
-          <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
-
-          {/* 4. Rim / Edge Light: Controlled rear-opposing source that cleanly separates model silhouette without washing edges */}
-          <directionalLight position={[0, 14, -14]} intensity={0.75} color="#e2e8f0" />
-
-          {/* 5. Underside Ground Bounce: Subtle lower illumination keeping oil pan and lower chassis details readable */}
-          <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
-
-          {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+              {/* Keep full grounding shadows for models while avoiding their cost on the Core home view. */}
+              <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={512} />
+            </>
+          )}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig isSpatial={isSpatial} />
@@ -2057,7 +2072,7 @@ function AppContent() {
             />
           </React.Suspense>
           
-          <EffectComposer>
+          <EffectComposer multisampling={0}>
             <Bloom
               luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
               mipmapBlur
