@@ -74,6 +74,17 @@ function parseSdf(sdf) {
       const chargeMap = { 1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3 };
       atoms.push({ sourceIndex: i + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0 });
     }
+    for (const line of lines) {
+      if (!/^M  CHG\\s/.test(line)) continue;
+      const values = line.trim().split(/\\s+/);
+      const pairCount = Number(values[2]) || 0;
+      for (let pair = 0; pair < pairCount; pair++) {
+        const sourceIndex = Number(values[3 + pair * 2]);
+        const formalCharge = Number(values[4 + pair * 2]);
+        const atom = atoms.find(item => item.sourceIndex === sourceIndex);
+        if (atom && Number.isFinite(formalCharge)) atom.charge = formalCharge;
+      }
+    }
     for (let i = 0; i < bondCount; i++) {
       const line = lines[4 + atomCount + i] || "";
       const a = Number(line.slice(0, 3).trim());
@@ -128,20 +139,23 @@ module.exports = async function handler(req, res) {
 
   try {
     const isSmiles = /^smiles:/i.test(query);
+    const directCid = /^(?:pubchem\\s*)?cid\\s*:\\s*(\\d+)$/i.exec(query);
     const identifier = isSmiles ? query.replace(/^smiles:/i, "").trim() : query;
     if (!identifier) return res.status(400).json({ error: "The SMILES string is empty." });
     const namespace = isSmiles ? "smiles" : "name";
     const encoded = encodeURIComponent(identifier);
-    const cidPayload = await fetchJson("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/" + namespace + "/" + encoded + "/cids/JSON");
+    const cidPayload = directCid
+      ? { IdentifierList: { CID: [Number(directCid[1])] } }
+      : await fetchJson("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/" + namespace + "/" + encoded + "/cids/JSON");
     const cids = cidPayload && cidPayload.IdentifierList && cidPayload.IdentifierList.CID;
-    if (!Array.isArray(cids) || !cids.length) return res.status(404).json({ error: "No matching compound was found in PubChem. Try a more precise name or an exact SMILES string." });
+    if (!Array.isArray(cids) || !cids.length) return res.status(404).json({ error: "No matching compound was found in PubChem. Try a more precise name or prefix an exact SMILES string with SMILES:." });
     if (cids.length > 1) {
       const candidateIds = cids.slice(0, 5).join(",");
       const candidatePayload = await fetchJson("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormula,CanonicalSMILES/JSON");
       const candidates = (candidatePayload.PropertyTable && candidatePayload.PropertyTable.Properties || []).map(p => ({
         cid: p.CID, name: p.IUPACName || ("PubChem compound " + p.CID), formula: p.MolecularFormula || ""
       }));
-      return res.status(409).json({ error: "This input matches more than one compound. Choose a specific name or SMILES structure.", candidates });
+      return res.status(409).json({ error: "This input matches more than one compound. Choose a specific name or SMILES structure, or enter one of the returned CID values as CID:123.", candidates });
     }
 
     const cid = cids[0];
