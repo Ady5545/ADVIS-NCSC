@@ -351,6 +351,7 @@ function Bank({
   showCamCovers = true,
   showFuelSystem = true,
   pistonMode = 'both',
+  cylinderIndex = null,
 }: {
   s: S;
   side: Side;
@@ -359,6 +360,8 @@ function Bank({
   showCamCovers?: boolean;
   showFuelSystem?: boolean;
   pistonMode?: BankPistonMode;
+  /** Zero-based cylinder station for a single independently selectable piston/rod. */
+  cylinderIndex?: number | null;
 }) {
   const sign = side === 'left' ? -1 : 1;
   const beta = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
@@ -517,14 +520,16 @@ function Bank({
 
       {/* ---- independently selectable pistons and connecting rods ---- */}
       {pistonMode !== 'none' && ZS.map((_, i) => (
-        <PistonRod
-          key={i}
-          s={s}
-          side={side}
-          idx={i}
-          showPiston={pistonMode === 'both' || pistonMode === 'pistons'}
-          showRod={pistonMode === 'both' || pistonMode === 'rods'}
-        />
+        cylinderIndex !== null && cylinderIndex !== i ? null : (
+          <PistonRod
+            key={i}
+            s={s}
+            side={side}
+            idx={i}
+            showPiston={pistonMode === 'both' || pistonMode === 'pistons'}
+            showRod={pistonMode === 'both' || pistonMode === 'rods'}
+          />
+        )
       ))}
     </group>
   );
@@ -1040,31 +1045,49 @@ export interface V12UltimatePartProps extends V12UltimateProps {
 }
 
 export function V12UltimateCutawayPart({ partId, ...state }: V12UltimatePartProps) {
+  // Piston crowns and connecting rods are the most important independently
+  // inspectable moving elements: keep all twelve as distinct component roots.
+  const pistonMatch = /^v12\.piston_(\d{1,2})$/.exec(partId);
+  const rodMatch = /^v12\.conrod_(\d{1,2})$/.exec(partId);
+  const movingPartMatch = pistonMatch || rodMatch;
+  if (movingPartMatch) {
+    const cylinderNumber = Number(movingPartMatch[1]);
+    if (cylinderNumber < 1 || cylinderNumber > 12) return null;
+    const side: Side = cylinderNumber <= 6 ? 'left' : 'right';
+    const stationIndex = (cylinderNumber - 1) % 6;
+    return (
+      <group rotation={[0.13, -1.02, 0.04]} position={[0, -0.35, 0]}>
+        <Bank
+          s={state}
+          side={side}
+          showCylinderStructure={false}
+          showCylinderHead={false}
+          showCamCovers={false}
+          showFuelSystem={false}
+          pistonMode={pistonMatch ? 'pistons' : 'rods'}
+          cylinderIndex={stationIndex}
+        />
+      </group>
+    );
+  }
+
   let part: React.ReactNode = null;
 
   switch (partId) {
     case 'v12.engine_block':
-      part = (
-        <>
-          <Crankcase s={state} />
-          <Bank s={state} side="left" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />
-          <Bank s={state} side="right" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />
-        </>
-      );
+      part = <Crankcase s={state} />;
       break;
-    case 'v12.piston_left_bank':
-      part = <Bank s={state} side="left" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="pistons" />;
+    case 'v12.cylinder_bank_left':
+      part = <Bank s={state} side="left" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />;
       break;
-    case 'v12.piston_right_bank':
-      part = <Bank s={state} side="right" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="pistons" />;
+    case 'v12.cylinder_bank_right':
+      part = <Bank s={state} side="right" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />;
       break;
-    case 'v12.connecting_rods':
-      part = (
-        <>
-          <Bank s={state} side="left" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="rods" />
-          <Bank s={state} side="right" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="rods" />
-        </>
-      );
+    case 'v12.cylinder_head_left':
+      part = <Bank s={state} side="left" showCylinderStructure={false} showFuelSystem={true} pistonMode="none" />;
+      break;
+    case 'v12.cylinder_head_right':
+      part = <Bank s={state} side="right" showCylinderStructure={false} showFuelSystem={true} pistonMode="none" />;
       break;
     case 'v12.crankshaft':
       part = <Crankshaft s={state} />;
@@ -1080,13 +1103,11 @@ export function V12UltimateCutawayPart({ partId, ...state }: V12UltimatePartProp
     case 'v12.intake_plenum':
       part = <Intake s={state} />;
       break;
-    case 'v12.exhaust_manifold':
-      part = (
-        <>
-          <Exhaust s={state} side="left" />
-          <Exhaust s={state} side="right" />
-        </>
-      );
+    case 'v12.exhaust_left':
+      part = <Exhaust s={state} side="left" />;
+      break;
+    case 'v12.exhaust_right':
+      part = <Exhaust s={state} side="right" />;
       break;
     case 'v12.cooling_system':
       part = <FrontEnd s={state} />;
@@ -1107,15 +1128,18 @@ export function V12UltimateCutawayPart({ partId, ...state }: V12UltimatePartProp
 // Keep the cohesive composition export available for callers that need a
 // single scene node; the spatial engine itself uses the modular part export.
 export function V12UltimateCutaway(state: V12UltimateProps) {
-  const partIds: V12AssemblyPartId[] = [
+  const partIds = [
     'v12.engine_block',
-    'v12.piston_left_bank',
-    'v12.piston_right_bank',
-    'v12.connecting_rods',
+    'v12.cylinder_bank_left',
+    'v12.cylinder_bank_right',
+    'v12.cylinder_head_left',
+    'v12.cylinder_head_right',
+    ...Array.from({ length: 12 }, (_, index) => `v12.piston_${index + 1}`),
+    ...Array.from({ length: 12 }, (_, index) => `v12.conrod_${index + 1}`),
     'v12.crankshaft',
-    'v12.valvetrain',
     'v12.intake_plenum',
-    'v12.exhaust_manifold',
+    'v12.exhaust_left',
+    'v12.exhaust_right',
     'v12.cooling_system',
     'v12.lubrication_system',
     'v12.electronics_sensors',
