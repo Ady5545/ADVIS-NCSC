@@ -242,51 +242,63 @@ function V8CrankCore({ state }: { state: State }) {
 function V8BlockShell({ state }: { state: State }) {
   return (
     <group>
-      {/* Deep-skirt cast block with a restrained dark graphite iron finish. */}
-      <RoundedBox args={[0.92, 0.62, 2.00]} radius={0.075} smoothness={7}>
+      {/* Open-deck crankcase: the cylinder barrels remain visible in the assembled view. */}
+      <RoundedBox args={[0.84, 0.20, 1.98]} radius={0.055} smoothness={6} position={[0, -0.36, 0]}>
         <M state={state} color="#303941" metalness={0.52} roughness={0.52} clearcoat={0.06} />
       </RoundedBox>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <RoundedBox args={[0.10, 0.34, 1.88]} radius={0.025} smoothness={4} position={[side * 0.405, -0.17, 0]}>
+            <M state={state} color="#3a454e" metalness={0.62} roughness={0.46} clearcoat={0.05} />
+          </RoundedBox>
+          <RoundedBox args={[0.035, 0.09, 1.82]} radius={0.012} smoothness={3} position={[side * 0.455, -0.08, 0]}>
+            <M state={state} color="#68757e" metalness={0.72} roughness={0.36} />
+          </RoundedBox>
+        </group>
+      ))}
 
-      {/* Machined cylinder decks and cast bank rails follow the two 45-degree banks. */}
+      {/* Narrow deck rails follow each 45-degree bank while leaving all four bores open. */}
       {[-1, 1].map((sign) => (
         <group key={sign} position={[sign * 0.19, 0.18, sign * 0.035]} rotation={[0, 0, -sign * BANK]}>
-          <RoundedBox args={[0.55, 0.39, 1.86]} radius={0.055} smoothness={6}>
-            <M state={state} color="#414c55" metalness={0.74} roughness={0.38} clearcoat={0.06} />
-          </RoundedBox>
-          <RoundedBox args={[0.61, 0.075, 1.88]} radius={0.022} smoothness={4} position={[0, 0.205, 0]}>
-            <M state={state} color="#89969e" metalness={0.62} roughness={0.38} clearcoat={0.08} />
-          </RoundedBox>
-          {/* Head-bolt bosses and machined fasteners along both deck rails. */}
-          {Z.flatMap((z) => ([-0.16, 0.16] as const).map((x) => (
-            <React.Fragment key={x + ':' + z}>
-              <Cylinder args={[0.021, 0.021, 0.012, 14]} position={[x, 0.232, z]}>
+          {[-1, 1].map((edge) => (
+            <group key={edge} position={[edge * 0.255, 0.035, 0]}>
+              <RoundedBox args={[0.065, 0.105, 1.84]} radius={0.018} smoothness={4}>
+                <M state={state} color="#414c55" metalness={0.74} roughness={0.38} clearcoat={0.06} />
+              </RoundedBox>
+              <RoundedBox args={[0.078, 0.018, 1.86]} radius={0.008} smoothness={3} position={[0, 0.061, 0]}>
+                <M state={state} color="#89969e" metalness={0.68} roughness={0.32} clearcoat={0.08} />
+              </RoundedBox>
+            </group>
+          ))}
+          {Z.flatMap((z) => ([-1, 1] as const).map((edge) => (
+            <React.Fragment key={edge + ':' + z}>
+              <Cylinder args={[0.018, 0.018, 0.012, 14]} position={[edge * 0.255, 0.102, z]}>
                 <M state={state} color="#59656d" metalness={0.8} roughness={0.31} />
               </Cylinder>
-              <Bolt state={state} position={[x, 0.244, z]} radius={0.008} length={0.012} />
+              <Bolt state={state} position={[edge * 0.255, 0.114, z]} radius={0.007} length={0.012} />
             </React.Fragment>
           )))}
         </group>
       ))}
 
-      {/* Casting ribs, core plugs and cross-bolted main-cap structure. */}
+      {/* Casting ribs and cross-bolted main-cap structure below the exposed cylinders. */}
       {[-0.73, -0.36, 0, 0.36, 0.73].map((z) => (
         <React.Fragment key={z}>
-          <RoundedBox args={[0.055, 0.35, 0.09]} radius={0.012} smoothness={3} position={[-0.39, -0.02, z]} rotation={[0, 0, -0.25]}>
+          <RoundedBox args={[0.055, 0.30, 0.09]} radius={0.012} smoothness={3} position={[-0.39, -0.17, z]} rotation={[0, 0, -0.25]}>
             <M state={state} color="#46525b" metalness={0.68} roughness={0.43} clearcoat={0.04} />
           </RoundedBox>
-          <RoundedBox args={[0.055, 0.35, 0.09]} radius={0.012} smoothness={3} position={[0.39, -0.02, z]} rotation={[0, 0, 0.25]}>
+          <RoundedBox args={[0.055, 0.30, 0.09]} radius={0.012} smoothness={3} position={[0.39, -0.17, z]} rotation={[0, 0, 0.25]}>
             <M state={state} color="#46525b" metalness={0.68} roughness={0.43} clearcoat={0.04} />
           </RoundedBox>
-          <RoundedBox args={[0.16, 0.14, 0.15]} radius={0.02} smoothness={3} position={[0, -0.315, z]}>
+          <RoundedBox args={[0.16, 0.12, 0.15]} radius={0.02} smoothness={3} position={[0, -0.31, z]}>
             <M state={state} color="#424d56" metalness={0.76} roughness={0.36} />
           </RoundedBox>
           {[-0.055, 0.055].map((x) => (
-            <Bolt key={x} state={state} position={[x, -0.292, z]} radius={0.009} length={0.016} />
+            <Bolt key={x} state={state} position={[x, -0.285, z]} radius={0.009} length={0.016} />
           ))}
         </React.Fragment>
       ))}
 
-      {/* Machined lower rails and sump-flange fasteners give the casting a finished perimeter. */}
       {[-1, 1].map((side) => (
         <group key={side} position={[side * 0.465, -0.245, 0]}>
           <RoundedBox args={[0.026, 0.075, 1.78]} radius={0.012} smoothness={3}>
@@ -298,11 +310,11 @@ function V8BlockShell({ state }: { state: State }) {
         </group>
       ))}
 
-      {/* Core-plug faces on the crankcase sides: subtle circular cast details, not glow effects. */}
+      {/* Core plugs remain on the outer crankcase walls. */}
       {[-1, 1].map((side) => (
         <group key={side}>
           {[-0.62, -0.20, 0.22, 0.62].map((z) => (
-            <group key={z} position={[side * 0.381, -0.055, z]} rotation={[0, 0, side * Math.PI / 2]}>
+            <group key={z} position={[side * 0.421, -0.17, z]} rotation={[0, 0, side * Math.PI / 2]}>
               <Cylinder args={[0.048, 0.048, 0.014, 32]}>
                 <M state={state} color="#69757d" metalness={0.78} roughness={0.31} />
               </Cylinder>
@@ -314,7 +326,6 @@ function V8BlockShell({ state }: { state: State }) {
         </group>
       ))}
 
-      {/* Rear bellhousing flange and evenly spaced fasteners. */}
       <RoundedBox args={[0.62, 0.72, 0.055]} radius={0.035} smoothness={4} position={[0, 0.02, 0.96]}>
         <M state={state} color="#3a444d" metalness={0.74} roughness={0.38} />
       </RoundedBox>
@@ -325,7 +336,6 @@ function V8BlockShell({ state }: { state: State }) {
     </group>
   );
 }
-
 function V8MovingCylinder({
   state,
   side,
