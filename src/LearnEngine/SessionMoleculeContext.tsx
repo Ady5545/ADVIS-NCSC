@@ -14,7 +14,8 @@ import {
 import { validateMolecularGraph, MolecularAnalysisResult } from './ValenceValidator';
 import { CHEMISTRY_DATABASE, resolveChemicalEntity } from './ChemistryDatabase';
 
-export type MolecularSourceType = 'EMPTY' | 'CUSTOM_BUILDER' | 'LIBRARY_DERIVATIVE';
+export type MolecularSourceType = 'EMPTY' | 'CUSTOM_BUILDER' | 'LIBRARY_DERIVATIVE' | 'REMOTE_REFERENCE';
+type MoleculeLoadStatus = 'IDLE' | 'LOADING' | 'READY' | 'ERROR';
 
 export interface StructuredMolecularAction {
   type: 
@@ -55,6 +56,8 @@ export interface SessionMoleculeState {
   canonicalOriginFormula: string | null;
   analysis: MolecularAnalysisResult | null;
   isSessionActive: boolean;
+  moleculeLoadStatus: MoleculeLoadStatus;
+  moleculeLoadError: string | null;
   actionHistory: Array<{ action: string; snapshot: MoleculeData; timestamp: number }>;
 }
 
@@ -109,18 +112,19 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
     setSource('CUSTOM_BUILDER');
     setCanonicalOriginFormula(null);
     setIsSessionActive(true);
+    setMoleculeLoadStatus('READY');
+    setMoleculeLoadError(null);
     setActionHistory([{ action: `INITIALIZE_${element}`, snapshot: cloneMoleculeData(initial), timestamp: Date.now() }]);
   }, []);
 
   /**
    * Loads a canonical molecule from the registry as a starting point.
    */
-  const loadCanonical = useCallback((formula: string) => {
-    const canonicalKey = formula.toUpperCase();
+  const loadCanonical = useCallback(async (formula: string): Promise<boolean> => {
     const resolved = resolveChemicalEntity(formula);
-    const resolvedFormula = resolved ? resolved.formula : canonicalKey;
-
+    const resolvedFormula = resolved ? resolved.formula : formula.trim();
     const generator = MOLECULE_REGISTRY[resolvedFormula.toUpperCase()] || MOLECULE_REGISTRY[resolvedFormula];
+
     if (generator) {
       const data = generator();
       setMolecule(data);
@@ -131,7 +135,82 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
       setSource('LIBRARY_DERIVATIVE');
       setCanonicalOriginFormula(resolvedFormula);
       setIsSessionActive(true);
+      setMoleculeLoadStatus('READY');
+      setMoleculeLoadError(null);
       setActionHistory([{ action: `LOAD_${resolvedFormula}`, snapshot: cloneMoleculeData(data), timestamp: Date.now() }]);
+      return true;
+    }
+
+    setMoleculeLoadStatus('LOADING');
+    setMoleculeLoadError(null);
+    try {
+      const response = await fetch('/api/chemistry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: formula.trim() })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        const candidates = Array.isArray(payload.candidates) && payload.candidates.length
+          ? ' Candidates: ' + payload.candidates.map((item: any) => [item.name, item.formula].filter(Boolean).join(' — ')).join('; ')
+          : '';
+        throw new Error((payload.error || 'The compound could not be resolved.') + candidates);
+      }
+      if (!Array.isArray(payload.atoms) || !Array.isArray(payload.bonds) || !payload.atoms.length) {
+        throw new Error('The chemical reference did not provide a complete molecular graph.');
+      }
+
+      const atoms: AtomData[] = payload.atoms.map((atom: any, index: number) => ({
+        id: String(atom.id || `atom_${index}`),
+        element: String(atom.element || '').toUpperCase(),
+        position: new THREE.Vector3(Number(atom.x), Number(atom.y), Number(atom.z)),
+        charge: Number(atom.charge) || 0,
+        metadata: { coordinateSource: 'PubChem 3D conformer' }
+      }));
+      if (atoms.some(atom => !atom.element || ![atom.position.x, atom.position.y, atom.position.z].every(Number.isFinite))) {
+        throw new Error('The retrieved molecular coordinates were incomplete or invalid.');
+      }
+      const atomMap = new Map(atoms.map(atom => [atom.id, atom]));
+      const bonds: BondData[] = payload.bonds.map((bond: any, index: number) => {
+        const atomA = atomMap.get(String(bond.atomA));
+        const atomB = atomMap.get(String(bond.atomB));
+        if (!atomA || !atomB) throw new Error('The retrieved molecular graph contains a bond to a missing atom.');
+        return {
+          id: String(bond.id || `bond_${index}`),
+          atomA: atomA.id,
+          atomB: atomB.id,
+          order: Number(bond.order) || 1,
+          length: atomA.position.distanceTo(atomB.position),
+          type: bond.type === 'aromatic' ? 'aromatic' : 'covalent'
+        };
+      });
+      const data: MoleculeData = {
+        atoms,
+        bonds,
+        functionalGroups: [],
+        geometry: 'PubChem 3D conformer',
+        metadata: payload.metadata || {},
+        animationProfile: 'NORMAL'
+      };
+      const identity = payload.metadata?.formula || formula.trim();
+      setMolecule(data);
+      setSelectedAtomId(null);
+      setSelectedBondId(null);
+      setLastAddedAtomId(null);
+      setLastRemovedAtom(null);
+      setSource('REMOTE_REFERENCE');
+      setCanonicalOriginFormula(identity);
+      setIsSessionActive(true);
+      setMoleculeLoadStatus('READY');
+      setMoleculeLoadError(null);
+      setActionHistory([{ action: `LOAD_REMOTE_${identity}`, snapshot: cloneMoleculeData(data), timestamp: Date.now() }]);
+      return true;
+    } catch (error: any) {
+      const message = error?.message || 'Unable to retrieve a verified 3D molecular structure.';
+      setMoleculeLoadStatus('ERROR');
+      setMoleculeLoadError(message);
+      setIsSessionActive(false);
+      return false;
     }
   }, []);
 
@@ -256,6 +335,8 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
     setSource('EMPTY');
     setCanonicalOriginFormula(null);
     setIsSessionActive(false);
+    setMoleculeLoadStatus('IDLE');
+    setMoleculeLoadError(null);
     setActionHistory([]);
   }, []);
 
@@ -441,6 +522,8 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
         canonicalOriginFormula,
         analysis,
         isSessionActive,
+        moleculeLoadStatus,
+        moleculeLoadError,
         actionHistory,
         initializeBuilder,
         loadCanonical,
