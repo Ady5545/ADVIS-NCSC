@@ -17,6 +17,10 @@ async function startServer() {
   });
 
   app.use(express.json({ limit: '50mb' }));
+  // Shared PubChem-backed 3D molecular resolver for the interactive chemistry workspace.
+  const resolveChemistryRequest = require('./api/chemistry');
+  app.post('/api/chemistry', resolveChemistryRequest);
+  app.options('/api/chemistry', resolveChemistryRequest);
   app.use('/models', express.static(path.join(process.cwd(), 'public', 'models'), { 
     maxAge: '1d', 
     etag: true, 
