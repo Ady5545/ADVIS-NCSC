@@ -271,65 +271,84 @@ class ScientificGeometryRegistryClass {
             if (part.shape === 'ellipsoid') {
               return (
                 <mesh key={index} position={position} rotation={rotation} scale={part.scale || [1, 1, 1]} castShadow receiveShadow>
-                  <sphereGeometry args={[1, 28, 20]} />
-                  {material}
+                  <sphereGeometry args={[1, 64, 48]} />
+                  <meshPhysicalMaterial {...materialProps} envMapIntensity={1.35} clearcoat={0.18} clearcoatRoughness={0.48} />
                 </mesh>
               );
             }
 
             if (part.shape === 'capsule') {
               return (
-                <group key={index} position={position} rotation={rotation}>
-                  <mesh castShadow receiveShadow>
-                    <cylinderGeometry args={[radius, radius, length, 20, 1]} />
-                    {material}
-                  </mesh>
-                  <mesh position={[0, length / 2, 0]} castShadow receiveShadow>
-                    <sphereGeometry args={[radius, 20, 14]} />
-                    {material}
-                  </mesh>
-                  <mesh position={[0, -length / 2, 0]} castShadow receiveShadow>
-                    <sphereGeometry args={[radius, 20, 14]} />
-                    {material}
-                  </mesh>
-                </group>
+                <mesh key={index} position={position} rotation={rotation} castShadow receiveShadow>
+                  <capsuleGeometry args={[radius, length, 12, 40]} />
+                  <meshPhysicalMaterial {...materialProps} envMapIntensity={1.3} clearcoat={0.16} clearcoatRoughness={0.5} />
+                </mesh>
               );
             }
 
             if (part.shape === 'muscle') {
+              const half = length * 0.5;
+              const belly = radius;
+              const profile = [
+                new THREE.Vector2(0, -half),
+                new THREE.Vector2(belly * 0.18, -half * 0.94),
+                new THREE.Vector2(belly * 0.38, -half * 0.78),
+                new THREE.Vector2(belly * 0.72, -half * 0.48),
+                new THREE.Vector2(belly, -half * 0.12),
+                new THREE.Vector2(belly * 0.98, half * 0.12),
+                new THREE.Vector2(belly * 0.72, half * 0.48),
+                new THREE.Vector2(belly * 0.38, half * 0.78),
+                new THREE.Vector2(belly * 0.18, half * 0.94),
+                new THREE.Vector2(0, half),
+              ];
               return (
                 <group key={index} position={position} rotation={rotation}>
-                  {/* Fusiform muscle belly with tapered tendon ends. */}
-                  <mesh castShadow receiveShadow scale={[radius * 1.05, length * 0.34, radius * 0.82]}>
-                    <sphereGeometry args={[1, 24, 18]} />
-                    {material}
+                  <mesh castShadow receiveShadow>
+                    <latheGeometry args={[profile, 48]} />
+                    <meshPhysicalMaterial {...materialProps} envMapIntensity={1.25} clearcoat={0.22} clearcoatRoughness={0.42} sheen={0.16} sheenRoughness={0.55} />
                   </mesh>
-                  <mesh position={[0, length * 0.34, 0]} scale={[radius * 0.30, length * 0.20, radius * 0.30]}>
-                    <sphereGeometry args={[1, 18, 12]} />
-                    {material}
+                  <mesh position={[0, half * 0.78, 0]} scale={[belly * 0.2, half * 0.24, belly * 0.2]}>
+                    <sphereGeometry args={[1, 24, 16]} />
+                    <meshStandardMaterial color="#e8b9a9" roughness={0.72} />
                   </mesh>
-                  <mesh position={[0, -length * 0.34, 0]} scale={[radius * 0.30, length * 0.20, radius * 0.30]}>
-                    <sphereGeometry args={[1, 18, 12]} />
-                    {material}
+                  <mesh position={[0, -half * 0.78, 0]} scale={[belly * 0.2, half * 0.24, belly * 0.2]}>
+                    <sphereGeometry args={[1, 24, 16]} />
+                    <meshStandardMaterial color="#e8b9a9" roughness={0.72} />
                   </mesh>
                 </group>
               );
             }
 
             if (part.shape === 'bone') {
+              const half = length * 0.5;
+              const shaft = radius;
+              const head = headRadius;
+              const profile = [
+                new THREE.Vector2(0, -half),
+                new THREE.Vector2(head * 0.68, -half),
+                new THREE.Vector2(head * 0.94, -half * 0.91),
+                new THREE.Vector2(head * 0.82, -half * 0.72),
+                new THREE.Vector2(shaft * 1.18, -half * 0.48),
+                new THREE.Vector2(shaft, 0),
+                new THREE.Vector2(shaft * 1.18, half * 0.48),
+                new THREE.Vector2(head * 0.82, half * 0.72),
+                new THREE.Vector2(head * 0.94, half * 0.91),
+                new THREE.Vector2(head * 0.68, half),
+                new THREE.Vector2(0, half),
+              ];
               return (
                 <group key={index} position={position} rotation={rotation}>
                   <mesh castShadow receiveShadow>
-                    <cylinderGeometry args={[radius, radius * 0.92, length * 0.78, 18, 1]} />
-                    {material}
+                    <latheGeometry args={[profile, 40]} />
+                    <meshPhysicalMaterial {...materialProps} envMapIntensity={1.35} clearcoat={0.3} clearcoatRoughness={0.34} />
                   </mesh>
-                  <mesh position={[0, length * 0.38, 0]} scale={[headRadius, headRadius * 0.78, headRadius]}>
-                    <sphereGeometry args={[1, 20, 14]} />
-                    {material}
+                  <mesh position={[0, half * 0.84, 0]} scale={[head * 0.72, head * 0.16, head * 0.72]}>
+                    <sphereGeometry args={[1, 32, 20]} />
+                    <meshPhysicalMaterial color={materialProps.color} roughness={0.62} metalness={0.01} />
                   </mesh>
-                  <mesh position={[0, -length * 0.38, 0]} scale={[headRadius * 0.92, headRadius * 0.76, headRadius * 0.94]}>
-                    <sphereGeometry args={[1, 20, 14]} />
-                    {material}
+                  <mesh position={[0, -half * 0.84, 0]} scale={[head * 0.72, head * 0.16, head * 0.72]}>
+                    <sphereGeometry args={[1, 32, 20]} />
+                    <meshPhysicalMaterial color={materialProps.color} roughness={0.62} metalness={0.01} />
                   </mesh>
                 </group>
               );
@@ -338,13 +357,13 @@ class ScientificGeometryRegistryClass {
             if (part.shape === 'joint') {
               return (
                 <group key={index} position={position} rotation={rotation}>
-                  <mesh castShadow receiveShadow>
-                    <sphereGeometry args={[radius, 24, 18]} />
-                    {material}
+                  <mesh castShadow receiveShadow scale={[1, 0.94, 1]}>
+                    <sphereGeometry args={[radius, 40, 32]} />
+                    <meshPhysicalMaterial color={materialProps.color} roughness={0.42} metalness={0.01} clearcoat={0.24} />
                   </mesh>
                   <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1.12, 1.12, 1.12]}>
-                    <torusGeometry args={[radius * 0.78, radius * 0.11, 8, 24]} />
-                    <meshPhysicalMaterial color="#b9e0df" metalness={0.02} roughness={0.34} transparent opacity={0.8} />
+                    <torusGeometry args={[radius * 0.78, radius * 0.095, 12, 48]} />
+                    <meshPhysicalMaterial color="#b9e0df" metalness={0.01} roughness={0.3} transparent opacity={0.86} />
                   </mesh>
                 </group>
               );
@@ -357,8 +376,8 @@ class ScientificGeometryRegistryClass {
                 'centripetal',
               );
               return (
-                <Tube key={index} args={[curve, 32, radius, 10, false]}>
-                  {material}
+                <Tube key={index} args={[curve, 64, radius, 14, false]}>
+                  <meshPhysicalMaterial {...materialProps} envMapIntensity={1.3} clearcoat={0.22} clearcoatRoughness={0.4} />
                 </Tube>
               );
             }
