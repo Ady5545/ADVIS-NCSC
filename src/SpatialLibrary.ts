@@ -205,13 +205,13 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
 
   human_anatomy_scientific: {
     id: 'human_anatomy_scientific',
-    name: 'Cardiovascular & Respiratory Atlas',
+    name: 'Human Anatomy Atlas',
     path: '/models/procedural/cardiovascular',
     assetPath: 'procedural/biology/cardiovascular',
     modelStatus: 'AVAILABLE',
     category: 'Biological Systems',
-    description: 'Hierarchical anatomical atlas with discrete cardiac chambers, great vessels, trachea, and pulmonic lobes with real physiological hemodynamics.',
-    defaultScale: 1.1,
+    description: 'Full-body educational anatomy atlas with switchable external body, muscles, skeleton and joints, plus internal organs. Select individual structures for their anatomical details.',
+    defaultScale: 1.25,
     educationalInformation: {
       overview: 'Explore human cardiac physiology, Frank-Starling stroke work, systemic oxygen transport, and synchronized respiratory gas exchange.',
       keyFeatures: [
