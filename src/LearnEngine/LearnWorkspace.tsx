@@ -4,6 +4,7 @@ import { LearningSession, LearnStep } from './LearnTypes';
 import { ChevronRight, ChevronLeft, RotateCcw, Target, Cpu, Activity, Database, Crosshair, Hexagon, Zap, Layers, Network } from 'lucide-react';
 import { CHEMISTRY_DATABASE } from './ChemistryDatabase';
 import { ChemistryHUD } from './ChemistryHUD';
+import { CHEMISTRY_UI, formatMolecularFormula } from './ChemistryWorkspaceUI';
 
 interface LearnWorkspaceProps {
   session: LearningSession;
@@ -43,10 +44,10 @@ export function LearnWorkspace({ session, onClose, onUpdateSession }: LearnWorks
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-3 border-b border-blue-200/30 pb-2">
-            <span className="text-[10px] tracking-[0.3em] text-blue-700 font-bold">ADVIS // LEARN</span>
+            <span className={CHEMISTRY_UI.eyebrow}>ADVIS // CHEMISTRY</span>
             <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_#22d3ee]"></span>
           </div>
-          <div className="text-xs tracking-[0.2em] text-slate-500 mt-2 uppercase">
+          <div className={`mt-2 ${CHEMISTRY_UI.label}`}>
             CHEMISTRY ANALYSIS
           </div>
         </div>
@@ -56,7 +57,7 @@ export function LearnWorkspace({ session, onClose, onUpdateSession }: LearnWorks
       <div className="absolute top-6 right-6 pointer-events-auto flex items-start gap-4 text-right">
         <div className="flex flex-col">
           <div className="flex items-center justify-end gap-3 border-b border-blue-200/30 pb-2">
-            <span className="text-[10px] tracking-[0.3em] text-blue-700 font-bold uppercase">SESSION // {session.context.entity}</span>
+            <span className={CHEMISTRY_UI.eyebrow}>SESSION // {formatMolecularFormula(session.context.entity || 'CHEMISTRY')}</span>
             <Database size={12} className="text-slate-500" />
           </div>
           <div className="text-xs tracking-[0.2em] text-slate-500 mt-2 uppercase">
@@ -84,8 +85,8 @@ export function LearnWorkspace({ session, onClose, onUpdateSession }: LearnWorks
              />
            ))}
         </div>
-        <div className="flex flex-col bg-white/70 backdrop-blur-md border-l-2 border-blue-200/50 pl-4 py-3 rounded-r-lg shadow-[0_0_20px_rgba(34,211,238,0.1)]">
-          <div className="text-[10px] tracking-[0.3em] text-slate-500 mb-1 uppercase">
+        <div className={`flex flex-col ${CHEMISTRY_UI.panel} border-l-2 border-l-blue-300 pl-4 pr-4 py-3 rounded-r-lg`}>
+          <div className={`mb-1 ${CHEMISTRY_UI.label}`}>
             CURRENT STEP
           </div>
           <div className="text-lg font-bold tracking-widest text-blue-800 uppercase w-48 break-words leading-tight">
@@ -95,33 +96,33 @@ export function LearnWorkspace({ session, onClose, onUpdateSession }: LearnWorks
       </div>
 
       {/* BOTTOM LEFT: Live Chemical Event Readout */}
-      <div className="absolute bottom-24 left-6 pointer-events-auto flex flex-col bg-white/70 backdrop-blur-md border border-blue-200/30 p-4 rounded-lg w-72 shadow-[0_0_20px_rgba(34,211,238,0.05)]">
+      <div className={`absolute bottom-24 left-6 pointer-events-auto flex w-72 flex-col ${CHEMISTRY_UI.panel} p-4`}>
          <div className="flex items-center gap-2 mb-3 border-b border-blue-200/20 pb-2">
             <Zap size={14} className="text-amber-400 animate-pulse" />
-            <div className="text-[10px] tracking-[0.2em] text-amber-400 font-bold uppercase">Live Event Readout</div>
+            <div className="text-[10px] tracking-[0.2em] text-amber-700 font-bold uppercase">Live Event Readout</div>
          </div>
-         <div className="text-[10px] tracking-[0.2em] text-slate-500 mb-1 uppercase">CURRENT EVENT</div>
-         <div className="text-sm font-bold text-blue-700 uppercase mb-3 border-l-2 border-blue-200 pl-2">
+         <div className={`mb-1 ${CHEMISTRY_UI.label}`}>CURRENT EVENT</div>
+         <div className="mb-3 border-l-2 border-blue-300 pl-2 text-sm font-bold text-blue-800 uppercase">
             {currentStep.title.replace(/^\d+\s*—\s*/, '')}
          </div>
          <div className="text-[10px] tracking-[0.2em] text-slate-500 mb-1 uppercase">ANALYSIS</div>
-         <div className="text-xs text-slate-800 font-sans font-light leading-relaxed border-l-2 border-amber-400/50 pl-2">
+         <div className="border-l-2 border-amber-300 pl-2 font-sans text-xs font-normal leading-relaxed text-slate-700">
             {currentStep.explanation}
          </div>
       </div>
 
       {/* RIGHT: AI Analysis Module (Why?) */}
       <div className="absolute right-6 top-[20%] pointer-events-auto flex flex-col w-80">
-        <div className="bg-white/70 backdrop-blur-md border border-blue-200/30 p-5 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.05)]">          
+        <div className={`${CHEMISTRY_UI.panel} p-5`}>          
           <div className="flex items-center gap-2 mb-4 border-b border-blue-200/20 pb-3">
              <Activity size={14} className="text-blue-700 animate-pulse" />
-             <div className="text-[10px] tracking-[0.2em] text-blue-700 font-bold uppercase">SCIENTIFIC REASONING</div>
+             <div className={CHEMISTRY_UI.eyebrow}>SCIENTIFIC REASONING</div>
           </div>
           {currentStep.reasoning && (
-            <div className="bg-blue-50/30 border border-blue-200/20 p-4 rounded relative">
+            <div className="relative rounded-lg border border-blue-100 bg-blue-50/60 p-4">
               <div className="absolute top-0 left-0 w-0.5 h-full bg-amber-400/80 rounded-l"></div>
-              <div className="text-[9px] uppercase text-amber-400/80 font-bold mb-2 tracking-[0.2em]">WHY THIS HAPPENS</div>
-              <div className="text-xs text-amber-100/90 font-sans font-light leading-relaxed whitespace-pre-wrap">
+              <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-amber-700">WHY THIS HAPPENS</div>
+              <div className="whitespace-pre-wrap font-sans text-xs font-normal leading-relaxed text-slate-700">
                 {currentStep.reasoning}
               </div>
             </div>
