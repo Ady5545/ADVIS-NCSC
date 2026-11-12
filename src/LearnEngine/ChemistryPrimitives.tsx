@@ -82,20 +82,41 @@ export function SelectionReticle({ size = 1, label }: { size?: number, label?: s
 
 
 // Standard atom colors and sizes
-const ATOM_PROPERTIES: Record<string, { color: string; size: number; metalness: number; roughness: number }> = {
-  H: { color: '#ccffff', size: 0.4, metalness: 0.1, roughness: 0.2 },
-  B: { color: '#008b8b', size: 0.7, metalness: 0.5, roughness: 0.3 },
-  C: { color: '#2f4f4f', size: 0.75, metalness: 0.2, roughness: 0.7 },
-  N: { color: '#4169e1', size: 0.7, metalness: 0.2, roughness: 0.4 },
-  O: { color: '#ff6347', size: 0.65, metalness: 0.1, roughness: 0.3 },
-  F: { color: '#98fb98', size: 0.6, metalness: 0.1, roughness: 0.3 },
-  Cl: { color: '#32cd32', size: 0.8, metalness: 0.1, roughness: 0.4 },
-  Na: { color: '#c0c0c0', size: 0.9, metalness: 0.8, roughness: 0.2 },
-  default: { color: '#888888', size: 0.7, metalness: 0.3, roughness: 0.3 }
+const ELEMENT_SYMBOLS = "H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og".split(" ");
+
+const COVALENT_RADII: Record<string, number> = {
+  H: 0.31, He: 0.28, Li: 1.28, Be: 0.96, B: 0.84, C: 0.76, N: 0.71, O: 0.66, F: 0.57, Ne: 0.58,
+  Na: 1.66, Mg: 1.41, Al: 1.21, Si: 1.11, P: 1.07, S: 1.05, Cl: 1.02, Ar: 1.06,
+  K: 2.03, Ca: 1.76, Sc: 1.70, Ti: 1.60, V: 1.53, Cr: 1.39, Mn: 1.39, Fe: 1.32, Co: 1.26, Ni: 1.24, Cu: 1.32, Zn: 1.22,
+  Ga: 1.22, Ge: 1.20, As: 1.19, Se: 1.20, Br: 1.20, Kr: 1.16, Rb: 2.20, Sr: 1.95, Y: 1.90, Zr: 1.75,
+  Nb: 1.64, Mo: 1.54, Tc: 1.47, Ru: 1.46, Rh: 1.42, Pd: 1.39, Ag: 1.45, Cd: 1.44, In: 1.42, Sn: 1.39,
+  Sb: 1.39, Te: 1.38, I: 1.39, Xe: 1.40, Cs: 2.44, Ba: 2.15, W: 1.62, Pt: 1.36, Au: 1.36, Hg: 1.32,
+  Pb: 1.46, Bi: 1.48, U: 1.96
 };
 
+const ELEMENT_COLORS: Record<string, string> = {
+  H: "#f2f2f2", C: "#555b63", N: "#4169e1", O: "#ef4444", F: "#7ccf65", Cl: "#65b84d",
+  Br: "#9b4b35", I: "#8b5cf6", S: "#eab308", P: "#f97316", B: "#e7a0a0", Si: "#d6b58c",
+  Na: "#ab9fbd", K: "#ab7ac5", Ca: "#6f9fbe", Mg: "#4f9b8d", Fe: "#c47b42", Cu: "#c77b45",
+  Zn: "#7c9ca8", Al: "#aab2bd", Li: "#b56b9a", He: "#d9a6e8", Ne: "#d98cce", Ar: "#8f8bca",
+  Kr: "#8d83c7", Xe: "#7e78bd", Au: "#d4af37", Ag: "#c0c6ce", Pt: "#aeb6c2"
+};
+
+const ATOM_PROPERTIES: Record<string, { color: string; size: number; metalness: number; roughness: number }> =
+  Object.fromEntries(ELEMENT_SYMBOLS.map((element) => [
+    element,
+    {
+      color: ELEMENT_COLORS[element] || "#8b929c",
+      size: Math.max(0.32, (COVALENT_RADII[element] || 0.9) * 0.98),
+      metalness: 0.22,
+      roughness: 0.42
+    }
+  ]));
+
 export function getAtomProps(element: string) {
-  return ATOM_PROPERTIES[element] || ATOM_PROPERTIES.default;
+  return ATOM_PROPERTIES[element] || ATOM_PROPERTIES.default || {
+    color: "#8b929c", size: 0.72, metalness: 0.22, roughness: 0.42
+  };
 }
 
 
