@@ -228,10 +228,16 @@ function cleanImage(value) {
 function getGeminiClient() {
   if (geminiClient) return geminiClient;
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-  const GoogleGenAI = require("@google/genai").GoogleGenAI;
-  geminiClient = new GoogleGenAI({ apiKey: apiKey });
-  return geminiClient;
+  if (!apiKey || !String(apiKey).trim()) return null;
+
+  try {
+    const GoogleGenAI = require("@google/genai").GoogleGenAI;
+    geminiClient = new GoogleGenAI({ apiKey: String(apiKey).trim() });
+    return geminiClient;
+  } catch (error) {
+    console.error("[ADVIS Gemini API] Gemini SDK initialization failed:", error && error.message ? error.message : error);
+    return null;
+  }
 }
 
 const SPATIAL_REGISTRY = {
@@ -467,14 +473,6 @@ module.exports = async function advisHandler(req, res) {
       return sendJson(res, 200, { reply: "Console cleared.", mode: "normal", status: "online" });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      return sendJson(res, 503, {
-        reply: "The Gemini backend is not configured yet. Add GEMINI_API_KEY to the deployment's server-side environment variables, then redeploy. Do not put the key in frontend code.",
-        mode: body.mode || "normal",
-        status: "offline"
-      });
-    }
-
     const rawContext = body.butlerContext && typeof body.butlerContext === "object" ? body.butlerContext : {};
     const recentConversation = cleanRecentConversation(rawContext.recentConversation);
     const butlerContext = cleanContext(rawContext);
@@ -515,6 +513,13 @@ module.exports = async function advisHandler(req, res) {
         status: "error"
       });
     }
+
+    // Report provider readiness without exposing the credential or blocking local responses.
+    result.aiProviderStatus = result.aiProviderStatus ||
+      (process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim() ? "configured" : "not_configured");
+    result.reasoningAvailable = typeof result.reasoningAvailable === "boolean"
+      ? result.reasoningAvailable
+      : result.aiProviderStatus === "configured";
 
     if (result.status === "error") return sendJson(res, 502, result);
     return sendJson(res, 200, result);
