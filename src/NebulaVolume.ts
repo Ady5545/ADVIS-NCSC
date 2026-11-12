@@ -44,8 +44,6 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
       }
     `,
     fragmentShader: `
-      precision highp float;
-
       uniform float uTime;
       uniform float uActivity;
       uniform float uVoice;
@@ -235,6 +233,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
 
         // Normal alpha blending expects un-premultiplied output colour.
         gl_FragColor = vec4(accumulatedColor / max(alpha, 0.0001), alpha);
+        #include <colorspace_fragment>
       }
     `,
     transparent: true,
