@@ -1384,9 +1384,21 @@ function AppContent() {
 
       if (data.learnAction) {
         const { subject, intent, learnMode } = data.learnAction;
-        sessionMolecule.closeSession();
         pushRecentAction('START_LEARNING_SESSION', subject || 'CHEMISTRY', subject);
-        setActiveLearningSession(buildChemistryLesson(subject || 'UNKNOWN', intent || 'UNKNOWN', learnMode || 'TEACH_ME'));
+
+        if (learnMode === 'SHOW_ME' && intent === 'SHOW_STRUCTURE') {
+          const result = await openChemistryStructure(subject || 'UNKNOWN');
+          if (result.mode === 'ERROR') {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: `I couldn't resolve a verified 3D structure for ${subject || 'that compound'}. The Molecular Builder shows the available source and resolution details.`,
+              timestamp: Date.now()
+            }]);
+          }
+        } else {
+          sessionMolecule.closeSession();
+          setActiveLearningSession(buildChemistryLesson(subject || 'UNKNOWN', intent || 'UNKNOWN', learnMode || 'TEACH_ME'));
+        }
       }
       
       if (data.spatialAction) {
