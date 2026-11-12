@@ -60,7 +60,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
           <AlertTriangle className="h-4 w-4" /> STRUCTURE NOT VERIFIED
         </div>
         <p className="mt-2 text-xs leading-relaxed text-slate-600">{moleculeLoadError || 'No verified 3D structure is currently available for this input.'}</p>
-        <p className="mt-2 text-[10px] text-slate-500">Try a more specific compound name or an exact SMILES string.</p>
+        <p className="mt-2 text-[10px] text-slate-500">Try a more specific compound name, an exact SMILES string prefixed with SMILES:, or a returned CID.</p>
       </aside>
     );
   }
@@ -88,7 +88,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
             </h2>
             <p className="text-[10px] text-slate-500 font-mono">
               {source === 'REMOTE_REFERENCE'
-                ? 'Verified 3D reference • PubChem'
+                ? 'PubChem 3D conformer'
                 : source === 'LIBRARY_DERIVATIVE'
                   ? `Derivative of ${canonicalOriginFormula || 'Canonical'}`
                   : source === 'CUSTOM_BUILDER'
