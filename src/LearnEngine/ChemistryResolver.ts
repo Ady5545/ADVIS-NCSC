@@ -58,7 +58,9 @@ const localRegistryProvider: StructureProvider = {
         atoms: molecule.atoms.map(atom => ({
           id: atom.id,
           element: atom.element,
-          position: atom.position,
+          x: atom.position.x,
+          y: atom.position.y,
+          z: atom.position.z,
           charge: atom.charge ?? 0,
           ...(atom.isotope !== undefined ? { isotope: atom.isotope } : {}),
           ...(atom.stereo ? { stereo: atom.stereo } : {}),
