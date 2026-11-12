@@ -20,7 +20,8 @@
     "test:workshop": "node scripts/test-workshop-store.mjs",
     "test:domains": "node scripts/test-domain-models.mjs",
     "test:kinematics": "node scripts/test-kinematics-reference.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:core-rendering": "node scripts/test-core-rendering.mjs"
   },
   "keywords": [
     "browser",
