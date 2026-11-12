@@ -1,4 +1,5 @@
 import { SPATIAL_LIBRARY } from './SpatialLibrary';
+import { ScientificModelRegistry } from './scientific/ScientificModelRegistry';
 import { ModelRegistry, ReferenceModelEngine } from './AutonomousModelEngine';
 import { 
   DigitalTwin, 
@@ -169,7 +170,75 @@ export function getDigitalTwin(objectId: string): DigitalTwin | null {
     return industrialTwin;
   }
 
-  // 3. Spatial Library Engineering Catalog
+  // 3. Full human anatomy atlas: expose the scientific component records to the inspector.
+  if (objectId === 'human_anatomy_scientific') {
+    const anatomy = ScientificModelRegistry.getModel(objectId);
+    if (anatomy) {
+      const components: DigitalTwinComponent[] = Object.values(anatomy.components).map((component) => {
+        const specifications = Object.fromEntries(
+          Object.entries(component.scientificProperties || {}).map(([key, property]) => [
+            key,
+            `${property.value}${property.unit ? ` ${property.unit}` : ''} · ${property.description}`,
+          ]),
+        );
+        return {
+          id: component.id,
+          name: component.name,
+          category: component.category,
+          description: `${component.education.definition} Function: ${component.education.function}`,
+          function: component.education.function,
+          material: component.category.toLowerCase().includes('muscle')
+            ? 'Skeletal muscle tissue'
+            : component.category.toLowerCase().includes('bone') || component.category.toLowerCase().includes('vertebra')
+              ? 'Bone tissue'
+              : component.category.toLowerCase().includes('joint')
+                ? 'Articular cartilage and connective tissue'
+                : 'Human anatomical tissue',
+          position: component.geometry.transform.position,
+          rotation: component.geometry.transform.rotation,
+          specifications: {
+            ...specifications,
+            ...(component.education.importance ? { 'Anatomical significance': component.education.importance } : {}),
+          },
+          diagnosticState: createDiagnosticState(component.id),
+        };
+      });
+      const componentIds = new Set(components.map((component) => component.id));
+      const connections: Connection[] = anatomy.relationships
+        .filter((relationship) => componentIds.has(relationship.sourceId) && componentIds.has(relationship.targetId))
+        .map((relationship, index) => ({
+          id: `anatomy_connection_${index}`,
+          sourceComponentId: relationship.sourceId,
+          targetComponentId: relationship.targetId,
+          type: 'structural',
+          description: relationship.description,
+          bidirectional: relationship.bidirectional,
+        }));
+      const functions: DigitalTwinFunction[] = anatomy.subsystems.map((subsystem) => ({
+        id: subsystem.id,
+        name: subsystem.name,
+        category: 'GENERIC',
+        description: subsystem.description,
+      }));
+      return {
+        id: objectId,
+        name: anatomy.name,
+        domain: 'ANATOMY',
+        description: anatomy.description,
+        components,
+        connections,
+        functions,
+        specifications: {
+          'Views': 'External body, muscles, skeleton and joints, internal organs',
+          'Model scope': 'Representative educational full-body anatomy atlas',
+          'Geometry': 'Procedural 3D teaching model; not clinical imaging',
+        },
+        dataProvenance: 'LIT',
+      };
+    }
+  }
+
+  // 4. Spatial Library Engineering Catalog
   const obj = SPATIAL_LIBRARY[objectId];
   if (!obj) return null;
 
