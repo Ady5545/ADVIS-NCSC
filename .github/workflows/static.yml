@@ -31,7 +31,10 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Validate serverless API syntax
-        run: node --check api/advis.js && node --check api/history.js
+        run: node --check api/advis.js && node --check api/history.js && node --check api/chemistry.js
+
+      - name: Test chemistry resolver and molecular graph contract
+        run: npm run test:chemistry
 
       - name: Validate model catalog and CAD evidence
         run: npm run validate:catalog
