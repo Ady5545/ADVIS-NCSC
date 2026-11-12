@@ -156,7 +156,7 @@ function parseSdf(sdf) {
       sourceBonds.push({
         sourceIndex: index + 1, sourceA, sourceB, order,
         ...(stereoCode === 1 ? { stereo: "UP" } :
-          stereoCode === 6 ? { stereo: "DOWN" :
+          stereoCode === 6 ? { stereo: "DOWN" } :
           stereoCode === 3 ? { stereo: "EITHER" } : {})
       });
     }
