@@ -44,6 +44,9 @@ jobs:
       - name: Validate advertised model capabilities
         run: npm run validate:capabilities
 
+      - name: Test cross-device Core rendering and adaptive quality
+        run: npm run test:core-rendering
+
       - name: Validate lesson catalog and assessment integrity
         run: npm run validate:lessons
 
