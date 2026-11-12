@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows } from '@react-three/drei';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Environment, ContactShadows, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { HologramCore } from './HologramCore';
@@ -48,6 +48,22 @@ type CameraChoreography = {
   fromTarget: THREE.Vector3;
   toTarget: THREE.Vector3;
 };
+
+// Keep every scene feature available while adapting drawing-buffer size to
+// the frame rate the current device can sustain.
+function AdaptiveCanvasQuality() {
+  const setDpr = useThree((state) => state.setDpr);
+
+  return (
+    <PerformanceMonitor
+      onChange={({ factor }) => {
+        const nextDpr = 0.75 + factor * 0.5;
+        setDpr(Math.round(nextDpr * 100) / 100);
+      }}
+      onFallback={() => setDpr(0.75)}
+    />
+  );
+}
 
 function CameraRig({ isSpatial, isHome = false }: { isSpatial?: boolean; isHome?: boolean }) {
   const gestureState = useGestureEngine();
@@ -1748,38 +1764,33 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
-          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          shadows={isSpatial}
+          dpr={[0.75, 1.25]}
+          gl={{ antialias: true, alpha: true, powerPreference: 'default' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
         >
-          {/* Neutral Studio HDR Environment: Realistic PBR reflections, metal/roughness responses & ambient IBL */}
-          <EnvironmentErrorBoundary>
-            <React.Suspense fallback={null}>
-              <Environment preset="studio" environmentIntensity={0.48} background={false} />
-            </React.Suspense>
-          </EnvironmentErrorBoundary>
+          <AdaptiveCanvasQuality />
 
-          {/* Calibrated Studio 3-Point Engineering Lighting Rig */}
-          {/* 1. Low neutral ambient light: Establishes depth and prevents washed-out cavities */}
-          <ambientLight intensity={0.4} color="#f8fafc" />
+          {/* Material environment, studio lighting, and ground shadows are loaded
+              only for spatial models. The procedural Nebula Core renders without them. */}
+          {isSpatial && (
+            <>
+              <EnvironmentErrorBoundary>
+                <React.Suspense fallback={null}>
+                  <Environment preset="studio" environmentIntensity={0.48} background={false} />
+                </React.Suspense>
+              </EnvironmentErrorBoundary>
 
-          {/* 2. Key Light: High-angle front-right directional source establishing primary form and crisp shadow separation */}
-          <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
-
-          {/* 3. Fill Light: Mid-angle front-left secondary source preventing completely black shadow regions */}
-          <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
-
-          {/* 4. Rim / Edge Light: Controlled rear-opposing source that cleanly separates model silhouette without washing edges */}
-          <directionalLight position={[0, 14, -14]} intensity={0.75} color="#e2e8f0" />
-
-          {/* 5. Underside Ground Bounce: Subtle lower illumination keeping oil pan and lower chassis details readable */}
-          <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
-
-          {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+              <ambientLight intensity={0.4} color="#f8fafc" />
+              <directionalLight castShadow position={[12, 16, 12]} intensity={2.2} color="#ffffff" />
+              <directionalLight position={[-12, 8, 10]} intensity={0.6} color="#f1f5f9" />
+              <directionalLight position={[0, 14, -14]} intensity={0.75} color="#e2e8f0" />
+              <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
+              <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
+            </>
+          )}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig
