@@ -61,6 +61,11 @@ export const HumanAnatomyModel: ScientificSystemModel = {
   ],
 
   components: {
+    // Register every procedural full-body layer so the scene can render its BODY,
+    // MUSCLES and SKELETON views. Existing organ records below remain intact.
+    ...Object.fromEntries(
+      HUMAN_ANATOMY_LAYER_COMPONENTS.map((component) => [component.id, component]),
+    ),
     // 1. HEART MYOCARDIUM
     'heart_myocardium': {
       id: 'heart_myocardium',
