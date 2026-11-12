@@ -73,8 +73,9 @@ export function validateMolecularGraph(molecule: MoleculeData): MolecularAnalysi
     // Normalize element symbols instead of uppercasing the whole token (Cl, Na, Co, etc. are case-sensitive symbols).
     const rawElement = atom.element.trim();
     const el = rawElement.charAt(0).toUpperCase() + rawElement.slice(1).toLowerCase();
-    const standardData = ELEMENT_VALENCE_DATA[el] || { valence: 4, commonBonds: [4], maxBonds: 4, electronegativity: 2.0 };
-    totalValenceElectrons += standardData.valence;
+    const hasEducationalValenceData = Object.prototype.hasOwnProperty.call(ELEMENT_VALENCE_DATA, el);
+    const standardData = ELEMENT_VALENCE_DATA[el] || { valence: 0, commonBonds: [], maxBonds: 0, electronegativity: 0 };
+    if (hasEducationalValenceData) totalValenceElectrons += standardData.valence;
 
     const incidentBonds = bondsByAtom[atom.id] || [];
     const totalBondOrder = incidentBonds.reduce((acc, b) => acc + (b.order || 1), 0);
@@ -91,11 +92,18 @@ export function validateMolecularGraph(molecule: MoleculeData): MolecularAnalysi
     let nonBondingElectrons = Math.max(0, standardData.valence - totalBondOrder);
     
     // Formal Charge = Valence - Non-bonding e- - Bond Order
-    let formalCharge = atom.charge !== undefined ? atom.charge : (standardData.valence - nonBondingElectrons - totalBondOrder);
-    const estimatedLonePairs = Math.max(0, Math.floor((standardData.valence - totalBondOrder - formalCharge) / 2));
+    let formalCharge = atom.charge !== undefined
+      ? atom.charge
+      : (hasEducationalValenceData ? standardData.valence - nonBondingElectrons - totalBondOrder : 0);
+    const estimatedLonePairs = hasEducationalValenceData
+      ? Math.max(0, Math.floor((standardData.valence - totalBondOrder - formalCharge) / 2))
+      : 0;
 
     const notes: string[] = [];
-    let isCommonValence = standardData.commonBonds.includes(totalBondOrder);
+    if (!hasEducationalValenceData) {
+      notes.push(`No ADVIS educational valence profile is available for ${el}; no generic octet estimate was applied.`);
+    }
+    let isCommonValence = hasEducationalValenceData && standardData.commonBonds.includes(totalBondOrder);
 
     // Chemical Rules and Educational Feedback
     if (el === 'H') {
