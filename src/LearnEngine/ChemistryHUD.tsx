@@ -1,13 +1,9 @@
 import React from 'react';
 import { Hexagon } from 'lucide-react';
 import { CHEMISTRY_DATABASE } from './ChemistryDatabase';
+import { CHEMISTRY_UI, formatMolecularFormula } from './ChemistryWorkspaceUI';
 
-export function formatFormula(formula: string) {
-  return formula.replace(/\d+/g, match => {
-    const subscripts: Record<string, string> = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉' };
-    return match.split('').map(char => subscripts[char] || char).join('');
-  });
-}
+export const formatFormula = formatMolecularFormula;
 
 export interface ChemistryHUDProps {
   entityName: string;
@@ -20,16 +16,15 @@ export function ChemistryHUD({ entityName, currentPhase }: ChemistryHUDProps) {
 
   if (!data) return null;
 
-  const bondCount = data.ligands?.reduce((acc, l) => acc + l.count, 0) || 0;
+  const bondCount = data.ligands?.reduce((acc, ligand) => acc + ligand.count, 0) || 0;
   const domains = bondCount + (data.lonePairs || 0);
 
-  // Dynamic Highlighting Logic
-  const hl = (keyword: string) => {
-    if (currentPhase.includes('valence') && keyword === 'valence') return 'text-amber-400 bg-amber-900/30 font-bold';
-    if (currentPhase.includes('hybrid') && keyword === 'hybridization') return 'text-amber-400 bg-amber-900/30 font-bold';
-    if (currentPhase.includes('bond') && keyword === 'bonds') return 'text-amber-400 bg-amber-900/30 font-bold';
-    if (currentPhase.includes('summary') && keyword === 'geometry') return 'text-amber-400 bg-amber-900/30 font-bold';
-    return 'text-cyan-100';
+  const highlight = (keyword: string) => {
+    if (currentPhase.includes('valence') && keyword === 'valence') return 'bg-amber-50 text-amber-800 font-bold';
+    if (currentPhase.includes('hybrid') && keyword === 'hybridization') return 'bg-amber-50 text-amber-800 font-bold';
+    if (currentPhase.includes('bond') && keyword === 'bonds') return 'bg-amber-50 text-amber-800 font-bold';
+    if (currentPhase.includes('summary') && keyword === 'geometry') return 'bg-amber-50 text-amber-800 font-bold';
+    return 'text-slate-800';
   };
 
   const getAngle = () => {
@@ -42,57 +37,61 @@ export function ChemistryHUD({ entityName, currentPhase }: ChemistryHUDProps) {
   };
 
   return (
-    <div className="bg-slate-950/70 backdrop-blur-md border border-cyan-500/30 p-4 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.05)] font-mono text-[11px]">
-      <div className="flex items-center gap-2 mb-3 border-b border-cyan-500/20 pb-2">
-         <Hexagon size={14} className="text-cyan-400" />
-         <div className="tracking-[0.2em] text-cyan-400 font-bold uppercase">Molecular Analysis</div>
+    <div className={`${CHEMISTRY_UI.panel} p-4 font-mono text-[11px]`}>
+      <div className={`${CHEMISTRY_UI.panelHeader} mb-3`}>
+        <div className="flex items-center gap-2">
+          <Hexagon size={14} className="text-blue-700" />
+          <div className={CHEMISTRY_UI.eyebrow}>Molecular Analysis</div>
+        </div>
+        <span className="text-[9px] font-mono text-slate-400">GUIDED</span>
       </div>
+
       <div className="grid grid-cols-2 gap-y-2">
-        <div className="text-cyan-500/70">Formula</div>
-        <div className="text-cyan-100">{formatFormula(data.formula)}</div>
-        
+        <div className={CHEMISTRY_UI.label}>Formula</div>
+        <div className="font-mono text-blue-800">{formatMolecularFormula(data.formula)}</div>
+
         {data.centralAtom && (
-           <>
-            <div className="text-cyan-500/70">Central Atom</div>
-            <div className="text-cyan-100">{data.centralAtom}</div>
-           </>
+          <>
+            <div className={CHEMISTRY_UI.label}>Central Atom</div>
+            <div className="text-slate-800">{data.centralAtom}</div>
+          </>
         )}
 
-        <div className="text-cyan-500/70">Valence e⁻</div>
-        <div className={`transition-colors duration-300 px-1 -mx-1 rounded ${hl('valence')}`}>{data.valenceElectrons}</div>
+        <div className={CHEMISTRY_UI.label}>Valence e⁻</div>
+        <div className={`rounded px-1 -mx-1 transition-colors ${highlight('valence')}`}>{data.valenceElectrons}</div>
 
-        <div className="text-cyan-500/70">Bonding Pairs</div>
-        <div className={`transition-colors duration-300 px-1 -mx-1 rounded ${hl('bonds')}`}>{bondCount}</div>
+        <div className={CHEMISTRY_UI.label}>Bonding Pairs</div>
+        <div className={`rounded px-1 -mx-1 transition-colors ${highlight('bonds')}`}>{bondCount}</div>
 
         {data.lonePairs !== undefined && (
           <>
-            <div className="text-cyan-500/70">Lone Pairs</div>
-            <div className="text-cyan-100">{data.lonePairs}</div>
+            <div className={CHEMISTRY_UI.label}>Lone Pairs</div>
+            <div className="text-slate-800">{data.lonePairs}</div>
           </>
         )}
 
-        <div className="text-cyan-500/70">Domains</div>
-        <div className="text-cyan-100">{domains}</div>
+        <div className={CHEMISTRY_UI.label}>Domains</div>
+        <div className="text-slate-800">{domains}</div>
 
         {data.hybridization && (
           <>
-            <div className="text-cyan-500/70 mt-2">Hybridization</div>
-            <div className={`transition-colors duration-300 px-1 -mx-1 rounded mt-2 ${hl('hybridization')}`}>{data.hybridization}</div>
+            <div className={CHEMISTRY_UI.label}>Hybridization</div>
+            <div className={`rounded px-1 -mx-1 transition-colors ${highlight('hybridization')}`}>{data.hybridization}</div>
           </>
         )}
 
-        <div className="text-cyan-500/70">Geometry</div>
-        <div className={`transition-colors duration-300 px-1 -mx-1 rounded ${hl('geometry')}`}>{data.geometry}</div>
+        <div className={CHEMISTRY_UI.label}>Geometry</div>
+        <div className={`rounded px-1 -mx-1 transition-colors ${highlight('geometry')}`}>{data.geometry}</div>
 
         {data.bondType === 'COVALENT' && (
           <>
-            <div className="text-cyan-500/70">Bond Angle</div>
-            <div className={`transition-colors duration-300 px-1 -mx-1 rounded ${hl('geometry')}`}>{getAngle()}</div>
+            <div className={CHEMISTRY_UI.label}>Bond Angle</div>
+            <div className={`rounded px-1 -mx-1 transition-colors ${highlight('geometry')}`}>{getAngle()}</div>
           </>
         )}
 
-        <div className="text-cyan-500/70">Bond Type</div>
-        <div className={`transition-colors duration-300 px-1 -mx-1 rounded ${hl('bonds')}`}>{data.bondType}</div>
+        <div className={CHEMISTRY_UI.label}>Bond Type</div>
+        <div className="text-slate-800">{data.bondType}</div>
       </div>
     </div>
   );
