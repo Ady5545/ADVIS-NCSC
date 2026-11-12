@@ -279,8 +279,8 @@ export function MolecularVisuals({
       <group ref={groupRef}>
         <group position={framing.offset} scale={[framing.scale, framing.scale, framing.scale]}>
         {data.bonds.map((bond) => {
-           const atomA = data.atoms.find(a => a.id === bond.atomA);
-           const atomB = data.atoms.find(a => a.id === bond.atomB);
+           const atomA = atomById.get(bond.atomA);
+           const atomB = atomById.get(bond.atomB);
            if (!atomA || !atomB) return null;
            
            const isSelected = selectedBondId === bond.id || (
@@ -300,6 +300,7 @@ export function MolecularVisuals({
                mode={mode}
                isSelected={isSelected}
                inSelectedGroup={inSelectedGroup}
+               performanceMode={isLargeStructure}
                onClick={() => handleBondClick(bond)}
              />
            );
