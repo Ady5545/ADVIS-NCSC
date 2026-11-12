@@ -98,6 +98,13 @@ export function HierarchicalComponentRenderer({
 
     groupRef.current.position.set(curX + kinOffsetX, curY + kinOffsetY, curZ + kinOffsetZ);
     groupRef.current.rotation.set(kinRotX, kinRotY, kinRotZ);
+    // Honor authored component scale. Anatomy parts are positioned within their
+    // component-local coordinate system and must not inherit a stale unit scale.
+    groupRef.current.scale.set(
+      baseTransform.scale[0] ?? 1,
+      baseTransform.scale[1] ?? 1,
+      baseTransform.scale[2] ?? 1,
+    );
   });
 
   // Calculate material appearance
