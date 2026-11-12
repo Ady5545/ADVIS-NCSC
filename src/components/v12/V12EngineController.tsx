@@ -531,7 +531,7 @@ export function V12EngineController(props: V12EngineControllerProps) {
 
           {/* 4. Isolate Component */}
           <button
-            onClick={() => onToggleIsolate(isolatedComponentId ? null : (selectedComponentId || 'crankshaft'))}
+            onClick={() => onToggleIsolate(isolatedComponentId ? null : (selectedComponentId || 'v12.crankshaft'))}
             className={`px-2 py-1 rounded border transition-all flex items-center gap-1 cursor-pointer ${
               isolatedComponentId
                 ? 'bg-emerald-500/30 border-emerald-400 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
