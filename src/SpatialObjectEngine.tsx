@@ -964,7 +964,9 @@ function EngineeringComponentRenderer({
     isHovered,
     isSelected,
     xrayEnabled,
-    blueprintEnabled
+    blueprintEnabled,
+    isKinematicPlaying,
+    kinematicSpeed
   });
   if (turboPrecision) return turboPrecision;
 
