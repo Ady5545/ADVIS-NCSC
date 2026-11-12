@@ -1,7 +1,7 @@
 import React from 'react';
 import { Hexagon } from 'lucide-react';
 import { CHEMISTRY_DATABASE } from './ChemistryDatabase';
-import { CHEMISTRY_UI, formatMolecularFormula } from './ChemistryWorkspaceUI';
+import { CHEMISTRY_UI, ChemistryStatusPill, formatMolecularFormula } from './ChemistryWorkspaceUI';
 
 export const formatFormula = formatMolecularFormula;
 
@@ -14,7 +14,24 @@ export function ChemistryHUD({ entityName, currentPhase }: ChemistryHUDProps) {
   const entity = Object.keys(CHEMISTRY_DATABASE).find(k => k.toLowerCase() === entityName.toLowerCase());
   const data = entity ? CHEMISTRY_DATABASE[entity] : null;
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className={`${CHEMISTRY_UI.panel} p-4 font-mono text-[11px]`}>
+        <div className={`${CHEMISTRY_UI.panelHeader} mb-3`}>
+          <div className="flex items-center gap-2">
+            <Hexagon size={14} className="text-blue-700" />
+            <div className={CHEMISTRY_UI.eyebrow}>Molecular Analysis</div>
+          </div>
+          <ChemistryStatusPill status="INFO" label="LESSON PROFILE UNAVAILABLE" />
+        </div>
+        <div className={CHEMISTRY_UI.label}>Requested entity</div>
+        <div className="mt-1 break-words font-mono text-sm font-semibold text-blue-800">{entityName || 'Unspecified compound'}</div>
+        <p className={`mt-3 ${CHEMISTRY_UI.body}`}>
+          Detailed VSEPR and lesson-catalogue properties are not available for this entry. ADVIS will not infer them from the name alone.
+        </p>
+      </div>
+    );
+  }
 
   const bondCount = data.ligands?.reduce((acc, ligand) => acc + ligand.count, 0) || 0;
   const domains = bondCount + (data.lonePairs || 0);
