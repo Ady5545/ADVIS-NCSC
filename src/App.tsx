@@ -1970,7 +1970,7 @@ function AppContent() {
         <Canvas
           shadows={isSpatial}
           dpr={[0.78, 1.3]}
-          gl={{ antialias: false }}
+          gl={{ antialias: true, powerPreference: 'default' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
@@ -1996,7 +1996,7 @@ function AppContent() {
               <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
               {/* Keep full grounding shadows for models while avoiding their cost on the Core home view. */}
-              <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={512} />
+              <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={1024} />
             </>
           )}
 
@@ -2072,7 +2072,7 @@ function AppContent() {
             />
           </React.Suspense>
           
-          <EffectComposer multisampling={0}>
+          <EffectComposer>
             <Bloom
               luminanceThreshold={isEngineeringMode ? 1.0 : 0.85}
               mipmapBlur
