@@ -45,6 +45,28 @@ export function MolecularVisuals({
     return null;
   }, [moleculeData, entityName]);
 
+  const framing = useMemo(() => {
+    if (!data || data.atoms.length === 0) {
+      return { offset: new THREE.Vector3(), scale: 1.2 };
+    }
+
+    const bounds = new THREE.Box3();
+    data.atoms.forEach(atom => bounds.expandByPoint(atom.position));
+    const center = bounds.getCenter(new THREE.Vector3());
+    const dimensions = bounds.getSize(new THREE.Vector3());
+    const coordinateMultiplier = mode === 'ANALYTICAL' ? 1.5 : 1;
+    const molecularDiameter = Math.max(dimensions.length() * coordinateMultiplier, 1);
+    const fitScale = Math.min(1.2, 7.5 / molecularDiameter);
+
+    return {
+      offset: center.multiplyScalar(-coordinateMultiplier),
+      scale: fitScale
+    };
+  }, [data, mode]);
+
+  const isLargeStructure = !!data && (data.atoms.length > 90 || data.bonds.length > 100);
+  const atomById = useMemo(() => new Map((data?.atoms || []).map(atom => [atom.id, atom])), [data]);
+
   const groupRef = useRef<THREE.Group>(null);
   const theatrePresentationRef = useRef({
     active: false,
@@ -87,11 +109,11 @@ export function MolecularVisuals({
       groupRef.current.rotation.y = theatre.rotationY;
       groupRef.current.rotation.x = theatre.rotationX;
       const presentationScale = THREE.MathUtils.clamp(theatre.presentationScale, 0.5, 1.5);
-      groupRef.current.scale.setScalar(1.2 * presentationScale);
+      groupRef.current.scale.setScalar(presentationScale);
       return;
     }
 
-    groupRef.current.scale.setScalar(1.2);
+    groupRef.current.scale.setScalar(1);
     if (mode === 'DYNAMIC') {
       groupRef.current.rotation.y += delta * 0.2;
       groupRef.current.rotation.x += delta * 0.1;
@@ -213,7 +235,7 @@ export function MolecularVisuals({
 
   // Calculate VSEPR Angles for annotation when enabled or in Analytical mode
   const angleAnnotations = useMemo(() => {
-    if (!showAnnotations && !isAnalytical) return [];
+    if ((!showAnnotations && !isAnalytical) || isLargeStructure) return [];
     const annotations: { vertexPos: THREE.Vector3; angleDeg: number; label: string; pA: THREE.Vector3; pB: THREE.Vector3 }[] = [];
 
     data.atoms.forEach(centerAtom => {
@@ -250,11 +272,12 @@ export function MolecularVisuals({
     });
 
     return annotations;
-  }, [data, showAnnotations, isAnalytical]);
+  }, [data, showAnnotations, isAnalytical, isLargeStructure]);
 
   return (
-    <Float floatIntensity={isAnalytical ? 0.06 : 0.28} rotationIntensity={isAnalytical ? 0.04 : 0.12} speed={isAnalytical ? 0.3 : 0.6}>
-      <group ref={groupRef} scale={[1.2, 1.2, 1.2]}>
+    <Float floatIntensity={isLargeStructure ? 0.015 : (isAnalytical ? 0.06 : 0.28)} rotationIntensity={isLargeStructure ? 0.01 : (isAnalytical ? 0.04 : 0.12)} speed={isAnalytical ? 0.3 : 0.6}>
+      <group ref={groupRef}>
+        <group position={framing.offset} scale={[framing.scale, framing.scale, framing.scale]}>
         {data.bonds.map((bond) => {
            const atomA = data.atoms.find(a => a.id === bond.atomA);
            const atomB = data.atoms.find(a => a.id === bond.atomB);
@@ -297,7 +320,8 @@ export function MolecularVisuals({
               inSelectedGroup={inSelectedGroup}
               onClick={(e) => handleAtomClick(atom, e)}
               onPositionChange={(newPos) => onAtomPositionChange && onAtomPositionChange(atom.id, newPos)}
-              showAnnotations={showAnnotations}
+              showAnnotations={showAnnotations && !isLargeStructure}
+              performanceMode={isLargeStructure}
             />
           );
         })}
@@ -382,6 +406,7 @@ export function MolecularVisuals({
           </group>
         )}
 
+        </group>
       </group>
     </Float>
   );
@@ -395,7 +420,8 @@ function HighFidelityAtom({
   inSelectedGroup, 
   onClick, 
   onPositionChange,
-  showAnnotations 
+  showAnnotations,
+  performanceMode = false
 }: { 
   atom: AtomData; 
   mode: string; 
@@ -405,6 +431,7 @@ function HighFidelityAtom({
   onClick: (e?: any) => void;
   onPositionChange?: (newPos: THREE.Vector3) => void;
   showAnnotations?: boolean;
+  performanceMode?: boolean;
 }) {
   const { color, size: baseRadius } = getAtomProps(atom.element);
   const radius = baseRadius * 0.8;
@@ -416,10 +443,14 @@ function HighFidelityAtom({
   const { camera, raycaster, gl } = useThree();
   
   React.useEffect(() => {
+    if (performanceMode) {
+      setPulse(false);
+      return;
+    }
     setPulse(true);
     const t = setTimeout(() => setPulse(false), 1000);
     return () => clearTimeout(t);
-  }, []);
+  }, [performanceMode]);
 
   const targetPos = useMemo(() => {
     if (mode === 'ANALYTICAL') {
@@ -429,6 +460,7 @@ function HighFidelityAtom({
   }, [atom.position, mode]);
 
   useFrame((state, delta) => {
+    if (performanceMode) return;
     if (meshRef.current && !isDragging) {
       let currentY = targetPos.y;
       if (mode === 'DYNAMIC') {
@@ -495,49 +527,64 @@ function HighFidelityAtom({
       onPointerUp={handlePointerUp}
       onClick={(e) => { e.stopPropagation(); onClick(e); }}
     >
-      {/* Core Nucleus */}
-      <mesh>
-        <sphereGeometry args={[radius * 0.28, 32, 20]} />
-        <meshPhysicalMaterial
-          color={displayColor}
-          emissive={emissiveColor}
-          emissiveIntensity={isHighlight ? 0.9 : 0.25}
-          roughness={0.24}
-          metalness={0.28}
-          clearcoat={0.32}
-          clearcoatRoughness={0.2}
-          envMapIntensity={1.25}
-        />
-      </mesh>
-      
-      {/* Electron Cloud Volume */}
-      <mesh>
-        <sphereGeometry args={[radius, 48, 32]} />
-        <meshPhysicalMaterial 
-          color={displayColor} 
-          transparent 
-          opacity={isHighlight ? 0.38 : 0.12}
-          roughness={0.18}
-          transmission={0.72}
-          thickness={0.35}
-          clearcoat={0.65}
-          clearcoatRoughness={0.16}
-          envMapIntensity={1.1}
-          depthWrite={false} 
-        />
-      </mesh>
-
-      {/* Holographic Wireframe Cage */}
-      <mesh scale={[1.08, 1.08, 1.08]}>
-        <icosahedronGeometry args={[radius, 1]} />
-        <meshBasicMaterial 
-          color={isSelected ? "#ffffff" : (isSecondary ? "#fef08a" : displayColor)} 
-          wireframe 
-          transparent 
-          opacity={isSelected ? 0.42 : (isSecondary ? 0.36 : (inSelectedGroup ? 0.24 : 0.08))} 
-          blending={THREE.AdditiveBlending} 
-        />
-      </mesh>
+      {performanceMode ? (
+        <mesh>
+          <sphereGeometry args={[radius, 20, 14]} />
+          <meshStandardMaterial
+            color={displayColor}
+            emissive={emissiveColor}
+            emissiveIntensity={isHighlight ? 0.45 : 0.1}
+            metalness={0.18}
+            roughness={0.42}
+          />
+        </mesh>
+      ) : (
+        <>
+        {/* Core Nucleus */}
+        <mesh>
+          <sphereGeometry args={[radius * 0.28, 32, 20]} />
+          <meshPhysicalMaterial
+            color={displayColor}
+            emissive={emissiveColor}
+            emissiveIntensity={isHighlight ? 0.9 : 0.25}
+            roughness={0.24}
+            metalness={0.28}
+            clearcoat={0.32}
+            clearcoatRoughness={0.2}
+            envMapIntensity={1.25}
+          />
+        </mesh>
+        
+        {/* Electron Cloud Volume */}
+        <mesh>
+          <sphereGeometry args={[radius, 48, 32]} />
+          <meshPhysicalMaterial 
+            color={displayColor} 
+            transparent 
+            opacity={isHighlight ? 0.38 : 0.12}
+            roughness={0.18}
+            transmission={0.72}
+            thickness={0.35}
+            clearcoat={0.65}
+            clearcoatRoughness={0.16}
+            envMapIntensity={1.1}
+            depthWrite={false} 
+          />
+        </mesh>
+  
+        {/* Holographic Wireframe Cage */}
+        <mesh scale={[1.08, 1.08, 1.08]}>
+          <icosahedronGeometry args={[radius, 1]} />
+          <meshBasicMaterial 
+            color={isSelected ? "#ffffff" : (isSecondary ? "#fef08a" : displayColor)} 
+            wireframe 
+            transparent 
+            opacity={isSelected ? 0.42 : (isSecondary ? 0.36 : (inSelectedGroup ? 0.24 : 0.08))} 
+            blending={THREE.AdditiveBlending} 
+          />
+        </mesh>
+        </>
+      )}
 
       {/* Primary Selection Reticle */}
       {isSelected && (
@@ -601,6 +648,7 @@ function HighFidelityBond({
   mode, 
   isSelected, 
   inSelectedGroup, 
+  performanceMode = false,
   onClick 
 }: { 
   bond: BondData; 
@@ -611,6 +659,7 @@ function HighFidelityBond({
   mode: string; 
   isSelected: boolean; 
   inSelectedGroup: boolean; 
+  performanceMode?: boolean;
   onClick: () => void; 
 }) {
   const [hovered, setHovered] = useState(false);
@@ -624,6 +673,7 @@ function HighFidelityBond({
   const quaternion = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), targetPosB.clone().sub(targetPosA).normalize()), [targetPosA, targetPosB]);
 
   useFrame((state, delta) => {
+    if (performanceMode) return;
     if (groupRef.current) {
       const currentPosA = mode === 'ANALYTICAL' ? posA.clone().multiplyScalar(1.5) : posA.clone();
       const currentPosB = mode === 'ANALYTICAL' ? posB.clone().multiplyScalar(1.5) : posB.clone();
@@ -684,8 +734,9 @@ function HighFidelityBond({
   return (
     <group 
       ref={groupRef}
-      position={center} 
+      position={center}
       quaternion={quaternion}
+      scale={performanceMode ? [1, length, 1] : [1, 1, 1]}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
       onPointerOut={(e) => { e.stopPropagation(); setHovered(false); }}
       onClick={(e) => { e.stopPropagation(); onClick(); }}
