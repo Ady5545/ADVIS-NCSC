@@ -1952,9 +1952,9 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.85]}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          shadows={isSpatial}
+          dpr={[0.75, 1.25]}
+          gl={{ antialias: true, alpha: true, powerPreference: 'default' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
