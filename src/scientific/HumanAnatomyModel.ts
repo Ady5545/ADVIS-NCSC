@@ -1,11 +1,12 @@
 import { ScientificSystemModel } from './ScientificSchema';
+import { HUMAN_ANATOMY_LAYER_COMPONENTS, HUMAN_BODY_COMPONENTS, HUMAN_MUSCLE_COMPONENTS, HUMAN_BONE_COMPONENTS, HUMAN_JOINT_COMPONENTS } from './HumanAnatomyLayers';
 
 export const HumanAnatomyModel: ScientificSystemModel = {
   id: 'human_anatomy_scientific',
   name: 'Human Anatomy Atlas',
-  scientificTitle: 'Integrated Human Anatomical Systems & Cardiovascular Hemodynamics',
+  scientificTitle: 'Interactive Human Anatomy · External Body, Muscles, Skeleton, Joints & Organs',
   domain: 'ANATOMY',
-  description: 'A hierarchical educational anatomy atlas with visualized organ systems, pulmonary pathways, and neural connections. Its cardiac pressure and volume curves are illustrative teaching waveforms, not a validated clinical or patient-specific simulation.',
+  description: 'A full-body educational anatomy atlas with switchable external-body, muscular, skeletal-and-joint, and internal-organ views. Each visible structure is individually selectable and described for learning; geometry is a representative procedural model, not clinical imaging or a patient-specific reference.',
 
   subsystems: [
     {
@@ -24,10 +25,31 @@ export const HumanAnatomyModel: ScientificSystemModel = {
     },
     {
       id: 'skeletal_system',
-      name: 'Axial & Appendicular Skeletal System',
-      description: 'Mineralized osseous framework protecting vital thoracic organs, housing bone marrow, and anchoring musculoskeletal levers.',
-      color: '#e2e8f0', // slate-200
-      rootComponentIds: ['cranium', 'vertebral_column', 'rib_cage', 'sternum']
+      name: 'Skeleton · Bones',
+      description: 'Major axial and appendicular bones, including separately selectable vertebrae, individual ribs, paired limb bones, hands and feet.',
+      color: '#e8dfca',
+      rootComponentIds: HUMAN_BONE_COMPONENTS.map((component) => component.id)
+    },
+    {
+      id: 'external_body',
+      name: 'External Human Body',
+      description: 'A full-body skin-covered educational figure divided into selectable anatomical regions from head to feet.',
+      color: '#c58f75',
+      rootComponentIds: HUMAN_BODY_COMPONENTS.map((component) => component.id)
+    },
+    {
+      id: 'muscular_system',
+      name: 'Muscular System',
+      description: 'Superficial major muscle groups shown across the anterior and posterior body, each selectable for its action and attachments.',
+      color: '#b9444d',
+      rootComponentIds: HUMAN_MUSCLE_COMPONENTS.map((component) => component.id)
+    },
+    {
+      id: 'joint_system',
+      name: 'Joints & Articulations',
+      description: 'Major synovial and cartilaginous articulations, including shoulder, elbow, wrist, hip, knee, ankle, jaw and spinal joints.',
+      color: '#78b8bd',
+      rootComponentIds: HUMAN_JOINT_COMPONENTS.map((component) => component.id)
     },
     {
       id: 'nervous_system',
@@ -366,6 +388,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         'Resting Metabolic Fraction': { value: 20, unit: '%', description: 'Proportion of basal oxygen consumed' }
       }
     }
+    ...Object.fromEntries(HUMAN_ANATOMY_LAYER_COMPONENTS.map((component) => [component.id, component])),
   },
 
   relationships: [
