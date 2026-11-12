@@ -263,7 +263,19 @@ const ROD_BOLTS: V3[] = [
   [-0.082, -LROD / 2 - 0.09, 0],
 ];
 
-function PistonRod({ s, side, idx }: { s: S; side: Side; idx: number }) {
+function PistonRod({
+  s,
+  side,
+  idx,
+  showPiston = true,
+  showRod = true,
+}: {
+  s: S;
+  side: Side;
+  idx: number;
+  showPiston?: boolean;
+  showRod?: boolean;
+}) {
   const piston = useRef<THREE.Group>(null);
   const rod = useRef<THREE.Group>(null);
   const beta = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
@@ -290,34 +302,38 @@ function PistonRod({ s, side, idx }: { s: S; side: Side; idx: number }) {
   const pistonColor = focused ? '#e6fbff' : '#c9d0d6';
   return (
     <group position={[0, 0, ZS[idx]]}>
-      <group ref={piston} position={[0, 0.7, 0]}>
-        {/* crown + body */}
-        <Cyl s={s} r={0.193} h={0.27} pos={[0, -0.035, 0]} color={pistonColor} kind="steel" seg={48} focus={focused} />
-        <Cyl s={s} r={0.186} h={0.014} pos={[0, 0.101, 0]} color="#e3e8ec" kind="chrome" seg={48} />
-        {/* dark ring pack */}
-        {[0.072, 0.038, 0.004].map((y, i) => (
-          <mesh key={i} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.194, 0.0075, 8, 48]} />
-            <Mat s={s} color="#2b3036" kind="dark" />
-          </mesh>
-        ))}
-        {/* skirt coating */}
-        <Cyl s={s} r={0.1945} h={0.1} pos={[0, -0.12, 0]} color="#7f8890" kind="iron" seg={48} />
-        {/* wrist pin */}
-        <Cyl s={s} r={0.034} h={0.3} rot={[Math.PI / 2, 0, 0]} pos={[0, -0.01, 0]} color="#d2d8dd" kind="chrome" seg={20} />
-      </group>
+      {showPiston && (
+        <group ref={piston} position={[0, 0.7, 0]}>
+          {/* crown + body */}
+          <Cyl s={s} r={0.193} h={0.27} pos={[0, -0.035, 0]} color={pistonColor} kind="steel" seg={48} focus={focused} />
+          <Cyl s={s} r={0.186} h={0.014} pos={[0, 0.101, 0]} color="#e3e8ec" kind="chrome" seg={48} />
+          {/* dark ring pack */}
+          {[0.072, 0.038, 0.004].map((y, i) => (
+            <mesh key={i} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.194, 0.0075, 8, 48]} />
+              <Mat s={s} color="#2b3036" kind="dark" />
+            </mesh>
+          ))}
+          {/* skirt coating */}
+          <Cyl s={s} r={0.1945} h={0.1} pos={[0, -0.12, 0]} color="#7f8890" kind="iron" seg={48} />
+          {/* wrist pin */}
+          <Cyl s={s} r={0.034} h={0.3} rot={[Math.PI / 2, 0, 0]} pos={[0, -0.01, 0]} color="#d2d8dd" kind="chrome" seg={20} />
+        </group>
+      )}
 
-      <group ref={rod} position={[0, 0.5, 0]}>
-        {/* I-beam */}
-        <Box s={s} size={[0.075, 0.46, 0.026]} color={focused ? '#bfefff' : '#8c959d'} kind="steel" radius={0.008} />
-        <Box s={s} size={[0.016, 0.46, 0.07]} pos={[0.036, 0, 0]} color="#a3acb4" kind="steel" radius={0.006} />
-        <Box s={s} size={[0.016, 0.46, 0.07]} pos={[-0.036, 0, 0]} color="#a3acb4" kind="steel" radius={0.006} />
-        {/* big end (on the crank pin) and small end (on the wrist pin) */}
-        <Cyl s={s} r={0.108} h={0.07} pos={[0, -LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color="#9aa3ab" kind="steel" seg={36} />
-        <Cyl s={s} r={0.07} h={0.072} pos={[0, -LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color={C.brass} kind="brass" seg={28} />
-        <Cyl s={s} r={0.055} h={0.07} pos={[0, LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color="#a8b0b7" kind="steel" seg={28} />
-        <Bolts s={s} pts={ROD_BOLTS} r={0.013} h={0.04} color="#2b3036" />
-      </group>
+      {showRod && (
+        <group ref={rod} position={[0, 0.5, 0]}>
+          {/* I-beam */}
+          <Box s={s} size={[0.075, 0.46, 0.026]} color={focused ? '#bfefff' : '#8c959d'} kind="steel" radius={0.008} />
+          <Box s={s} size={[0.016, 0.46, 0.07]} pos={[0.036, 0, 0]} color="#a3acb4" kind="steel" radius={0.006} />
+          <Box s={s} size={[0.016, 0.46, 0.07]} pos={[-0.036, 0, 0]} color="#a3acb4" kind="steel" radius={0.006} />
+          {/* big end (on the crank pin) and small end (on the wrist pin) */}
+          <Cyl s={s} r={0.108} h={0.07} pos={[0, -LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color="#9aa3ab" kind="steel" seg={36} />
+          <Cyl s={s} r={0.07} h={0.072} pos={[0, -LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color={C.brass} kind="brass" seg={28} />
+          <Cyl s={s} r={0.055} h={0.07} pos={[0, LROD / 2, 0]} rot={[Math.PI / 2, 0, 0]} color="#a8b0b7" kind="steel" seg={28} />
+          <Bolts s={s} pts={ROD_BOLTS} r={0.013} h={0.04} color="#2b3036" />
+        </group>
+      )}
     </group>
   );
 }
@@ -325,7 +341,25 @@ function PistonRod({ s, side, idx }: { s: S; side: Side; idx: number }) {
 // ---------------------------------------------------------------------------
 // One cylinder bank (liners, block, head, cam cover, port flanges, injectors)
 // ---------------------------------------------------------------------------
-function Bank({ s, side }: { s: S; side: Side }) {
+type BankPistonMode = 'both' | 'pistons' | 'rods' | 'none';
+
+function Bank({
+  s,
+  side,
+  showCylinderStructure = true,
+  showCylinderHead = true,
+  showCamCovers = true,
+  showFuelSystem = true,
+  pistonMode = 'both',
+}: {
+  s: S;
+  side: Side;
+  showCylinderStructure?: boolean;
+  showCylinderHead?: boolean;
+  showCamCovers?: boolean;
+  showFuelSystem?: boolean;
+  pistonMode?: BankPistonMode;
+}) {
   const sign = side === 'left' ? -1 : 1;
   const beta = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
   const zOff = side === 'left' ? -STAGGER : STAGGER;
@@ -376,6 +410,7 @@ function Bank({ s, side }: { s: S; side: Side }) {
 
   return (
     <group position={[0, 0, zOff]} rotation={[0, 0, beta]}>
+      <group visible={showCylinderStructure}>
       {/* ---- cylinder barrels (sectioned open on the outboard side) ---- */}
       {ZS.map((z, i) => {
         const number = side === 'left' ? i + 1 : i + 7;
@@ -422,7 +457,9 @@ function Bank({ s, side }: { s: S; side: Side }) {
 
       {/* deck plate */}
       <Box s={s} size={[0.58, 0.05, 3.12]} pos={[0, DECK_Y + 0.025, 0]} color="#79828a" radius={0.012} />
+      </group>
 
+      <group visible={showCylinderHead}>
       {/* ---- cylinder head ---- */}
       <Box s={s} size={[HEAD_W, HEAD_H, HEAD_LEN]} pos={[0, HEAD_Y0 + HEAD_H / 2, 0]} color={C.head} radius={0.03} />
       {ZS.map((z, i) => (
@@ -437,7 +474,9 @@ function Bank({ s, side }: { s: S; side: Side }) {
       ))}
       <Bolts s={s} pts={flangeBolts} r={0.012} h={0.025} axis="x" />
       <Bolts s={s} pts={headBolts} r={0.017} h={0.022} />
+      </group>
 
+      <group visible={showCamCovers}>
       {/* ---- cam cover ---- */}
       <Box s={s} size={[0.58, COVER_H, 3.1]} pos={[0, coverY, 0]} color={C.red} kind="red" radius={0.05} />
       {/* polished spine */}
@@ -459,7 +498,9 @@ function Bank({ s, side }: { s: S; side: Side }) {
       <Box s={s} size={[0.66, 0.36, 0.08]} pos={[0, 1.27, 1.61]} color="#4c555d" radius={0.03} />
       <Box s={s} size={[0.58, 0.22, 0.09]} pos={[0, 1.54, 1.61]} color={C.red} kind="red" radius={0.04} />
       <Box s={s} size={[0.66, 0.36, 0.04]} pos={[0, 1.27, -1.59]} color="#4c555d" radius={0.02} />
+      </group>
 
+      <group visible={showFuelSystem}>
       {/* ---- fuel rail + injectors on the inboard face ---- */}
       <mesh position={[-sign * 0.43, 1.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.02, 0.02, 3.0, 16]} />
@@ -472,9 +513,18 @@ function Bank({ s, side }: { s: S; side: Side }) {
         </group>
       ))}
 
-      {/* ---- pistons + rods ---- */}
-      {ZS.map((_, i) => (
-        <PistonRod key={i} s={s} side={side} idx={i} />
+      </group>
+
+      {/* ---- independently selectable pistons and connecting rods ---- */}
+      {pistonMode !== 'none' && ZS.map((_, i) => (
+        <PistonRod
+          key={i}
+          s={s}
+          side={side}
+          idx={i}
+          showPiston={pistonMode === 'both' || pistonMode === 'pistons'}
+          showRod={pistonMode === 'both' || pistonMode === 'rods'}
+        />
       ))}
     </group>
   );
@@ -916,21 +966,159 @@ function FrontEnd({ s }: { s: S }) {
   );
 }
 
+
 // ---------------------------------------------------------------------------
-// Assembly
+// Engine-management harness and twelve illustrative sensor pickups
 // ---------------------------------------------------------------------------
-export function V12UltimateCutaway(state: V12UltimateProps) {
+function EngineManagementHarness({ s }: { s: S }) {
+  const harnesses = useMemo(() => (['left', 'right'] as Side[]).map((side) => {
+    const sign = side === 'left' ? -1 : 1;
+    const beta = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
+    const [x0, y0] = toWorld(beta, sign * 0.28, 1.54);
+    const [x1, y1] = toWorld(beta, sign * 0.5, 1.78);
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x0, y0, -1.62),
+      new THREE.Vector3(x1, y1, -1.2),
+      new THREE.Vector3(sign * 0.72, 1.92, -0.45),
+      new THREE.Vector3(sign * 0.72, 1.92, 0.55),
+      new THREE.Vector3(x1, y1, 1.2),
+      new THREE.Vector3(x0, y0, 1.62),
+    ]);
+    return new THREE.TubeGeometry(curve, 64, 0.018, 8, false);
+  }), []);
+
   return (
-    <group rotation={[0.13, -1.02, 0.04]} position={[0, -0.35, 0]}>
-      <Crankcase s={state} />
-      <OilPan s={state} />
-      <Bank s={state} side="left" />
-      <Bank s={state} side="right" />
-      <Intake s={state} />
-      <Exhaust s={state} side="left" />
-      <Exhaust s={state} side="right" />
-      <Crankshaft s={state} />
-      <FrontEnd s={state} />
+    <group>
+      {harnesses.map((geometry, index) => (
+        <mesh key={index} geometry={geometry}>
+          <Mat s={s} color="#202a32" kind="rubber" />
+        </mesh>
+      ))}
+      {(['left', 'right'] as Side[]).map((side) => {
+        const sign = side === 'left' ? -1 : 1;
+        const beta = side === 'left' ? BANK_ANGLE : -BANK_ANGLE;
+        const zOff = side === 'left' ? -STAGGER : STAGGER;
+        return (
+          <group key={side} position={[0, 0, zOff]} rotation={[0, 0, beta]}>
+            {ZS.map((z, index) => (
+              <group key={index} position={[sign * 0.42, 1.74, z]}>
+                <Cyl s={s} r={0.035} h={0.12} color="#263b48" kind="dark" seg={20} />
+                <Cyl s={s} r={0.022} h={0.045} pos={[0, 0.078, 0]} color="#16a34a" kind="brass" seg={16} />
+                <Cyl s={s} r={0.012} h={0.025} pos={[0, 0.115, 0]} color="#cbd5e1" kind="chrome" seg={12} />
+              </group>
+            ))}
+          </group>
+        );
+      })}
+      <Box s={s} size={[0.42, 0.22, 0.34]} pos={[0, 1.93, -1.72]} color="#243746" kind="dark" radius={0.035} />
+      <Box s={s} size={[0.32, 0.035, 0.24]} pos={[0, 2.065, -1.72]} color="#16a34a" kind="steel" radius={0.012} />
+      <Box s={s} size={[0.22, 0.08, 0.08]} pos={[0, 1.93, -1.91]} color="#8d969e" kind="steel" radius={0.01} />
     </group>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Independently selectable V12 assemblies. Every component is rendered inside
+// its own SpatialObjectEngine group so selection, isolation and explosion act
+// on real geometry rather than on one monolithic engine root.
+// ---------------------------------------------------------------------------
+export type V12AssemblyPartId =
+  | 'v12.engine_block'
+  | 'v12.piston_left_bank'
+  | 'v12.piston_right_bank'
+  | 'v12.connecting_rods'
+  | 'v12.crankshaft'
+  | 'v12.valvetrain'
+  | 'v12.intake_plenum'
+  | 'v12.exhaust_manifold'
+  | 'v12.cooling_system'
+  | 'v12.lubrication_system'
+  | 'v12.electronics_sensors';
+
+export interface V12UltimatePartProps extends V12UltimateProps {
+  partId: string;
+}
+
+export function V12UltimateCutawayPart({ partId, ...state }: V12UltimatePartProps) {
+  let part: React.ReactNode = null;
+
+  switch (partId) {
+    case 'v12.engine_block':
+      part = (
+        <>
+          <Crankcase s={state} />
+          <Bank s={state} side="left" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />
+          <Bank s={state} side="right" showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="none" />
+        </>
+      );
+      break;
+    case 'v12.piston_left_bank':
+      part = <Bank s={state} side="left" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="pistons" />;
+      break;
+    case 'v12.piston_right_bank':
+      part = <Bank s={state} side="right" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="pistons" />;
+      break;
+    case 'v12.connecting_rods':
+      part = (
+        <>
+          <Bank s={state} side="left" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="rods" />
+          <Bank s={state} side="right" showCylinderStructure={false} showCylinderHead={false} showCamCovers={false} showFuelSystem={false} pistonMode="rods" />
+        </>
+      );
+      break;
+    case 'v12.crankshaft':
+      part = <Crankshaft s={state} />;
+      break;
+    case 'v12.valvetrain':
+      part = (
+        <>
+          <Bank s={state} side="left" showCylinderStructure={false} showFuelSystem={false} pistonMode="none" />
+          <Bank s={state} side="right" showCylinderStructure={false} showFuelSystem={false} pistonMode="none" />
+        </>
+      );
+      break;
+    case 'v12.intake_plenum':
+      part = <Intake s={state} />;
+      break;
+    case 'v12.exhaust_manifold':
+      part = (
+        <>
+          <Exhaust s={state} side="left" />
+          <Exhaust s={state} side="right" />
+        </>
+      );
+      break;
+    case 'v12.cooling_system':
+      part = <FrontEnd s={state} />;
+      break;
+    case 'v12.lubrication_system':
+      part = <OilPan s={state} />;
+      break;
+    case 'v12.electronics_sensors':
+      part = <EngineManagementHarness s={state} />;
+      break;
+    default:
+      return null;
+  }
+
+  return <group rotation={[0.13, -1.02, 0.04]} position={[0, -0.35, 0]}>{part}</group>;
+}
+
+// Keep the cohesive composition export available for callers that need a
+// single scene node; the spatial engine itself uses the modular part export.
+export function V12UltimateCutaway(state: V12UltimateProps) {
+  const partIds: V12AssemblyPartId[] = [
+    'v12.engine_block',
+    'v12.piston_left_bank',
+    'v12.piston_right_bank',
+    'v12.connecting_rods',
+    'v12.crankshaft',
+    'v12.valvetrain',
+    'v12.intake_plenum',
+    'v12.exhaust_manifold',
+    'v12.cooling_system',
+    'v12.lubrication_system',
+    'v12.electronics_sensors',
+  ];
+  return <group>{partIds.map((partId) => <V12UltimateCutawayPart key={partId} partId={partId} {...state} />)}</group>;
 }
