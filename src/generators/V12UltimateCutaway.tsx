@@ -515,10 +515,6 @@ function Bank({
           <Cyl s={s} r={0.026} h={0.03} pos={[-sign * 0.43, 1.255, z]} color="#14171a" kind="rubber" seg={14} />
         </group>
       ))}
-
-      </group>
-
-      {/* Fuel rail group closes immediately before the independent moving parts. */}
       )}
       {/* ---- independently selectable pistons and connecting rods ---- */}
       {pistonMode !== 'none' && ZS.map((_, i) => (
