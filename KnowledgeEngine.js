@@ -7,7 +7,7 @@
 const LOCAL_KNOWLEDGE = [
   {
     title: "Water (H2O)",
-    terms: ["water molecule", "h2o", "water"],
+    terms: ["water molecule", "h2o", "water is bent", "bent water"],
     category: "chemistry",
     reply: "Water (H₂O) has a bent molecular shape. Oxygen has two O–H bonding pairs and two lone pairs; the stronger lone-pair repulsions compress the H–O–H bond angle to about 104.5°. The electron-pair arrangement is approximately tetrahedral."
   },
@@ -31,7 +31,7 @@ const LOCAL_KNOWLEDGE = [
   },
   {
     title: "Oxidation and reduction",
-    terms: ["redox", "oxidation reduction", "oxidation number", "oxidation state", "oxidising agent", "reducing agent"],
+    terms: ["redox", "oxidation and reduction", "oxidation reduction", "oxidation number", "oxidation state", "oxidising agent", "reducing agent"],
     category: "chemistry",
     reply: "A redox reaction involves electron transfer or a change in oxidation numbers. Oxidation is loss of electrons (oxidation number increases); reduction is gain of electrons (oxidation number decreases). The oxidising agent is reduced, while the reducing agent is oxidised."
   },
@@ -232,7 +232,7 @@ function getLocalKnowledgeReply(message) {
 
 function shouldSearchWeb(message) {
   const text = normalize(message);
-  return /\b(search|look up|find online|search online|web search|find sources|latest|current|today|yesterday|tomorrow|this week|this month|recent|breaking|news|weather|live|stock price|exchange rate|who won|results today)\b/.test(text);
+  return /\b(search|look up|find online|search online|web search|find sources|latest|current|right now|today|yesterday|tomorrow|this week|this month|this morning|this afternoon|recent|breaking|news|weather|forecast|temperature|live|price|prices|stock price|exchange rate|who won|results today)\b/.test(text);
 }
 
 function cleanXml(value) {
