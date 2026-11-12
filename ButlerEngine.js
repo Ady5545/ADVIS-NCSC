@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { isKnowledgeQuestion, getLocalKnowledgeReply, shouldSearchWeb, searchWeb, formatWebSearchReply } = require("./KnowledgeEngine");
 
 // Scientific Educational Insights Database
 const SCIENTIFIC_EXPLANATIONS = {
@@ -724,6 +725,79 @@ async function processButlerTurn(params) {
         }
       };
     }
+  }
+
+  // Step 6.5: Use curated local knowledge before invoking a paid reasoning model.
+  // Explicit web lookups and current-information requests go to the independent search layer.
+  const geminiIsConfigured = Boolean(process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim());
+  const shouldUseWeb = !image && (shouldSearchWeb(message) || isKnowledgeQuestion(message));
+
+  if (shouldUseWeb && shouldSearchWeb(message)) {
+    const searchResult = await searchWeb(message);
+    return {
+      reply: formatWebSearchReply(message, searchResult),
+      mode: mode || "normal",
+      status: "online",
+      aiProviderStatus: geminiIsConfigured ? "configured" : "not_configured",
+      reasoningAvailable: geminiIsConfigured,
+      responseSource: searchResult.results.length ? "web_search" : "web_search_unavailable",
+      searchProvider: searchResult.provider,
+      webResults: searchResult.results,
+      butlerDecision: {
+        userObjective: "Retrieve current information from independent web search",
+        classification: "WEB_SEARCH",
+        isAnaphoric: false,
+        resolvedReference: null,
+        targetSubsystem: "WEB_SEARCH",
+        responseMode: "VERBAL_ONLY"
+      }
+    };
+  }
+
+  const localKnowledge = !image ? getLocalKnowledgeReply(message) : null;
+  if (localKnowledge) {
+    return {
+      reply: localKnowledge.reply,
+      mode: mode || "normal",
+      status: "online",
+      aiProviderStatus: geminiIsConfigured ? "configured" : "not_configured",
+      reasoningAvailable: geminiIsConfigured,
+      responseSource: "local_knowledge",
+      knowledgeTopic: localKnowledge.title,
+      knowledgeCategory: localKnowledge.category,
+      butlerDecision: {
+        userObjective: "Answer from ADVIS local educational knowledge",
+        classification: "LOCAL_KNOWLEDGE",
+        isAnaphoric: false,
+        resolvedReference: localKnowledge.title,
+        targetSubsystem: "LOCAL_KNOWLEDGE",
+        responseMode: "VERBAL_ONLY"
+      }
+    };
+  }
+
+  // Unmatched factual questions use live retrieval as a no-Gemini fallback.
+  // Creative, opinion, project-planning, and deeper synthesis requests can still use Gemini.
+  if (!image && shouldUseWeb) {
+    const searchResult = await searchWeb(message);
+    return {
+      reply: formatWebSearchReply(message, searchResult),
+      mode: mode || "normal",
+      status: "online",
+      aiProviderStatus: geminiIsConfigured ? "configured" : "not_configured",
+      reasoningAvailable: geminiIsConfigured,
+      responseSource: searchResult.results.length ? "web_search" : "web_search_unavailable",
+      searchProvider: searchResult.provider,
+      webResults: searchResult.results,
+      butlerDecision: {
+        userObjective: "Retrieve factual references from independent web search",
+        classification: "WEB_SEARCH_FALLBACK",
+        isAnaphoric: false,
+        resolvedReference: null,
+        targetSubsystem: "WEB_SEARCH",
+        responseMode: "VERBAL_ONLY"
+      }
+    };
   }
 
   if (lowerMessage.match(/(teach|show|explain|visualize|make|draw|display).*(bf3|h2o|water|co2|nacl|ch4|methane|ammonia|nh3|lewis|hybridization|bonding|structure|molecule|h2so4|glucose|benzene|c6h12o6|c6h6|ethanol|c2h5oh|boron trifluoride)/i)) {
