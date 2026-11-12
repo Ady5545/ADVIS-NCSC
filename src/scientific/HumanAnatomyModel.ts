@@ -387,7 +387,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         'Neuron Count': { value: '86 Billion', description: 'Synaptic connections exceed 100 trillion' },
         'Resting Metabolic Fraction': { value: 20, unit: '%', description: 'Proportion of basal oxygen consumed' }
       }
-    }
+    },
     ...Object.fromEntries(HUMAN_ANATOMY_LAYER_COMPONENTS.map((component) => [component.id, component])),
   },
 
