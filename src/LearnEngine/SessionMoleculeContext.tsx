@@ -63,7 +63,7 @@ export interface SessionMoleculeState {
 
 export interface SessionMoleculeContextType extends SessionMoleculeState {
   initializeBuilder: (element?: string) => void;
-  loadCanonical: (formula: string) => void;
+  loadCanonical: (formula: string) => Promise<boolean>;
   addAtom: (element: string, parentAtomId?: string, bondOrder?: number) => string;
   removeAtom: (atomId?: string) => void;
   changeBondOrder: (target: { bondId?: string; atomA?: string; atomB?: string; allBonds?: boolean; elementPair?: [string, string] }, newOrder: number) => void;
