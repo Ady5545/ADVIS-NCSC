@@ -6,7 +6,7 @@ const MAX_BONDS = 2400;
 
 function cleanQuery(value) {
   return typeof value === "string"
-    ? value.replace(/[\\u0000-\\u001f\\u007f]/g, "").trim().slice(0, MAX_QUERY_LENGTH)
+    ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_QUERY_LENGTH)
     : "";
 }
 
@@ -31,7 +31,7 @@ async function fetchJson(url) {
 }
 
 function parseSdf(sdf) {
-  const lines = String(sdf || "").replace(/\\r/g, "").split("\\n");
+  const lines = String(sdf || "").replace(/\r/g, "").split("\\n");
   const countsLine = lines[3] || "";
   const atoms = [];
   const bonds = [];
@@ -44,7 +44,7 @@ function parseSdf(sdf) {
       if (line.includes("M  V30 BEGIN BOND")) { section = "bond"; continue; }
       if (line.includes("M  V30 END BOND")) { section = ""; continue; }
       if (!line.includes("M  V30 ")) continue;
-      const parts = line.trim().split(/\\s+/).slice(2);
+      const parts = line.trim().split(/\s+/).slice(2);
       if (section === "atom" && parts.length >= 6) {
         const index = Number(parts[0]);
         const element = parts[1];
@@ -75,8 +75,8 @@ function parseSdf(sdf) {
       atoms.push({ sourceIndex: i + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0 });
     }
     for (const line of lines) {
-      if (!/^M  CHG\\s/.test(line)) continue;
-      const values = line.trim().split(/\\s+/);
+      if (!/^M  CHG\s/.test(line)) continue;
+      const values = line.trim().split(/\s+/);
       const pairCount = Number(values[2]) || 0;
       for (let pair = 0; pair < pairCount; pair++) {
         const sourceIndex = Number(values[3 + pair * 2]);
@@ -133,13 +133,13 @@ module.exports = async function handler(req, res) {
   if (!query) return res.status(400).json({ error: "Enter a compound name or a SMILES structure." });
 
   // A molecular formula alone cannot identify a unique structure when isomers exist.
-  if (/^[A-Z][A-Za-z]?(?:\\d+(?:[A-Z][A-Za-z]?\\d*)?)+[+-]?$/.test(query.replace(/\\s/g, "")) && !/[\\s]/.test(query)) {
+  if (/^[A-Z][A-Za-z]?(?:\d+(?:[A-Z][A-Za-z]?\d*)?)+[+-]?$/.test(query.replace(/\s/g, "")) && !/[\s]/.test(query)) {
     return res.status(422).json({ error: "A molecular formula can describe multiple isomers. Enter the compound's name or an exact SMILES string to identify its structure." });
   }
 
   try {
     const isSmiles = /^smiles:/i.test(query);
-    const directCid = /^(?:pubchem\\s*)?cid\\s*:\\s*(\\d+)$/i.exec(query);
+    const directCid = /^(?:pubchem\s*)?cid\s*:\s*(\d+)$/i.exec(query);
     const identifier = isSmiles ? query.replace(/^smiles:/i, "").trim() : query;
     if (!identifier) return res.status(400).json({ error: "The SMILES string is empty." });
     const namespace = isSmiles ? "smiles" : "name";
