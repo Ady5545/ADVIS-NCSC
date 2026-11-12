@@ -632,6 +632,32 @@ function AppContent() {
     }
   };
   
+  /**
+   * Single structure-launch path for chat, launchpad and scientific display actions.
+   * The chemistry molecular graph remains authoritative. The guided lesson engine is
+   * retained as a teaching fallback for compounds already represented in its database.
+   */
+  const openChemistryStructure = async (query: string): Promise<{ opened: boolean; mode: 'MOLECULAR' | 'GUIDED' | 'ERROR' }> => {
+    const requested = query.trim();
+    if (!requested) return { opened: false, mode: 'ERROR' };
+
+    sessionMolecule.closeSession();
+    setCurrentSpatialObject(null);
+    setActiveLearningSession(null);
+
+    const loaded = await sessionMolecule.loadCanonical(requested);
+    if (loaded) return { opened: true, mode: 'MOLECULAR' };
+
+    const guidedFallback = buildChemistryLesson(requested, 'SHOW_STRUCTURE', 'SHOW_ME');
+    const fallbackState = guidedFallback.steps[0]?.visualStateId;
+    if (fallbackState && fallbackState !== 'unsupported_state') {
+      setActiveLearningSession(guidedFallback);
+      return { opened: true, mode: 'GUIDED' };
+    }
+
+    return { opened: false, mode: 'ERROR' };
+  };
+
   const handleOpenLessonModel = (modelId: string) => {
     sessionMolecule.closeSession();
     setActiveLearningSession(null);
@@ -1075,15 +1101,15 @@ function AppContent() {
         /(?:show|see|display|render|build|create|make|visuali[sz]e)\s+(?:me\s+)?(.+?)\s+(?:molecule|structure|molecular model)[?.!]*$/i.exec(text.trim());
       if (structureMatch && structureMatch[1]) {
         const requestedCompound = structureMatch[1].trim().replace(/[?.!]+$/, '');
-        setCurrentSpatialObject(null);
-        setActiveLearningSession(null);
-        const loaded = await sessionMolecule.loadCanonical(requestedCompound);
+        const result = await openChemistryStructure(requestedCompound);
         setSystemState('ONLINE');
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: loaded
-            ? `Loaded the molecular structure for ${requestedCompound} in the interactive 3D chemistry workspace.`
-            : `I couldn't load a supported 3D structure for ${requestedCompound}. Check the Molecular Builder notice for the exact reason; a precise compound name or SMILES string may be needed.`,
+          content: result.mode === 'MOLECULAR'
+            ? `Loaded the molecular structure for ${requestedCompound} in the interactive chemistry workstation.`
+            : result.mode === 'GUIDED'
+              ? `Opened the guided chemistry structure view for ${requestedCompound}. The lesson database supplied the available educational model.`
+              : `I couldn't load a supported 3D structure for ${requestedCompound}. Check the Molecular Builder notice for the exact reason; a precise compound name, SMILES string, or structure identifier may be needed.`,
           timestamp: Date.now()
         }]);
         return;
@@ -1372,10 +1398,8 @@ function AppContent() {
         
         if (action.type === 'DISPLAY_SCIENTIFIC') {
           const targetFormula = action.formula || action.assetId || 'UNKNOWN';
-          sessionMolecule.closeSession();
           pushRecentAction('DISPLAY_SCIENTIFIC', targetFormula, action.name || targetFormula);
-          setCurrentSpatialObject(null);
-          setActiveLearningSession(buildChemistryLesson(targetFormula, 'SHOW_STRUCTURE', 'SHOW_ME'));
+          void openChemistryStructure(targetFormula);
         } else if (action.type === 'DISPLAY' || action.type === 'PRESENT') {
           sessionMolecule.closeSession();
           const idsToCheck = action.objectIds || (action.objectId ? [action.objectId] : []);
@@ -1895,6 +1919,7 @@ function AppContent() {
     <MolecularBuilderHUD 
       measurementMode={measurementMode}
       onToggleMeasurement={() => setMeasurementMode(!measurementMode)}
+      visible={!activeLearningSession}
     />
 
     {/* UI Layer */}
@@ -1913,9 +1938,7 @@ function AppContent() {
               <ScientificLaunchpad
                 onOpenView={(view) => setCurrentView(view)}
                 onSelectMolecule={(formulaOrKey) => {
-                  sessionMolecule.closeSession();
-                  setCurrentSpatialObject(null);
-                  setActiveLearningSession(buildChemistryLesson(formulaOrKey, 'SHOW_STRUCTURE', 'SHOW_ME'));
+                  void openChemistryStructure(formulaOrKey);
                 }}
                 onSelectSpatialObject={(objectId) => {
                   sessionMolecule.closeSession();
