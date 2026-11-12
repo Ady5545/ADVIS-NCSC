@@ -70,7 +70,9 @@ export function validateMolecularGraph(molecule: MoleculeData): MolecularAnalysi
 
   // 2. Analyze each atom
   molecule.atoms.forEach(atom => {
-    const el = atom.element.toUpperCase();
+    // Normalize element symbols instead of uppercasing the whole token (Cl, Na, Co, etc. are case-sensitive symbols).
+    const rawElement = atom.element.trim();
+    const el = rawElement.charAt(0).toUpperCase() + rawElement.slice(1).toLowerCase();
     const standardData = ELEMENT_VALENCE_DATA[el] || { valence: 4, commonBonds: [4], maxBonds: 4, electronegativity: 2.0 };
     totalValenceElectrons += standardData.valence;
 
@@ -150,7 +152,8 @@ export function validateMolecularGraph(molecule: MoleculeData): MolecularAnalysi
   // 3. Compute empirical formula
   const counts: Record<string, number> = {};
   molecule.atoms.forEach(a => {
-    const el = a.element;
+    const rawElement = a.element.trim();
+    const el = rawElement.charAt(0).toUpperCase() + rawElement.slice(1).toLowerCase();
     counts[el] = (counts[el] || 0) + 1;
   });
 
