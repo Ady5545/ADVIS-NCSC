@@ -12,7 +12,7 @@ import {
   cloneMoleculeData
 } from './MolecularEngine';
 import { validateMolecularGraph, MolecularAnalysisResult } from './ValenceValidator';
-import { CHEMISTRY_DATABASE, resolveChemicalEntity } from './ChemistryDatabase';
+import { resolveChemistryStructure, ChemistryResolutionError } from './ChemistryResolver';
 
 export type MolecularSourceType = 'EMPTY' | 'CUSTOM_BUILDER' | 'LIBRARY_DERIVATIVE' | 'REMOTE_REFERENCE';
 type MoleculeLoadStatus = 'IDLE' | 'LOADING' | 'READY' | 'ERROR';
@@ -120,102 +120,116 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
   }, []);
 
   /**
-   * Loads a canonical molecule from the registry as a starting point.
+   * Resolve and load a structure through the shared chemistry provider contract.
+   * Local registry and PubChem results are validated before they enter the session.
    */
-  const loadCanonical = useCallback(async (formula: string): Promise<boolean> => {
-    const resolved = resolveChemicalEntity(formula);
-    const resolvedFormula = resolved ? resolved.formula : formula.trim();
-    const generator = MOLECULE_REGISTRY[resolvedFormula.toUpperCase()] || MOLECULE_REGISTRY[resolvedFormula];
-
-    if (generator) {
-      const data = generator();
-      setMolecule(data);
-      setSelectedAtomId(null);
-      setSelectedBondId(null);
-      setLastAddedAtomId(null);
-      setLastRemovedAtom(null);
-      setSource('LIBRARY_DERIVATIVE');
-      setCanonicalOriginFormula(resolvedFormula);
-      setIsSessionActive(true);
-      setMoleculeLoadStatus('READY');
-      setMoleculeLoadError(null);
-      setActionHistory([{ action: `LOAD_${resolvedFormula}`, snapshot: cloneMoleculeData(data), timestamp: Date.now() }]);
-      return true;
+  const loadCanonical = useCallback(async (query: string): Promise<boolean> => {
+    const requested = query.trim();
+    if (!requested) {
+      setMoleculeLoadStatus('ERROR');
+      setMoleculeLoadError('Enter a compound name or an exact structure identifier.');
+      setIsSessionActive(false);
+      return false;
     }
 
     setMoleculeLoadStatus('LOADING');
     setMoleculeLoadError(null);
     try {
-      const response = await fetch('/api/chemistry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: formula.trim() })
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        const candidates = Array.isArray(payload.candidates) && payload.candidates.length
-          ? ' Candidates: ' + payload.candidates.map((item: any) => [item.name, item.formula, 'CID:' + item.cid].filter(Boolean).join(' — ')).join('; ')
-          : '';
-        throw new Error((payload.error || 'The compound could not be resolved.') + candidates);
-      }
-      if (!Array.isArray(payload.atoms) || !Array.isArray(payload.bonds) || !payload.atoms.length) {
-        throw new Error('The chemical reference did not provide a complete molecular graph.');
+      const structure = await resolveChemistryStructure(requested);
+      if (structure.coordinates.dimension !== 3) {
+        throw new Error('The resolved structure has 2D coordinates. A verified or explicitly generated 3D conformer is required for this molecular canvas.');
       }
 
-      const atoms: AtomData[] = payload.atoms.map((atom: any, index: number) => ({
-        id: String(atom.id || `atom_${index}`),
-        element: String(atom.element || '').trim().toLowerCase().replace(/^[a-z]/, (letter: string) => letter.toUpperCase()),
-        position: new THREE.Vector3(Number(atom.x), Number(atom.y), Number(atom.z)),
-        charge: Number(atom.charge) || 0,
-        metadata: { coordinateSource: 'PubChem 3D conformer' }
+      const atoms: AtomData[] = structure.graph.atoms.map(atom => ({
+        id: atom.id,
+        element: atom.element,
+        position: new THREE.Vector3(atom.x, atom.y, atom.z),
+        charge: atom.charge ?? 0,
+        ...(atom.isotope !== undefined ? { isotope: atom.isotope } : {}),
+        ...(atom.stereo ? { stereo: atom.stereo } : {}),
+        metadata: {
+          ...(atom.metadata || {}),
+          ...(atom.sourceIndex !== undefined ? { sourceIndex: atom.sourceIndex } : {}),
+          coordinateKind: structure.coordinates.kind,
+          coordinateUnits: structure.coordinates.units,
+          provider: structure.provenance.provider
+        }
       }));
-      if (atoms.some(atom => !atom.element || ![atom.position.x, atom.position.y, atom.position.z].every(Number.isFinite))) {
-        throw new Error('The retrieved molecular coordinates were incomplete or invalid.');
-      }
+
       const atomMap = new Map(atoms.map(atom => [atom.id, atom]));
-      const bonds: BondData[] = payload.bonds.map((bond: any, index: number) => {
-        const atomA = atomMap.get(String(bond.atomA));
-        const atomB = atomMap.get(String(bond.atomB));
-        if (!atomA || !atomB) throw new Error('The retrieved molecular graph contains a bond to a missing atom.');
+      const bonds: BondData[] = structure.graph.bonds.map(bond => {
+        const atomA = atomMap.get(bond.atomA);
+        const atomB = atomMap.get(bond.atomB);
+        if (!atomA || !atomB) {
+          throw new Error('The validated structure contains a bond to an atom that is not present.');
+        }
         return {
-          id: String(bond.id || `bond_${index}`),
-          atomA: atomA.id,
-          atomB: atomB.id,
-          order: Number(bond.order) || 1,
-          length: atomA.position.distanceTo(atomB.position),
-          type: bond.type === 'aromatic' ? 'aromatic' : 'covalent'
+          id: bond.id,
+          atomA: bond.atomA,
+          atomB: bond.atomB,
+          order: bond.order,
+          length: Number.isFinite(bond.length)
+            ? bond.length
+            : atomA.position.distanceTo(atomB.position),
+          type: bond.type,
+          ...(bond.stereo ? { stereo: bond.stereo } : {})
         };
       });
+
+      const isLocalLibrary = structure.provenance.provider === 'advis-local-registry';
+      const identity = structure.identity;
       const data: MoleculeData = {
         atoms,
         bonds,
-        functionalGroups: [],
-        geometry: 'PubChem 3D conformer',
-        metadata: payload.metadata || {},
+        functionalGroups: structure.graph.functionalGroups || [],
+        geometry: structure.geometry,
+        metadata: {
+          ...identity,
+          source: structure.provenance.provider,
+          sourceUrl: structure.provenance.sourceUrl,
+          coordinateType: structure.coordinates.kind,
+          coordinateUnits: structure.coordinates.units,
+          provenance: structure.provenance,
+          validation: structure.validation,
+          structureResult: structure
+        },
         animationProfile: 'NORMAL'
       };
-      const identity = payload.metadata?.formula || formula.trim();
+
       setMolecule(data);
       setSelectedAtomId(null);
       setSelectedBondId(null);
       setLastAddedAtomId(null);
       setLastRemovedAtom(null);
-      setSource('REMOTE_REFERENCE');
-      setCanonicalOriginFormula(identity);
+      setSource(isLocalLibrary ? 'LIBRARY_DERIVATIVE' : 'REMOTE_REFERENCE');
+      setCanonicalOriginFormula(identity.formula);
       setIsSessionActive(true);
       setMoleculeLoadStatus('READY');
       setMoleculeLoadError(null);
-      setActionHistory([{ action: `LOAD_REMOTE_${identity}`, snapshot: cloneMoleculeData(data), timestamp: Date.now() }]);
+      setActionHistory([{
+        action: `LOAD_${structure.provenance.provider.toUpperCase()}_${identity.formula}`,
+        snapshot: cloneMoleculeData(data),
+        timestamp: Date.now()
+      }]);
       return true;
     } catch (error: any) {
-      const message = error?.message || 'Unable to retrieve a verified 3D molecular structure.';
-      setMoleculeLoadStatus('ERROR');
-      setMoleculeLoadError(message);
+      const baseMessage = error?.message || 'Unable to resolve a validated 3D molecular structure.';
+      const candidates = error instanceof ChemistryResolutionError && error.candidates?.length
+        ? ' Candidates: ' + error.candidates
+            .map(item => [item.name, item.formula, 'CID:' + item.cid].filter(Boolean).join(' — '))
+            .join('; ')
+        : '';
+      setMolecule(null);
+      setSelectedAtomId(null);
+      setSelectedBondId(null);
+      setLastAddedAtomId(null);
+      setLastRemovedAtom(null);
       setIsSessionActive(false);
+      setMoleculeLoadStatus('ERROR');
+      setMoleculeLoadError(baseMessage + candidates);
       return false;
     }
   }, []);
-
   /**
    * Adds an atom to the active graph.
    */
