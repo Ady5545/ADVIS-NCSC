@@ -441,6 +441,59 @@ function buildContextSummary(butlerContext, resolvedRef, advisMemories, advisPro
   return summary;
 }
 
+function getHardcodedConversationReply(message) {
+  const normalized = String(message || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[’]/g, "'")
+    .replace(/[.!?,;:]+$/g, "")
+    .replace(/\\s+/g, " ");
+
+  const geminiConfigured = Boolean(
+    process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim()
+  );
+
+  let reply = null;
+  let userObjective = "Handle a basic conversational message locally";
+  let classification = "ACKNOWLEDGEMENT";
+
+  if (/^(hi|hello|hey|hiya|hi there|hello there|hey there|hey advis|hi advis|hello advis|good morning|good afternoon|good evening|greetings)$/.test(normalized)) {
+    reply = "Hello! I'm ADVIS, ready to help you explore science, engineering, and the active scientific workspace.";
+  } else if (/^(how are you|how's it going|hows it going|what's up|whats up)$/.test(normalized)) {
+    reply = "I'm running and ready to help with scientific exploration, engineering concepts, and supported workspace controls.";
+  } else if (/^(who are you|what are you|what is advis|what's advis|whats advis|what is your name|who made you|who created you)$/.test(normalized)) {
+    reply = "I'm A.D.V.I.S. (Aadyant's Digital Virtual Intelligence System), an educational scientific assistant for STEM learning, scientific visualization, and engineering exploration.";
+    userObjective = "Identify the ADVIS assistant";
+    classification = "INFORMATION";
+  } else if (/^(what can you do|what are your capabilities|help|help me|show help|how can you help me)$/.test(normalized)) {
+    reply = "I can explain STEM concepts, guide scientific and engineering learning, open supported 3D models, and control available workspace features. Open-ended AI reasoning requires the Gemini service to be configured.";
+    userObjective = "Explain ADVIS capabilities";
+    classification = "INFORMATION";
+  } else if (/^(thanks|thank you|thankyou|thx|ty|much appreciated|i appreciate it)$/.test(normalized)) {
+    reply = "You're welcome. Ready when you are.";
+  } else if (/^(bye|goodbye|see you|see you later|good night|goodnight|talk later)$/.test(normalized)) {
+    reply = "See you next time. Your scientific workspace will be ready when you return.";
+  } else if (/^(ok|okay|alright|all right|got it|understood|cool|great)$/.test(normalized)) {
+    reply = "Got it.";
+  } else if (/^(ping|test connection|connection test|check connection|are you online|are you connected|are you there|system status|status|check system)$/.test(normalized)) {
+    userObjective = "Report local backend and Gemini connection status";
+    classification = "DIAGNOSTIC";
+    reply = geminiConfigured
+      ? "ADVIS's backend is responding, and Gemini reasoning is configured."
+      : "ADVIS's local backend is responding. Gemini reasoning is not connected yet because GEMINI_API_KEY is missing from this Vercel project's server-side environment variables.";
+  } else {
+    return null;
+  }
+
+  return {
+    reply,
+    userObjective,
+    classification,
+    aiProviderStatus: geminiConfigured ? "configured" : "not_configured",
+    reasoningAvailable: geminiConfigured
+  };
+}
+
 /**
  * Main Butler Intelligence Entry Point
  */
@@ -470,6 +523,27 @@ async function processButlerTurn(params) {
   } = params;
 
   const lowerMessage = message.toLowerCase().trim();
+
+  // Basic conversational turns are deterministic and never require a Gemini API key.
+  const hardcodedReply = !image ? getHardcodedConversationReply(message) : null;
+  if (hardcodedReply) {
+    return {
+      reply: hardcodedReply.reply,
+      mode: mode || "normal",
+      status: "online",
+      aiProviderStatus: hardcodedReply.aiProviderStatus,
+      reasoningAvailable: hardcodedReply.reasoningAvailable,
+      responseSource: "hardcoded",
+      butlerDecision: {
+        userObjective: hardcodedReply.userObjective,
+        classification: hardcodedReply.classification,
+        isAnaphoric: false,
+        resolvedReference: null,
+        targetSubsystem: "CONVERSATION",
+        responseMode: "VERBAL_ONLY"
+      }
+    };
+  }
 
   // Step 1: Context & Reference Resolution
   const resolvedRef = resolveContextualReferences(message, butlerContext);
@@ -721,7 +795,12 @@ async function processButlerTurn(params) {
   // Step 7: Gemini Conversation Core with Educational Scientific Assistant Instructions
   const client = getGeminiClient();
   if (!client) {
-    let fallbackReply = "The AI reasoning service is currently offline. Please configure the GEMINI_API_KEY environment variable.";
+    const geminiConfigured = Boolean(
+      process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim()
+    );
+    let fallbackReply = geminiConfigured
+      ? "Gemini is configured, but the server could not initialize its client. Check the deployment function logs and SDK configuration."
+      : "I can still handle basic messages and local workspace commands, but advanced Gemini reasoning is not connected yet. Add GEMINI_API_KEY to this Vercel project's server-side environment variables and redeploy.";
     if (spatialAction) {
       if (spatialAction.type === "EXPLODE") {
         fallbackReply = spatialAction.value ? "Separating components." : "Reassembling model.";
@@ -743,7 +822,9 @@ async function processButlerTurn(params) {
     return {
       reply: fallbackReply,
       mode: mode || "normal",
-      status: "offline",
+      status: spatialAction ? "online" : "offline",
+      aiProviderStatus: geminiConfigured ? "initialization_failed" : "not_configured",
+      reasoningAvailable: false,
       spatialAction
     };
   }
@@ -912,11 +993,24 @@ ${contextSummary}
     };
 
   } catch (error) {
-    console.error("Scientific AI Core Gemini Error:", error.message || error);
+    const errorMessage = String(error && error.message ? error.message : error);
+    console.error("Scientific AI Core Gemini Error:", errorMessage);
+
+    let userMessage = "The Gemini service could not complete that request. Please retry; if the issue continues, check the Vercel function logs.";
+    if (/api key|unauthorized|permission denied|\\b401\\b|\\b403\\b|invalid.*key/i.test(errorMessage)) {
+      userMessage = "Gemini rejected the server credential. Check that GEMINI_API_KEY is valid and enabled for the Gemini Developer API in the Vercel production environment.";
+    } else if (/quota|resource exhausted|rate limit|\\b429\\b/i.test(errorMessage)) {
+      userMessage = "The Gemini service is temporarily unavailable because its request quota or rate limit was reached. Check the API project's usage limits.";
+    } else if (/model.*not found|not found.*model|unsupported model|\\b404\\b/i.test(errorMessage)) {
+      userMessage = "The configured Gemini model is unavailable. Check GEMINI_MODEL and GEMINI_MULTIMODAL_MODEL; the default model is gemini-3.8-flash.";
+    }
+
     return {
-      reply: "The AI reasoning system encountered an error processing that request.",
+      reply: userMessage,
       mode: mode || "normal",
-      status: "error"
+      status: "error",
+      aiProviderStatus: "request_failed",
+      reasoningAvailable: false
     };
   }
 }
