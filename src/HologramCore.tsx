@@ -164,7 +164,7 @@ float noise3(vec3 p) {
 float fbm(vec3 p) {
   float value = 0.0;
   float amplitude = 0.5;
-  for (int octave = 0; octave < 2; octave++) {
+  for (int octave = 0; octave < 3; octave++) {
     value += amplitude * noise3(p);
     p = p * 2.02 + vec3(17.1, 9.2, 13.7);
     amplitude *= 0.5;
@@ -314,7 +314,7 @@ function createNebulaMaterial(accent: THREE.Color, opacity = 1): THREE.ShaderMat
     fragmentShader: nebulaFragmentShader,
     transparent: true,
     depthWrite: false,
-    side: THREE.FrontSide,
+    side: THREE.DoubleSide,
     blending: THREE.NormalBlending,
     toneMapped: false,
   });
@@ -357,7 +357,7 @@ export function NebulaPlanet({
       fragmentShader: atmosphereFragmentShader,
       transparent: true,
       depthWrite: false,
-      side: THREE.FrontSide,
+      side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
       toneMapped: false,
     }),
