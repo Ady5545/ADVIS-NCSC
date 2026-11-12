@@ -1067,6 +1067,29 @@ function AppContent() {
     const deviceId = safeGetStorage('advis_device_id', 'default');
     const lowerCmd = displayMessage.toLowerCase().trim();
 
+    // Direct molecular-structure intent: bypass the finite lesson catalog and resolve
+    // the requested compound through the molecular structure pipeline.
+    if (!file) {
+      const structureMatch =
+        /(?:show|see|display|render|build|create|make|visuali[sz]e|load|open)\\s+(?:me\\s+)?(?:(?:the|a|an)\\s+)?(?:(?:3d|molecular|chemical)\\s+)*(?:structure|molecule|model)\\s+(?:of\\s+)?(.+?)[?.!]*$/i.exec(text.trim()) ||
+        /(?:show|see|display|render|build|create|make|visuali[sz]e)\\s+(?:me\\s+)?(.+?)\\s+(?:molecule|structure|molecular model)[?.!]*$/i.exec(text.trim());
+      if (structureMatch && structureMatch[1]) {
+        const requestedCompound = structureMatch[1].trim().replace(/[?.!]+$/, '');
+        setCurrentSpatialObject(null);
+        setActiveLearningSession(null);
+        const loaded = await sessionMolecule.loadCanonical(requestedCompound);
+        setSystemState('ONLINE');
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: loaded
+            ? `Loaded the molecular structure for ${requestedCompound} in the interactive 3D chemistry workspace.`
+            : `I couldn't load a supported 3D structure for ${requestedCompound}. Check the Molecular Builder notice for the exact reason; a precise compound name or SMILES string may be needed.`,
+          timestamp: Date.now()
+        }]);
+        return;
+      }
+    }
+
     // 0. Direct Scientific Model Launch Intent
     if (lowerCmd.includes('four stroke') || lowerCmd.includes('4 stroke') || lowerCmd.includes('4-stroke') || lowerCmd.includes('otto cycle') || (lowerCmd.includes('piston engine') && !lowerCmd.includes('v12'))) {
       setCurrentSpatialObject('v8_engine_scientific');
