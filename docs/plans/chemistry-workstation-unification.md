@@ -257,7 +257,7 @@ Protein structures need a dedicated mode with chain, residue, ligand, and atom-l
 - Fix mixed-case multi-letter element normalization in the chemistry validator.
 - Auto-center and auto-fit molecules in the shared 3D renderer.
 - Reduce animation/material/annotation overhead for large molecular graphs while preserving selection.
-- Route chat structure requests, launchpad structure selection, and `DISPLAY_SCIENTIFIC` through one chemistry structure-opening function.
+- Route direct chat structure requests, launchpad structure selection, `DISPLAY_SCIENTIFIC`, and explicit `SHOW_ME + SHOW_STRUCTURE` learning actions through one chemistry structure-opening function.
 - Hide the builder overlay while the guided lesson overlay is the active chemistry presentation.
 
 **Acceptance:** existing chemistry screens remain recognizable; all three structure entry points call the same resolver; guided lessons still work; large structures no longer depend on the old fixed 1.2 renderer scale; a failed resolver never reports a successful molecular load.
