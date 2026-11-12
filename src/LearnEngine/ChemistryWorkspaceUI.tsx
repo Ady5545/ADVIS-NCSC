@@ -61,5 +61,5 @@ export function formatMolecularFormula(formula: string): string {
     '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
   };
 
-  return formula.replace(/\\d+/g, match => match.split('').map(char => subscripts[char] || char).join(''));
+  return formula.replace(/[0-9]+/g, match => match.split('').map(char => subscripts[char] || char).join(''));
 }
