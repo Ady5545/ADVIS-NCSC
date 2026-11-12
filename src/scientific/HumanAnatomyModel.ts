@@ -366,10 +366,10 @@ export const HumanAnatomyModel: ScientificSystemModel = {
       parentId: null,
       childrenIds: [],
       geometry: {
-        type: 'sphere',
-        params: { radius: 0.42, widthSegments: 32, heightSegments: 24 },
+        type: 'anatomical_organ',
+        params: { organType: 'brain', radius: 0.42 },
         material: {
-          color: '#fde047', // Warm neural gold
+          color: '#d98d9f', // Anatomical neural tissue
           metalness: 0.1,
           roughness: 0.55
         },
