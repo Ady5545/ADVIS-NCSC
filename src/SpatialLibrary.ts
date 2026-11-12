@@ -984,13 +984,38 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
     explodedParts: [
       'v12.engine_block',
-      'v12.piston_left_bank',
-      'v12.piston_right_bank',
-      'v12.connecting_rods',
+      'v12.cylinder_bank_left',
+      'v12.cylinder_bank_right',
+      'v12.cylinder_head_left',
+      'v12.cylinder_head_right',
+      'v12.piston_1',
+      'v12.piston_2',
+      'v12.piston_3',
+      'v12.piston_4',
+      'v12.piston_5',
+      'v12.piston_6',
+      'v12.piston_7',
+      'v12.piston_8',
+      'v12.piston_9',
+      'v12.piston_10',
+      'v12.piston_11',
+      'v12.piston_12',
+      'v12.conrod_1',
+      'v12.conrod_2',
+      'v12.conrod_3',
+      'v12.conrod_4',
+      'v12.conrod_5',
+      'v12.conrod_6',
+      'v12.conrod_7',
+      'v12.conrod_8',
+      'v12.conrod_9',
+      'v12.conrod_10',
+      'v12.conrod_11',
+      'v12.conrod_12',
       'v12.crankshaft',
-      'v12.valvetrain',
       'v12.intake_plenum',
-      'v12.exhaust_manifold',
+      'v12.exhaust_left',
+      'v12.exhaust_right',
       'v12.cooling_system',
       'v12.lubrication_system',
       'v12.electronics_sensors'
@@ -1016,38 +1041,293 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       }
     },
     components: [
-      { id: 'v12.engine_block', name: 'V12 Engine Block and Crankcase', description: 'Visual block/crankcase representation; material, dimensions, and bearing design are not source-verified.', position: [0, 0, 0], size: [1.65, 1.65, 3.35], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.engine_block', name: 'Main Crankcase',
+        description: 'Main bearing bulkheads, lower structural rails, and engine mounting feet.',
+        position: [0, 0, 0], size: [1.9, 1.0, 3.7], explodedOffset: [0, -0.05, 0],
+        shape: 'custom', color: '#475569'
       },
-      { id: 'v12.piston_left_bank', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.9, 1.0, 3.25], explodedOffset: [-1.75, 1.65, 0.05], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.cylinder_bank_left', name: 'Left Cylinder Bank',
+        description: 'Left-bank six-cylinder barrel and liner structure, including its deck and inter-cylinder webs.',
+        position: [0, 0, 0], size: [1.15, 1.45, 3.5], explodedOffset: [-1.15, 0.55, 0],
+        shape: 'custom', color: '#9aa3ab'
       },
-      { id: 'v12.piston_right_bank', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.9, 1.0, 3.25], explodedOffset: [1.75, 1.65, 0.05], shape: 'cylinder', color: '#94a3b8',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.cylinder_bank_right', name: 'Right Cylinder Bank',
+        description: 'Right-bank six-cylinder barrel and liner structure, including its deck and inter-cylinder webs.',
+        position: [0, 0, 0], size: [1.15, 1.45, 3.5], explodedOffset: [1.15, 0.55, 0],
+        shape: 'custom', color: '#9aa3ab'
       },
-      { id: 'v12.connecting_rods', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [1.35, 1.0, 3.25], explodedOffset: [0, -0.15, 1.45], shape: 'box', color: '#64748b',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.cylinder_head_left', name: 'Left Cylinder Head and Cover',
+        description: 'Left-bank cylinder head, valve cover, spark-plug wells, and bank-mounted fuel rail visuals.',
+        position: [0, 0, 0], size: [1.2, 1.0, 3.6], explodedOffset: [-1.05, 2.05, 0],
+        shape: 'custom', color: '#5b646c'
       },
-      { id: 'v12.crankshaft', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [1.1, 1.1, 4.2], explodedOffset: [0, -1.3, 0], shape: 'cylinder', color: '#cbd5e1',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.cylinder_head_right', name: 'Right Cylinder Head and Cover',
+        description: 'Right-bank cylinder head, valve cover, spark-plug wells, and bank-mounted fuel rail visuals.',
+        position: [0, 0, 0], size: [1.2, 1.0, 3.6], explodedOffset: [1.05, 2.05, 0],
+        shape: 'custom', color: '#5b646c'
       },
-      { id: 'v12.valvetrain', name: 'Cylinder Heads and Valve Covers', description: 'Separate left- and right-bank cylinder-head, cover, and spark-plug-well visual assemblies; internal valve timing and cam profiles are not represented.', position: [0, 0, 0], size: [1.5, 1.0, 3.5], explodedOffset: [0, 2.1, 0], shape: 'box', color: '#334155',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_1',
+        name: 'Piston 1',
+        description: 'Independently selectable and animated piston 1 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.35, -0.75],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
       },
-      { id: 'v12.intake_plenum', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.95, 1.0, 3.6], explodedOffset: [0, 3.2, 0], shape: 'box', color: '#18181b',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_2',
+        name: 'Piston 2',
+        description: 'Independently selectable and animated piston 2 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.4200000000000002, -0.44999999999999996],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
       },
-      { id: 'v12.exhaust_manifold', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [2.6, 1.1, 3.6], explodedOffset: [2.55, -0.55, 0], shape: 'box', color: '#c5a059',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_3',
+        name: 'Piston 3',
+        description: 'Independently selectable and animated piston 3 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.4900000000000002, -0.15],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
       },
-      { id: 'v12.cooling_system', name: 'Front Accessory Drive and Water Pump', description: 'Independent front drive assembly with timing cover, belt, pulleys, alternator representation, and water-pump housing; pump flow and performance are not specified.', position: [0, 0, 0], size: [1.8, 1.5, 0.8], explodedOffset: [0.15, 0.35, 2.5], shape: 'box', color: '#0284c7',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_4',
+        name: 'Piston 4',
+        description: 'Independently selectable and animated piston 4 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.56, 0.15],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
       },
-      { id: 'v12.lubrication_system', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [1.5, 1.0, 3.6], explodedOffset: [0, -2.35, 0], shape: 'box', color: '#334155',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_5',
+        name: 'Piston 5',
+        description: 'Independently selectable and animated piston 5 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.6300000000000001, 0.44999999999999996],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
       },
-      { id: 'v12.electronics_sensors', name: 'Engine Management Harness and Sensor Pickups', description: 'Separate illustrative wiring looms, twelve sensor pickups, and a compact control-module housing; no specific ECU or sensor specification is implied.', position: [0, 0, 0], size: [1.7, 0.9, 4.0], explodedOffset: [-2.0, 1.1, -1.65], shape: 'box', color: '#16a34a',
-        engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
+      {
+        id: 'v12.piston_6',
+        name: 'Piston 6',
+        description: 'Independently selectable and animated piston 6 in the left cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [-1.65, 1.7000000000000002, 0.75],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_7',
+        name: 'Piston 7',
+        description: 'Independently selectable and animated piston 7 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.35, -0.75],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_8',
+        name: 'Piston 8',
+        description: 'Independently selectable and animated piston 8 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.4200000000000002, -0.44999999999999996],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_9',
+        name: 'Piston 9',
+        description: 'Independently selectable and animated piston 9 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.4900000000000002, -0.15],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_10',
+        name: 'Piston 10',
+        description: 'Independently selectable and animated piston 10 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.56, 0.15],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_11',
+        name: 'Piston 11',
+        description: 'Independently selectable and animated piston 11 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.6300000000000001, 0.44999999999999996],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.piston_12',
+        name: 'Piston 12',
+        description: 'Independently selectable and animated piston 12 in the right cylinder bank, including its crown, skirt, ring pack, and wrist pin.',
+        position: [0, 0, 0], size: [0.46, 0.62, 0.46],
+        explodedOffset: [1.65, 1.7000000000000002, 0.75],
+        shape: 'cylinder', color: '#cbd5e1',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; dimensions and alloy not source-verified' }
+      },
+      {
+        id: 'v12.conrod_1',
+        name: 'Connecting Rod 1',
+        description: 'Independently selectable and animated connecting rod 1, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.3, -0.8500000000000001],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_2',
+        name: 'Connecting Rod 2',
+        description: 'Independently selectable and animated connecting rod 2, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.345, -0.51],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_3',
+        name: 'Connecting Rod 3',
+        description: 'Independently selectable and animated connecting rod 3, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.39, -0.17],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_4',
+        name: 'Connecting Rod 4',
+        description: 'Independently selectable and animated connecting rod 4, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.435, 0.17],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_5',
+        name: 'Connecting Rod 5',
+        description: 'Independently selectable and animated connecting rod 5, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.48, 0.51],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_6',
+        name: 'Connecting Rod 6',
+        description: 'Independently selectable and animated connecting rod 6, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [-1.0, -0.5249999999999999, 0.8500000000000001],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_7',
+        name: 'Connecting Rod 7',
+        description: 'Independently selectable and animated connecting rod 7, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.3, -0.8500000000000001],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_8',
+        name: 'Connecting Rod 8',
+        description: 'Independently selectable and animated connecting rod 8, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.345, -0.51],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_9',
+        name: 'Connecting Rod 9',
+        description: 'Independently selectable and animated connecting rod 9, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.39, -0.17],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_10',
+        name: 'Connecting Rod 10',
+        description: 'Independently selectable and animated connecting rod 10, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.435, 0.17],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_11',
+        name: 'Connecting Rod 11',
+        description: 'Independently selectable and animated connecting rod 11, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.48, 0.51],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.conrod_12',
+        name: 'Connecting Rod 12',
+        description: 'Independently selectable and animated connecting rod 12, with big-end and small-end geometry.',
+        position: [0, 0, 0], size: [0.32, 0.9, 0.34],
+        explodedOffset: [1.0, -0.5249999999999999, 0.8500000000000001],
+        shape: 'custom', color: '#9aa3ab',
+        engineeringDetails: { evidenceStatus: 'Illustrative educational geometry; material and dimensions not source-verified' }
+      },
+      {
+        id: 'v12.crankshaft', name: 'Crankshaft, Main Journals and Flywheel',
+        description: 'One rotating crankshaft assembly with six throws, counterweights, rear flywheel, ring gear, and front damper.',
+        position: [0, 0, 0], size: [1.35, 1.2, 4.3], explodedOffset: [0, -1.35, 0],
+        shape: 'custom', color: '#cbd5e1'
+      },
+      {
+        id: 'v12.intake_plenum', name: 'Intake Plenum and Runners',
+        description: 'Twelve intake runners, central plenum, and twin throttle-body visual assemblies.',
+        position: [0, 0, 0], size: [1.1, 1.3, 3.7], explodedOffset: [0, 3.15, 0],
+        shape: 'custom', color: '#252a30'
+      },
+      {
+        id: 'v12.exhaust_left', name: 'Left Exhaust Header',
+        description: 'Six left-bank primary runners, collectors, and downpipe visual geometry.',
+        position: [0, 0, 0], size: [1.6, 1.15, 3.5], explodedOffset: [-2.35, -0.45, 0],
+        shape: 'custom', color: '#b9a07a'
+      },
+      {
+        id: 'v12.exhaust_right', name: 'Right Exhaust Header',
+        description: 'Six right-bank primary runners, collectors, and downpipe visual geometry.',
+        position: [0, 0, 0], size: [1.6, 1.15, 3.5], explodedOffset: [2.35, -0.45, 0],
+        shape: 'custom', color: '#b9a07a'
+      },
+      {
+        id: 'v12.cooling_system', name: 'Front Accessory Drive and Water Pump',
+        description: 'Front cover, belt, pulleys, alternator representation, and water-pump housing.',
+        position: [0, 0, 0], size: [1.8, 1.5, 0.9], explodedOffset: [0.15, 0.4, 2.5],
+        shape: 'custom', color: '#0284c7'
+      },
+      {
+        id: 'v12.lubrication_system', name: 'Oil Pan and Sump',
+        description: 'Lower sump pan, reinforcing ribs, drain plug, and perimeter fastener visuals.',
+        position: [0, 0, 0], size: [1.5, 0.9, 3.6], explodedOffset: [0, -2.3, 0],
+        shape: 'custom', color: '#59626b'
+      },
+      {
+        id: 'v12.electronics_sensors', name: 'Engine Harness and Sensor Pickups',
+        description: 'Illustrative two-bank harnesses, twelve sensor pickup visuals, and a compact control-module housing.',
+        position: [0, 0, 0], size: [1.8, 1.0, 4.0], explodedOffset: [-2.0, 1.2, -1.65],
+        shape: 'custom', color: '#16a34a'
       }
     ]
   },
