@@ -136,11 +136,16 @@ function parseSdf(sdf) {
       if (!element || ![x, y, z].every(Number.isFinite)) {
         throw new Error("The V2000 structure contains an invalid atom or coordinate.");
       }
+      const atomStereo = parity === 1
+        ? "TETRAHEDRAL_CW"
+        : parity === 2
+          ? "TETRAHEDRAL_CCW"
+          : parity === 3
+            ? "TETRAHEDRAL_UNSPECIFIED"
+            : null;
       sourceAtoms.push({
         sourceIndex: index + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0,
-        ...(parity === 1 ? { stereo: "TETRAHEDRAL_CW" } :
-          parity === 2 ? { stereo: "TETRAHEDRAL_CCW" } :
-          parity === 3 ? { stereo: "TETRAHEDRAL_UNSPECIFIED" } : {})
+        ...(atomStereo ? { stereo: atomStereo } : {})
       });
     }
 
@@ -153,11 +158,16 @@ function parseSdf(sdf) {
       if (![sourceA, sourceB, order].every(Number.isFinite)) {
         throw new Error("The V2000 structure contains an invalid bond record.");
       }
+      const bondStereo = stereoCode === 1
+        ? "UP"
+        : stereoCode === 6
+          ? "DOWN"
+          : stereoCode === 3
+            ? "EITHER"
+            : null;
       sourceBonds.push({
         sourceIndex: index + 1, sourceA, sourceB, order,
-        ...(stereoCode === 1 ? { stereo: "UP" } :
-          stereoCode === 6 ? { stereo: "DOWN" } :
-          stereoCode === 3 ? { stereo: "EITHER" } : {})
+        ...(bondStereo ? { stereo: bondStereo } : {})
       });
     }
 
