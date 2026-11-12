@@ -331,7 +331,7 @@ const bones: ScientificComponent[] = [
       'Protects thoracic organs and moves with the chest wall during breathing.',
       [rib([v(side * 0.035, y, -0.08), v(side * 0.16 * lengthScale, y - 0.014, -0.01), v(side * 0.25 * lengthScale, y - 0.045, 0.105), v(side * 0.21 * lengthScale, y - 0.07, 0.20)], 0.0105)],
       { 'Pair': String(index + 1), 'Classification': index < 7 ? 'True rib' : index < 10 ? 'False rib' : 'Floating rib', 'Side': sideLabel });
-  })),
+  })).flat(),
   anatomyComponent('bone_sternum', 'Sternum', 'Sternum', 'Axial bone', 'skeletal_system', BONE,
     'The sternum is a flat midline bone consisting of the manubrium, body and xiphoid process.',
     'Anchors the costal cartilages and helps protect structures in the anterior thorax.',
