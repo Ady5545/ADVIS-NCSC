@@ -128,6 +128,13 @@ export function ScientificSystemScene({
   return (
     <group position={[0, 0, 0]}>
       {isHumanAnatomy && (
+        <>
+          <ambientLight intensity={1.35} />
+          <directionalLight position={[4, 6, 5]} intensity={2.1} />
+          <directionalLight position={[-4, 2, -3]} intensity={1.0} />
+        </>
+      )}
+      {isHumanAnatomy && (
         <Html fullscreen zIndexRange={[500, 0]}>
           <div
             style={{
@@ -203,7 +210,7 @@ export function ScientificSystemScene({
           selectedComponentId={selectedComponentId || highlightedComponentId || null}
           highlightedDriverIds={driverIds}
           highlightedDrivenIds={drivenIds}
-          isolatedSubsystemId={isolatedSubsystemId}
+          isolatedSubsystemId={isHumanAnatomy ? null : isolatedSubsystemId}
           hiddenComponentIds={hiddenComponentIds}
           onSelectComponent={(id) => onSelectComponent(id)}
           simulationVariables={simulationVariables}
