@@ -139,6 +139,14 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement }: Mo
             </span>
           </div>
         </div>
+        {source === 'REMOTE_REFERENCE' && molecule.metadata?.sourceUrl && (
+          <div className="mt-2 border-t border-slate-200 pt-2 text-[10px] font-mono text-slate-500">
+            SOURCE: <a href={molecule.metadata.sourceUrl} target="_blank" rel="noreferrer" className="text-blue-700 underline underline-offset-2">
+              PubChem CID {molecule.metadata.cid}
+            </a>
+            <span className="ml-2 text-slate-400">3D conformer</span>
+          </div>
+        )}
       </section>
 
       {/* Selected Atom or Active Node Info */}
