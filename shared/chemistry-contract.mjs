@@ -27,44 +27,6 @@ export function normalizeElementSymbol(value) {
   return ELEMENTS.has(symbol) ? symbol : null;
 }
 
-function parseFormulaSequence(formula, start = 0, nested = false) {
-  let index = start;
-  let terms = 0;
-
-  while (index < formula.length) {
-    if (formula[index] === ")") {
-      return nested ? { valid: terms > 0, index: index + 1 } : { valid: false, index };
-    }
-
-    if (formula[index] === "(" || formula[index] === "[") {
-      const close = formula[index] === "(" ? ")" : "]";
-      const inner = parseFormulaSequence(formula.slice(0, formula.length - 0), index + 1, true);
-      if (!inner.valid || formula[inner.index - 1] !== close) return { valid: false, index };
-      index = inner.index;
-      while (/\d/.test(formula[index] || "")) index += 1;
-      terms += 1;
-      continue;
-    }
-
-    if (formula[index] === "]") {
-      return nested ? { valid: terms > 0, index: index + 1 } : { valid: false, index };
-    }
-
-    if (!/[A-Z]/.test(formula[index] || "")) return { valid: false, index };
-    let symbol = formula[index];
-    index += 1;
-    if (/[a-z]/.test(formula[index] || "")) {
-      symbol += formula[index];
-      index += 1;
-    }
-    if (!ELEMENTS.has(symbol)) return { valid: false, index };
-    while (/\d/.test(formula[index] || "")) index += 1;
-    terms += 1;
-  }
-
-  return { valid: !nested && terms > 0, index };
-}
-
 export function isMolecularFormula(value) {
   if (typeof value !== "string") return false;
   let formula = value.trim().replace(/\s+/g, "");
@@ -294,29 +256,39 @@ export function validateMolecularGraph(graph, identity = {}, provenance = {}) {
 }
 
 export function buildStructureResult(input) {
+  const normalizedAtoms = (input.graph?.atoms || []).map(atom => {
+    const coordinates = atomCoordinates(atom);
+    return {
+      id: String(atom.id || ""),
+      element: normalizeElementSymbol(atom.element) || atom.element,
+      ...coordinates,
+      charge: atom.charge === undefined ? 0 : Number(atom.charge),
+      ...(atom.isotope !== undefined ? { isotope: Number(atom.isotope) } : {}),
+      ...(atom.stereo ? { stereo: String(atom.stereo) } : {}),
+      ...(atom.sourceIndex !== undefined ? { sourceIndex: Number(atom.sourceIndex) } : {}),
+      ...(atom.metadata ? { metadata: atom.metadata } : {})
+    };
+  });
+  const normalizedAtomById = new Map(normalizedAtoms.map(atom => [atom.id, atom]));
   const graph = {
-    atoms: (input.graph?.atoms || []).map(atom => {
-      const coordinates = atomCoordinates(atom);
+    atoms: normalizedAtoms,
+    bonds: (input.graph?.bonds || []).map(bond => {
+      const atomA = normalizedAtomById.get(String(bond.atomA || ""));
+      const atomB = normalizedAtomById.get(String(bond.atomB || ""));
+      const measuredLength = atomA && atomB
+        ? Math.hypot(atomA.x - atomB.x, atomA.y - atomB.y, atomA.z - atomB.z)
+        : undefined;
       return {
-        id: String(atom.id || ""),
-        element: normalizeElementSymbol(atom.element) || atom.element,
-        ...coordinates,
-        charge: atom.charge === undefined ? 0 : Number(atom.charge),
-        ...(atom.isotope !== undefined ? { isotope: Number(atom.isotope) } : {}),
-        ...(atom.stereo ? { stereo: String(atom.stereo) } : {}),
-        ...(atom.sourceIndex !== undefined ? { sourceIndex: Number(atom.sourceIndex) } : {}),
-        ...(atom.metadata ? { metadata: atom.metadata } : {})
+        id: String(bond.id || ""),
+        atomA: String(bond.atomA || ""),
+        atomB: String(bond.atomB || ""),
+        order: Number(bond.order),
+        type: bond.type || "covalent",
+        ...(bond.stereo ? { stereo: String(bond.stereo) } : {}),
+        ...(Number.isFinite(Number(bond.length)) ? { length: Number(bond.length) } :
+          Number.isFinite(measuredLength) ? { length: measuredLength } : {})
       };
     }),
-    bonds: (input.graph?.bonds || []).map(bond => ({
-      id: String(bond.id || ""),
-      atomA: String(bond.atomA || ""),
-      atomB: String(bond.atomB || ""),
-      order: Number(bond.order),
-      type: bond.type || "covalent",
-      ...(bond.stereo ? { stereo: String(bond.stereo) } : {}),
-      ...(Number.isFinite(Number(bond.length)) ? { length: Number(bond.length) } : {})
-    })),
     functionalGroups: Array.isArray(input.graph?.functionalGroups) ? input.graph.functionalGroups : []
   };
 
