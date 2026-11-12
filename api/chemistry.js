@@ -1,16 +1,14 @@
 "use strict";
 
-const {
-  normalizeCompoundInput,
-  normalizeElementSymbol,
-  buildStructureResult,
-  assertValidStructureResult,
-  CHEMISTRY_CONTRACT_LIMITS
-} = await import("../shared/chemistry-contract.mjs");
+let chemistryContractPromise;
+function getChemistryContract() {
+  if (!chemistryContractPromise) chemistryContractPromise = import("../shared/chemistry-contract.mjs");
+  return chemistryContractPromise;
+}
 
-const MAX_QUERY_LENGTH = CHEMISTRY_CONTRACT_LIMITS.maxQueryLength;
-const MAX_ATOMS = CHEMISTRY_CONTRACT_LIMITS.maxAtoms;
-const MAX_BONDS = CHEMISTRY_CONTRACT_LIMITS.maxBonds;
+const MAX_QUERY_LENGTH = 220;
+const MAX_ATOMS = 1200;
+const MAX_BONDS = 2400;
 const PUBCHEM_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
 const PUBCHEM_PROPERTIES = "IUPACName,MolecularFormula,CanonicalSMILES,IsomericSMILES,InChI,InChIKey";
 
@@ -263,6 +261,7 @@ async function fetchCandidates(cids) {
 }
 
 async function resolveCompound(query) {
+  const { normalizeCompoundInput, buildStructureResult, assertValidStructureResult } = await getChemistryContract();
   const input = normalizeCompoundInput(cleanQuery(query));
   if ((input.kind === "smiles" || input.kind === "inchi") && !input.identifier) {
     const error = new Error("The supplied structure identifier is empty.");
@@ -379,4 +378,4 @@ module.exports = async function handler(req, res) {
 
 module.exports.parseSdf = parseSdf;
 module.exports.resolveCompound = resolveCompound;
-module.exports.normalizeCompoundInput = normalizeCompoundInput;
+module.exports.normalizeCompoundInput = async value => (await getChemistryContract()).normalizeCompoundInput(value);
