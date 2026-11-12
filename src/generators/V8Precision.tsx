@@ -654,7 +654,7 @@ function V8ValveCoversPart({ state, side }: { state: State; side: -1 | 1 }) {
         <M state={state} color="#c2cbd2" metalness={0.86} roughness={0.2} />
       </RoundedBox>
       {/* One bank carries a real-looking service filler cap; the opposing bank gets a breather. */}
-      <group position={[0, 0.106, side < 0 ? 0.49 : -0.49]}>
+      <group position={[0, 0.088, side < 0 ? 0.49 : -0.49]}>
         <Cylinder args={[0.052, 0.052, 0.025, 32]} position={[0, 0.012, 0]}>
           <M state={state} color="#182a39" metalness={0.44} roughness={0.34} clearcoat={0.28} />
         </Cylinder>
