@@ -982,7 +982,19 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
     },
     metadata: { displacement: 'Not specified — no source-identified variant', cylinderBank: 'Two banks of six; exact V-angle not source-verified', valvetrain: 'Not specified' },
     animations: ['reciprocatingPistons', 'crankshaftSpin', 'explodedView'],
-    explodedParts: ['v12.piston_left_bank', 'v12.piston_right_bank', 'v12.crankshaft', 'v12.cylinder_head', 'v12.intake_plenum', 'v12.exhaust_manifold'],
+    explodedParts: [
+      'v12.engine_block',
+      'v12.piston_left_bank',
+      'v12.piston_right_bank',
+      'v12.connecting_rods',
+      'v12.crankshaft',
+      'v12.valvetrain',
+      'v12.intake_plenum',
+      'v12.exhaust_manifold',
+      'v12.cooling_system',
+      'v12.lubrication_system',
+      'v12.electronics_sensors'
+    ],
     educationalInformation: {
       overview: 'A V12 piston engine has twelve cylinders arranged in two banks around a common crankshaft. Balance, firing sequence, dimensions, and valvetrain depend on the particular engine design.',
       keyFeatures: [
@@ -1004,37 +1016,37 @@ export const SPATIAL_LIBRARY: Record<string, ObjectMetadata> = {
       }
     },
     components: [
-      { id: 'v12.engine_block', name: 'V12 Engine Block and Crankcase', description: 'Visual block/crankcase representation; material, dimensions, and bearing design are not source-verified.', position: [0, 0, 0], size: [1.44, 1.46, 3.08], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
+      { id: 'v12.engine_block', name: 'V12 Engine Block and Crankcase', description: 'Visual block/crankcase representation; material, dimensions, and bearing design are not source-verified.', position: [0, 0, 0], size: [1.65, 1.65, 3.35], explodedOffset: [0, 0, 0], shape: 'box', color: '#475569',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_left_bank', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [-1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_left_bank', name: 'Pistons — Bank 1 (6 visual units)', description: 'Piston representations for the first bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.9, 1.0, 3.25], explodedOffset: [-1.75, 1.65, 0.05], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.piston_right_bank', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.65, 0.85, 2.7], explodedOffset: [1.2, 2.08, 0], shape: 'cylinder', color: '#94a3b8',
+      { id: 'v12.piston_right_bank', name: 'Pistons — Bank 2 (6 visual units)', description: 'Piston representations for the second bank; alloy, coating, compression ratio, and mass are not specified.', position: [0, 0, 0], size: [0.9, 1.0, 3.25], explodedOffset: [1.75, 1.65, 0.05], shape: 'cylinder', color: '#94a3b8',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.connecting_rods', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 2.7], explodedOffset: [0, 0.85, 0], shape: 'box', color: '#64748b',
+      { id: 'v12.connecting_rods', name: 'Connecting Rods (illustrative)', description: 'Rod geometry is represented for inspection; material, strength, and allowable operating speed are not specified.', position: [0, 0, 0], size: [1.35, 1.0, 3.25], explodedOffset: [0, -0.15, 1.45], shape: 'box', color: '#64748b',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.crankshaft', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [0.85, 0.85, 3.2], explodedOffset: [0, -1.2, 0], shape: 'cylinder', color: '#cbd5e1',
+      { id: 'v12.crankshaft', name: 'V12 Crankshaft (illustrative)', description: 'Crankshaft representation; bearing count, alloy, surface treatment, dimensions, and mass are not specified.', position: [0, 0, 0], size: [1.1, 1.1, 4.2], explodedOffset: [0, -1.3, 0], shape: 'cylinder', color: '#cbd5e1',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.valvetrain', name: 'Valvetrain and Camshaft Representation', description: 'Valvetrain geometry is illustrative; cam count, valve count, materials, and timing profile are not source-verified.', position: [0, 0, 0], size: [1.5, 0.8, 3.16], explodedOffset: [0, 1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.valvetrain', name: 'Cylinder Heads and Valve Covers', description: 'Separate left- and right-bank cylinder-head, cover, and spark-plug-well visual assemblies; internal valve timing and cam profiles are not represented.', position: [0, 0, 0], size: [1.5, 1.0, 3.5], explodedOffset: [0, 2.1, 0], shape: 'box', color: '#334155',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.intake_plenum', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.72, 0.55, 2.9], explodedOffset: [0, 2.6, 0], shape: 'box', color: '#18181b',
+      { id: 'v12.intake_plenum', name: 'Intake Plenum Representation', description: 'Visual intake-system assembly; materials, runner dimensions, throttle design, and flow capacity are not specified.', position: [0, 0, 0], size: [0.95, 1.0, 3.6], explodedOffset: [0, 3.2, 0], shape: 'box', color: '#18181b',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.exhaust_manifold', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [1.85, 0.75, 2.9], explodedOffset: [0, -0.65, 0], shape: 'box', color: '#c5a059',
+      { id: 'v12.exhaust_manifold', name: 'Exhaust Header Representation', description: 'Visual exhaust-system assembly; material, pipe dimensions, tuning, and flow performance are not specified.', position: [0, 0, 0], size: [2.6, 1.1, 3.6], explodedOffset: [2.55, -0.55, 0], shape: 'box', color: '#c5a059',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.cooling_system', name: 'Accessory Drive and Cooling Representation', description: 'Visual accessory/cooling assembly; pump design, fan geometry, flow rate, and pressure rating are not specified.', position: [0, 0, 0], size: [0.95, 0.95, 0.55], explodedOffset: [0, 0, 1.85], shape: 'box', color: '#0284c7',
+      { id: 'v12.cooling_system', name: 'Front Accessory Drive and Water Pump', description: 'Independent front drive assembly with timing cover, belt, pulleys, alternator representation, and water-pump housing; pump flow and performance are not specified.', position: [0, 0, 0], size: [1.8, 1.5, 0.8], explodedOffset: [0.15, 0.35, 2.5], shape: 'box', color: '#0284c7',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.lubrication_system', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [0.96, 0.38, 3.05], explodedOffset: [0, -1.85, 0], shape: 'box', color: '#334155',
+      { id: 'v12.lubrication_system', name: 'Lubrication System Representation', description: 'Visual lubrication assembly; sump type, oil capacity, pump stages, and pressure are not specified.', position: [0, 0, 0], size: [1.5, 1.0, 3.6], explodedOffset: [0, -2.35, 0], shape: 'box', color: '#334155',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       },
-      { id: 'v12.electronics_sensors', name: 'Engine Management Harness and Sensors', description: 'Visual wiring/sensor assembly; ECU manufacturer, control architecture, and ignition configuration are not specified.', position: [0, 0, 0], size: [1.1, 0.5, 3.0], explodedOffset: [0, 1.3, -1.6], shape: 'box', color: '#16a34a',
+      { id: 'v12.electronics_sensors', name: 'Engine Management Harness and Sensor Pickups', description: 'Separate illustrative wiring looms, twelve sensor pickups, and a compact control-module housing; no specific ECU or sensor specification is implied.', position: [0, 0, 0], size: [1.7, 0.9, 4.0], explodedOffset: [-2.0, 1.1, -1.65], shape: 'box', color: '#16a34a',
         engineeringDetails: { evidenceStatus: 'Not specified; illustrative visual assembly only' }
       }
     ]
