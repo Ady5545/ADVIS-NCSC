@@ -108,7 +108,7 @@ test('ADVIS shell uses the Rittal-inspired industrial black and red theme', asyn
     return { background: style.backgroundColor, text: style.color };
   });
   expect(explorerSurface.background).not.toContain('255, 255, 255');
-  const explorerTextChannels = explorerSurface.text.match(/\\d+/g)?.map(Number) ?? [];
+  const explorerTextChannels = explorerSurface.text.match(/\d+/g)?.map(Number) ?? [];
   expect(explorerTextChannels).toHaveLength(3);
   expect(Math.min(...explorerTextChannels)).toBeGreaterThan(160);
 
