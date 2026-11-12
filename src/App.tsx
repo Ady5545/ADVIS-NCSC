@@ -1071,8 +1071,8 @@ function AppContent() {
     // the requested compound through the molecular structure pipeline.
     if (!file) {
       const structureMatch =
-        /(?:show|see|display|render|build|create|make|visuali[sz]e|load|open)\\s+(?:me\\s+)?(?:(?:the|a|an)\\s+)?(?:(?:3d|molecular|chemical)\\s+)*(?:structure|molecule|model)\\s+(?:of\\s+)?(.+?)[?.!]*$/i.exec(text.trim()) ||
-        /(?:show|see|display|render|build|create|make|visuali[sz]e)\\s+(?:me\\s+)?(.+?)\\s+(?:molecule|structure|molecular model)[?.!]*$/i.exec(text.trim());
+        /(?:show|see|display|render|build|create|make|visuali[sz]e|load|open)\s+(?:me\s+)?(?:(?:the|a|an)\s+)?(?:(?:3d|molecular|chemical)\s+)*(?:structure|molecule|model)\s+(?:of\s+)?(.+?)[?.!]*$/i.exec(text.trim()) ||
+        /(?:show|see|display|render|build|create|make|visuali[sz]e)\s+(?:me\s+)?(.+?)\s+(?:molecule|structure|molecular model)[?.!]*$/i.exec(text.trim());
       if (structureMatch && structureMatch[1]) {
         const requestedCompound = structureMatch[1].trim().replace(/[?.!]+$/, '');
         setCurrentSpatialObject(null);
