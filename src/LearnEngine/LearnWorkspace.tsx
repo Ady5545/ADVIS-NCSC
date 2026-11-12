@@ -29,10 +29,7 @@ export function LearnWorkspace({ session, onClose, onUpdateSession }: LearnWorks
 
   return (
     <div className="fixed inset-0 z-40 bg-transparent text-blue-700 font-mono flex flex-col pointer-events-none">
-      {/* 
-        STARK R&D HUD LAYOUT
-        Extremely thin borders, no thick panels, precise typography
-      */}
+      {/* ADVIS Chemistry learning workspace — chemistry-specific lesson HUD, not engineering controls. */}
 
       {/* TOP LEFT: System Identification */}
       <div className="absolute top-6 left-6 pointer-events-auto flex items-start gap-4">
