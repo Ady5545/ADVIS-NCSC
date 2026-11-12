@@ -62,7 +62,7 @@ export interface ComponentEducationalMetadata {
 }
 
 export interface ComponentGeometry {
-  type: 'box' | 'cylinder' | 'sphere' | 'torus' | 'cone' | 'piston_assembly' | 'crank_segment' | 'valve' | 'cam' | 'spark_plug' | 'anatomical_organ' | 'custom' | 'composite' | 'vascular_vessel';
+  type: 'box' | 'cylinder' | 'sphere' | 'torus' | 'cone' | 'piston_assembly' | 'crank_segment' | 'valve' | 'cam' | 'spark_plug' | 'anatomical_organ' | 'anatomical_shape' | 'custom' | 'composite' | 'vascular_vessel';
   params: Record<string, any>;
   material: {
     pbrPreset?: string;
