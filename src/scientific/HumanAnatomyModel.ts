@@ -388,7 +388,7 @@ export const HumanAnatomyModel: ScientificSystemModel = {
         'Resting Metabolic Fraction': { value: 20, unit: '%', description: 'Proportion of basal oxygen consumed' }
       }
     },
-    ...Object.fromEntries(HUMAN_ANATOMY_LAYER_COMPONENTS.map((component) => [component.id, component])),
+    ...Object.fromEntries(HUMAN_ANATOMY_LAYER_COMPONENTS.map((component) => [component.id, component] as const)),
   },
 
   relationships: [
