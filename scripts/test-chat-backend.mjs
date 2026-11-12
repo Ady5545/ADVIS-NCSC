@@ -70,14 +70,17 @@ try {
 
   const advancedQuestion = await post("Explain why water is bent.");
   assert.equal(advancedQuestion.statusCode, 200);
-  assert.equal(advancedQuestion.body.status, "offline");
-  assert.equal(advancedQuestion.body.aiProviderStatus, "not_configured");
-  assert.match(advancedQuestion.body.reply, /advanced Gemini reasoning/i);
+  assert.equal(advancedQuestion.body.status, "online");
+  assert.equal(advancedQuestion.body.responseSource, "local_knowledge");
+  assert.equal(advancedQuestion.body.knowledgeTopic, "Water (H2O)");
+  assert.match(advancedQuestion.body.reply, /104\.5°/);
 
   const healthCheck = await health();
   assert.equal(healthCheck.statusCode, 200);
   assert.equal(healthCheck.body.service, "advis-api");
   assert.equal(healthCheck.body.status, "online");
+  assert.equal(healthCheck.body.localKnowledge, "enabled");
+  assert.equal(healthCheck.body.webSearch, "keyless_bing_rss_with_wikipedia_fallback");
   assert.equal(healthCheck.body.gemini, "not_configured");
 
   console.log("ADVIS chat backend tests passed (local responses, spatial routing, health, and explicit Gemini readiness).");
