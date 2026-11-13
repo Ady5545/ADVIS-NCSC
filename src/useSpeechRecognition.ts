@@ -47,7 +47,7 @@ export function useSpeechRecognition(
   useEffect(() => {
     stateRef.current = systemState;
     micEnabledRef.current = micEnabled;
-    shouldRunRef.current = micEnabled && (systemState === 'ONLINE' || systemState === 'LISTENING');
+    shouldRunRef.current = micEnabled && !['OFFLINE', 'ERROR', 'BOOTING', 'CONNECTING'].includes(systemState);
 
     if (systemState !== 'LISTENING' && listeningTimeoutRef.current) {
       clearTimeout(listeningTimeoutRef.current);
@@ -185,7 +185,7 @@ export function useSpeechRecognition(
       restartTimeoutRef.current = setTimeout(() => {
         restartTimeoutRef.current = null;
         if (shouldRunRef.current && micEnabledRef.current &&
-            (stateRef.current === 'ONLINE' || stateRef.current === 'LISTENING') &&
+            !['OFFLINE', 'ERROR', 'BOOTING', 'CONNECTING'].includes(stateRef.current) &&
             !isListeningRef.current) {
           try {
             isListeningRef.current = true;
