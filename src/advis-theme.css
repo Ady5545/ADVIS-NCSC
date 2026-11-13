@@ -310,3 +310,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Additional one-off legacy colors found in the engineering cockpit and command dock. */
+:where([class~="bg-[#f4f5f6]/86"]) {
+  background-color: var(--advis-surface) !important;
+  color: var(--advis-text) !important;
+  border-color: var(--advis-border) !important;
+}
+:where([class~="bg-red-500"]) {
+  background-color: var(--advis-red) !important;
+  color: #fff !important;
+  border-color: var(--advis-red) !important;
+}
+:where([class~="bg-orange-400"]) {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+  color: #f6d28a !important;
+}
+:where([class~="bg-purple-400"]) {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  color: #e5c5ff !important;
+}
+:where([class~="bg-slate-400"], [class~="bg-slate-500"]) {
+  background-color: var(--advis-surface-raised) !important;
+  color: var(--advis-text-secondary) !important;
+}
+:where([class~="text-amber-800"], [class~="text-amber-700"]) {
+  color: #f6d28a !important;
+}
+:where([class~="text-emerald-600"], [class~="text-emerald-500"]) {
+  color: #7ee7bd !important;
+}
+:where([class~="text-red-900"], [class~="text-red-500"], [class~="text-red-400"]) {
+  color: #ff9aa8 !important;
+}
+:where([class~="text-orange-400"]) {
+  color: #f6bd70 !important;
+}
+:where([class~="border-amber-300"], [class~="border-amber-400"]) {
+  border-color: rgba(245, 158, 11, 0.38) !important;
+}
