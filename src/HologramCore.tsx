@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { SystemState } from './App';
 import { useGestureEngine } from './GestureContext';
 import { useTheatreOrbPresentation } from './theatre/TheatreOrbBridge';
+import { createNebulaVolumeMaterial, NEBULA_VOLUME_RADIUS } from './NebulaVolume';
 
 interface HologramProps {
   systemState: SystemState;
@@ -449,6 +450,16 @@ export function HologramCore({
   const groupRef = useRef<THREE.Group>(null);
   const nucleusRef = useRef<THREE.Mesh>(null);
   const nucleusGlowRef = useRef<THREE.Mesh>(null);
+  const nebulaVolumeRef = useRef<THREE.Mesh>(null);
+  const volumeCameraWorldRef = useRef(new THREE.Vector3());
+  const volumeCameraLocalRef = useRef(new THREE.Vector3());
+  const volumeDrawingBufferRef = useRef(new THREE.Vector2());
+  const volumeStateModeRef = useRef(0.08);
+  const volumeListeningRef = useRef(0);
+  const volumeThinkingRef = useRef(0);
+  const volumeSearchingRef = useRef(0);
+  const volumeSpeakingRef = useRef(0);
+  const volumeErrorRef = useRef(0);
   const gasWispsRef = useRef<THREE.Mesh>(null);
   const gasFlowRef = useRef<THREE.Mesh>(null);
   const innerShellRef = useRef<THREE.Mesh>(null);
@@ -488,6 +499,7 @@ export function HologramCore({
   const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 160, 160), []);
   const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(ATMOSPHERE_RADIUS, 128, 128), []);
   const glowGeometry = useMemo(() => new THREE.SphereGeometry(CORONA_RADIUS, 112, 112), []);
+  const nebulaVolumeGeometry = useMemo(() => new THREE.SphereGeometry(NEBULA_VOLUME_RADIUS, 64, 64), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -515,6 +527,8 @@ export function HologramCore({
   }), []);
 
   const materials = useMemo(() => ({
+    // Volumetric nebula appearance from the reference Core; existing Core logic remains intact.
+    nebulaVolume: createNebulaVolumeMaterial(),
     // A lit, procedural nebula surface: actual spherical depth with animated gas filaments.
     core: new THREE.ShaderMaterial({
       uniforms: {
@@ -911,11 +925,12 @@ export function HologramCore({
     planetGeometry.dispose();
     atmosphereGeometry.dispose();
     glowGeometry.dispose();
+    nebulaVolumeGeometry.dispose();
     Object.values(materials).forEach((material) => {
       if (Array.isArray(material)) material.forEach((m) => m.dispose());
       else material.dispose();
     });
-  }, [materials, ejectionCloud, gasPlumeGeometry, planetGeometry, atmosphereGeometry, glowGeometry]);
+  }, [materials, ejectionCloud, gasPlumeGeometry, planetGeometry, atmosphereGeometry, glowGeometry, nebulaVolumeGeometry]);
 
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
@@ -962,6 +977,20 @@ export function HologramCore({
     );
     const activity = THREE.MathUtils.clamp(curBass * 0.95 + curTreble * 0.5 + stateActivity * 0.3 + voice * 0.65, 0, 1.7);
 
+    let volumeStateTarget = 0.08;
+    if (systemState === 'BOOTING') volumeStateTarget = 0;
+    if (systemState === 'LISTENING') volumeStateTarget = 0.34;
+    if (systemState === 'THINKING') volumeStateTarget = 0.70;
+    if (systemState === 'SEARCHING') volumeStateTarget = 0.95;
+    if (systemState === 'ANALYZING') volumeStateTarget = 0.66;
+    if (systemState === 'SPEAKING') volumeStateTarget = 0.44;
+    if (systemState === 'ERROR') volumeStateTarget = 0.78;
+    volumeStateModeRef.current = THREE.MathUtils.damp(volumeStateModeRef.current, volumeStateTarget, 3.0, delta);
+    volumeListeningRef.current = THREE.MathUtils.damp(volumeListeningRef.current, systemState === 'LISTENING' ? 1 : 0, 4.8, delta);
+    volumeThinkingRef.current = THREE.MathUtils.damp(volumeThinkingRef.current, systemState === 'THINKING' || systemState === 'ANALYZING' ? 1 : 0, 3.0, delta);
+    volumeSearchingRef.current = THREE.MathUtils.damp(volumeSearchingRef.current, systemState === 'SEARCHING' ? 1 : 0, 3.5, delta);
+    volumeSpeakingRef.current = THREE.MathUtils.damp(volumeSpeakingRef.current, systemState === 'SPEAKING' ? 1 : 0, 4.5, delta);
+    volumeErrorRef.current = THREE.MathUtils.damp(volumeErrorRef.current, systemState === 'ERROR' ? 1 : 0, 4.0, delta);
 
     materials.core.uniforms.uTime.value = time;
     materials.core.uniforms.uVoice.value = voice;
@@ -972,6 +1001,16 @@ export function HologramCore({
     materials.gasFlow.uniforms.uTime.value = time;
     materials.gasFlow.uniforms.uVoice.value = voice;
     materials.gasFlow.uniforms.uActivity.value = activity;
+    materials.nebulaVolume.uniforms.uTime.value = time;
+    materials.nebulaVolume.uniforms.uActivity.value = activity;
+    materials.nebulaVolume.uniforms.uVoice.value = voice;
+    materials.nebulaVolume.uniforms.uStateMode.value = volumeStateModeRef.current;
+    materials.nebulaVolume.uniforms.uListening.value = volumeListeningRef.current;
+    materials.nebulaVolume.uniforms.uThinking.value = volumeThinkingRef.current;
+    materials.nebulaVolume.uniforms.uSearching.value = volumeSearchingRef.current;
+    materials.nebulaVolume.uniforms.uSpeaking.value = volumeSpeakingRef.current;
+    materials.nebulaVolume.uniforms.uError.value = volumeErrorRef.current;
+    materials.nebulaVolume.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
     materials.core.uniforms.uOpacity.value = Math.min(1, (0.88 + voice * 0.12 + eventPulseRef.current * 0.08) * hologramIntensity) * opacityFactor;
 
     const theatre = theatrePresentationRef.current;
@@ -998,6 +1037,28 @@ export function HologramCore({
       groupRef.current.scale.setScalar(
         Math.max(0.001, 1.4 * boot * hologramIntensity * gestureState.scale.current * authoredBreath * (1 + curBass * 0.12))
       );
+    }
+
+    // Keep the volume ray origin correct as the Core moves and scales.
+    if (groupRef.current) groupRef.current.updateMatrixWorld(true);
+    if (nebulaVolumeRef.current) {
+      nebulaVolumeRef.current.scale.setScalar(collapse);
+      nebulaVolumeRef.current.updateWorldMatrix(true, false);
+      state.camera.getWorldPosition(volumeCameraWorldRef.current);
+      volumeCameraLocalRef.current.copy(volumeCameraWorldRef.current);
+      nebulaVolumeRef.current.worldToLocal(volumeCameraLocalRef.current);
+      materials.nebulaVolume.uniforms.uCameraLocal.value.copy(volumeCameraLocalRef.current);
+      state.gl.getDrawingBufferSize(volumeDrawingBufferRef.current);
+      const drawingBufferPixels = volumeDrawingBufferRef.current.x * volumeDrawingBufferRef.current.y;
+      const pixelRatio = state.gl.getPixelRatio();
+      const sampleBudget = pixelRatio > 1.45 || drawingBufferPixels > 2_200_000
+        ? 12
+        : drawingBufferPixels > 1_100_000
+          ? 14
+          : drawingBufferPixels > 500_000
+            ? 16
+            : 18;
+      materials.nebulaVolume.uniforms.uSteps.value = Math.min(sampleBudget, 12);
     }
 
     if (nucleusRef.current) {
@@ -1173,6 +1234,7 @@ export function HologramCore({
     <group ref={groupRef}>
       {/* A shaded nebula planet anchors the Core; its outer atmospheric sheet stays soft and broken. */}
       <mesh ref={nucleusGlowRef} geometry={glowGeometry} material={materials.coreGlow} frustumCulled={false} renderOrder={0} />
+      <mesh ref={nebulaVolumeRef} geometry={nebulaVolumeGeometry} material={materials.nebulaVolume} frustumCulled={false} renderOrder={1} />
       <mesh ref={nucleusRef} geometry={planetGeometry} material={materials.core} frustumCulled={false} renderOrder={2} />
       <mesh ref={gasWispsRef} geometry={atmosphereGeometry} material={materials.gasWisps} frustumCulled={false} renderOrder={3} />
       <mesh ref={gasFlowRef} geometry={gasPlumeGeometry} material={materials.gasFlow} frustumCulled={false} renderOrder={4} />
