@@ -7,7 +7,7 @@ type SpeechRecognitionResult = {
 
 const extractWakeCommand = (value: string): { activated: boolean; command: string } => {
   const normalized = value.toLowerCase().trim();
-  const match = normalized.match(/^(?:hey\s+)?(?:a\s*\.\s*d\s*\.\s*v\s*\.\s*i\s*\.\s*s\.?|a\s+d\s+v\s+i\s+s|advis)\b[\s,.:;!?-]*(.*)$/i);
+  const match = normalized.match(/^(?:hey\s+)?(?:a\s*\.\s*d\s*\.\s*v\s*\.\s*i\s*\.\s*s\.?|a\s+d\s+v\s+i\s+s|advis|advice|advise|add\s+voice|a\s+device)\b[\s,.:;!?-]*(.*)$/i);
   return match
     ? { activated: true, command: (match[1] || '').trim() }
     : { activated: false, command: '' };
