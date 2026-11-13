@@ -1105,7 +1105,7 @@ function AppContent() {
 
     // Direct local controls remain available while any spatial model is open.
     const hasActiveModel = !!currentSpatialObject || !!activeLearningSession || sessionMolecule.isSessionActive;
-    if (hasActiveModel && /\\b(exploded?\\s+view|explode\\s+(?:the\\s+)?model|disassemble|spread\\s+out)\\b/i.test(lowerCmd)) {
+    if (hasActiveModel && /\b(exploded?\s+view|explode\s+(?:the\s+)?model|disassemble|spread\s+out)\b/i.test(lowerCmd)) {
       setIsExploded(true);
       setExplodedFactor(1);
       setSpatialMode('EXPLODED');
@@ -1113,7 +1113,7 @@ function AppContent() {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Exploded view enabled. Model components are spread into their assembly positions.', timestamp: Date.now() }]);
       return;
     }
-    if (hasActiveModel && /\\b(assemble|reassemble|normal\\s+view|collapse\\s+view|put\\s+(?:it\\s+)?back\\s+together)\\b/i.test(lowerCmd)) {
+    if (hasActiveModel && /\b(assemble|reassemble|normal\s+view|collapse\s+view|put\s+(?:it\s+)?back\s+together)\b/i.test(lowerCmd)) {
       setIsExploded(false);
       setExplodedFactor(0);
       setSpatialMode('INSPECTION');
@@ -1121,14 +1121,14 @@ function AppContent() {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Model reassembled into its normal inspection view.', timestamp: Date.now() }]);
       return;
     }
-    if (hasActiveModel && /\\b(show\\s+)?(x.?ray|glass)\\s+view\\b/i.test(lowerCmd)) {
+    if (hasActiveModel && /\b(show\s+)?(x.?ray|glass)\s+view\b/i.test(lowerCmd)) {
       setXrayEnabled(true);
       setBlueprintEnabled(false);
       setSystemState('ONLINE');
       setMessages(prev => [...prev, { role: 'assistant', content: 'X-ray view enabled.', timestamp: Date.now() }]);
       return;
     }
-    if (hasActiveModel && /\\b(blueprint|technical drawing)\\s+view\\b/i.test(lowerCmd)) {
+    if (hasActiveModel && /\b(blueprint|technical drawing)\s+view\b/i.test(lowerCmd)) {
       setBlueprintEnabled(true);
       setXrayEnabled(false);
       setSystemState('ONLINE');
