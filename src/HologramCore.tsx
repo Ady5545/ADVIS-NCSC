@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Points } from '@react-three/drei';
+import { Points, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { SystemState } from './App';
 import { useGestureEngine } from './GestureContext';
@@ -1236,6 +1236,7 @@ export function HologramCore({
       <mesh ref={nucleusGlowRef} geometry={glowGeometry} material={materials.coreGlow} frustumCulled={false} renderOrder={0} />
       <mesh ref={nebulaVolumeRef} geometry={nebulaVolumeGeometry} material={materials.nebulaVolume} frustumCulled={false} renderOrder={1} />
       <mesh ref={nucleusRef} geometry={planetGeometry} material={materials.core} frustumCulled={false} renderOrder={2} />
+      <Text position={[0, 0, 1.68]} fontSize={0.16} color="#ffffff" anchorX="center" anchorY="middle" letterSpacing={0.055} outlineWidth={0.006} outlineColor="#e20246" renderOrder={5}>A.D.V.I.S.</Text>
       <mesh ref={gasWispsRef} geometry={atmosphereGeometry} material={materials.gasWisps} frustumCulled={false} renderOrder={3} />
       <mesh ref={gasFlowRef} geometry={gasPlumeGeometry} material={materials.gasFlow} frustumCulled={false} renderOrder={4} />
 
