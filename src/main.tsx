@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import { TrackingProvider } from './TrackingProvider';
 import './index.css'
+import './advis-theme.css'
 import './AutonomousModelEngine/precision/bootstrap'
 
 // The HTML shell uses this flag to distinguish a slow/missing JS bundle from a mounted app.
