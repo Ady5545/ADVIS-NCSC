@@ -402,5 +402,6 @@ module.exports = async function handler(req, res) {
 };
 
 module.exports.parseSdf = parseSdf;
+module.exports.normalizeElementSymbol = normalizeElementSymbol;
 module.exports.resolveCompound = resolveCompound;
 module.exports.normalizeCompoundInput = async value => (await getChemistryContract()).normalizeCompoundInput(value);
