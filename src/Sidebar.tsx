@@ -11,6 +11,7 @@ import {
   Settings2,
   Cuboid,
   Lightbulb,
+  Info,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -37,6 +38,7 @@ export const menuItems: NavigationItem[] = [
   { id: 'gestures', icon: Hand, label: 'Gesture Control', section: 'System' },
   { id: 'telemetry', icon: Activity, label: 'Telemetry', section: 'System' },
   { id: 'settings', icon: Settings2, label: 'Settings', section: 'System' },
+  { id: 'about', icon: Info, label: 'About ADVIS', section: 'System' },
 ];
 
 const navigationSections: NavigationSection[] = [
@@ -76,8 +78,7 @@ export function Sidebar({
         </motion.span>
         <span className="min-w-0">
           <span className="block text-lg font-semibold tracking-[0.16em] text-slate-800">ADVIS</span>
-          <span className="mt-0.5 block text-[9px] leading-snug tracking-wide text-slate-500">Aadyant's Visual Intelligence System</span>
-          <span className="mt-1 block text-[9px] font-semibold tracking-[0.08em] text-rose-600">BY AADYANT BANSAL</span>
+          <span className="mt-0.5 block text-[10px] tracking-wide text-slate-500">Visual intelligence system</span>
         </span>
       </motion.button>
 
@@ -145,12 +146,6 @@ export function Sidebar({
           );
         })}
       </nav>
-      <div className="mt-auto border-t border-slate-200/80 px-3 pt-4 pb-2">
-        <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-rose-600">Origin & authorship</div>
-        <div className="mt-1 text-[12px] font-semibold text-slate-800">Aadyant Bansal</div>
-        <div className="mt-0.5 text-[10px] leading-relaxed text-slate-500">Creator of ADVIS</div>
-        <div className="mt-2 text-[9px] leading-relaxed text-slate-500">Aadyant's Visual Intelligence System</div>
-      </div>
     </aside>
   );
 }
