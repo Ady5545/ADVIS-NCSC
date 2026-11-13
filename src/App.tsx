@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { HologramCore } from './HologramCore';
 import { ChatPanel } from './ChatPanel';
@@ -1897,7 +1897,7 @@ function AppContent() {
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
           shadows
-          dpr={[1, 1.5]}
+          dpr={[1, 1.25]}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
@@ -2009,9 +2009,8 @@ function AppContent() {
             <Bloom
               luminanceThreshold={isEngineeringMode ? 1.0 : 0.82}
               mipmapBlur
-              intensity={(isEngineeringMode ? 0.025 : 0.22) * hologramIntensity}
+              intensity={(isEngineeringMode ? 0.025 : 0.16) * hologramIntensity}
             />
-            <Noise opacity={isEngineeringMode ? 0.001 : 0.003} />
           </EffectComposer>
         </Canvas>
       </div>
