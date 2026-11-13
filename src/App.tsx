@@ -1120,6 +1120,7 @@ function AppContent() {
     if (hasActiveModel && /\b(assemble|reassemble|normal\s+view|collapse\s+view|put\s+(?:it\s+)?back\s+together)\b/i.test(lowerCmd)) {
       setIsExploded(false);
       setExplodedFactor(0);
+      setIsPresentationMode(false);
       setSpatialMode('INSPECTION');
       setSystemState('ONLINE');
       setMessages(prev => [...prev, { role: 'assistant', content: 'Model reassembled into its normal inspection view.', timestamp: Date.now() }]);
@@ -1794,7 +1795,7 @@ function AppContent() {
       <div className="fixed right-4 top-4 z-[120] flex flex-col items-end gap-1.5 pointer-events-auto">
         <button
           type="button"
-          onClick={() => { setVoiceError(null); setMicEnabled((enabled) => !enabled); if (systemState === 'LISTENING') setSystemState('ONLINE'); }}
+          onClick={() => { setVoiceError(null); if (micEnabled && systemState === 'LISTENING') setSystemState('ONLINE'); setMicEnabled((enabled) => !enabled); }}
           aria-label={micEnabled ? 'Turn off ADVIS wake word microphone' : 'Turn on ADVIS wake word microphone'}
           aria-pressed={micEnabled}
           title={micEnabled ? 'Wake Word ON — say “ADVIS” to give a command. Click to turn microphone off.' : 'Wake Word OFF — click to enable microphone access.'}
@@ -2037,7 +2038,7 @@ function AppContent() {
           wakeWordEnergy={wakeWordEnergy}
           handTracking={handTracking}
           micEnabled={micEnabled}
-          onToggleMic={() => { setVoiceError(null); setMicEnabled((enabled) => !enabled); }}
+          onToggleMic={() => { setVoiceError(null); if (micEnabled && systemState === 'LISTENING') setSystemState('ONLINE'); setMicEnabled((enabled) => !enabled); }}
           voiceError={voiceError}
         />
       </div>
