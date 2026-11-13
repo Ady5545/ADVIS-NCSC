@@ -260,7 +260,7 @@
   border-color: var(--advis-border) !important;
   caret-color: var(--advis-red-bright);
 }
-:where(input::placeholder, textarea::placeholder) {
+input::placeholder, textarea::placeholder {
   color: var(--advis-text-muted) !important;
   opacity: 1;
 }
@@ -300,10 +300,10 @@
   scrollbar-color: rgba(226, 2, 70, 0.48) rgba(255, 255, 255, 0.045);
   scrollbar-width: thin;
 }
-:where(*::-webkit-scrollbar) { width: 6px; height: 6px; }
-:where(*::-webkit-scrollbar-track) { background: rgba(255, 255, 255, 0.045); }
-:where(*::-webkit-scrollbar-thumb) { background: rgba(226, 2, 70, 0.42); border-radius: 999px; }
-:where(*::-webkit-scrollbar-thumb:hover) { background: var(--advis-red-bright); }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.045); }
+*::-webkit-scrollbar-thumb { background: rgba(226, 2, 70, 0.42); border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--advis-red-bright); }
 
 @media (prefers-reduced-motion: reduce) {
   .advis-button, .advis-icon-button, .advis-field {
