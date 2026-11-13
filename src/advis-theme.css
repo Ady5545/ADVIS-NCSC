@@ -1,0 +1,312 @@
+/*
+ * ADVIS visual system
+ * Single source of truth for UI chrome. Imported after index.css so legacy
+ * Tailwind utility remnants cannot reintroduce accidental light-mode panels.
+ */
+:root {
+  --advis-canvas: #08090c;
+  --advis-canvas-raised: #101116;
+  --advis-surface: #14151b;
+  --advis-surface-soft: #191a21;
+  --advis-surface-raised: #20212a;
+  --advis-surface-elevated: #272832;
+  --advis-border: rgba(238, 240, 248, 0.12);
+  --advis-border-strong: rgba(226, 2, 70, 0.52);
+  --advis-text: #f3f4f7;
+  --advis-text-secondary: #c5c7d0;
+  --advis-text-muted: #9295a1;
+  --advis-red: #e20246;
+  --advis-red-bright: #ff426f;
+  --advis-red-deep: #a90035;
+  --advis-red-soft: rgba(226, 2, 70, 0.14);
+  --advis-red-softer: rgba(226, 2, 70, 0.075);
+  --advis-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+  --advis-focus-ring: 0 0 0 3px rgba(226, 2, 70, 0.24);
+  --advis-success-surface: rgba(16, 185, 129, 0.13);
+  --advis-warning-surface: rgba(245, 158, 11, 0.13);
+  --advis-danger-surface: rgba(239, 68, 68, 0.14);
+}
+
+/* Reusable primitives for new and refactored screens. */
+.advis-panel {
+  color: var(--advis-text);
+  background: linear-gradient(145deg, rgba(29, 30, 38, 0.97), rgba(17, 18, 23, 0.97));
+  border: 1px solid var(--advis-border);
+  box-shadow: var(--advis-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  border-radius: 1rem;
+}
+
+.advis-panel-subtle {
+  color: var(--advis-text-secondary);
+  background: var(--advis-surface);
+  border: 1px solid var(--advis-border);
+  border-radius: 0.85rem;
+}
+
+.advis-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  border: 1px solid var(--advis-border);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.85rem;
+  color: var(--advis-text-secondary);
+  background: var(--advis-surface-soft);
+  font-weight: 600;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.advis-button:hover:not(:disabled) {
+  color: var(--advis-text);
+  background: var(--advis-surface-raised);
+  border-color: var(--advis-border-strong);
+}
+
+.advis-button-primary {
+  color: #fff;
+  background: var(--advis-red);
+  border-color: var(--advis-red);
+  box-shadow: 0 7px 20px rgba(226, 2, 70, 0.2);
+}
+
+.advis-button-primary:hover:not(:disabled) {
+  color: #fff;
+  background: var(--advis-red-bright);
+  border-color: var(--advis-red-bright);
+  box-shadow: 0 9px 24px rgba(226, 2, 70, 0.27);
+}
+
+.advis-button-secondary {
+  color: var(--advis-text-secondary);
+  background: var(--advis-surface-soft);
+  border-color: var(--advis-border);
+}
+
+.advis-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--advis-border);
+  border-radius: 0.7rem;
+  color: var(--advis-text-secondary);
+  background: var(--advis-surface-soft);
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.advis-icon-button:hover:not(:disabled) {
+  color: var(--advis-red-bright);
+  border-color: var(--advis-border-strong);
+  background: var(--advis-red-softer);
+}
+
+.advis-field {
+  width: 100%;
+  min-width: 0;
+  color: var(--advis-text);
+  background: var(--advis-canvas-raised);
+  border: 1px solid var(--advis-border);
+  border-radius: 0.7rem;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.advis-field:focus {
+  border-color: var(--advis-red);
+  box-shadow: var(--advis-focus-ring);
+}
+
+.advis-status-success { color: #7ee7bd; background: var(--advis-success-surface); border-color: rgba(16, 185, 129, 0.3); }
+.advis-status-warning { color: #f6d28a; background: var(--advis-warning-surface); border-color: rgba(245, 158, 11, 0.3); }
+.advis-status-danger { color: #ff9aa8; background: var(--advis-danger-surface); border-color: rgba(239, 68, 68, 0.32); }
+
+/* Legacy light surfaces: all opacity variants resolve to the same dark tiers. */
+:where(
+  [class~="bg-white"], [class~="bg-white/20"], [class~="bg-white/35"],
+  [class~="bg-white/50"], [class~="bg-white/58"], [class~="bg-white/60"],
+  [class~="bg-white/65"], [class~="bg-white/82"], [class~="bg-white/85"],
+  [class~="bg-white/88"], [class~="bg-white/90"], [class~="bg-white/92"],
+  [class~="bg-white/94"], [class~="bg-white/95"], [class~="bg-white/96"],
+  [class~="bg-white/98"]
+) {
+  background-color: var(--advis-surface) !important;
+  color: var(--advis-text) !important;
+  border-color: var(--advis-border) !important;
+}
+
+:where(
+  [class~="bg-slate-50"], [class~="bg-slate-50/85"], [class~="bg-slate-100"],
+  [class~="bg-slate-200"], [class~="bg-slate-300"], [class~="bg-gray-50"]
+) {
+  background-color: var(--advis-surface-soft) !important;
+  color: var(--advis-text-secondary) !important;
+}
+
+:where(
+  [class~="bg-blue-50"], [class~="bg-blue-50/40"], [class~="bg-blue-50/50"],
+  [class~="bg-blue-50/60"], [class~="bg-blue-50/70"], [class~="bg-blue-50/80"],
+  [class~="bg-blue-50/90"], [class~="bg-blue-100"], [class~="bg-blue-100/70"],
+  [class~="bg-blue-100/80"], [class~="bg-blue-600/10"], [class~="bg-blue-600/15"],
+  [class~="bg-cyan-50"], [class~="bg-cyan-50/95"], [class~="bg-cyan-100"],
+  [class~="bg-rose-50"], [class~="bg-rose-50/60"], [class~="bg-rose-100"],
+  [class~="bg-amber-50"]
+) {
+  background-color: var(--advis-red-soft) !important;
+  color: var(--advis-text-secondary) !important;
+}
+
+:where(
+  [class~="bg-blue-400"], [class~="bg-blue-500"], [class~="bg-blue-600"],
+  [class~="bg-cyan-300"], [class~="bg-cyan-400"], [class~="bg-cyan-500"],
+  [class~="bg-cyan-600"], [class~="bg-cyan-800"], [class~="bg-rose-500"]
+) {
+  background-color: var(--advis-red) !important;
+  color: #fff !important;
+  border-color: var(--advis-red) !important;
+}
+
+:where(
+  [class~="bg-blue-500/50"], [class~="bg-cyan-500/20"], [class~="bg-cyan-500/30"],
+  [class~="bg-cyan-500/40"], [class~="bg-cyan-500/50"], [class~="bg-cyan-600/50"]
+) {
+  background-color: var(--advis-red-soft) !important;
+  color: var(--advis-red-bright) !important;
+}
+
+:where([class~="bg-rose-500"]) {
+  background-color: var(--advis-red) !important;
+  color: #fff !important;
+}
+
+/* Keep status meaning, but render badges as quiet dark tints instead of bright chips. */
+:where([class~="bg-amber-500/20"], [class~="bg-amber-500/30"], [class~="bg-amber-500/40"], [class~="bg-amber-900/40"], [class~="bg-amber-950/30"]) {
+  background-color: var(--advis-warning-surface) !important;
+}
+:where([class~="bg-emerald-500/30"], [class~="bg-emerald-950/50"]) {
+  background-color: var(--advis-success-surface) !important;
+}
+:where([class~="bg-red-900"], [class~="bg-red-900/60"], [class~="bg-red-950/40"]) {
+  background-color: var(--advis-danger-surface) !important;
+}
+:where([class~="bg-purple-500/30"]) {
+  background-color: rgba(168, 85, 247, 0.14) !important;
+}
+
+/* Neutral and accent typography: no black-on-light remnants in dark workspaces. */
+:where([class~="text-black"], [class~="text-slate-950"], [class~="text-slate-900"], [class~="text-slate-800"]) {
+  color: var(--advis-text) !important;
+}
+:where([class~="text-slate-700"], [class~="text-slate-600"]) {
+  color: var(--advis-text-secondary) !important;
+}
+:where([class~="text-slate-500"], [class~="text-slate-400"]) {
+  color: var(--advis-text-muted) !important;
+}
+:where(
+  [class~="text-blue-900"], [class~="text-blue-800"], [class~="text-blue-700"],
+  [class~="text-blue-600"], [class~="text-blue-500"], [class~="text-blue-400"],
+  [class~="text-cyan-900"], [class~="text-cyan-800"], [class~="text-cyan-700"],
+  [class~="text-cyan-600"], [class~="text-indigo-900"], [class~="text-indigo-800"]
+) {
+  color: var(--advis-red-bright) !important;
+}
+:where([class~="text-rose-800"], [class~="text-rose-700"], [class~="text-rose-600"], [class~="text-rose-500"]) {
+  color: var(--advis-red-bright) !important;
+}
+
+/* Borders and focus accents use the ADVIS signal color only for emphasis. */
+:where([class~="border-slate-200"], [class~="border-slate-300"], [class~="border-slate-400"], [class~="border-slate-500"]) {
+  border-color: var(--advis-border) !important;
+}
+:where(
+  [class~="border-blue-100"], [class~="border-blue-200"], [class~="border-blue-200/10"],
+  [class~="border-blue-200/20"], [class~="border-blue-200/30"], [class~="border-blue-200/40"],
+  [class~="border-blue-200/50"], [class~="border-blue-200/60"], [class~="border-blue-200/80"],
+  [class~="border-blue-300"], [class~="border-blue-300/90"],
+  [class~="border-cyan-200/20"], [class~="border-cyan-300"],
+  [class~="border-indigo-300/90"], [class~="border-sky-200/15"],
+  [class~="border-l-cyan-400"]
+) {
+  border-color: rgba(226, 2, 70, 0.3) !important;
+}
+:where([class~="border-rose-400"], [class~="border-rose-500"]) {
+  border-color: var(--advis-red-bright) !important;
+}
+:where([class~="accent-blue-600"], [class~="accent-cyan-700"], [class~="accent-rose-500"]) {
+  accent-color: var(--advis-red) !important;
+}
+
+/* Normalize hover/focus states which previously switched controls back to light mode. */
+:where([class~="hover:bg-white"]:hover, [class~="hover:bg-white/5"]:hover, [class~="hover:bg-white/10"]:hover) {
+  background-color: var(--advis-surface-raised) !important;
+}
+:where([class~="hover:bg-blue-50"]:hover, [class~="hover:bg-blue-50/80"]:hover, [class~="hover:bg-blue-50/90"]:hover) {
+  background-color: var(--advis-red-soft) !important;
+}
+:where([class~="hover:border-blue-100"]:hover, [class~="hover:border-blue-200"]:hover, [class~="hover:border-blue-300"]:hover, [class~="hover:border-slate-400"]:hover) {
+  border-color: var(--advis-border-strong) !important;
+}
+:where([class~="group-hover:text-blue-700"]):hover,
+.group:hover [class~="group-hover:text-blue-700"] {
+  color: var(--advis-red-bright) !important;
+}
+
+/* Form controls share one dark treatment, regardless of the screen they appear on. */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), textarea, select) {
+  color: var(--advis-text) !important;
+  background-color: var(--advis-canvas-raised) !important;
+  border-color: var(--advis-border) !important;
+  caret-color: var(--advis-red-bright);
+}
+:where(input::placeholder, textarea::placeholder) {
+  color: var(--advis-text-muted) !important;
+  opacity: 1;
+}
+:where(input[type="checkbox"], input[type="radio"], input[type="range"]) {
+  accent-color: var(--advis-red) !important;
+}
+:where(input[type="range"]) {
+  background: transparent !important;
+}
+:where(input[type="color"]) {
+  background: var(--advis-surface) !important;
+  border: 1px solid var(--advis-border) !important;
+}
+:where(option) {
+  color: var(--advis-text) !important;
+  background: var(--advis-surface) !important;
+}
+:where(select:focus, textarea:focus, input:focus) {
+  border-color: var(--advis-red) !important;
+  box-shadow: var(--advis-focus-ring) !important;
+  outline: none;
+}
+:where(button:disabled, input:disabled, select:disabled, textarea:disabled) {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+:where(button) {
+  -webkit-tap-highlight-color: transparent;
+}
+:where(button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible) {
+  outline: 2px solid var(--advis-red-bright);
+  outline-offset: 2px;
+}
+
+/* Consistent, quiet scrollbars across the entire application. */
+:where(*) {
+  scrollbar-color: rgba(226, 2, 70, 0.48) rgba(255, 255, 255, 0.045);
+  scrollbar-width: thin;
+}
+:where(*::-webkit-scrollbar) { width: 6px; height: 6px; }
+:where(*::-webkit-scrollbar-track) { background: rgba(255, 255, 255, 0.045); }
+:where(*::-webkit-scrollbar-thumb) { background: rgba(226, 2, 70, 0.42); border-radius: 999px; }
+:where(*::-webkit-scrollbar-thumb:hover) { background: var(--advis-red-bright); }
+
+@media (prefers-reduced-motion: reduce) {
+  .advis-button, .advis-icon-button, .advis-field {
+    transition-duration: 0.01ms !important;
+  }
+}
