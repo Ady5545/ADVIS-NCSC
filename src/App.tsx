@@ -372,6 +372,17 @@ function AppContent() {
     setRecentActions(prev => [...prev.slice(-9), { type, target, name, timestamp: Date.now() }]);
   };
 
+  const toggleWakeWord = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceError('This browser does not support continuous speech recognition. Try a Chromium-based browser.');
+      return;
+    }
+    setVoiceError(null);
+    if (micEnabled && systemState === 'LISTENING') setSystemState('ONLINE');
+    setMicEnabled(!micEnabled);
+  };
+
   const handTracking = useHandTracking(cvEnabled);
   
   // Spatial Object Engine State Management
@@ -1796,7 +1807,7 @@ function AppContent() {
       <div className="fixed right-4 top-4 z-[120] flex flex-col items-end gap-1.5 pointer-events-auto">
         <button
           type="button"
-          onClick={() => { setVoiceError(null); if (micEnabled && systemState === 'LISTENING') setSystemState('ONLINE'); setMicEnabled((enabled) => !enabled); }}
+          onClick={toggleWakeWord}
           aria-label={micEnabled ? 'Turn off ADVIS wake word microphone' : 'Turn on ADVIS wake word microphone'}
           aria-pressed={micEnabled}
           title={micEnabled ? 'Wake Word ON — say “ADVIS” to give a command. Click to turn microphone off.' : 'Wake Word OFF — click to enable microphone access.'}
@@ -2039,7 +2050,7 @@ function AppContent() {
           wakeWordEnergy={wakeWordEnergy}
           handTracking={handTracking}
           micEnabled={micEnabled}
-          onToggleMic={() => { setVoiceError(null); if (micEnabled && systemState === 'LISTENING') setSystemState('ONLINE'); setMicEnabled((enabled) => !enabled); }}
+          onToggleMic={toggleWakeWord}
           voiceError={voiceError}
         />
       </div>
