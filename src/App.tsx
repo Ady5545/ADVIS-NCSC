@@ -1177,7 +1177,7 @@ function AppContent() {
     }
 
     // Direct V12 model launch from a wake-word command.
-    if (!hasActiveModel && /\\b(v12|twelve[- ]cylinder)\\b/i.test(lowerCmd) && /\\b(engine|model)\\b/i.test(lowerCmd)) {
+    if (!hasActiveModel && /\b(v12|twelve[- ]cylinder)\b/i.test(lowerCmd) && /\b(engine|model)\b/i.test(lowerCmd)) {
       sessionMolecule.closeSession();
       setActiveLearningSession(null);
       setCurrentSpatialObject('v12_engine');
