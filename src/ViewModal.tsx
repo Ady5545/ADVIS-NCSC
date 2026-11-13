@@ -755,6 +755,58 @@ export function ViewModal({
         );
       }
 
+
+      case 'about':
+        return (
+          <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto pr-1 text-slate-200 custom-scrollbar">
+            <section className="relative overflow-hidden rounded-2xl border border-rose-500/20 bg-gradient-to-br from-[#1b1117] via-[#121215] to-[#101013] p-6 sm:p-8">
+              <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full border border-rose-500/10" />
+              <div className="pointer-events-none absolute -right-2 -top-6 h-36 w-36 rounded-full border border-rose-500/10" />
+              <div className="relative max-w-3xl">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-rose-300">The platform & its purpose</div>
+                <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">ADVIS</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Aadyant's Visual Intelligence System</p>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-300">ADVIS is an interactive scientific and engineering exploration platform. It brings ideas, structures and mechanisms into a visual workspace where they can be explored, inspected and understood — not just read about.</p>
+              </div>
+            </section>
+            <section className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-xl border border-white/10 bg-[#151518] p-5">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">01 · What it is</div>
+                <h4 className="mt-2 text-base font-semibold text-white">A space to see how things work</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-400">ADVIS brings scientific subjects and engineering systems into one interactive environment, with visual references, 3D exploration, demonstrations and guided learning experiences.</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-[#151518] p-5">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">02 · Why it was made</div>
+                <h4 className="mt-2 text-base font-semibold text-white">Make complex ideas easier to explore</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-400">Many concepts become clearer when their structures, relationships and moving parts can be seen. ADVIS was created to make learning more visual, interactive and connected to the way systems behave.</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-[#151518] p-5">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">03 · What it brings together</div>
+                <h4 className="mt-2 text-base font-semibold text-white">Science, engineering & interaction</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-400">From molecular structures to mechanical assemblies, ADVIS is designed around visualisation, inspection, comparison, simulation-led demonstrations and learning workflows.</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-[#151518] p-5">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">04 · The direction</div>
+                <h4 className="mt-2 text-base font-semibold text-white">One system, many fields of discovery</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-400">The long-term idea is a unified visual workspace that can support curiosity across scientific and technical disciplines while keeping exploration approachable and meaningful.</p>
+              </div>
+            </section>
+            <section className="rounded-2xl border border-white/10 bg-[#151518] p-5 sm:p-6">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">The name</div>
+              <div className="mt-2 text-xl font-semibold text-white">Aadyant's Visual Intelligence System</div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">ADVIS takes its name from its creator, Aadyant, and the idea at its centre: using visual intelligence to make complex subjects easier to understand and explore.</p>
+            </section>
+            <section className="flex flex-col gap-3 rounded-2xl border border-rose-500/20 bg-[#171216] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">Created by</div>
+                <h4 className="mt-2 text-xl font-semibold text-white">Aadyant Bansal</h4>
+                <p className="mt-1 text-sm text-slate-400">Creator of ADVIS · Aadyant's Visual Intelligence System</p>
+              </div>
+              <div className="rounded-lg border border-white/10 px-4 py-2 text-xs font-medium tracking-wide text-slate-300">An independent creation</div>
+            </section>
+          </div>
+        );
+
       case 'settings':
         return (
           <div className="flex flex-col gap-4">
@@ -863,6 +915,7 @@ export function ViewModal({
       case 'gestures': return 'GESTURE CONTROL';
       case 'telemetry': return 'SCIENTIFIC TELEMETRY';
       case 'settings': return 'SYSTEM PREFERENCES';
+      case 'about': return 'ABOUT ADVIS';
       default: return `${currentView} MODULE`;
     }
   };
