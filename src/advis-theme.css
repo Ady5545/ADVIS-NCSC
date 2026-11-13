@@ -404,3 +404,13 @@ input::placeholder, textarea::placeholder {
   background-color: var(--advis-red-soft) !important;
   border-color: var(--advis-border-strong) !important;
 }
+
+
+/* Unstyled/native buttons should stay transparent, never fall back to a browser light button. */
+button {
+  color-scheme: dark;
+}
+button:not([class*="bg-"]):not([style*="background"]) {
+  color: var(--advis-text) !important;
+  background-color: transparent !important;
+}
