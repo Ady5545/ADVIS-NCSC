@@ -350,3 +350,48 @@
 :where([class~="border-amber-300"], [class~="border-amber-400"]) {
   border-color: rgba(245, 158, 11, 0.38) !important;
 }
+
+
+/* Catch future direct legacy utility classes too, not just the variants seen in this audit. */
+:where([class^="bg-white/"], [class*=" bg-white/"]) {
+  background-color: var(--advis-surface) !important;
+  color: var(--advis-text) !important;
+  border-color: var(--advis-border) !important;
+}
+:where([class^="bg-gray-"], [class*=" bg-gray-"], [class^="bg-neutral-"], [class*=" bg-neutral-"], [class^="bg-zinc-"], [class*=" bg-zinc-"]) {
+  background-color: var(--advis-surface-soft) !important;
+  color: var(--advis-text-secondary) !important;
+}
+:where([class^="bg-blue-50"], [class*=" bg-blue-50"], [class^="bg-blue-100"], [class*=" bg-blue-100"], [class^="bg-indigo-50"], [class*=" bg-indigo-50"], [class^="bg-indigo-100"], [class*=" bg-indigo-100"], [class^="bg-cyan-50"], [class*=" bg-cyan-50"], [class^="bg-cyan-100"], [class*=" bg-cyan-100"]) {
+  background-color: var(--advis-red-soft) !important;
+  color: var(--advis-text-secondary) !important;
+}
+:where([class^="bg-blue-"], [class*=" bg-blue-"], [class^="bg-indigo-"], [class*=" bg-indigo-"], [class^="bg-cyan-"], [class*=" bg-cyan-"]) {
+  background-color: var(--advis-red-soft) !important;
+  color: var(--advis-red-bright) !important;
+  border-color: rgba(226, 2, 70, 0.34) !important;
+}
+:where([class^="bg-blue-500"], [class*=" bg-blue-500"], [class^="bg-blue-600"], [class*=" bg-blue-600"], [class^="bg-cyan-400"], [class*=" bg-cyan-400"], [class^="bg-cyan-500"], [class*=" bg-cyan-500"], [class^="bg-cyan-600"], [class*=" bg-cyan-600"]) {
+  background-color: var(--advis-red) !important;
+  color: #fff !important;
+  border-color: var(--advis-red) !important;
+}
+:where([class^="bg-rose-50"], [class*=" bg-rose-50"], [class^="bg-rose-100"], [class*=" bg-rose-100"]) {
+  background-color: var(--advis-red-soft) !important;
+  color: var(--advis-text-secondary) !important;
+}
+:where([class^="bg-rose-500"], [class*=" bg-rose-500"]) {
+  background-color: var(--advis-red) !important;
+  color: #fff !important;
+  border-color: var(--advis-red) !important;
+}
+:where([class^="from-cyan-500/20"], [class*=" from-cyan-500/20"]) {
+  --tw-gradient-from: rgba(226, 2, 70, 0.2) !important;
+  --tw-gradient-to: rgba(226, 2, 70, 0) !important;
+}
+:where([class^="via-cyan-400/10"], [class*=" via-cyan-400/10"]) {
+  --tw-gradient-via: rgba(226, 2, 70, 0.1) !important;
+}
+:where([class^="to-cyan-500/20"], [class*=" to-cyan-500/20"]) {
+  --tw-gradient-to: rgba(226, 2, 70, 0.2) !important;
+}
