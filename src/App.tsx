@@ -1176,6 +1176,20 @@ function AppContent() {
       }
     }
 
+    // Direct V12 model launch from a wake-word command.
+    if (!hasActiveModel && /\\b(v12|twelve[- ]cylinder)\\b/i.test(lowerCmd) && /\\b(engine|model)\\b/i.test(lowerCmd)) {
+      sessionMolecule.closeSession();
+      setActiveLearningSession(null);
+      setCurrentSpatialObject('v12_engine');
+      setSelectedComponentId(null);
+      setIsExploded(false);
+      setExplodedFactor(0);
+      setSpatialMode('INSPECTION');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'V12 engine model loaded. You can ask for exploded view, X-ray view, blueprint view, or component isolation.', timestamp: Date.now() }]);
+      return;
+    }
+
     // 0. Direct Scientific Model Launch Intent
     if (lowerCmd.includes('four stroke') || lowerCmd.includes('4 stroke') || lowerCmd.includes('4-stroke') || lowerCmd.includes('otto cycle') || (lowerCmd.includes('piston engine') && !lowerCmd.includes('v12'))) {
       setCurrentSpatialObject('v8_engine_scientific');
