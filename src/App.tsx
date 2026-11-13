@@ -12,7 +12,7 @@ import { useSpeechRecognition } from './useSpeechRecognition';
 import { playStateTransitionSound } from './audioEffects';
 import { ViewModal } from './ViewModal';
 import { MobileNav } from './MobileNav';
-import { Fingerprint, Lock, X } from 'lucide-react';
+import { Fingerprint, Lock, X, Mic, MicOff } from 'lucide-react';
 import { ParametricInnovationLab } from './cad/ParametricInnovationLab';
 import { motion } from 'framer-motion';
 import { useHandTracking, HandTrackingData } from './useHandTracking';
@@ -329,6 +329,8 @@ function AppContent() {
   const [bass, setBass] = useState(0);
   const [treble, setTreble] = useState(0);
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [themeColor, setThemeColor] = useState('#e20246');
@@ -1093,6 +1095,47 @@ function AppContent() {
     const deviceId = safeGetStorage('advis_device_id', 'default');
     const lowerCmd = displayMessage.toLowerCase().trim();
 
+    // Voice control is explicit: only a wake-word session can reach this command path.
+    if (lowerCmd === 'turn microphone off' || lowerCmd === 'turn mic off' || lowerCmd === 'disable microphone' || lowerCmd === 'disable mic') {
+      setMicEnabled(false);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Wake Word listening disabled. The microphone is off.', timestamp: Date.now() }]);
+      return;
+    }
+
+    // Direct local controls remain available while any spatial model is open.
+    const hasActiveModel = !!currentSpatialObject || !!activeLearningSession || sessionMolecule.isSessionActive;
+    if (hasActiveModel && /\\b(exploded?\\s+view|explode\\s+(?:the\\s+)?model|disassemble|spread\\s+out)\\b/i.test(lowerCmd)) {
+      setIsExploded(true);
+      setExplodedFactor(1);
+      setSpatialMode('EXPLODED');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Exploded view enabled. Model components are spread into their assembly positions.', timestamp: Date.now() }]);
+      return;
+    }
+    if (hasActiveModel && /\\b(assemble|reassemble|normal\\s+view|collapse\\s+view|put\\s+(?:it\\s+)?back\\s+together)\\b/i.test(lowerCmd)) {
+      setIsExploded(false);
+      setExplodedFactor(0);
+      setSpatialMode('INSPECTION');
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Model reassembled into its normal inspection view.', timestamp: Date.now() }]);
+      return;
+    }
+    if (hasActiveModel && /\\b(show\\s+)?(x.?ray|glass)\\s+view\\b/i.test(lowerCmd)) {
+      setXrayEnabled(true);
+      setBlueprintEnabled(false);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'X-ray view enabled.', timestamp: Date.now() }]);
+      return;
+    }
+    if (hasActiveModel && /\\b(blueprint|technical drawing)\\s+view\\b/i.test(lowerCmd)) {
+      setBlueprintEnabled(true);
+      setXrayEnabled(false);
+      setSystemState('ONLINE');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Blueprint view enabled.', timestamp: Date.now() }]);
+      return;
+    }
+
     // Direct molecular-structure intent: bypass the finite lesson catalog and resolve
     // the requested compound through the molecular structure pipeline.
     if (!file) {
@@ -1723,7 +1766,7 @@ function AppContent() {
     }
   };
 
-  useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy);
+  useSpeechRecognition(systemState, setSystemState, handleSendMessage, sessionActiveRef, setWakeWordEnergy, micEnabled, setMicEnabled, setVoiceError);
 
   const isSpatial = !!currentSpatialObject || !!activeLearningSession || (sessionMolecule.isSessionActive && !!sessionMolecule.molecule);
   const [environmentTransition, setEnvironmentTransition] = useState<'enter' | 'exit' | null>(null);
@@ -1744,6 +1787,21 @@ function AppContent() {
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
       <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#101013] text-slate-900 selection:bg-red-500/20' : 'bg-[#080809] text-slate-800 selection:bg-red-500/20'}`}>
+      <div className="fixed right-4 top-4 z-[120] flex flex-col items-end gap-1.5 pointer-events-auto">
+        <button
+          type="button"
+          onClick={() => { setVoiceError(null); setMicEnabled((enabled) => !enabled); if (systemState === 'LISTENING') setSystemState('ONLINE'); }}
+          aria-label={micEnabled ? 'Turn off ADVIS wake word microphone' : 'Turn on ADVIS wake word microphone'}
+          aria-pressed={micEnabled}
+          title={micEnabled ? 'Wake Word ON — say “ADVIS” to give a command. Click to turn microphone off.' : 'Wake Word OFF — click to enable microphone access.'}
+          className={`flex items-center gap-2 rounded-full border px-3.5 py-2.5 font-mono text-[10px] font-bold tracking-[0.16em] shadow-xl backdrop-blur-xl transition-all ${micEnabled ? 'border-rose-500/50 bg-[#250b14]/90 text-rose-200 shadow-rose-950/30' : 'border-white/15 bg-[#15161c]/90 text-slate-300 hover:border-rose-500/40 hover:text-rose-200'}`}
+        >
+          {micEnabled ? <Mic size={15} className="animate-pulse" /> : <MicOff size={15} />}
+          <span>{micEnabled ? 'WAKE WORD ON' : 'MIC OFF'}</span>
+          <span className={`h-1.5 w-1.5 rounded-full ${micEnabled ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]' : 'bg-slate-500'}`} />
+        </button>
+        {voiceError && <div role="status" className="max-w-[280px] rounded-lg border border-rose-500/30 bg-[#1a0b11]/95 px-3 py-2 text-right text-[10px] leading-relaxed text-rose-200 shadow-xl">{voiceError}</div>}
+      </div>
       
       {/* Low-profile environment transition: reinforces the camera hand-off without blocking input. */}
       {environmentTransition && (
@@ -1974,6 +2032,9 @@ function AppContent() {
           audioLevel={audioLevel}
           wakeWordEnergy={wakeWordEnergy}
           handTracking={handTracking}
+          micEnabled={micEnabled}
+          onToggleMic={() => { setVoiceError(null); setMicEnabled((enabled) => !enabled); }}
+          voiceError={voiceError}
         />
       </div>
     </div>
