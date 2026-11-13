@@ -485,9 +485,9 @@ export function HologramCore({
   // Keep only a few outer tendrils; the volumetric cloud field now carries the main gas mass.
   const gasPlumeGeometry = useMemo(() => createGasPlumeGeometry(20), []);
   // High-resolution true spheres preserve a clean silhouette while the shader supplies all organic cloud variation.
-  const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 160, 160), []);
-  const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(ATMOSPHERE_RADIUS, 128, 128), []);
-  const glowGeometry = useMemo(() => new THREE.SphereGeometry(CORONA_RADIUS, 112, 112), []);
+  const planetGeometry = useMemo(() => new THREE.SphereGeometry(PLANET_RADIUS, 96, 64), []);
+  const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(ATMOSPHERE_RADIUS, 72, 48), []);
+  const glowGeometry = useMemo(() => new THREE.SphereGeometry(CORONA_RADIUS, 56, 40), []);
 
   const pointsCount = 192;
   const initialWavePoints = useMemo(() => {
@@ -572,7 +572,7 @@ export function HologramCore({
         "float fbm(vec3 p) {",
         "  float value = 0.0;",
         "  float amplitude = 0.5;",
-        "  for (int i = 0; i < 3; i++) {",
+        "  for (int i = 0; i < 2; i++) {",
         "    value += amplitude * noise3(p);",
         "    p = p * 2.03 + 17.17;",
         "    amplitude *= 0.5;",
@@ -687,7 +687,7 @@ export function HologramCore({
         "float fbm(vec3 p) {",
         "  float result = 0.0;",
         "  float amplitude = 0.5;",
-        "  for (int i = 0; i < 3; i++) {",
+        "  for (int i = 0; i < 2; i++) {",
         "    result += amplitude * noise3(p);",
         "    p = p * 2.02 + 13.17;",
         "    amplitude *= 0.5;",
@@ -795,7 +795,7 @@ export function HologramCore({
         "float fbm21(vec2 p) {",
         "  float value = 0.0;",
         "  float amplitude = 0.5;",
-        "  for (int i = 0; i < 3; i++) {",
+        "  for (int i = 0; i < 2; i++) {",
         "    value += amplitude * noise21(p);",
         "    p = p * 2.03 + 13.7;",
         "    amplitude *= 0.5;",
