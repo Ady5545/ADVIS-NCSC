@@ -1112,6 +1112,7 @@ function AppContent() {
     if (hasActiveModel && /\b(exploded?\s+view|explode\s+(?:the\s+)?model|disassemble|spread\s+out)\b/i.test(lowerCmd)) {
       setIsExploded(true);
       setExplodedFactor(1);
+      setIsPresentationMode(false);
       setSpatialMode('EXPLODED');
       setSystemState('ONLINE');
       setMessages(prev => [...prev, { role: 'assistant', content: 'Exploded view enabled. Model components are spread into their assembly positions.', timestamp: Date.now() }]);
