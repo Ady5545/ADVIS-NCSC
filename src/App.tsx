@@ -1896,9 +1896,8 @@ function AppContent() {
       {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Canvas
-          shadows
-          dpr={[1, 1.25]}
-          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          dpr={1}
+          gl={{ antialias: false, alpha: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false }}
           camera={{ position: [0, 0, 15], fov: 45 }}
           eventSource={containerRef as any}
           eventPrefix="client"
@@ -1927,7 +1926,7 @@ function AppContent() {
           <directionalLight position={[0, -10, 4]} intensity={0.1} color="#94a3b8" />
 
           {/* Grounding pass: subtle physical contact shadow for every spatial model. */}
-          <ContactShadows position={[0, -2.82, 0]} opacity={0.32} scale={16} blur={2.4} far={8} resolution={512} />
+          {/* Contact shadows are bypassed in the live renderer to protect frame stability. */}
 
           <GestureFrameUpdater handTracking={handTracking} isSpatial={isSpatial} />
           <CameraRig
@@ -2005,13 +2004,7 @@ function AppContent() {
             />
           </React.Suspense>
           
-          <EffectComposer>
-            <Bloom
-              luminanceThreshold={isEngineeringMode ? 1.0 : 0.82}
-              mipmapBlur
-              intensity={(isEngineeringMode ? 0.025 : 0.16) * hologramIntensity}
-            />
-          </EffectComposer>
+          {/* Core glow is rendered directly; skip the extra full-screen post-processing pass. */}
         </Canvas>
       </div>
 
