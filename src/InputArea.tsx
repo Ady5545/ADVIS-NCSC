@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Send, Paperclip, Settings, X } from 'lucide-react';
+import { Mic, MicOff, Send, Paperclip, Settings, X } from 'lucide-react';
 import { SystemState } from './App';
 import { AudioSpectrumBar } from './AudioSpectrumBar';
 
@@ -13,7 +13,10 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
   currentView?: string,
   audioLevel?: number,
   wakeWordEnergy?: number,
-  handTracking?: HandTrackingData
+  handTracking?: HandTrackingData,
+  micEnabled?: boolean,
+  onToggleMic?: () => void,
+  voiceError?: string | null
 }) {
   const [input, setInput] = useState('');
   const [attachedFile, setAttachedFile] = useState<{name: string, content: string, isImage?: boolean, mimeType?: string} | null>(null);
@@ -64,11 +67,6 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
       setInput('');
       setAttachedFile(null);
     }
-  };
-
-  const toggleMic = () => {
-    if (systemState === 'LISTENING') setSystemState('ONLINE');
-    else setSystemState('LISTENING');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,15 +146,13 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
                 style={{ opacity: Math.min(wakeWordEnergy / 100, 0.8) }}
               />
             )}
-            <button type="button" aria-label={systemState === 'LISTENING' ? 'Stop voice input' : 'Start voice input'} title={systemState === 'LISTENING' ? 'Stop voice input' : 'Start voice input'} aria-pressed={systemState === 'LISTENING'}
-              onClick={toggleMic}
-              className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 ${
-                systemState === 'LISTENING' 
-                  ? 'bg-blue-100 text-blue-800 shadow-[0_0_15px_rgba(40,100,232,0.18)] animate-pulse' 
-                  : 'text-slate-500 hover:text-blue-700 hover:bg-blue-50'
+            <button type="button" aria-label={micEnabled ? 'Turn off ADVIS wake word' : 'Turn on ADVIS wake word'} title={micEnabled ? 'Wake Word ON — click to turn microphone off' : 'Wake Word OFF — click to enable microphone'} aria-pressed={!!micEnabled}
+              onClick={onToggleMic}
+              className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-300 ${
+                micEnabled ? 'border-rose-500/40 bg-rose-950/50 text-rose-300' : 'border-transparent text-slate-400 hover:border-rose-500/30 hover:bg-rose-950/30 hover:text-rose-200'
               }`}
             >
-              <Mic size={20} />
+              {micEnabled ? <Mic size={20} className={systemState === 'LISTENING' ? 'animate-pulse' : ''} /> : <MicOff size={20} />}
             </button>
           </div>
 
@@ -175,8 +171,8 @@ export function InputArea({ onSend, systemState, setSystemState, setView, curren
             <div className="flex justify-between items-center mt-2 px-2">
         <div className="flex gap-4 text-[10px] font-mono tracking-widest items-center">
           <div className="flex items-center gap-2 border border-blue-100 px-2.5 py-1.5 rounded-full bg-white/85">
-             {systemState === 'ONLINE' && <><div className="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse"></div><span className="text-slate-600">READY</span></>}
-             {systemState === 'LISTENING' && <><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(40,100,232,0.3)] animate-pulse"></div><span className="text-blue-700 font-bold">LISTENING...</span></>}
+             {systemState === 'ONLINE' && <><div className={`w-1.5 h-1.5 rounded-full ${micEnabled ? 'bg-rose-400 animate-pulse' : 'bg-slate-500'}`}></div><span className="text-slate-300">{micEnabled ? 'WAKE WORD ARMED' : 'MIC OFF'}</span></>}
+             {systemState === 'LISTENING' && <><div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(226,2,70,0.45)] animate-pulse"></div><span className="text-rose-200 font-bold">SAY COMMAND...</span></>}
              {systemState === 'THINKING' && <><div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-bounce"></div><span className="text-amber-700">PROCESSING...</span></>}
              {systemState === 'SEARCHING' && <><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse"></div><span className="text-blue-700 font-bold">SEARCHING...</span></>}
              {systemState === 'ANALYZING' && <><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] animate-pulse"></div><span className="text-purple-400 font-bold">ANALYZING VISUAL DATA...</span></>}
