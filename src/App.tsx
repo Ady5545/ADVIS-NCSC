@@ -329,7 +329,7 @@ function AppContent() {
   const [bass, setBass] = useState(0);
   const [treble, setTreble] = useState(0);
   const [wakeWordEnergy, setWakeWordEnergy] = useState(0);
-  const [micEnabled, setMicEnabled] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(() => safeGetStorage('advis_wake_word_enabled') === 'true');
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hologramIntensity, setHologramIntensity] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -341,6 +341,10 @@ function AppContent() {
   useEffect(() => {
     document.documentElement.style.setProperty('--primary', themeColor);
   }, [themeColor]);
+
+  useEffect(() => {
+    safeSetStorage('advis_wake_word_enabled', micEnabled ? 'true' : 'false');
+  }, [micEnabled]);
 
   useEffect(() => {
     if (soundEnabled) {
