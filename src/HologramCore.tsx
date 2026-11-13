@@ -1055,12 +1055,12 @@ export function HologramCore({
       const drawingBufferPixels = volumeDrawingBufferRef.current.x * volumeDrawingBufferRef.current.y;
       const pixelRatio = state.gl.getPixelRatio();
       const sampleBudget = pixelRatio > 1.45 || drawingBufferPixels > 2_200_000
-        ? 12
+        ? 7
         : drawingBufferPixels > 1_100_000
-          ? 14
+          ? 8
           : drawingBufferPixels > 500_000
-            ? 16
-            : 18;
+            ? 9
+            : 10;
       materials.nebulaVolume.uniforms.uSteps.value = sampleBudget;
     }
 
