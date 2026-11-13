@@ -152,6 +152,13 @@ async function run() {
   assert.equal(normalizeElementSymbol('co'), 'Co');
   assert.equal(normalizeElementSymbol('Xx'), null);
 
+  // The API parser has its own V2000/V3000 element normalizer; test it directly too.
+  assert.equal(chemistryApi.normalizeElementSymbol('o'), 'O');
+  assert.equal(chemistryApi.normalizeElementSymbol('h'), 'H');
+  assert.equal(chemistryApi.normalizeElementSymbol('cl'), 'Cl');
+  assert.equal(chemistryApi.normalizeElementSymbol('co'), 'Co');
+  assert.equal(chemistryApi.normalizeElementSymbol('Xx'), null);
+
   // Graph validation checks identities, elements, coordinates, bonds and disconnected components.
   const validWater = {
     atoms: [
