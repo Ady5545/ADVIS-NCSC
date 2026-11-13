@@ -33,7 +33,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
       uInnerRadius: { value: NEBULA_VOLUME_INNER_RADIUS },
       uCameraLocal: { value: new THREE.Vector3(0, 0, 15) },
       // HologramCore lowers this modestly on high-DPI canvases.
-      uSteps: { value: 22 },
+      uSteps: { value: 10 },
     },
     vertexShader: `
       varying vec3 vLocalPosition;
@@ -97,7 +97,10 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
 
       void main() {
         vec3 rayOrigin = uCameraLocal;
-        vec3 rayDirection = normalize(vLocalPosition - rayOrigin);
+        vec3 rayVector = vLocalPosition - rayOrigin;
+        float rayVectorLength = length(rayVector);
+        if (rayVectorLength < 0.0001) discard;
+        vec3 rayDirection = rayVector / rayVectorLength;
 
         // Intersect the view ray with the volume's spherical bounds.
         float b = dot(rayOrigin, rayDirection);
@@ -127,7 +130,8 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
         float segmentLength = tExit - tEnter;
         if (segmentLength <= 0.001) discard;
 
-        float steps = clamp(uSteps, 8.0, 24.0);
+        // Keep the ray marcher bounded: the surface shader remains the stable visual fallback.
+        float steps = clamp(uSteps, 6.0, 12.0);
         float stepLength = segmentLength / steps;
         float transmittance = 1.0;
         vec3 accumulatedColor = vec3(0.0);
@@ -135,7 +139,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
           * (0.68 + uActivity * 0.08 + uVoice * 0.04 + uStateMode * 0.08
             + uSearching * 0.22 + uThinking * 0.07);
 
-        for (int i = 0; i < 24; i++) {
+        for (int i = 0; i < 12; i++) {
           if (float(i) >= steps || transmittance < 0.035) break;
 
           float t = tEnter + (float(i) + 0.5) * stepLength;
@@ -231,7 +235,7 @@ export function createNebulaVolumeMaterial(): THREE.ShaderMaterial {
         }
 
         float alpha = 1.0 - transmittance;
-        if (alpha < 0.008) discard;
+        if (alpha < 0.004) discard;
 
         // Normal alpha blending expects un-premultiplied output colour.
         gl_FragColor = vec4(accumulatedColor / max(alpha, 0.0001), alpha);
