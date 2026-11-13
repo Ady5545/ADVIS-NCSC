@@ -24,3 +24,20 @@ Make every interactive and informational interface surface feel like one deliber
 - No per-screen palette inventions; new UI must use the shared ADVIS tokens/primitives.
 - Preserve layout, functionality, scientific model colors, graph encodings, and semantic success/warning/error distinctions.
 - Do not treat a blocked deployment as a successful production release; run the repository checks and verify the deployed result when CI/deployment capacity allows.
+
+
+## Implementation status — 13 November 2026
+
+### Implemented on `main`
+- Added `src/advis-theme.css` as the shared ADVIS theme layer and loaded it after `src/index.css`.
+- Established common charcoal surface tiers, crimson accent, neutral typography, borders, focus treatment, and restrained semantic status surfaces.
+- Added reusable panel, button, icon-button, field, and status primitives.
+- Added compatibility mappings for legacy white opacity variants and older pale blue, cyan, indigo, rose, slate, gray, and one-off pale cockpit surfaces.
+- Normalized control states, form controls, native button fallback styling, focus rings, and scrollbars.
+- Audited the styling vocabulary in the eight main UI surfaces: engineering cockpit, scientific HUD, modal, command dock, chat panel, sidebar, mobile navigation, and home launchpad. The audit found 63 distinct background utility tokens; legacy light/accent tokens in those surfaces are covered by the shared theme layer.
+- Kept warning, success, error, and scientific visualization/data colors semantically distinct instead of flattening every color into crimson.
+
+### Verification still required
+- Source-level checks passed for stylesheet import order, required theme selectors, reusable primitives, and balanced CSS braces.
+- A full Vite/TypeScript/browser visual run has not been confirmed.
+- The latest Vercel check reports the account's `build-rate-limit`; therefore this implementation is pushed to GitHub `main`, but production activation and live visual QA are not yet verified.
