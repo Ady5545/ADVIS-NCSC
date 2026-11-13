@@ -1818,11 +1818,6 @@ function AppContent() {
   return (
     <GestureProvider handTracking={handTracking} isSpatial={isSpatial}>
       <div ref={containerRef} className={`relative w-screen h-screen overflow-hidden font-sans transition-colors duration-500 ${isEngineeringMode ? 'bg-[#101013] text-slate-900 selection:bg-red-500/20' : 'bg-[#080809] text-slate-800 selection:bg-red-500/20'}`}>
-      <div className="pointer-events-none fixed bottom-3 left-3 z-[110] max-w-[min(78vw,320px)] rounded-xl border border-rose-500/20 bg-[#101013]/85 px-3 py-2 shadow-[0_8px_28px_rgba(0,0,0,0.28)] backdrop-blur-md sm:bottom-4 sm:left-5">
-        <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-rose-300">ADVIS</div>
-        <div className="mt-0.5 text-[9px] leading-relaxed text-slate-300">Aadyant's Visual Intelligence System</div>
-        <div className="mt-1 text-[8px] uppercase tracking-[0.16em] text-slate-500">Created by Aadyant Bansal</div>
-      </div>
       <div className="fixed right-4 top-4 z-[120] flex flex-col items-end gap-1.5 pointer-events-auto">
         <button
           type="button"
