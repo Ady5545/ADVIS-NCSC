@@ -472,7 +472,7 @@ function HighFidelityAtom({
       easing.damp3(meshRef.current.position, [targetPos.x, currentY, targetPos.z], 0.3, delta);
     }
     if (pulseRef.current && pulse) {
-       pulseRef.current.scale.lerp(new THREE.Vector3(2.5, 2.5, 2.5), 0.15);
+       pulseRef.current.scale.set(2.5, 2.5, 2.5);
        const mat = pulseRef.current.material as THREE.MeshBasicMaterial;
        if (mat) {
          mat.opacity = THREE.MathUtils.lerp(mat.opacity, 0, 0.15);
@@ -665,6 +665,13 @@ function HighFidelityBond({
 }) {
   const [hovered, setHovered] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
+  // Reuse scratch objects to avoid per-frame garbage from every animated bond.
+  const frameA = useMemo(() => new THREE.Vector3(), []);
+  const frameB = useMemo(() => new THREE.Vector3(), []);
+  const frameCenter = useMemo(() => new THREE.Vector3(), []);
+  const frameDirection = useMemo(() => new THREE.Vector3(), []);
+  const frameUp = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const frameQuaternion = useMemo(() => new THREE.Quaternion(), []);
   
   const targetPosA = useMemo(() => mode === 'ANALYTICAL' ? posA.clone().multiplyScalar(1.5) : posA.clone(), [posA, mode]);
   const targetPosB = useMemo(() => mode === 'ANALYTICAL' ? posB.clone().multiplyScalar(1.5) : posB.clone(), [posB, mode]);
@@ -676,23 +683,28 @@ function HighFidelityBond({
   useFrame((state, delta) => {
     if (performanceMode) return;
     if (groupRef.current) {
-      const currentPosA = mode === 'ANALYTICAL' ? posA.clone().multiplyScalar(1.5) : posA.clone();
-      const currentPosB = mode === 'ANALYTICAL' ? posB.clone().multiplyScalar(1.5) : posB.clone();
-      
+      frameA.copy(posA);
+      frameB.copy(posB);
+      if (mode === 'ANALYTICAL') {
+        frameA.multiplyScalar(1.5);
+        frameB.multiplyScalar(1.5);
+      }
+
       // Dynamic vibration offset
       if (mode === 'DYNAMIC') {
         const time = state.clock.elapsedTime;
-        currentPosA.y += Math.sin(time * 10 + posA.x * 5) * 0.05;
-        currentPosB.y += Math.sin(time * 10 + posB.x * 5) * 0.05;
+        frameA.y += Math.sin(time * 10 + posA.x * 5) * 0.05;
+        frameB.y += Math.sin(time * 10 + posB.x * 5) * 0.05;
       }
-      
-      const c = currentPosA.clone().lerp(currentPosB, 0.5);
-      const l = currentPosA.distanceTo(currentPosB);
-      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), currentPosB.clone().sub(currentPosA).normalize());
-      
-      easing.damp3(groupRef.current.position, [c.x, c.y, c.z], 0.3, delta);
-      easing.dampQ(groupRef.current.quaternion, q, 0.3, delta);
-      easing.damp3(groupRef.current.scale, [1, l, 1], 0.3, delta);
+
+      frameCenter.copy(frameA).lerp(frameB, 0.5);
+      const length = frameA.distanceTo(frameB);
+      frameDirection.subVectors(frameB, frameA).normalize();
+      frameQuaternion.setFromUnitVectors(frameUp, frameDirection);
+
+      easing.damp3(groupRef.current.position, [frameCenter.x, frameCenter.y, frameCenter.z], 0.3, delta);
+      easing.dampQ(groupRef.current.quaternion, frameQuaternion, 0.3, delta);
+      easing.damp3(groupRef.current.scale, [1, length, 1], 0.3, delta);
     }
   });
 
