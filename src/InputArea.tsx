@@ -5,7 +5,7 @@ import { AudioSpectrumBar } from './AudioSpectrumBar';
 
 import { HandTrackingData } from './useHandTracking';
 
-export function InputArea({ onSend, systemState, setSystemState, setView, currentView, audioLevel = 0, wakeWordEnergy = 0, handTracking }: { 
+export function InputArea({ onSend, systemState, setSystemState, setView, currentView, audioLevel = 0, wakeWordEnergy = 0, handTracking, micEnabled = false, onToggleMic, voiceError }: { 
   onSend: (text: string, file?: {name: string, content: string, isImage?: boolean, mimeType?: string} | null) => void, 
   systemState: SystemState,
   setSystemState: (state: SystemState) => void,
