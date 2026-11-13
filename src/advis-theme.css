@@ -394,3 +394,13 @@ input::placeholder, textarea::placeholder {
 :where([class^="to-cyan-500/20"], [class*=" to-cyan-500/20"]) {
   --tw-gradient-to: rgba(226, 2, 70, 0.2) !important;
 }
+
+
+/* Opacity variants on hover are normalized as well; they never flash white or blue. */
+:where([class^="hover:bg-white"], [class*=" hover:bg-white"]):hover {
+  background-color: var(--advis-surface-raised) !important;
+}
+:where([class^="hover:bg-blue-"], [class*=" hover:bg-blue-"], [class^="hover:bg-cyan-"], [class*=" hover:bg-cyan-"], [class^="hover:bg-indigo-"], [class*=" hover:bg-indigo-"]):hover {
+  background-color: var(--advis-red-soft) !important;
+  border-color: var(--advis-border-strong) !important;
+}
