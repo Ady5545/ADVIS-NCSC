@@ -84,6 +84,7 @@ export function useSpeechRecognition(
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setVoiceErrorRef.current('This browser does not support continuous speech recognition. Try a Chromium-based browser.');
+      setMicEnabledRef.current(false);
       return;
     }
 
@@ -92,6 +93,10 @@ export function useSpeechRecognition(
     recognition.interimResults = true;
     recognition.lang = 'en-US';
     recognitionRef.current = recognition;
+    if (shouldRunRef.current) {
+      try { isListeningRef.current = true; recognition.start(); }
+      catch { isListeningRef.current = false; }
+    }
 
     const openCommandWindow = () => {
       sessionActiveRef.current = true;
