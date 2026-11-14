@@ -9,7 +9,7 @@ function getChemistryContract() {
 const MAX_ATOMS = 1200;
 const MAX_BONDS = 2400;
 const PUBCHEM_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
-const PUBCHEM_PROPERTIES = "IUPACName,MolecularFormula,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChI,InChIKey";
+const PUBCHEM_PROPERTIES = "IUPACName,MolecularFormula,MolecularFormulaNoCharge,Charge,ConnectivitySMILES,SMILES,InChI,InChIKey";
 
 function cleanQuery(value) {
   return typeof value === "string"
@@ -309,7 +309,7 @@ function getSourceFormalCharge(property) {
 async function fetchCandidates(cids) {
   const candidateIds = cids.slice(0, 6).join(",");
   const payload = await fetchJson(
-    PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChIKey/JSON"
+    PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormulaNoCharge,Charge,ConnectivitySMILES,SMILES,InChIKey/JSON"
   );
   return (payload.PropertyTable?.Properties || []).map(property => {
     const formalCharge = getSourceFormalCharge(property);
@@ -320,8 +320,8 @@ async function fetchCandidates(cids) {
       name: property.IUPACName || ("PubChem compound " + property.CID),
       formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
       ...(formalCharge !== undefined ? { formalCharge } : {}),
-      ...(property.CanonicalSMILES ? { canonicalSmiles: property.CanonicalSMILES } : {}),
-      ...(property.IsomericSMILES ? { isomericSmiles: property.IsomericSMILES } : {}),
+      ...((property.ConnectivitySMILES || property.CanonicalSMILES) ? { canonicalSmiles: property.ConnectivitySMILES || property.CanonicalSMILES } : {}),
+      ...((property.SMILES || property.IsomericSMILES) ? { isomericSmiles: property.SMILES || property.IsomericSMILES } : {}),
       ...(property.InChIKey ? { inchiKey: property.InChIKey } : {})
     };
   });
@@ -399,23 +399,23 @@ async function resolveCompound(query) {
       formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
       formalCharge: sourceFormalCharge,
       cid,
-      canonicalSmiles: property.CanonicalSMILES,
-      isomericSmiles: property.IsomericSMILES,
+      canonicalSmiles: property.ConnectivitySMILES || property.CanonicalSMILES,
+      isomericSmiles: property.SMILES || property.IsomericSMILES,
       inchi: property.InChI,
       inchiKey: property.InChIKey
     },
     graph,
     coordinates: {
       dimension: 3,
-      kind: "source_3d",
-      origin: "source_supplied",
+      kind: "generated_3d",
+      origin: "generated",
       units: "angstrom",
-      method: "PubChem source-supplied 3D SDF conformer"
+      method: "PubChem-computed 3D conformer record (record_type=3d)"
     },
     provenance: {
       provider: "pubchem",
       providerLabel: "PubChem",
-      evidence: "source_record",
+      evidence: "generated",
       sourceId: String(cid),
       sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/" + cid,
       retrievedAt: new Date().toISOString(),
