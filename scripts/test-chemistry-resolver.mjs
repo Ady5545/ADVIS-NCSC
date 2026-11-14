@@ -105,9 +105,9 @@ function makeStereoCodesSdf() {
     bondLine(1, 4, 2, 3),
     bondLine(2, 5, 2, 0),
     'M  END',
-    '$$',
+    '$$$$',
     ''
-  ].join('\\n');
+  ].join('\n');
 }
 
 function makeInvalidStereoSdf() {
@@ -122,9 +122,9 @@ function makeMassDifferenceSdf() {
     '  1  0  0  0  0  0            999 V2000',
     atomLine(0, 0, 0, 'C', 0, 0, 1),
     'M  END',
-    '$$',
+    '$$$$',
     ''
-  ].join('\\n');
+  ].join('\n');
 }
 
 function makeRadicalSdf() {
@@ -135,9 +135,9 @@ function makeRadicalSdf() {
     '  1  0  0  0  0  0            999 V2000',
     atomLine(0, 0, 0, 'C', 4),
     'M  END',
-    '$$',
+    '$$$$',
     ''
-  ].join('\\n');
+  ].join('\n');
 }
 
 function createResponse() {
@@ -380,7 +380,7 @@ async function run() {
   assert.equal(v2000.atoms[0].stereo, 'V2000_PARITY_1');
   assert.equal(v2000.atoms[0].metadata.stereoEncoding, 'V2000 atom parity');
   assert.equal(v2000.atoms[0].metadata.stereoCode, 1);
-  assert.match(v2000.atoms[0].metadata.stereoInterpretation, /not an absolute R\\/S assignment/);
+  assert.ok(v2000.atoms[0].metadata.stereoInterpretation.includes('not an absolute R/S assignment'));
   assert.equal(v2000.bonds[0].stereo, 'UP');
   assert.equal(v2000.bonds[0].metadata.stereoEncoding, 'V2000 single-bond stereo');
   assert.equal(v2000.bonds[0].metadata.stereoCode, 1);

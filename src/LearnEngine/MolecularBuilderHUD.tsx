@@ -7,8 +7,7 @@ import {
   RotateCcw, 
   Trash2, 
   Plus, 
-  AlertTriangle, 
-  CheckCircle2, 
+  AlertTriangle,  
   Info, 
   Search, 
   Sparkles,
@@ -145,7 +144,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
           </div>
 
           <span className="rounded bg-blue-50/60 border border-blue-200/30 px-2 py-0.5 text-[10px] font-mono text-blue-700">
-            {analysis?.estimatedGeometry || 'Geometry not assessed'}
+            {analysis?.estimatedGeometry ? 'EST. ' + analysis.estimatedGeometry : 'Geometry not assessed'}
           </span>
         </div>
 
