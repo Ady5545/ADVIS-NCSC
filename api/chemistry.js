@@ -370,7 +370,13 @@ async function resolveCompound(query) {
     throw error;
   }
 
-  const graph = parseSdf(sdf);
+  let graph;
+  try {
+    graph = parseSdf(sdf);
+  } catch (parseError) {
+    parseError.status = 422;
+    throw parseError;
+  }
   const result = buildStructureResult({
     identity: {
       query: input.original,
