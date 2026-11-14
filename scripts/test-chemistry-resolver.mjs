@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import {
   normalizeCompoundInput,
+  normalizeCompoundName,
   isMolecularFormula,
   normalizeElementSymbol,
   buildStructureResult,
@@ -92,7 +93,7 @@ function createResponse() {
   };
 }
 
-function makePubChemJsonFetch(sdf, cids = [962]) {
+function makePubChemJsonFetch(sdf, cids = [962], overrides = {}) {
   return async (url, options = {}) => {
     const target = String(url);
     if (target.includes('/compound/name/water/cids/JSON')) {
@@ -104,8 +105,8 @@ function makePubChemJsonFetch(sdf, cids = [962]) {
     if (target.includes('/compound/cid/1,2/property/')) {
       return new Response(JSON.stringify({
         PropertyTable: { Properties: [
-          { CID: 1, IUPACName: 'candidate one', MolecularFormula: 'C2H6O' },
-          { CID: 2, IUPACName: 'candidate two', MolecularFormula: 'C2H6O' }
+          { CID: 1, IUPACName: 'candidate one', MolecularFormula: 'C2H6O', MolecularFormulaNoCharge: 'C2H6O', Charge: 0 },
+          { CID: 2, IUPACName: 'candidate two', MolecularFormula: 'C2H6O', MolecularFormulaNoCharge: 'C2H6O', Charge: 0 }
         ] }
       }), { status: 200 });
     }
@@ -114,7 +115,9 @@ function makePubChemJsonFetch(sdf, cids = [962]) {
         PropertyTable: { Properties: [{
           CID: 962,
           IUPACName: 'oxidane',
-          MolecularFormula: 'H2O',
+          MolecularFormula: overrides.formula || 'H2O',
+          MolecularFormulaNoCharge: overrides.formulaNoCharge || overrides.formula || 'H2O',
+          Charge: overrides.charge ?? 0,
           CanonicalSMILES: 'O',
           IsomericSMILES: 'O',
           InChI: 'InChI=1S/H2O/h1H2',
@@ -123,6 +126,7 @@ function makePubChemJsonFetch(sdf, cids = [962]) {
       }), { status: 200 });
     }
     if (target.includes('/compound/cid/962/SDF?record_type=3d')) {
+      if (overrides.missing3d) return new Response('not found', { status: 404 });
       return new Response(sdf, { status: 200 });
     }
     if (target.includes('/compound/cid/962/SDF?record_type=3d-missing')) {
@@ -142,10 +146,21 @@ async function run() {
   assert.equal(normalizeCompoundInput('C6H12O6').kind, 'formula');
   assert.equal(normalizeCompoundInput('Formula: Ca(OH)2').kind, 'formula');
   assert.equal(normalizeCompoundInput('CID:2244').identifier, '2244');
+  assert.equal(normalizeCompoundInput('CID 2244').identifier, '2244');
+  assert.equal(normalizeCompoundInput('PubChem CID 2244').identifier, '2244');
+  assert.equal(normalizeCompoundInput('C₂H₆O').identifier, 'C2H6O');
+  assert.equal(normalizeCompoundInput('Ethanol').lookupKey, 'ethanol');
+  assert.equal(normalizeCompoundName('  D–Glucose  '), 'd-glucose');
+  assert.throws(() => normalizeCompoundInput('x'.repeat(221)), /220-character/);
+  assert.throws(() => normalizeCompoundInput('SMILES:'), /empty/);
   assert.equal(normalizeCompoundInput('SMILES: CCO').kind, 'smiles');
   assert.equal(normalizeCompoundInput('InChI=1S/H2O/h1H2').kind, 'inchi');
   assert.equal(normalizeCompoundInput('XLYOFNOQVPJJNP-UHFFFAOYSA-N').kind, 'inchikey');
   assert.equal(isMolecularFormula('Ca(OH)2'), true);
+  assert.equal(isMolecularFormula('C2H5OH'), true);
+  assert.equal(isMolecularFormula('CuSO4·5H2O'), true);
+  assert.equal(isMolecularFormula('Fe3+'), true);
+  assert.equal(isMolecularFormula('C6'), true);
   assert.equal(isMolecularFormula('VitaminB12'), false);
   assert.equal(normalizeElementSymbol('cl'), 'Cl');
   assert.equal(normalizeElementSymbol('NA'), 'Na');
@@ -171,10 +186,30 @@ async function run() {
       { id: 'b2', atomA: 'o', atomB: 'h2', order: 1, type: 'covalent' }
     ]
   };
-  const graphCheck = validateMolecularGraph(validWater, { formula: 'H2O' });
+  const graphCheck = validateMolecularGraph(validWater, { formula: 'H2O', formalCharge: 0 });
   assert.equal(graphCheck.valid, true);
   assert.equal(graphCheck.formulaFromGraph, 'H2O');
+  assert.equal(graphCheck.formulaConsistent, true);
+  assert.equal(graphCheck.chargeConsistent, true);
   assert.equal(graphCheck.connectedComponents, 1);
+
+  // Equivalent formula spellings compare by composition, not literal text.
+  const ethanolGraph = {
+    atoms: [
+      { id: 'c1', element: 'C', x: 0, y: 0, z: 0 },
+      { id: 'c2', element: 'C', x: 1.5, y: 0, z: 0 },
+      { id: 'o', element: 'O', x: 2.9, y: 0, z: 0 },
+      ...Array.from({ length: 6 }, (_, i) => ({ id: 'h' + i, element: 'H', x: i + 4, y: 1, z: 0 }))
+    ],
+    bonds: []
+  };
+  assert.equal(validateMolecularGraph(ethanolGraph, { formula: 'C2H5OH' }).formulaConsistent, true);
+  const formulaMismatch = validateMolecularGraph(validWater, { formula: 'H2O2' });
+  assert.equal(formulaMismatch.valid, false);
+  assert.ok(formulaMismatch.errors.some(error => error.includes('does not match the source formula')));
+  const chargeMismatch = validateMolecularGraph(validWater, { formula: 'H2O', formalCharge: 1 });
+  assert.equal(chargeMismatch.valid, false);
+  assert.ok(chargeMismatch.errors.some(error => error.includes('does not match the source charge')));
 
   const fragmented = validateMolecularGraph({
     atoms: [
@@ -185,6 +220,8 @@ async function run() {
   }, { formula: 'NaCl' });
   assert.equal(fragmented.valid, true);
   assert.equal(fragmented.connectedComponents, 2);
+  assert.deepEqual(fragmented.componentAtomCounts, [1, 1]);
+  assert.deepEqual(fragmented.componentFormulas, ['Na', 'Cl']);
   assert.ok(fragmented.warnings.some(warning => warning.includes('disconnected components')));
 
   const invalidGraphs = [
@@ -192,7 +229,11 @@ async function run() {
     { atoms: [{ id: 'a', element: 'C', x: NaN, y: 0, z: 0 }], bonds: [] },
     { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b', atomA: 'a', atomB: 'missing', order: 1, type: 'covalent' }] },
     { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b', atomA: 'a', atomB: 'a', order: 1, type: 'covalent' }] },
-    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b', atomA: 'a', atomB: 'a2', order: 5, type: 'covalent' }] }
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b', atomA: 'a', atomB: 'a2', order: 5, type: 'covalent' }] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1.5, type: 'covalent' }] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'unsupported' }] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }, { id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }] }
   ];
   for (const graph of invalidGraphs) {
     assert.equal(validateMolecularGraph(graph).valid, false);
@@ -202,16 +243,23 @@ async function run() {
   const contractResult = assertValidStructureResult(buildStructureResult({
     identity: { query: 'water', name: 'Water', formula: 'H2O' },
     graph: validWater,
-    coordinates: { dimension: 3, kind: 'source_3d', units: 'angstrom' },
+    coordinates: { dimension: 3, kind: 'source_3d', origin: 'source_supplied', units: 'angstrom', method: 'test source conformer' },
     provenance: {
       provider: 'fixture',
       providerLabel: 'Test fixture',
+      evidence: 'source_record',
       sourceId: 'fixture-1',
+      retrievedAt: new Date().toISOString(),
       sourceAtomCount: 3,
       sourceBondCount: 2
     }
   }));
+  assert.equal(contractResult.schemaVersion, '1.1.0');
   assert.equal(contractResult.status, 'VALID');
+  assert.equal(contractResult.coordinates.origin, 'source_supplied');
+  assert.equal(contractResult.provenance.evidence, 'source_record');
+  assert.equal(contractResult.validation.formulaConsistent, true);
+  assert.equal(contractResult.validation.chargeConsistent, true);
   assert.ok(contractResult.graph.bonds[0].length > 0.9);
 
   // SDF parser: V2000, charges, isotopes and bond stereo.
@@ -219,6 +267,10 @@ async function run() {
   assert.equal(v2000.atoms[0].charge, -1);
   assert.equal(v2000.atoms[1].isotope, 18);
   assert.equal(v2000.bonds[0].stereo, 'UP');
+  assert.equal(v2000.atoms[0].metadata.stereoEncoding, 'V2000 atom parity');
+  assert.equal(v2000.bonds[0].metadata.stereoEncoding, 'V2000 bond stereo');
+  assert.equal(v2000.bonds[0].sourceIndex, 1);
+  assert.equal(v2000.sourceFormat, 'V2000');
 
   // SDF parser: V3000, two-letter elements, isotope, formal charge, aromaticity and CFG data.
   const v3000 = chemistryApi.parseSdf(makeV3000Sdf());
@@ -229,6 +281,10 @@ async function run() {
   assert.equal(v3000.bonds[0].type, 'aromatic');
   assert.equal(v3000.bonds[0].order, 1.5);
   assert.equal(v3000.bonds[0].stereo, 'V3000_CFG_1');
+  assert.equal(v3000.atoms[0].metadata.stereoEncoding, 'V3000 atom CFG');
+  assert.equal(v3000.bonds[0].metadata.stereoEncoding, 'V3000 bond CFG');
+  assert.equal(v3000.bonds[0].sourceIndex, 1);
+  assert.equal(v3000.sourceFormat, 'V3000');
 
   // PubChem resolver returns the same versioned contract rather than a loose graph payload.
   const originalFetch = globalThis.fetch;
@@ -240,13 +296,20 @@ async function run() {
       response
     );
     assert.equal(response.statusCode, 200);
-    assert.equal(response.body.schemaVersion, '1.0.0');
+    assert.equal(response.body.schemaVersion, '1.1.0');
     assert.equal(response.body.identity.cid, 962);
+    assert.equal(response.body.identity.formalCharge, 0);
     assert.equal(response.body.coordinates.kind, 'source_3d');
+    assert.equal(response.body.coordinates.origin, 'source_supplied');
     assert.equal(response.body.provenance.provider, 'pubchem');
+    assert.equal(response.body.provenance.evidence, 'source_record');
+    assert.equal(response.body.graph.metadata.sourceFormat, 'V2000');
     assert.equal(response.body.graph.atoms.length, 3);
     assert.equal(response.body.graph.bonds.length, 2);
+    assert.equal(response.body.graph.bonds[0].sourceIndex, 1);
     assert.equal(response.body.validation.valid, true);
+    assert.equal(response.body.validation.formulaConsistent, true);
+    assert.equal(response.body.validation.chargeConsistent, true);
 
     // Formula-only searches never choose silently when PubChem returns multiple identities.
     globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [1, 2]);
@@ -267,6 +330,34 @@ async function run() {
     );
     assert.equal(ambiguousNameResponse.statusCode, 409);
     assert.equal(ambiguousNameResponse.body.candidates.length, 2);
+
+    // A source formula/charge mismatch is rejected, not downgraded to a warning.
+    globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [962], { formulaNoCharge: 'H2O2' });
+    const invalidSourceResponse = createResponse();
+    await chemistryApi(
+      { method: 'POST', headers: {}, body: { query: 'water' } },
+      invalidSourceResponse
+    );
+    assert.equal(invalidSourceResponse.statusCode, 422);
+    assert.match(invalidSourceResponse.body.error, /does not match the source formula/i);
+
+    // Missing source 3D data remains unsupported; no coordinates are fabricated.
+    globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [962], { missing3d: true });
+    const missingConformerResponse = createResponse();
+    await chemistryApi(
+      { method: 'POST', headers: {}, body: { query: 'water' } },
+      missingConformerResponse
+    );
+    assert.equal(missingConformerResponse.statusCode, 422);
+    assert.match(missingConformerResponse.body.error, /no source-supplied 3D conformer/i);
+
+    // Oversized identifiers are rejected as client input errors rather than truncated.
+    const oversizedResponse = createResponse();
+    await chemistryApi(
+      { method: 'POST', headers: {}, body: { query: 'x'.repeat(221) } },
+      oversizedResponse
+    );
+    assert.equal(oversizedResponse.statusCode, 400);
   } finally {
     globalThis.fetch = originalFetch;
   }
