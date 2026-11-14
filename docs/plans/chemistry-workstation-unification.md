@@ -1,6 +1,6 @@
 # ADVIS Chemistry Workstation — Unification & Capability Plan
 
-**Status:** Phase 0 foundation and the Phase 1 resolver/validation foundation are implemented on `main`; generated conformer service integration remains deferred pending a reliable runtime/provider.  
+**Status:** Phase 0 and the Phase 1 resolver/validation foundation are implemented on `main. PubChem's computed 3D compound conformer is integrated as a generated-conformer provider; a local RDKit/ETKDG service remains deferred pending a supported runtime.  
 **Product:** ADVIS NCSC  
 **Primary constraint:** Improve consistency and capability without redesigning the current chemistry experience.
 
@@ -289,9 +289,9 @@ Implemented on `main`:
 
 The official RDKit.js distribution is RDKit MinimalLib compiled to WebAssembly. Its current JavaScript documentation describes molecule parsing and graph/descriptor operations, but does not document the ETKDG conformer-embedding API needed to turn a validated graph into dependable 3D coordinates. The full Python RDKit toolkit documents ETKDGv3 embedding, but this Vite/Vercel application has no Python worker/runtime or configured conformer-generation service. A browser-side WASM download alone is not sufficient evidence that conformer generation is supported.
 
-Accordingly, no generated-conformer provider is registered in this phase. The provider contract can accept a future `generated_3d` result, but the resolver does not fabricate coordinates or relabel local teaching coordinates as generated conformers. PubChem source-supplied 3D SDF remains the only remote 3D conformer path. If PubChem has no 3D record, ADVIS returns an explicit unsupported result.
+Accordingly, no generated-conformer provider is registered in this phase. The PubChem compound `record_type=3d` path is integrated as `generated_3d`: PubChem computes these compound conformers, so ADVIS does not label them as source-supplied or experimental. If PubChem has no 3D record, ADVIS returns an explicit unsupported result rather than fabricating coordinates. The contract still reserves `source_3d` for deposited/source-supplied conformers; a provider for those records is not wired into this workstation.
 
-References for this evaluation: [RDKit.js documentation](https://rdkitjs.com/), [RDKit Python conformer generation and ETKDGv3](https://www.rdkit.org/docs/GettingStartedInPython.html), and [RDKit MinimalLib package metadata](https://npm.io/package/%40rdkit/rdkit). Phase 1 is therefore **partially complete**, not fully complete: the resolver, identity, graph-validation, provenance, and regression foundations are implemented; generated conformer service integration remains open.
+References for this evaluation: [PubChem PUG REST conformer and property specification](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [RDKit.js MinimalLib documentation](https://rdkitjs.com/docs/index.html), [RDKit.js API reference](https://rdkitjs.com/api/), and [RDKit Python ETKDGv3 conformer generation](https://www.rdkit.org/docs/GettingStartedInPython.html). Phase 1's resolver, identity, graph-validation, provenance, regression, and PubChem-computed conformer path are implemented. A local ETKDG service and a deposited/source-supplied conformer provider remain open; compounds without a PubChem 3D record remain unsupported.
 
 ### Phase 2 — Advanced molecules and coordination compounds
 
@@ -355,7 +355,7 @@ A test only passes when the expected graph and provenance conditions pass—not 
 
 ## 11. Current limitations to keep visible
 
-The current remote 3D path requires a source-supplied PubChem 3D SDF record. If the record is missing, the structure is unsupported in the 3D molecular canvas; no coordinates are synthesized. Local-library coordinates are explicitly identified as ADVIS teaching-library coordinates, not source-supplied or force-field-optimized conformers. Incomplete local graphs, formula mismatches, and charged local entries without atom-level charge annotations are rejected rather than completed by guesswork.
+The current remote 3D path requires a PubChem-computed compound 3D record (`record_type=3d`). These coordinates are classified as generated, not as source-supplied/experimental conformers. If the record is missing, the structure is unsupported in the 3D molecular canvas; no coordinates are synthesized locally. Deposited/source-supplied substance conformers are not yet wired. Local-library coordinates are explicitly identified as ADVIS teaching-library coordinates, not source-supplied or force-field-optimized conformers. Incomplete local graphs, formula mismatches, and charged local entries without atom-level charge annotations are rejected rather than completed by guesswork.
 
 A generated-conformer provider remains unavailable in the current deployment architecture: the application has no configured Python/RDKit service, and the documented RDKit.js MinimalLib interface has not established an ETKDG embedding path. This is a concrete integration blocker, not a claim that conformer generation is scientifically impossible. Protein/macromolecule structures also remain outside this phase. The present valence analyzer is educational feedback, not a universal chemistry validator.
 
