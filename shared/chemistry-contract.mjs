@@ -124,6 +124,16 @@ export function normalizeCompoundName(value) {
     .toLowerCase();
 }
 
+export function findExactCompoundNameMatches(entities, query) {
+  const key = normalizeCompoundName(query);
+  if (!key || !Array.isArray(entities)) return [];
+  const matches = entities.filter(entity =>
+    normalizeCompoundName(entity?.name || "") === key ||
+    normalizeCompoundName(entity?.iupacName || "") === key
+  );
+  return [...new Set(matches)];
+}
+
 export function isMolecularFormula(value) {
   return parseMolecularFormulaCounts(value) !== null;
 }
