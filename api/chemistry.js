@@ -10,11 +10,11 @@ const MAX_QUERY_LENGTH = 220;
 const MAX_ATOMS = 1200;
 const MAX_BONDS = 2400;
 const PUBCHEM_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
-const PUBCHEM_PROPERTIES = "IUPACName,MolecularFormula,CanonicalSMILES,IsomericSMILES,InChI,InChIKey";
+const PUBCHEM_PROPERTIES = "IUPACName,MolecularFormula,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChI,InChIKey";
 
 function cleanQuery(value) {
   return typeof value === "string"
-    ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_QUERY_LENGTH)
+    ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim()
     : "";
 }
 
@@ -68,10 +68,12 @@ function parseSdf(sdf) {
   const countsLine = lines[3] || "";
   const sourceAtoms = [];
   const sourceBonds = [];
+  let sourceFormat = "V2000";
   let expectedAtomCount = null;
   let expectedBondCount = null;
 
   if (countsLine.includes("V3000")) {
+    sourceFormat = "V3000";
     const counts = lines.find(line => /^M\s+V30\s+COUNTS\s+/i.test(line));
     const countMatch = counts && /^M\s+V30\s+COUNTS\s+(\d+)\s+(\d+)/i.exec(counts);
     if (!countMatch) throw new Error("The V3000 structure is missing its atom and bond counts.");
@@ -112,7 +114,10 @@ function parseSdf(sdf) {
         sourceAtoms.push({
           sourceIndex, element, x, y, z, charge,
           ...(isotope !== undefined ? { isotope } : {}),
-          ...(stereoAttribute ? { stereo: "V3000_CFG_" + stereoAttribute.split("=")[1] } : {})
+          ...(stereoAttribute ? {
+            stereo: "V3000_CFG_" + stereoAttribute.split("=")[1],
+            metadata: { stereoEncoding: "V3000 atom CFG" }
+          } : {})
         });
       } else if (section === "bond") {
         if (parts.length < 4) throw new Error("The V3000 structure contains an incomplete bond record.");
@@ -121,12 +126,15 @@ function parseSdf(sdf) {
         const order = orderToken === "AROMATIC" || orderToken === "AROM" ? 4 : Number(orderToken);
         const sourceA = Number(parts[2]), sourceB = Number(parts[3]);
         const stereoAttribute = parts.slice(4).find(value => /^CFG=/i.test(value));
-        if (!Number.isInteger(sourceIndex) || ![order, sourceA, sourceB].every(Number.isFinite)) {
+        if (!Number.isInteger(sourceIndex) || sourceIndex < 1 || ![order, sourceA, sourceB].every(Number.isFinite)) {
           throw new Error("The V3000 structure contains an invalid bond record.");
         }
         sourceBonds.push({
           sourceIndex, sourceA, sourceB, order,
-          ...(stereoAttribute ? { stereo: "V3000_CFG_" + stereoAttribute.split("=")[1] } : {})
+          ...(stereoAttribute ? {
+            stereo: "V3000_CFG_" + stereoAttribute.split("=")[1],
+            metadata: { stereoEncoding: "V3000 bond CFG" }
+          } : {})
         });
       }
     }
@@ -160,7 +168,10 @@ function parseSdf(sdf) {
             : null;
       sourceAtoms.push({
         sourceIndex: index + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0,
-        ...(atomStereo ? { stereo: atomStereo } : {})
+        ...(atomStereo ? {
+          stereo: atomStereo,
+          metadata: { stereoEncoding: "V2000 atom parity" }
+        } : {})
       });
     }
 
@@ -182,7 +193,10 @@ function parseSdf(sdf) {
             : null;
       sourceBonds.push({
         sourceIndex: index + 1, sourceA, sourceB, order,
-        ...(bondStereo ? { stereo: bondStereo } : {})
+        ...(bondStereo ? {
+          stereo: bondStereo,
+          metadata: { stereoEncoding: "V2000 bond stereo" }
+        } : {})
       });
     }
 
@@ -218,6 +232,13 @@ function parseSdf(sdf) {
     if (sourceIndexSet.has(atom.sourceIndex)) throw new Error("The SDF record contains duplicate source atom indices.");
     sourceIndexSet.add(atom.sourceIndex);
   }
+  const bondSourceIndexSet = new Set();
+  for (const bond of sourceBonds) {
+    if (!Number.isInteger(bond.sourceIndex) || bond.sourceIndex < 1 || bondSourceIndexSet.has(bond.sourceIndex)) {
+      throw new Error("The SDF record contains an invalid or duplicate source bond index.");
+    }
+    bondSourceIndexSet.add(bond.sourceIndex);
+  }
 
   const idBySource = new Map(sourceAtoms.map(atom => [atom.sourceIndex, "atom_" + atom.sourceIndex]));
   const atoms = sourceAtoms.map(atom => ({
@@ -227,6 +248,7 @@ function parseSdf(sdf) {
     charge: atom.charge || 0,
     ...(atom.isotope !== undefined ? { isotope: atom.isotope } : {}),
     ...(atom.stereo ? { stereo: atom.stereo } : {}),
+    ...(atom.metadata ? { metadata: atom.metadata } : {}),
     sourceIndex: atom.sourceIndex
   }));
 
@@ -242,12 +264,16 @@ function parseSdf(sdf) {
       atomA, atomB,
       order: aromatic ? 1.5 : bond.order,
       type: aromatic ? "aromatic" : "covalent",
-      ...(bond.stereo ? { stereo: bond.stereo } : {})
+      ...(bond.stereo ? { stereo: bond.stereo } : {}),
+      ...(bond.metadata ? { metadata: bond.metadata } : {}),
+      sourceIndex: bond.sourceIndex
     };
   });
 
   return {
     atoms, bonds,
+    metadata: { sourceFormat },
+    sourceFormat,
     sourceAtomCount: expectedAtomCount,
     sourceBondCount: expectedBondCount
   };
@@ -259,7 +285,7 @@ async function resolveCids(input) {
     return { IdentifierList: { CID: [Number(input.identifier)] } };
   }
   if (input.kind === "formula") {
-    return fetchJson(PUBCHEM_BASE + "/compound/fastformula/" + encoded + "/cids/JSON?MaxRecords=6");
+    return fetchJson(PUBCHEM_BASE + "/compound/fastformula/" + encoded + "/cids/JSON?MaxRecords=100");
   }
   if (input.kind === "inchi") {
     return fetchJson(PUBCHEM_BASE + "/compound/inchi/cids/JSON", {
@@ -273,12 +299,13 @@ async function resolveCids(input) {
 async function fetchCandidates(cids) {
   const candidateIds = cids.slice(0, 6).join(",");
   const payload = await fetchJson(
-    PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormula,CanonicalSMILES,IsomericSMILES,InChIKey/JSON"
+    PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChIKey/JSON"
   );
   return (payload.PropertyTable?.Properties || []).map(property => ({
     cid: property.CID,
     name: property.IUPACName || ("PubChem compound " + property.CID),
-    formula: property.MolecularFormula || "",
+    formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
+    ...(Number.isFinite(Number(property.Charge)) ? { formalCharge: Number(property.Charge) } : {}),
     ...(property.CanonicalSMILES ? { canonicalSmiles: property.CanonicalSMILES } : {}),
     ...(property.IsomericSMILES ? { isomericSmiles: property.IsomericSMILES } : {}),
     ...(property.InChIKey ? { inchiKey: property.InChIKey } : {})
@@ -287,7 +314,13 @@ async function fetchCandidates(cids) {
 
 async function resolveCompound(query) {
   const { normalizeCompoundInput, buildStructureResult, assertValidStructureResult } = await getChemistryContract();
-  const input = normalizeCompoundInput(cleanQuery(query));
+  let input;
+  try {
+    input = normalizeCompoundInput(cleanQuery(query));
+  } catch (normalizationError) {
+    normalizationError.status = 400;
+    throw normalizationError;
+  }
   if ((input.kind === "smiles" || input.kind === "inchi") && !input.identifier) {
     const error = new Error("The supplied structure identifier is empty.");
     error.status = 400;
@@ -340,7 +373,8 @@ async function resolveCompound(query) {
     identity: {
       query: input.original,
       name: property.IUPACName || input.identifier,
-      formula: property.MolecularFormula || "",
+      formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
+      formalCharge: Number.isFinite(Number(property.Charge)) ? Number(property.Charge) : undefined,
       cid,
       canonicalSmiles: property.CanonicalSMILES,
       isomericSmiles: property.IsomericSMILES,
@@ -351,12 +385,14 @@ async function resolveCompound(query) {
     coordinates: {
       dimension: 3,
       kind: "source_3d",
+      origin: "source_supplied",
       units: "angstrom",
-      method: "PubChem 3D SDF record"
+      method: "PubChem source-supplied 3D SDF conformer"
     },
     provenance: {
       provider: "pubchem",
       providerLabel: "PubChem",
+      evidence: "source_record",
       sourceId: String(cid),
       sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/" + cid,
       retrievedAt: new Date().toISOString(),
