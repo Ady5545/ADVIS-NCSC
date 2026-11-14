@@ -6,7 +6,6 @@ function getChemistryContract() {
   return chemistryContractPromise;
 }
 
-const MAX_QUERY_LENGTH = 220;
 const MAX_ATOMS = 1200;
 const MAX_BONDS = 2400;
 const PUBCHEM_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
@@ -401,7 +400,12 @@ async function resolveCompound(query) {
     }
   });
 
-  return assertValidStructureResult(result);
+  try {
+    return assertValidStructureResult(result);
+  } catch (validationError) {
+    validationError.status = 422;
+    throw validationError;
+  }
 }
 
 module.exports = async function handler(req, res) {
