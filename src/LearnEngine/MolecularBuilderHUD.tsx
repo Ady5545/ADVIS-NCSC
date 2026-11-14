@@ -52,7 +52,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
           <div className={`flex items-center gap-2 ${CHEMISTRY_UI.eyebrow}`}><FlaskConical className="h-4 w-4" /> Resolving molecule</div>
           <ChemistryStatusPill status="LOADING" />
         </div>
-        <p className="mt-2 text-xs text-slate-600">Retrieving the compound identity, molecular graph, and available 3D conformer from PubChem…</p>
+        <p className="mt-2 text-xs text-slate-600">Checking the ADVIS local chemistry library and PubChem for compound identity, molecular graph, and available coordinates…</p>
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full w-2/3 rounded-full bg-blue-600 animate-pulse" /></div>
       </aside>
     );
@@ -75,6 +75,19 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
 
   const selectedAtom = molecule.atoms.find(a => a.id === selectedAtomId) || null;
   const currentAtomId = selectedAtomId || lastAddedAtomId;
+  const structureResult = molecule.metadata?.structureResult;
+  const coordinateKind = structureResult?.coordinates?.kind;
+  const coordinateLabel = coordinateKind === 'source_3d'
+    ? 'SOURCE-SUPPLIED 3D CONFORMER'
+    : coordinateKind === 'generated_3d'
+      ? 'GENERATED 3D CONFORMER'
+      : coordinateKind === 'local_library_3d'
+        ? 'LOCAL LIBRARY COORDINATES · NOT SOURCE-SUPPLIED'
+        : coordinateKind === 'source_2d'
+          ? 'SOURCE-SUPPLIED 2D COORDINATES'
+          : null;
+  const provenance = structureResult?.provenance;
+  const validation = structureResult?.validation;
 
   return (
     <aside 
@@ -93,13 +106,13 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
               Molecular Builder
             </h2>
             <p className="text-[10px] text-slate-500 font-mono">
-              {source === 'REMOTE_REFERENCE'
-                ? 'PubChem 3D conformer'
+              {coordinateLabel || (source === 'REMOTE_REFERENCE'
+                ? 'PubChem source structure'
                 : source === 'LIBRARY_DERIVATIVE'
-                  ? `Derivative of ${canonicalOriginFormula || 'Canonical'}`
+                  ? `ADVIS library · ${canonicalOriginFormula || 'Canonical'}`
                   : source === 'CUSTOM_BUILDER'
                     ? 'Interactive Session Graph'
-                    : 'Canonical Library'}
+                    : 'Canonical Library')}
             </p>
           </div>
         </div>
@@ -145,12 +158,35 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
             </span>
           </div>
         </div>
-        {source === 'REMOTE_REFERENCE' && molecule.metadata?.sourceUrl && (
-          <div className="mt-2 border-t border-slate-200 pt-2 text-[10px] font-mono text-slate-500">
-            SOURCE: <a href={molecule.metadata.sourceUrl} target="_blank" rel="noreferrer" className="text-blue-700 underline underline-offset-2">
-              PubChem CID {molecule.metadata.cid}
-            </a>
-            <span className="ml-2 text-slate-400">3D conformer</span>
+        {structureResult && (
+          <div className="mt-2 border-t border-slate-200 pt-2 space-y-1 text-[9px] font-mono text-slate-500">
+            <div className="flex items-start justify-between gap-2">
+              <span>PROVIDER</span>
+              <span className="text-right text-slate-600">{provenance?.providerLabel || provenance?.provider || 'Unspecified'}</span>
+            </div>
+            <div className="flex items-start justify-between gap-2">
+              <span>COORDINATE ORIGIN</span>
+              <span className="text-right text-slate-600">{coordinateLabel || 'Not classified'}</span>
+            </div>
+            {provenance?.sourceUrl ? (
+              <div className="flex items-center justify-between gap-2">
+                <span>SOURCE RECORD</span>
+                <a href={provenance.sourceUrl} target="_blank" rel="noreferrer" className="text-blue-700 underline underline-offset-2">
+                  {provenance.provider === 'pubchem' ? `PubChem CID ${structureResult.identity?.cid}` : 'Open source'}
+                </a>
+              </div>
+            ) : provenance?.evidence === 'local_library' ? (
+              <div className="text-slate-500">LOCAL TEACHING LIBRARY · NOT AN EXTERNAL SOURCE CONFORMER</div>
+            ) : null}
+            <div className="flex items-center justify-between gap-2">
+              <span>GRAPH VALIDATION</span>
+              <span className={validation?.valid ? 'text-emerald-700' : 'text-amber-700'}>
+                {validation?.valid ? (validation?.warnings?.length ? `PASSED · ${validation.warnings.length} WARNING(S)` : 'PASSED') : 'NOT VERIFIED'}
+              </span>
+            </div>
+            {coordinateKind === 'generated_3d' && (
+              <div className="text-amber-700">Generated coordinates are not source-supplied conformer data.</div>
+            )}
           </div>
         )}
       </section>
