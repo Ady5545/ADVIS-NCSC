@@ -43,6 +43,10 @@ function makeWaterSdf() {
   ].join('\n');
 }
 
+function makeBrokenBondSdf() {
+  return makeWaterSdf().replace(bondLine(1, 3, 1), bondLine(1, 4, 1));
+}
+
 function makeChargedIsotopeSdf() {
   return [
     'ADVIS ISOTOPE FIXTURE',
@@ -348,6 +352,25 @@ async function run() {
     );
     assert.equal(invalidSourceResponse.statusCode, 422);
     assert.match(invalidSourceResponse.body.error, /does not match the source formula/i);
+
+    globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [962], { charge: 1 });
+    const invalidChargeResponse = createResponse();
+    await chemistryApi(
+      { method: 'POST', headers: {}, body: { query: 'water' } },
+      invalidChargeResponse
+    );
+    assert.equal(invalidChargeResponse.statusCode, 422);
+    assert.match(invalidChargeResponse.body.error, /does not match the source charge/i);
+
+    // Malformed source atom/bond references are rejected before a structure can reach the canvas.
+    globalThis.fetch = makePubChemJsonFetch(makeBrokenBondSdf(), [962]);
+    const malformedGraphResponse = createResponse();
+    await chemistryApi(
+      { method: 'POST', headers: {}, body: { query: 'water' } },
+      malformedGraphResponse
+    );
+    assert.equal(malformedGraphResponse.statusCode, 422);
+    assert.match(malformedGraphResponse.body.error, /bond to a missing atom/i);
 
     // Missing source 3D data remains unsupported; no coordinates are fabricated.
     globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [962], { missing3d: true });
