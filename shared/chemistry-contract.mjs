@@ -77,24 +77,29 @@ function parseFormulaSegment(segment) {
   return parsed && index === segment.length ? parsed : null;
 }
 
-function parseMolecularFormulaCounts(value) {
-  if (typeof value !== "string") return null;
-  let formula = normalizeFormulaDigits(value).replace(/\s+/g, "");
+function splitFormulaCharge(value) {
+  const raw = normalizeFormulaDigits(value).replace(/\\s+/g, "");
+  const caretCharge = /^(.*)\\^(\\d*)([+-])$/.exec(raw);
+  if (caretCharge) {
+    return { body: caretCharge[1], suffix: "^" + caretCharge[2] + caretCharge[3] };
+  }
+  const singleElementIon = /^([A-Z][a-z]?)(\\d+)([+-])$/.exec(raw);
+  if (singleElementIon && ELEMENTS.has(singleElementIon[1])) {
+    return { body: singleElementIon[1], suffix: singleElementIon[2] + singleElementIon[3] };
+  }
+  const terminalSign = /^(.*)([+-])$/.exec(raw);
+  if (terminalSign) return { body: terminalSign[1], suffix: terminalSign[2] };
+  return { body: raw, suffix: "" };
+}
+
+function parseMolecularFormulaBody(value) {
+  const formula = normalizeFormulaDigits(value).replace(/\\s+/g, "");
   if (!formula || formula.length > 100) return null;
-
-  // Explicit caret charge notation is unambiguous. A terminal sign is also
-  // accepted; for a single-element ion such as Fe3+, the trailing number is charge.
-  const originalFormula = normalizeFormulaDigits(value).replace(/\s+/g, "");
-  const singleElementIon = /^([A-Z][a-z]?)(\d+)[+-]$/.exec(originalFormula);
-  formula = formula.replace(/\^\d*[+-]$/, "").replace(/[+-]$/, "");
-  if (singleElementIon && ELEMENTS.has(singleElementIon[1])) formula = singleElementIon[1];
-  if (!formula) return null;
-
   const total = new Map();
   const segments = formula.split(/[·.]/);
   if (segments.some(segment => !segment)) return null;
   for (const segment of segments) {
-    const multiplierMatch = /^(\d+)(?=[A-Z[(])/.exec(segment);
+    const multiplierMatch = /^(\\d+)(?=[A-Z[(])/.exec(segment);
     const multiplier = multiplierMatch ? Number(multiplierMatch[1]) : 1;
     const body = multiplierMatch ? segment.slice(multiplierMatch[1].length) : segment;
     if (!Number.isSafeInteger(multiplier) || multiplier <= 0 || multiplier > 100000) return null;
@@ -105,6 +110,23 @@ function parseMolecularFormulaCounts(value) {
     }
   }
   return total.size ? total : null;
+}
+
+function parseMolecularFormulaCounts(value) {
+  if (typeof value !== "string") return null;
+  const { body } = splitFormulaCharge(value);
+  return parseMolecularFormulaBody(body);
+}
+
+export function canonicalizeMolecularFormula(value) {
+  if (typeof value !== "string") return null;
+  const { body, suffix } = splitFormulaCharge(value);
+  const counts = parseMolecularFormulaBody(body);
+  if (!counts) return null;
+  const order = counts.has("C")
+    ? ["C", ...(counts.has("H") ? ["H"] : []), ...[...counts.keys()].filter(element => element !== "C" && element !== "H").sort()]
+    : [...counts.keys()].sort();
+  return order.map(element => element + (counts.get(element) > 1 ? counts.get(element) : "")).join("") + suffix;
 }
 
 function formulaCountsEqual(left, right) {
@@ -169,11 +191,11 @@ export function normalizeCompoundInput(value) {
   if (explicitFormula) {
     const formula = normalizeFormulaDigits(explicitFormula[1]).replace(/\s+/g, "");
     if (!isMolecularFormula(formula)) throw new Error("The supplied molecular formula is not in a supported formula format.");
-    return { original: query, kind: "formula", identifier: formula };
+    return { original: query, kind: "formula", identifier: canonicalizeMolecularFormula(formula) };
   }
 
   const formula = normalizeFormulaDigits(query).replace(/\s+/g, "");
-  if (isMolecularFormula(formula)) return { original: query, kind: "formula", identifier: formula };
+  if (isMolecularFormula(formula)) return { original: query, kind: "formula", identifier: canonicalizeMolecularFormula(formula) };
   return {
     original: query,
     kind: "name",
