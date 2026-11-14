@@ -88,6 +88,10 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
           : null;
   const provenance = structureResult?.provenance;
   const validation = structureResult?.validation;
+  const graphNetCharge = molecule.atoms.reduce(
+    (total, atom) => total + (Number.isInteger(atom.charge) ? Number(atom.charge) : 0),
+    0
+  );
 
   return (
     <aside 
@@ -107,7 +111,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
             </h2>
             <p className="text-[10px] text-slate-500 font-mono">
               {coordinateLabel || (source === 'REMOTE_REFERENCE'
-                ? 'PubChem source structure'
+                ? 'PubChem reference'
                 : source === 'LIBRARY_DERIVATIVE'
                   ? `ADVIS library · ${canonicalOriginFormula || 'Canonical'}`
                   : source === 'CUSTOM_BUILDER'
@@ -133,7 +137,7 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
         <div className="flex items-baseline justify-between">
           <div className="flex items-baseline space-x-2">
             <span className="text-2xl font-bold font-mono text-blue-700 tracking-wide">
-              {formatMolecularFormula(analysis?.formula || 'C')}
+              {formatMolecularFormula(structureResult?.identity?.formula || molecule.metadata?.formula || analysis?.formula || 'Not available')}
             </span>
             <span className="text-[11px] text-slate-500 font-mono">
               ({molecule.atoms.length} {molecule.atoms.length === 1 ? 'atom' : 'atoms'}, {molecule.bonds.length} {molecule.bonds.length === 1 ? 'bond' : 'bonds'})
@@ -141,20 +145,20 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
           </div>
 
           <span className="rounded bg-blue-50/60 border border-blue-200/30 px-2 py-0.5 text-[10px] font-mono text-blue-700">
-            {analysis?.estimatedGeometry || 'Single Atom'}
+            {analysis?.estimatedGeometry || 'Geometry not assessed'}
           </span>
         </div>
 
         {/* Geometry & Hybridization Meta */}
         <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] font-mono">
           <div className="rounded bg-white/60 p-1.5 border border-slate-200/80">
-            <span className={`block ${CHEMISTRY_UI.label}`}>HYBRIDIZATION</span>
-            <span className="font-semibold text-blue-800">{analysis?.estimatedHybridization || 'sp³'}</span>
+            <span className={`block ${CHEMISTRY_UI.label}`}>HYBRIDIZATION (EST.)</span>
+            <span className="font-semibold text-blue-800">{analysis?.estimatedHybridization || 'Not assessed'}</span>
           </div>
           <div className="rounded bg-white/60 p-1.5 border border-slate-200/80">
             <span className="text-slate-500 block text-[9px]">NET CHARGE</span>
-            <span className={`font-semibold ${(analysis?.totalFormalCharge ?? 0) === 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {analysis ? ((analysis?.totalFormalCharge ?? 0) > 0 ? `+${(analysis?.totalFormalCharge ?? 0)}` : (analysis?.totalFormalCharge ?? 0)) : '0'}
+            <span className={`font-semibold ${graphNetCharge === 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
+              {graphNetCharge > 0 ? `+${graphNetCharge}` : graphNetCharge}
             </span>
           </div>
         </div>
@@ -244,9 +248,9 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
       )}
 
       {analysis && analysis.warnings.length === 0 && (
-        <div className="mt-2.5 flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 p-2 font-mono text-[10px] text-emerald-800">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
-          <span>Valence & octet satisfied with 0 net formal charge.</span>
+        <div className="mt-2.5 flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 font-mono text-[10px] text-blue-800">
+          <Info className="h-3.5 w-3.5 text-blue-600 flex-shrink-0" />
+          <span>No warnings from the educational valence analyzer.</span>
         </div>
       )}
 

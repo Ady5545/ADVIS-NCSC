@@ -16,9 +16,9 @@ import {
 const require = createRequire(import.meta.url);
 const chemistryApi = require('../api/chemistry.js');
 
-function atomLine(x, y, z, element, chargeCode = 0, parity = 0) {
+function atomLine(x, y, z, element, chargeCode = 0, parity = 0, massDifference = 0) {
   const coordinates = [x, y, z].map(value => Number(value).toFixed(4).padStart(10)).join('');
-  return coordinates + ' ' + element.padEnd(3) + ' 0' +
+  return coordinates + ' ' + element.padEnd(3) + String(massDifference).padStart(2) +
     String(chargeCode).padStart(3) + String(parity).padStart(3) +
     '  0  0  0  0  0  0  0  0  0  0';
 }
@@ -86,6 +86,58 @@ function makeV3000Sdf() {
     '$$$$',
     ''
   ].join('\n');
+}
+
+function makeStereoCodesSdf() {
+  return [
+    'ADVIS V2000 STEREO FIXTURE',
+    'ADVIS Chemistry Resolver Tests',
+    '',
+    '  5  5  0  0  0  0            999 V2000',
+    atomLine(0, 0, 0, 'C'),
+    atomLine(1.2, 0, 0, 'C'),
+    atomLine(2.4, 0.5, 0, 'C'),
+    atomLine(3.6, 0.5, 0, 'C'),
+    atomLine(1.2, 1.7, 0, 'C'),
+    bondLine(1, 2, 1, 1),
+    bondLine(2, 3, 1, 4),
+    bondLine(3, 4, 1, 6),
+    bondLine(1, 4, 2, 3),
+    bondLine(2, 5, 2, 0),
+    'M  END',
+    '$$',
+    ''
+  ].join('\\n');
+}
+
+function makeInvalidStereoSdf() {
+  return makeStereoCodesSdf().replace(bondLine(1, 2, 1, 1), bondLine(1, 2, 1, 3));
+}
+
+function makeMassDifferenceSdf() {
+  return [
+    'ADVIS V2000 ISOTOPE OFFSET FIXTURE',
+    'ADVIS Chemistry Resolver Tests',
+    '',
+    '  1  0  0  0  0  0            999 V2000',
+    atomLine(0, 0, 0, 'C', 0, 0, 1),
+    'M  END',
+    '$$',
+    ''
+  ].join('\\n');
+}
+
+function makeRadicalSdf() {
+  return [
+    'ADVIS V2000 RADICAL FIXTURE',
+    'ADVIS Chemistry Resolver Tests',
+    '',
+    '  1  0  0  0  0  0            999 V2000',
+    atomLine(0, 0, 0, 'C', 4),
+    'M  END',
+    '$$',
+    ''
+  ].join('\\n');
 }
 
 function createResponse() {
@@ -325,10 +377,26 @@ async function run() {
   assert.equal(v2000.atoms[0].charge, -1);
   assert.equal(v2000.atoms[1].isotope, 18);
   assert.equal(v2000.bonds[0].stereo, 'UP');
+  assert.equal(v2000.atoms[0].stereo, 'V2000_PARITY_1');
   assert.equal(v2000.atoms[0].metadata.stereoEncoding, 'V2000 atom parity');
-  assert.equal(v2000.bonds[0].metadata.stereoEncoding, 'V2000 bond stereo');
+  assert.equal(v2000.atoms[0].metadata.stereoCode, 1);
+  assert.match(v2000.atoms[0].metadata.stereoInterpretation, /not an absolute R\\/S assignment/);
+  assert.equal(v2000.bonds[0].stereo, 'UP');
+  assert.equal(v2000.bonds[0].metadata.stereoEncoding, 'V2000 single-bond stereo');
+  assert.equal(v2000.bonds[0].metadata.stereoCode, 1);
   assert.equal(v2000.bonds[0].sourceIndex, 1);
   assert.equal(v2000.sourceFormat, 'V2000');
+
+  const v2000Stereo = chemistryApi.parseSdf(makeStereoCodesSdf());
+  assert.deepEqual(v2000Stereo.bonds.map(bond => bond.stereo), [
+    'UP', 'EITHER', 'DOWN', 'CIS_TRANS_UNSPECIFIED', 'COORDINATE_DEFINED'
+  ]);
+  assert.equal(v2000Stereo.bonds[3].metadata.stereoCode, 3);
+  assert.match(v2000Stereo.bonds[4].metadata.stereoEncoding, /source coordinates/);
+  assert.throws(() => chemistryApi.parseSdf(makeInvalidStereoSdf()), /double-bond stereo code on a non-double bond/i);
+  assert.throws(() => chemistryApi.parseSdf(makeRadicalSdf()), /radical atom record/i);
+  const isotopeOffset = chemistryApi.parseSdf(makeMassDifferenceSdf());
+  assert.equal(isotopeOffset.atoms[0].metadata.isotopeMassDifference, 1);
 
   // SDF parser: V3000, two-letter elements, isotope, formal charge, aromaticity and CFG data.
   const v3000 = chemistryApi.parseSdf(makeV3000Sdf());
@@ -336,7 +404,9 @@ async function run() {
   assert.equal(v3000.atoms[0].charge, 2);
   assert.equal(v3000.atoms[0].isotope, 59);
   assert.equal(v3000.atoms[0].stereo, 'V3000_CFG_1');
+  assert.equal(v3000.atoms[0].metadata.stereoCode, 1);
   assert.equal(v3000.bonds[0].type, 'aromatic');
+  assert.equal(v3000.bonds[0].metadata.stereoCode, 1);
   assert.equal(v3000.bonds[0].order, 1.5);
   assert.equal(v3000.bonds[0].stereo, 'V3000_CFG_1');
   assert.equal(v3000.atoms[0].metadata.stereoEncoding, 'V3000 atom CFG');
@@ -426,7 +496,8 @@ async function run() {
       missingConformerResponse
     );
     assert.equal(missingConformerResponse.statusCode, 422);
-    assert.match(missingConformerResponse.body.error, /no source-supplied 3D conformer/i);
+    assert.match(missingConformerResponse.body.error, /no computed 3D conformer record/i);
+    assert.doesNotMatch(missingConformerResponse.body.error, /source-supplied 3D conformer/i);
 
     // Oversized identifiers are rejected as client input errors rather than truncated.
     const oversizedResponse = createResponse();

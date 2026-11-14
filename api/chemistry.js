@@ -107,15 +107,19 @@ function parseSdf(sdf) {
         const stereoAttribute = attributes.find(value => /^CFG=/i.test(value));
         const charge = chargeAttribute ? Number(chargeAttribute.split("=")[1]) : 0;
         const isotope = massAttribute ? Number(massAttribute.split("=")[1]) : undefined;
+        const stereoCode = stereoAttribute ? Number(stereoAttribute.split("=")[1]) : undefined;
         if (!Number.isInteger(charge) || (isotope !== undefined && (!Number.isInteger(isotope) || isotope < 1))) {
           throw new Error("The V3000 structure contains invalid charge or isotope metadata.");
+        }
+        if (stereoCode !== undefined && ![1, 2, 3].includes(stereoCode)) {
+          throw new Error("The V3000 structure contains an unsupported atom stereochemistry code.");
         }
         sourceAtoms.push({
           sourceIndex, element, x, y, z, charge,
           ...(isotope !== undefined ? { isotope } : {}),
-          ...(stereoAttribute ? {
-            stereo: "V3000_CFG_" + stereoAttribute.split("=")[1],
-            metadata: { stereoEncoding: "V3000 atom CFG" }
+          ...(stereoCode !== undefined ? {
+            stereo: "V3000_CFG_" + stereoCode,
+            metadata: { stereoEncoding: "V3000 atom CFG", stereoCode }
           } : {})
         });
       } else if (section === "bond") {
@@ -125,14 +129,18 @@ function parseSdf(sdf) {
         const order = orderToken === "AROMATIC" || orderToken === "AROM" ? 4 : Number(orderToken);
         const sourceA = Number(parts[2]), sourceB = Number(parts[3]);
         const stereoAttribute = parts.slice(4).find(value => /^CFG=/i.test(value));
+        const stereoCode = stereoAttribute ? Number(stereoAttribute.split("=")[1]) : undefined;
         if (!Number.isInteger(sourceIndex) || sourceIndex < 1 || ![order, sourceA, sourceB].every(Number.isFinite)) {
           throw new Error("The V3000 structure contains an invalid bond record.");
         }
+        if (stereoCode !== undefined && ![1, 2, 3].includes(stereoCode)) {
+          throw new Error("The V3000 structure contains an unsupported bond stereochemistry code.");
+        }
         sourceBonds.push({
           sourceIndex, sourceA, sourceB, order,
-          ...(stereoAttribute ? {
-            stereo: "V3000_CFG_" + stereoAttribute.split("=")[1],
-            metadata: { stereoEncoding: "V3000 bond CFG" }
+          ...(stereoCode !== undefined ? {
+            stereo: "V3000_CFG_" + stereoCode,
+            metadata: { stereoEncoding: "V3000 bond CFG", stereoCode }
           } : {})
         });
       }
@@ -148,29 +156,48 @@ function parseSdf(sdf) {
 
     for (let index = 0; index < expectedAtomCount; index++) {
       const line = lines[4 + index] || "";
-      const x = Number(line.slice(0, 10).trim());
-      const y = Number(line.slice(10, 20).trim());
-      const z = Number(line.slice(20, 30).trim());
+      const xText = line.slice(0, 10).trim();
+      const yText = line.slice(10, 20).trim();
+      const zText = line.slice(20, 30).trim();
+      const x = Number(xText);
+      const y = Number(yText);
+      const z = Number(zText);
       const element = normalizeElementSymbol(line.slice(31, 34).trim());
-      const chargeCode = Number(line.slice(36, 39).trim()) || 0;
-      const parity = Number(line.slice(39, 42).trim()) || 0;
+      const massDifferenceText = line.slice(34, 36).trim();
+      const chargeCodeText = line.slice(36, 39).trim();
+      const parityText = line.slice(39, 42).trim();
+      const massDifference = massDifferenceText ? Number(massDifferenceText) : 0;
+      const chargeCode = chargeCodeText ? Number(chargeCodeText) : 0;
+      const parity = parityText ? Number(parityText) : 0;
       const chargeMap = { 1: 3, 2: 2, 3: 1, 5: -1, 6: -2, 7: -3 };
-      if (!element || ![x, y, z].every(Number.isFinite)) {
+      if (!xText || !yText || !zText || !element || ![x, y, z].every(Number.isFinite)) {
         throw new Error("The V2000 structure contains an invalid atom or coordinate.");
       }
-      const atomStereo = parity === 1
-        ? "TETRAHEDRAL_CW"
-        : parity === 2
-          ? "TETRAHEDRAL_CCW"
-          : parity === 3
-            ? "TETRAHEDRAL_UNSPECIFIED"
-            : null;
-      sourceAtoms.push({
-        sourceIndex: index + 1, element, x, y, z, charge: chargeMap[chargeCode] || 0,
+      if (!Number.isInteger(massDifference) || massDifference < -3 || massDifference > 4) {
+        throw new Error("The V2000 structure contains an invalid isotope mass-difference field.");
+      }
+      if (chargeCode === 4) {
+        throw new Error("The V2000 structure contains a radical atom record that ADVIS cannot yet represent safely.");
+      }
+      if (!Number.isInteger(chargeCode) || (chargeCode !== 0 && !Object.prototype.hasOwnProperty.call(chargeMap, chargeCode))) {
+        throw new Error("The V2000 structure contains an unsupported atom charge code.");
+      }
+      if (!Number.isInteger(parity) || ![0, 1, 2, 3].includes(parity)) {
+        throw new Error("The V2000 structure contains an unsupported atom parity code.");
+      }
+      const atomStereo = parity === 0 ? null : "V2000_PARITY_" + parity;
+      const atomMetadata = {
+        ...(massDifference !== 0 ? { isotopeMassDifference: massDifference } : {}),
         ...(atomStereo ? {
-          stereo: atomStereo,
-          metadata: { stereoEncoding: "V2000 atom parity" }
+          stereoEncoding: "V2000 atom parity",
+          stereoCode: parity,
+          stereoInterpretation: "source parity token; not an absolute R/S assignment"
         } : {})
+      };
+      sourceAtoms.push({
+        sourceIndex: index + 1, element, x, y, z, charge: chargeMap[chargeCode] ?? 0,
+        ...(atomStereo ? { stereo: atomStereo } : {}),
+        ...(Object.keys(atomMetadata).length ? { metadata: atomMetadata } : {})
       });
     }
 
@@ -179,23 +206,35 @@ function parseSdf(sdf) {
       const sourceA = Number(line.slice(0, 3).trim());
       const sourceB = Number(line.slice(3, 6).trim());
       const order = Number(line.slice(6, 9).trim());
-      const stereoCode = Number(line.slice(9, 12).trim()) || 0;
-      if (![sourceA, sourceB, order].every(Number.isFinite)) {
+      const stereoCodeText = line.slice(9, 12).trim();
+      const stereoCode = stereoCodeText ? Number(stereoCodeText) : 0;
+      if (![sourceA, sourceB, order].every(Number.isFinite) || !Number.isInteger(stereoCode)) {
         throw new Error("The V2000 structure contains an invalid bond record.");
       }
-      const bondStereo = stereoCode === 1
-        ? "UP"
-        : stereoCode === 6
-          ? "DOWN"
-          : stereoCode === 3
-            ? "EITHER"
-            : null;
+      if (![1, 2, 3, 4].includes(order) || ![0, 1, 3, 4, 6].includes(stereoCode)) {
+        throw new Error("The V2000 structure contains an unsupported bond order or stereo code.");
+      }
+      let bondStereo = null;
+      let bondMetadata = null;
+      if ([1, 4, 6].includes(stereoCode)) {
+        if (order !== 1) throw new Error("The V2000 structure uses a single-bond stereo code on a non-single bond.");
+        bondStereo = stereoCode === 1 ? "UP" : stereoCode === 6 ? "DOWN" : "EITHER";
+        bondMetadata = { stereoEncoding: "V2000 single-bond stereo", stereoCode };
+      } else if (stereoCode === 3) {
+        if (order !== 2) throw new Error("The V2000 structure uses a double-bond stereo code on a non-double bond.");
+        bondStereo = "CIS_TRANS_UNSPECIFIED";
+        bondMetadata = { stereoEncoding: "V2000 double-bond stereo", stereoCode };
+      } else if (stereoCode === 0 && order === 2) {
+        bondStereo = "COORDINATE_DEFINED";
+        bondMetadata = {
+          stereoEncoding: "V2000 double-bond stereo from source coordinates",
+          stereoCode
+        };
+      }
       sourceBonds.push({
         sourceIndex: index + 1, sourceA, sourceB, order,
-        ...(bondStereo ? {
-          stereo: bondStereo,
-          metadata: { stereoEncoding: "V2000 bond stereo" }
-        } : {})
+        ...(bondStereo ? { stereo: bondStereo } : {}),
+        ...(bondMetadata ? { metadata: bondMetadata } : {})
       });
     }
 
@@ -377,7 +416,7 @@ async function resolveCompound(query) {
     sdf = await fetchText(PUBCHEM_BASE + "/compound/cid/" + cid + "/SDF?record_type=3d");
   } catch (error) {
     if (error.status === 404) {
-      const unavailable = new Error("PubChem identifies this compound, but no source-supplied 3D conformer is available. ADVIS has not generated or invented coordinates.");
+      const unavailable = new Error("PubChem identifies this compound, but no computed 3D conformer record is available. ADVIS has not generated or invented coordinates.");
       unavailable.status = 422;
       unavailable.compound = { cid, name: property.IUPACName || query, formula: property.MolecularFormula || "" };
       throw unavailable;
