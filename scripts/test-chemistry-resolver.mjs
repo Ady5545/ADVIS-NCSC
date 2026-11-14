@@ -81,6 +81,9 @@ function makeV3000Sdf() {
     'M  V30 BEGIN BOND',
     'M  V30 1 4 1 2 CFG=1',
     'M  V30 END BOND',
+    'M  V30 BEGIN COLLECTION',
+    'M  V30 MDLV30/STEABS ATOMS=(1 1)',
+    'M  V30 END COLLECTION',
     'M  V30 END CTAB',
     'M  END',
     '$$$$',
@@ -93,8 +96,8 @@ function makeStereoCodesSdf() {
     'ADVIS V2000 STEREO FIXTURE',
     'ADVIS Chemistry Resolver Tests',
     '',
-    '  5  5  0  0  0  0            999 V2000',
-    atomLine(0, 0, 0, 'C'),
+    '  5  5  0  0  1  0            999 V2000',
+    atomLine(0, 0, 0, 'C', 0, 1),
     atomLine(1.2, 0, 0, 'C'),
     atomLine(2.4, 0.5, 0, 'C'),
     atomLine(3.6, 0.5, 0, 'C'),
@@ -135,9 +138,27 @@ function makeRadicalSdf() {
     '  1  0  0  0  0  0            999 V2000',
     atomLine(0, 0, 0, 'C', 4),
     'M  END',
-    '$$$$',
+    '$$',
     ''
   ].join('\n');
+}
+
+function makeRadicalPropertySdf() {
+  return [
+    'ADVIS V2000 RADICAL PROPERTY FIXTURE',
+    'ADVIS Chemistry Resolver Tests',
+    '',
+    '  1  0  0  0  0  0            999 V2000',
+    atomLine(0, 0, 0, 'C'),
+    'M  RAD  1   1   2',
+    'M  END',
+    '$$',
+    ''
+  ].join('\n');
+}
+
+function makeV3000RadicalSdf() {
+  return makeV3000Sdf().replace('CFG=1', 'CFG=1 RAD=2');
 }
 
 function createResponse() {
@@ -355,6 +376,39 @@ async function run() {
   assert.equal(contractResult.validation.chargeConsistent, true);
   assert.ok(contractResult.graph.bonds[0].length > 0.9);
 
+  const missingSourceIdResult = buildStructureResult({
+    identity: { query: 'water', name: 'Water', formula: 'H2O' },
+    graph: validWater,
+    coordinates: { dimension: 3, kind: 'source_3d', origin: 'source_supplied', units: 'angstrom', method: 'test source conformer' },
+    provenance: {
+      provider: 'fixture',
+      providerLabel: 'Test fixture',
+      evidence: 'source_record',
+      retrievedAt: new Date().toISOString(),
+      sourceAtomCount: 3,
+      sourceBondCount: 2
+    }
+  });
+  assert.equal(missingSourceIdResult.status, 'INVALID');
+  assert.throws(() => assertValidStructureResult(missingSourceIdResult), /identify a source record or registry entry/i);
+
+  const invalidCidResult = buildStructureResult({
+    identity: { query: 'water', name: 'Water', formula: 'H2O', cid: 0 },
+    graph: validWater,
+    coordinates: { dimension: 3, kind: 'source_3d', origin: 'source_supplied', units: 'angstrom', method: 'test source conformer' },
+    provenance: {
+      provider: 'fixture',
+      providerLabel: 'Test fixture',
+      evidence: 'source_record',
+      sourceId: 'fixture-1',
+      retrievedAt: new Date().toISOString(),
+      sourceAtomCount: 3,
+      sourceBondCount: 2
+    }
+  });
+  assert.equal(invalidCidResult.status, 'INVALID');
+  assert.throws(() => assertValidStructureResult(invalidCidResult), /invalid PubChem CID/i);
+
   const invalidOriginResult = buildStructureResult({
     identity: { query: 'water', name: 'Water', formula: 'H2O' },
     graph: validWater,
@@ -395,6 +449,8 @@ async function run() {
   assert.match(v2000Stereo.bonds[4].metadata.stereoEncoding, /source coordinates/);
   assert.throws(() => chemistryApi.parseSdf(makeInvalidStereoSdf()), /double-bond stereo code on a non-double bond/i);
   assert.throws(() => chemistryApi.parseSdf(makeRadicalSdf()), /radical atom record/i);
+  assert.throws(() => chemistryApi.parseSdf(makeRadicalPropertySdf()), /M RAD radical property block/i);
+  assert.equal(v2000Stereo.metadata.chiralFlag, 1);
   const isotopeOffset = chemistryApi.parseSdf(makeMassDifferenceSdf());
   assert.equal(isotopeOffset.atoms[0].metadata.isotopeMassDifference, 1);
 
@@ -407,6 +463,8 @@ async function run() {
   assert.equal(v3000.atoms[0].metadata.stereoCode, 1);
   assert.equal(v3000.bonds[0].type, 'aromatic');
   assert.equal(v3000.bonds[0].metadata.stereoCode, 1);
+  assert.ok(v3000.metadata.v3000CollectionRecords.some(line => line.includes('MDLV30/STEABS')));
+  assert.throws(() => chemistryApi.parseSdf(makeV3000RadicalSdf()), /RAD attribute/i);
   assert.equal(v3000.bonds[0].order, 1.5);
   assert.equal(v3000.bonds[0].stereo, 'V3000_CFG_1');
   assert.equal(v3000.atoms[0].metadata.stereoEncoding, 'V3000 atom CFG');

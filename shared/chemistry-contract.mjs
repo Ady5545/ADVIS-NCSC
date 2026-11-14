@@ -472,7 +472,9 @@ export function buildStructureResult(input) {
     provider: String(input.provenance?.provider || ""),
     providerLabel: String(input.provenance?.providerLabel || ""),
     evidence: input.provenance?.evidence || "not_verified",
-    sourceId: input.provenance?.sourceId === undefined ? null : String(input.provenance.sourceId),
+    sourceId: input.provenance?.sourceId === undefined || input.provenance?.sourceId === null
+      ? null
+      : String(input.provenance.sourceId),
     ...(input.provenance?.sourceUrl ? { sourceUrl: String(input.provenance.sourceUrl) } : {}),
     retrievedAt: String(input.provenance?.retrievedAt || ""),
     ...(Number.isInteger(input.provenance?.sourceAtomCount) ? { sourceAtomCount: input.provenance.sourceAtomCount } : {}),
@@ -557,6 +559,14 @@ export function validateStructureResult(result, options = {}) {
   }
   if (result.identity && (!result.identity.name || !result.identity.formula)) {
     errors.push("The structure identity must include a name and molecular formula.");
+  }
+  if (result.identity?.cid !== undefined &&
+      (!Number.isSafeInteger(Number(result.identity.cid)) || Number(result.identity.cid) <= 0)) {
+    errors.push("The structure identity contains an invalid PubChem CID.");
+  }
+  if (result.provenance?.evidence !== "not_verified" &&
+      !result.provenance?.sourceId && !result.provenance?.sourceUrl) {
+    errors.push("The provider provenance must identify a source record or registry entry.");
   }
   if (result.identity?.formalCharge !== undefined && !Number.isInteger(Number(result.identity.formalCharge))) {
     errors.push("The source net formal charge must be an integer.");

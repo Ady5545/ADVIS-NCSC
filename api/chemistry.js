@@ -70,6 +70,8 @@ function parseSdf(sdf) {
   let sourceFormat = "V2000";
   let expectedAtomCount = null;
   let expectedBondCount = null;
+  let sourceChiralFlag = null;
+  const sourceStereoGroups = [];
 
   if (countsLine.includes("V3000")) {
     sourceFormat = "V3000";
@@ -84,7 +86,22 @@ function parseSdf(sdf) {
     }
 
     let section = "";
+    let inCollection = false;
     for (const line of lines) {
+      if (/^M\s+V30\s+BEGIN\s+COLLECTION/i.test(line)) {
+        inCollection = true;
+        sourceStereoGroups.push(line.trim());
+        continue;
+      }
+      if (/^M\s+V30\s+END\s+COLLECTION/i.test(line)) {
+        sourceStereoGroups.push(line.trim());
+        inCollection = false;
+        continue;
+      }
+      if (inCollection) {
+        if (/^M\s+V30\s+/.test(line)) sourceStereoGroups.push(line.trim());
+        continue;
+      }
       if (/^M\s+V30\s+BEGIN\s+ATOM/i.test(line)) { section = "atom"; continue; }
       if (/^M\s+V30\s+END\s+ATOM/i.test(line)) { section = ""; continue; }
       if (/^M\s+V30\s+BEGIN\s+BOND/i.test(line)) { section = "bond"; continue; }
@@ -105,11 +122,15 @@ function parseSdf(sdf) {
         const chargeAttribute = attributes.find(value => /^CHG=/i.test(value));
         const massAttribute = attributes.find(value => /^MASS=/i.test(value));
         const stereoAttribute = attributes.find(value => /^CFG=/i.test(value));
+        const radicalAttribute = attributes.find(value => /^RAD=/i.test(value));
         const charge = chargeAttribute ? Number(chargeAttribute.split("=")[1]) : 0;
         const isotope = massAttribute ? Number(massAttribute.split("=")[1]) : undefined;
         const stereoCode = stereoAttribute ? Number(stereoAttribute.split("=")[1]) : undefined;
         if (!Number.isInteger(charge) || (isotope !== undefined && (!Number.isInteger(isotope) || isotope < 1))) {
           throw new Error("The V3000 structure contains invalid charge or isotope metadata.");
+        }
+        if (radicalAttribute) {
+          throw new Error("The V3000 structure contains a radical atom attribute that ADVIS cannot yet represent safely.");
         }
         if (stereoCode !== undefined && ![1, 2, 3].includes(stereoCode)) {
           throw new Error("The V3000 structure contains an unsupported atom stereochemistry code.");
@@ -148,6 +169,10 @@ function parseSdf(sdf) {
   } else {
     expectedAtomCount = Number.parseInt(countsLine.slice(0, 3).trim(), 10);
     expectedBondCount = Number.parseInt(countsLine.slice(3, 6).trim(), 10);
+    sourceChiralFlag = Number.parseInt(countsLine.slice(12, 15).trim() || "0", 10);
+    if (![0, 1].includes(sourceChiralFlag)) {
+      throw new Error("The V2000 structure contains an unsupported chiral flag.");
+    }
     if (!Number.isInteger(expectedAtomCount) || !Number.isInteger(expectedBondCount) ||
         expectedAtomCount < 1 || expectedAtomCount > MAX_ATOMS ||
         expectedBondCount < 0 || expectedBondCount > MAX_BONDS) {
@@ -239,6 +264,9 @@ function parseSdf(sdf) {
     }
 
     for (const line of lines) {
+      if (/^M\s+RAD\s+\d+\s+.+$/i.test(line.trim())) {
+        throw new Error("The V2000 structure contains an M RAD radical property block that ADVIS cannot yet represent safely.");
+      }
       const match = /^M\s+(CHG|ISO)\s+(\d+)\s+(.+)$/i.exec(line.trim());
       if (!match) continue;
       const kind = match[1].toUpperCase();
@@ -310,7 +338,11 @@ function parseSdf(sdf) {
 
   return {
     atoms, bonds,
-    metadata: { sourceFormat },
+    metadata: {
+      sourceFormat,
+      ...(sourceChiralFlag !== null ? { chiralFlag: sourceChiralFlag } : {}),
+      ...(sourceStereoGroups.length ? { v3000CollectionRecords: sourceStereoGroups } : {})
+    },
     sourceFormat,
     sourceAtomCount: expectedAtomCount,
     sourceBondCount: expectedBondCount
