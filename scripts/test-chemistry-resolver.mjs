@@ -6,6 +6,7 @@ import {
   findExactCompoundNameMatches,
   isMolecularFormula,
   canonicalizeMolecularFormula,
+  calculateMolecularFormula,
   normalizeElementSymbol,
   buildStructureResult,
   assertValidStructureResult,
@@ -161,6 +162,7 @@ async function run() {
   assert.equal(normalizeCompoundInput('NH4+').identifier, 'H4N+');
   assert.equal(normalizeCompoundInput('Fe3+').identifier, 'Fe3+');
   assert.equal(canonicalizeMolecularFormula('C2H5OH'), 'C2H6O');
+  assert.equal(calculateMolecularFormula([{ element: 'Cu' }, { element: 'H' }, { element: 'H' }, { element: 'O' }]), 'CuH2O');
   assert.equal(normalizeCompoundInput('Ethanol').lookupKey, 'ethanol');
   assert.equal(normalizeCompoundName('  D–Glucose  '), 'd-glucose');
   const localNameCandidates = findExactCompoundNameMatches([
