@@ -198,35 +198,6 @@ export function calculateMolecularFormula(atoms) {
   return ordered.map(symbol => symbol + (counts[symbol] > 1 ? counts[symbol] : "")).join("") || "Empty Molecule";
 }
 
-export function countConnectedComponents(atoms, bonds) {
-  const adjacency = new Map((atoms || []).map(atom => [atom.id, []]));
-  for (const bond of bonds || []) {
-    if (adjacency.has(bond.atomA) && adjacency.has(bond.atomB)) {
-      adjacency.get(bond.atomA).push(bond.atomB);
-      adjacency.get(bond.atomB).push(bond.atomA);
-    }
-  }
-
-  const visited = new Set();
-  let components = 0;
-  for (const atom of atoms || []) {
-    if (visited.has(atom.id)) continue;
-    components += 1;
-    const stack = [atom.id];
-    visited.add(atom.id);
-    while (stack.length) {
-      const current = stack.pop();
-      for (const next of adjacency.get(current) || []) {
-        if (!visited.has(next)) {
-          visited.add(next);
-          stack.push(next);
-        }
-      }
-    }
-  }
-  return components;
-}
-
 function getConnectedComponentDetails(atoms, bonds) {
   const adjacency = new Map((atoms || []).map(atom => [atom.id, []]));
   for (const bond of bonds || []) {
@@ -521,6 +492,9 @@ export function validateStructureResult(result, options = {}) {
   if (result.coordinates && result.coordinates.units !== "angstrom") {
     errors.push("Molecular coordinates must declare angstrom units.");
   }
+  if (!COORDINATE_ORIGINS.has(result.coordinates?.origin)) {
+    errors.push("The coordinate origin is missing or unsupported.");
+  }
   if (!result.coordinates?.method) errors.push("The coordinate-generation or source method is missing.");
 
   const expectedOrigin = {
@@ -561,6 +535,9 @@ export function validateStructureResult(result, options = {}) {
   }
   if (!["VALID", "VALID_WITH_WARNINGS", "INVALID"].includes(result.status)) {
     errors.push("The structure result status is missing or unsupported.");
+  }
+  if (result.status === "INVALID" && result.validation?.valid === true) {
+    errors.push("The structure result status conflicts with its validation result.");
   }
   return [...new Set(errors)];
 }
