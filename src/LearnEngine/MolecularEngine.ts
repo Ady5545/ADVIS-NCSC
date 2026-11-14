@@ -19,6 +19,8 @@ export interface BondData {
   length: number;
   type: 'covalent' | 'ionic' | 'hydrogen' | 'aromatic';
   stereo?: string;
+  sourceIndex?: number;
+  metadata?: any;
 }
 
 export interface FunctionalGroupData {
