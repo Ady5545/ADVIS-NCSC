@@ -93,6 +93,7 @@ export interface ChemistryStructureResult {
 
 export function normalizeElementSymbol(value: unknown): string | null;
 export function normalizeCompoundName(value: string): string;
+export function findExactCompoundNameMatches<T extends { name?: string; iupacName?: string }>(entities: T[], query: string): T[];
 export function isMolecularFormula(value: string): boolean;
 export function normalizeCompoundInput(value: string): NormalizedCompoundInput;
 export function calculateMolecularFormula(atoms: Array<Partial<StructureAtom>>): string;
