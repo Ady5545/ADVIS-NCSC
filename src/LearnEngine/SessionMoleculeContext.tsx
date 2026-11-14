@@ -172,7 +172,9 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
             ? bond.length
             : atomA.position.distanceTo(atomB.position),
           type: bond.type,
-          ...(bond.stereo ? { stereo: bond.stereo } : {})
+          ...(bond.stereo ? { stereo: bond.stereo } : {}),
+          ...(bond.sourceIndex !== undefined ? { sourceIndex: bond.sourceIndex } : {}),
+          ...(bond.metadata ? { metadata: bond.metadata } : {})
         };
       });
 
@@ -216,7 +218,11 @@ export const SessionMoleculeProvider: React.FC<{ children: React.ReactNode }> = 
       const baseMessage = error?.message || 'Unable to resolve a validated 3D molecular structure.';
       const candidates = error instanceof ChemistryResolutionError && error.candidates?.length
         ? ' Candidates: ' + error.candidates
-            .map(item => [item.name, item.formula, 'CID:' + item.cid].filter(Boolean).join(' — '))
+            .map(item => [
+              item.name,
+              item.formula,
+              item.cid ? 'CID:' + item.cid : item.identifier ? 'Local key: ' + item.identifier : item.provider
+            ].filter(Boolean).join(' — '))
             .join('; ')
         : '';
       setMolecule(null);
