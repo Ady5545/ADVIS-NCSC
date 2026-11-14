@@ -1,10 +1,13 @@
 export type CompoundInputKind = "name" | "formula" | "cid" | "smiles" | "inchi" | "inchikey";
 export type CoordinateKind = "source_3d" | "generated_3d" | "local_library_3d" | "source_2d";
+export type CoordinateOrigin = "source_supplied" | "generated" | "local_library" | "unknown";
+export type StructureEvidence = "source_record" | "generated" | "local_library" | "not_verified";
 
 export interface NormalizedCompoundInput {
   original: string;
   kind: CompoundInputKind;
   identifier: string;
+  lookupKey?: string;
 }
 
 export interface StructureAtom {
@@ -27,6 +30,8 @@ export interface StructureBond {
   order: number;
   type: "covalent" | "ionic" | "hydrogen" | "aromatic";
   stereo?: string;
+  sourceIndex?: number;
+  metadata?: Record<string, unknown>;
   length?: number;
 }
 
@@ -34,10 +39,11 @@ export interface MolecularGraph {
   atoms: StructureAtom[];
   bonds: StructureBond[];
   functionalGroups?: Array<{ id: string; type: string; atomIds: string[]; metadata?: Record<string, unknown> }>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ChemistryStructureResult {
-  schemaVersion: "1.0.0";
+  schemaVersion: "1.1.0";
   status: "VALID" | "VALID_WITH_WARNINGS" | "INVALID";
   identity: {
     query: string;
@@ -53,13 +59,15 @@ export interface ChemistryStructureResult {
   graph: MolecularGraph;
   coordinates: {
     dimension: 2 | 3;
-    kind: CoordinateKind;
-    units: "angstrom";
+    kind: CoordinateKind | "unknown";
+    origin: CoordinateOrigin;
+    units: "angstrom" | "";
     method?: string;
   };
   provenance: {
     provider: string;
     providerLabel: string;
+    evidence: StructureEvidence;
     sourceId: string | null;
     sourceUrl?: string;
     retrievedAt: string;
@@ -73,13 +81,18 @@ export interface ChemistryStructureResult {
     atomCount: number;
     bondCount: number;
     connectedComponents: number;
+    componentAtomCounts: number[];
+    componentFormulas: string[];
     formulaFromGraph: string;
+    formulaConsistent: boolean;
     formalChargeFromGraph: number;
+    chargeConsistent: boolean;
   };
   geometry?: string;
 }
 
 export function normalizeElementSymbol(value: unknown): string | null;
+export function normalizeCompoundName(value: string): string;
 export function isMolecularFormula(value: string): boolean;
 export function normalizeCompoundInput(value: string): NormalizedCompoundInput;
 export function calculateMolecularFormula(atoms: Array<Partial<StructureAtom>>): string;
