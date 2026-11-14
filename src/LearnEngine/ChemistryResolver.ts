@@ -152,7 +152,7 @@ const localRegistryProvider: ChemistryStructureProvider = {
 const pubChemProvider: ChemistryStructureProvider = {
   id: 'pubchem',
   priority: 20,
-  coordinateKinds: ['source_3d'],
+  coordinateKinds: ['generated_3d'],
   supports: () => true,
   async resolve(input) {
     const response = await fetch('/api/chemistry', {
@@ -182,7 +182,7 @@ const pubChemProvider: ChemistryStructureProvider = {
 
     try {
       const structure = assertValidStructureResult(payload as ChemistryStructureResult);
-      if (structure.provenance.provider !== 'pubchem' || structure.coordinates.kind !== 'source_3d') {
+      if (structure.provenance.provider !== 'pubchem' || structure.coordinates.kind !== 'generated_3d') {
         throw new Error('The PubChem provider returned an unexpected provider or coordinate origin.');
       }
       return structure;
