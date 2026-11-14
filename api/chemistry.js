@@ -295,22 +295,36 @@ async function resolveCids(input) {
   return fetchJson(PUBCHEM_BASE + "/compound/" + input.kind + "/" + encoded + "/cids/JSON");
 }
 
+function getSourceFormalCharge(property) {
+  if (!property || property.Charge === undefined || property.Charge === null || property.Charge === "") return undefined;
+  const charge = Number(property.Charge);
+  if (!Number.isInteger(charge)) {
+    const error = new Error("PubChem returned invalid net formal-charge metadata.");
+    error.status = 422;
+    throw error;
+  }
+  return charge;
+}
+
 async function fetchCandidates(cids) {
   const candidateIds = cids.slice(0, 6).join(",");
   const payload = await fetchJson(
     PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChIKey/JSON"
   );
-  return (payload.PropertyTable?.Properties || []).map(property => ({
-    provider: "pubchem",
-    cid: property.CID,
-    identifier: "CID:" + property.CID,
-    name: property.IUPACName || ("PubChem compound " + property.CID),
-    formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
-    ...(Number.isFinite(Number(property.Charge)) ? { formalCharge: Number(property.Charge) } : {}),
-    ...(property.CanonicalSMILES ? { canonicalSmiles: property.CanonicalSMILES } : {}),
-    ...(property.IsomericSMILES ? { isomericSmiles: property.IsomericSMILES } : {}),
-    ...(property.InChIKey ? { inchiKey: property.InChIKey } : {})
-  }));
+  return (payload.PropertyTable?.Properties || []).map(property => {
+    const formalCharge = getSourceFormalCharge(property);
+    return {
+      provider: "pubchem",
+      cid: property.CID,
+      identifier: "CID:" + property.CID,
+      name: property.IUPACName || ("PubChem compound " + property.CID),
+      formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
+      ...(formalCharge !== undefined ? { formalCharge } : {}),
+      ...(property.CanonicalSMILES ? { canonicalSmiles: property.CanonicalSMILES } : {}),
+      ...(property.IsomericSMILES ? { isomericSmiles: property.IsomericSMILES } : {}),
+      ...(property.InChIKey ? { inchiKey: property.InChIKey } : {})
+    };
+  });
 }
 
 async function resolveCompound(query) {
@@ -356,6 +370,7 @@ async function resolveCompound(query) {
   );
   const property = propertyPayload.PropertyTable?.Properties?.[0];
   if (!property) throw new Error("PubChem did not return compound identity metadata.");
+  const sourceFormalCharge = getSourceFormalCharge(property);
 
   let sdf;
   try {
@@ -382,7 +397,7 @@ async function resolveCompound(query) {
       query: input.original,
       name: property.IUPACName || input.identifier,
       formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
-      formalCharge: Number.isFinite(Number(property.Charge)) ? Number(property.Charge) : undefined,
+      formalCharge: sourceFormalCharge,
       cid,
       canonicalSmiles: property.CanonicalSMILES,
       isomericSmiles: property.IsomericSMILES,
