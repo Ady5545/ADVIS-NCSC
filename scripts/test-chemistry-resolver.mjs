@@ -464,7 +464,7 @@ async function run() {
   assert.equal(v3000.bonds[0].type, 'aromatic');
   assert.equal(v3000.bonds[0].metadata.stereoCode, 1);
   assert.ok(v3000.metadata.v3000CollectionRecords.some(line => line.includes('MDLV30/STEABS')));
-  assert.throws(() => chemistryApi.parseSdf(makeV3000RadicalSdf()), /RAD attribute/i);
+  assert.throws(() => chemistryApi.parseSdf(makeV3000RadicalSdf()), /radical atom attribute/i);
   assert.equal(v3000.bonds[0].order, 1.5);
   assert.equal(v3000.bonds[0].stereo, 'V3000_CFG_1');
   assert.equal(v3000.atoms[0].metadata.stereoEncoding, 'V3000 atom CFG');
