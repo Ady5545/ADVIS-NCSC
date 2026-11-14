@@ -303,6 +303,23 @@ async function run() {
   assert.equal(contractResult.validation.chargeConsistent, true);
   assert.ok(contractResult.graph.bonds[0].length > 0.9);
 
+  const invalidOriginResult = buildStructureResult({
+    identity: { query: 'water', name: 'Water', formula: 'H2O' },
+    graph: validWater,
+    coordinates: { dimension: 3, kind: 'source_3d', origin: 'generated', units: 'angstrom', method: 'test mismatch' },
+    provenance: {
+      provider: 'fixture',
+      providerLabel: 'Test fixture',
+      evidence: 'source_record',
+      sourceId: 'fixture-1',
+      retrievedAt: new Date().toISOString(),
+      sourceAtomCount: 3,
+      sourceBondCount: 2
+    }
+  });
+  assert.equal(invalidOriginResult.status, 'INVALID');
+  assert.throws(() => assertValidStructureResult(invalidOriginResult), /coordinate origin/i);
+
   // SDF parser: V2000, charges, isotopes and bond stereo.
   const v2000 = chemistryApi.parseSdf(makeChargedIsotopeSdf());
   assert.equal(v2000.atoms[0].charge, -1);
@@ -356,7 +373,7 @@ async function run() {
     globalThis.fetch = makePubChemJsonFetch(makeWaterSdf(), [1, 2]);
     const ambiguousResponse = createResponse();
     await chemistryApi(
-      { method: 'POST', headers: {}, body: { query: 'C2H6O' } },
+      { method: 'POST', headers: {}, body: { query: 'C2H5OH' } },
       ambiguousResponse
     );
     assert.equal(ambiguousResponse.statusCode, 409);
