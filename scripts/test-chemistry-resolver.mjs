@@ -125,8 +125,8 @@ function makePubChemJsonFetch(sdf, cids = [962], overrides = {}) {
           MolecularFormula: overrides.formula || 'H2O',
           MolecularFormulaNoCharge: overrides.formulaNoCharge || overrides.formula || 'H2O',
           Charge: overrides.charge ?? 0,
-          CanonicalSMILES: 'O',
-          IsomericSMILES: 'O',
+          ConnectivitySMILES: 'O',
+          SMILES: 'O',
           InChI: 'InChI=1S/H2O/h1H2',
           InChIKey: 'XLYOFNOQVPJJNP-UHFFFAOYSA-N'
         }] }
@@ -357,10 +357,10 @@ async function run() {
     assert.equal(response.body.schemaVersion, '1.1.0');
     assert.equal(response.body.identity.cid, 962);
     assert.equal(response.body.identity.formalCharge, 0);
-    assert.equal(response.body.coordinates.kind, 'source_3d');
-    assert.equal(response.body.coordinates.origin, 'source_supplied');
+    assert.equal(response.body.coordinates.kind, 'generated_3d');
+    assert.equal(response.body.coordinates.origin, 'generated');
     assert.equal(response.body.provenance.provider, 'pubchem');
-    assert.equal(response.body.provenance.evidence, 'source_record');
+    assert.equal(response.body.provenance.evidence, 'generated');
     assert.equal(response.body.graph.metadata.sourceFormat, 'V2000');
     assert.equal(response.body.graph.atoms.length, 3);
     assert.equal(response.body.graph.bonds.length, 2);
