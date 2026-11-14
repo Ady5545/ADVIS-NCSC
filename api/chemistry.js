@@ -301,7 +301,9 @@ async function fetchCandidates(cids) {
     PUBCHEM_BASE + "/compound/cid/" + candidateIds + "/property/IUPACName,MolecularFormulaNoCharge,Charge,CanonicalSMILES,IsomericSMILES,InChIKey/JSON"
   );
   return (payload.PropertyTable?.Properties || []).map(property => ({
+    provider: "pubchem",
     cid: property.CID,
+    identifier: "CID:" + property.CID,
     name: property.IUPACName || ("PubChem compound " + property.CID),
     formula: property.MolecularFormulaNoCharge || property.MolecularFormula || "",
     ...(Number.isFinite(Number(property.Charge)) ? { formalCharge: Number(property.Charge) } : {}),
@@ -327,8 +329,9 @@ async function resolveCompound(query) {
   }
 
   const cidPayload = await resolveCids(input);
-  const cids = cidPayload?.IdentifierList?.CID;
-  if (!Array.isArray(cids) || !cids.length) {
+  const rawCids = cidPayload?.IdentifierList?.CID;
+  const cids = Array.isArray(rawCids) ? [...new Set(rawCids.map(Number).filter(cid => Number.isSafeInteger(cid) && cid > 0))] : [];
+  if (!cids.length) {
     const error = new Error("No matching compound was found in PubChem. Use a precise name, a valid CID, InChIKey, InChI, or an exact SMILES string prefixed with SMILES:.");
     error.status = 404;
     throw error;
