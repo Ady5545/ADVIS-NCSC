@@ -94,11 +94,17 @@ const localRegistryProvider: ChemistryStructureProvider = {
     if (!generator) return null;
 
     const molecule = generator();
+    const declaredChargedSpecies = /(?:\\^?\\d*[+-])$/.test(entity.formula);
+    const localNetCharge = molecule.atoms.reduce((total, atom) => total + (Number.isInteger(atom.charge) ? atom.charge : 0), 0);
+    if (declaredChargedSpecies && localNetCharge === 0) {
+      throw new Error('This local library entry declares a charged species but has no atom-level formal-charge annotations. A source structure is required; ADVIS will not infer the charge placement.');
+    }
     const result = buildStructureResult({
       identity: {
         query: input.original,
         name: entity.name,
-        formula: entity.formula
+        formula: entity.formula,
+        ...(declaredChargedSpecies ? { formalCharge: localNetCharge } : {})
       },
       graph: {
         atoms: molecule.atoms.map(atom => ({
