@@ -34,7 +34,7 @@ function makeWaterSdf() {
     'ADVIS Chemistry Resolver Tests',
     '',
     '  3  2  0  0  0  0            999 V2000',
-    atomLine(0, 0, 0, 'O', 0, 1),
+    atomLine(0, 0, 0, 'O'),
     atomLine(0.96, 0, 0, 'H'),
     atomLine(-0.24, 0.93, 0, 'H'),
     bondLine(1, 2, 1),
@@ -232,6 +232,22 @@ async function run() {
   assert.equal(chargeMismatch.valid, false);
   assert.ok(chargeMismatch.errors.some(error => error.includes('does not match the source charge')));
 
+  const aromaticCheck = validateMolecularGraph({
+    atoms: [
+      { id: 'c1', element: 'C', x: 0, y: 0, z: 0 },
+      { id: 'c2', element: 'C', x: 1.4, y: 0, z: 0 }
+    ],
+    bonds: [{ id: 'aromatic-1', atomA: 'c1', atomB: 'c2', order: 1.5, type: 'aromatic' }]
+  }, { formula: 'C2' });
+  assert.equal(aromaticCheck.valid, true);
+
+  const sourceCountMismatch = validateMolecularGraph(validWater, { formula: 'H2O' }, {
+    sourceAtomCount: 2,
+    sourceBondCount: 2
+  });
+  assert.equal(sourceCountMismatch.valid, false);
+  assert.ok(sourceCountMismatch.errors.some(error => error.includes('atom count')));
+
   const fragmented = validateMolecularGraph({
     atoms: [
       { id: 'na', element: 'Na', x: 0, y: 0, z: 0 },
@@ -254,7 +270,11 @@ async function run() {
     { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 0, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }] },
     { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1.5, type: 'covalent' }] },
     { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'unsupported' }] },
-    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }, { id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }] }
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }, { id: 'b', element: 'C', x: 1, y: 0, z: 0 }], bonds: [{ id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }, { id: 'b1', atomA: 'a', atomB: 'b', order: 1, type: 'covalent' }] },
+    { atoms: [{ id: 'same', element: 'C', x: 0, y: 0, z: 0 }, { id: 'same', element: 'C', x: 1, y: 0, z: 0 }], bonds: [] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0, charge: 0.5 }], bonds: [] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0, isotope: -13 }], bonds: [] },
+    { atoms: [{ id: 'a', element: 'C', x: 0, y: 0, z: 0 }], bonds: [], functionalGroups: [{ id: 'fg1', type: 'test', atomIds: ['missing'] }] }
   ];
   for (const graph of invalidGraphs) {
     assert.equal(validateMolecularGraph(graph).valid, false);
