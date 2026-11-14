@@ -185,7 +185,11 @@ export function MolecularBuilderHUD({ measurementMode, onToggleMeasurement, visi
               </span>
             </div>
             {coordinateKind === 'generated_3d' && (
-              <div className="text-amber-700">Generated coordinates are not source-supplied conformer data.</div>
+              <div className="text-amber-700">
+                {provenance?.provider === 'pubchem'
+                  ? 'COMPUTED BY PUBCHEM · NOT AN EXPERIMENTAL OR DEPOSITED SOURCE CONFORMER'
+                  : 'GENERATED COORDINATES · NOT SOURCE-SUPPLIED CONFORMER DATA'}
+              </div>
             )}
           </div>
         )}
