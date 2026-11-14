@@ -3,6 +3,7 @@ import {
   buildStructureResult,
   normalizeCompoundInput,
   normalizeCompoundName,
+  findExactCompoundNameMatches,
   type ChemistryStructureResult,
   type CoordinateKind
 } from '../../shared/chemistry-contract.mjs';
@@ -67,11 +68,7 @@ const localRegistryProvider: ChemistryStructureProvider = {
     // a hand-built local entry because formulas and near-matches are ambiguous.
     if (input.kind !== 'name') return null;
     const searchName = input.lookupKey || normalizeCompoundName(input.identifier);
-    const matches = Object.values(CHEMISTRY_DATABASE).filter(item =>
-      normalizeCompoundName(item.name) === searchName ||
-      normalizeCompoundName(item.iupacName || '') === searchName
-    );
-    const uniqueMatches = [...new Set(matches)];
+    const uniqueMatches = findExactCompoundNameMatches(Object.values(CHEMISTRY_DATABASE), searchName);
     if (uniqueMatches.length > 1) {
       throw new ChemistryResolutionError(
         'This name matches multiple entries in the ADVIS local chemistry library. Choose a specific compound; ADVIS will not guess.',
