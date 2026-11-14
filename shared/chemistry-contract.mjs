@@ -7,7 +7,7 @@ const ELEMENTS = new Set((
   "Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce " +
   "Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn " +
   "Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og"
-).split(/\\s+/));
+).split(/\s+/));
 
 const COORDINATE_KINDS = new Set(["source_3d", "generated_3d", "local_library_3d", "source_2d"]);
 const COORDINATE_ORIGINS = new Set(["source_supplied", "generated", "local_library", "unknown"]);
@@ -79,13 +79,14 @@ function parseFormulaSegment(segment) {
 
 function parseMolecularFormulaCounts(value) {
   if (typeof value !== "string") return null;
-  let formula = normalizeFormulaDigits(value).replace(/\\s+/g, "");
+  let formula = normalizeFormulaDigits(value).replace(/\s+/g, "");
   if (!formula || formula.length > 100) return null;
 
   // Explicit caret charge notation is unambiguous. A terminal sign is also
   // accepted; for a single-element ion such as Fe3+, the trailing number is charge.
-  formula = formula.replace(/\\^\\d*[+-]$/, "").replace(/[+-]$/, "");
-  const singleElementIon = /^([A-Z][a-z]?)(\\d+)$/.exec(formula);
+  const originalFormula = normalizeFormulaDigits(value).replace(/\s+/g, "");
+  const singleElementIon = /^([A-Z][a-z]?)(\d+)[+-]$/.exec(originalFormula);
+  formula = formula.replace(/\^\d*[+-]$/, "").replace(/[+-]$/, "");
   if (singleElementIon && ELEMENTS.has(singleElementIon[1])) formula = singleElementIon[1];
   if (!formula) return null;
 
@@ -93,7 +94,7 @@ function parseMolecularFormulaCounts(value) {
   const segments = formula.split(/[·.]/);
   if (segments.some(segment => !segment)) return null;
   for (const segment of segments) {
-    const multiplierMatch = /^(\\d+)(?=[A-Z[(])/.exec(segment);
+    const multiplierMatch = /^(\d+)(?=[A-Z[(])/.exec(segment);
     const multiplier = multiplierMatch ? Number(multiplierMatch[1]) : 1;
     const body = multiplierMatch ? segment.slice(multiplierMatch[1].length) : segment;
     if (!Number.isSafeInteger(multiplier) || multiplier <= 0 || multiplier > 100000) return null;
@@ -117,8 +118,8 @@ function formulaCountsEqual(left, right) {
 export function normalizeCompoundName(value) {
   return String(value || "")
     .normalize("NFKC")
-    .replace(/[\\u2010-\\u2015]/g, "-")
-    .replace(/\\s+/g, " ")
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
 }
@@ -129,39 +130,39 @@ export function isMolecularFormula(value) {
 
 export function normalizeCompoundInput(value) {
   if (typeof value !== "string") throw new Error("Enter a compound name, formula, CID, InChIKey, InChI, or SMILES string.");
-  const query = value.normalize("NFKC").replace(/[\\u0000-\\u001f\\u007f]/g, "").trim().replace(/\\s+/g, " ");
+  const query = value.normalize("NFKC").replace(/[\u0000-\u001f\u007f]/g, "").trim().replace(/\s+/g, " ");
   if (!query) throw new Error("The compound identifier is empty.");
   if (query.length > MAX_QUERY_LENGTH) throw new Error("The compound identifier exceeds the supported 220-character limit.");
 
-  const cid = /^(?:cid\\s*:?\\s*|pubchem\\s+cid\\s+|pubchem\\s*:\\s*)(\\d+)$/i.exec(query);
+  const cid = /^(?:cid\s*:?\s*|pubchem\s+cid\s+|pubchem\s*:\s*)(\d+)$/i.exec(query);
   if (cid) {
     const number = Number(cid[1]);
     if (!Number.isSafeInteger(number) || number <= 0) throw new Error("The PubChem CID must be a positive integer.");
     return { original: query, kind: "cid", identifier: String(number) };
   }
 
-  const smiles = /^smiles\\s*:\\s*(.*)$/is.exec(query);
+  const smiles = /^smiles\s*:\s*(.*)$/is.exec(query);
   if (smiles) {
     const identifier = smiles[1].trim();
     if (!identifier) throw new Error("The SMILES identifier is empty.");
     return { original: query, kind: "smiles", identifier };
   }
 
-  const inchi = /^inchi\\s*:\\s*(InChI=.+)$/is.exec(query) || /^(InChI=.+)$/is.exec(query);
+  const inchi = /^inchi\s*:\s*(InChI=.+)$/is.exec(query) || /^(InChI=.+)$/is.exec(query);
   if (inchi) return { original: query, kind: "inchi", identifier: inchi[1].trim() };
 
-  const inchiKey = /^inchikey\\s*:\\s*([A-Z]{14}-[A-Z]{10}-[A-Z])$/i.exec(query)
+  const inchiKey = /^inchikey\s*:\s*([A-Z]{14}-[A-Z]{10}-[A-Z])$/i.exec(query)
     || /^([A-Z]{14}-[A-Z]{10}-[A-Z])$/i.exec(query);
   if (inchiKey) return { original: query, kind: "inchikey", identifier: inchiKey[1].toUpperCase() };
 
-  const explicitFormula = /^formula\\s*:\\s*(.+)$/i.exec(query);
+  const explicitFormula = /^formula\s*:\s*(.+)$/i.exec(query);
   if (explicitFormula) {
-    const formula = normalizeFormulaDigits(explicitFormula[1]).replace(/\\s+/g, "");
+    const formula = normalizeFormulaDigits(explicitFormula[1]).replace(/\s+/g, "");
     if (!isMolecularFormula(formula)) throw new Error("The supplied molecular formula is not in a supported formula format.");
     return { original: query, kind: "formula", identifier: formula };
   }
 
-  const formula = normalizeFormulaDigits(query).replace(/\\s+/g, "");
+  const formula = normalizeFormulaDigits(query).replace(/\s+/g, "");
   if (isMolecularFormula(formula)) return { original: query, kind: "formula", identifier: formula };
   return {
     original: query,
@@ -324,7 +325,7 @@ export function validateMolecularGraph(graph, identity = {}, provenance = {}) {
     if (atomA && atomA === atomB) errors.push("Bond " + (id || index + 1) + " connects an atom to itself.");
 
     if (atomA && atomB) {
-      const pair = [atomA, atomB].sort().join("\\u0000");
+      const pair = [atomA, atomB].sort().join("\u0000");
       if (endpointPairs.has(pair)) errors.push("The graph contains more than one bond between the same atom pair.");
       endpointPairs.add(pair);
     }
