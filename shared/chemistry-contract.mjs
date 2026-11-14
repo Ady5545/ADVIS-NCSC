@@ -78,12 +78,12 @@ function parseFormulaSegment(segment) {
 }
 
 function splitFormulaCharge(value) {
-  const raw = normalizeFormulaDigits(value).replace(/\\s+/g, "");
-  const caretCharge = /^(.*)\\^(\\d*)([+-])$/.exec(raw);
+  const raw = normalizeFormulaDigits(value).replace(/\s+/g, "");
+  const caretCharge = /^(.*)\^(\d*)([+-])$/.exec(raw);
   if (caretCharge) {
     return { body: caretCharge[1], suffix: "^" + caretCharge[2] + caretCharge[3] };
   }
-  const singleElementIon = /^([A-Z][a-z]?)(\\d+)([+-])$/.exec(raw);
+  const singleElementIon = /^([A-Z][a-z]?)(\d+)([+-])$/.exec(raw);
   if (singleElementIon && ELEMENTS.has(singleElementIon[1])) {
     return { body: singleElementIon[1], suffix: singleElementIon[2] + singleElementIon[3] };
   }
@@ -93,13 +93,13 @@ function splitFormulaCharge(value) {
 }
 
 function parseMolecularFormulaBody(value) {
-  const formula = normalizeFormulaDigits(value).replace(/\\s+/g, "");
+  const formula = normalizeFormulaDigits(value).replace(/\s+/g, "");
   if (!formula || formula.length > 100) return null;
   const total = new Map();
   const segments = formula.split(/[·.]/);
   if (segments.some(segment => !segment)) return null;
   for (const segment of segments) {
-    const multiplierMatch = /^(\\d+)(?=[A-Z[(])/.exec(segment);
+    const multiplierMatch = /^(\d+)(?=[A-Z[(])/.exec(segment);
     const multiplier = multiplierMatch ? Number(multiplierMatch[1]) : 1;
     const body = multiplierMatch ? segment.slice(multiplierMatch[1].length) : segment;
     if (!Number.isSafeInteger(multiplier) || multiplier <= 0 || multiplier > 100000) return null;
