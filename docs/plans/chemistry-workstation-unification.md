@@ -1,6 +1,6 @@
 # ADVIS Chemistry Workstation — Unification & Capability Plan
 
-**Status:** Phase 0 foundation implemented on `main`; Phases 1–4 are the staged roadmap.  
+**Status:** Phase 0 foundation and the Phase 1 resolver/validation foundation are implemented on `main`; generated conformer service integration remains deferred pending a reliable runtime/provider.  
 **Product:** ADVIS NCSC  
 **Primary constraint:** Improve consistency and capability without redesigning the current chemistry experience.
 
@@ -272,6 +272,27 @@ Protein structures need a dedicated mode with chain, residue, ligand, and atom-l
 
 **Acceptance:** supported name/SMILES/CID inputs resolve consistently; invalid graphs are rejected with useful reasons; provider/source metadata is visible; generated coordinates are explicitly labeled as generated rather than source-supplied.
 
+#### Phase 1 implementation checkpoint — 14 November 2026
+
+Implemented on `main`:
+
+- Local-registry and PubChem providers now share a typed provider interface, priority/capability declarations, and the versioned `ChemistryStructureResult` contract.
+- Identity normalization now applies Unicode normalization, whitespace normalization, exact name lookup keys, explicit CID forms, normalized formula digits, and a hard query-length limit. Names are not fuzzy-matched.
+- Formula-only requests bypass the local catalogue. PubChem formula searches request up to 100 CIDs; multiple candidates are returned as an ambiguity response instead of selecting one. Exact local-name collisions are also reported as candidates.
+- Contract version `1.1.0` requires explicit coordinate kind, coordinate origin, provider evidence, retrieval timestamp, and method. Source-supplied, generated, and local-library coordinates are separate classifications; there is no implicit source-3D default.
+- Graph validation checks unique atom/bond IDs, atom and functional-group references, valid element symbols, finite coordinates, non-coincident bonded atoms, bond order/type/aromaticity consistency, formula composition, source net charge, source record counts, and disconnected-fragment counts/formulas.
+- V2000/V3000 parsing retains source atom/bond indices, formal charges, isotope masses, aromatic bond type/order, and source stereo annotations/encoding metadata. Stereo tokens are preserved as supplied; no R/S or E/Z assignment is invented.
+- The Molecular Builder keeps its current chemistry layout and controls, while its existing source area now shows provider, coordinate origin, and graph-validation status.
+- Local registry entries whose graph does not match the listed formula, or whose charged formula has no atom-level charge annotations, are not silently accepted; resolution can continue to PubChem.
+
+#### Conformer-generation provider evaluation
+
+The official RDKit.js distribution is RDKit MinimalLib compiled to WebAssembly. Its current JavaScript documentation describes molecule parsing and graph/descriptor operations, but does not document the ETKDG conformer-embedding API needed to turn a validated graph into dependable 3D coordinates. The full Python RDKit toolkit documents ETKDGv3 embedding, but this Vite/Vercel application has no Python worker/runtime or configured conformer-generation service. A browser-side WASM download alone is not sufficient evidence that conformer generation is supported.
+
+Accordingly, no generated-conformer provider is registered in this phase. The provider contract can accept a future `generated_3d` result, but the resolver does not fabricate coordinates or relabel local teaching coordinates as generated conformers. PubChem source-supplied 3D SDF remains the only remote 3D conformer path. If PubChem has no 3D record, ADVIS returns an explicit unsupported result.
+
+References for this evaluation: [RDKit.js documentation](https://rdkitjs.com/), [RDKit Python conformer generation and ETKDGv3](https://www.rdkit.org/docs/GettingStartedInPython.html), and [RDKit MinimalLib package metadata](https://npm.io/package/%40rdkit/rdkit). Phase 1 is therefore **partially complete**, not fully complete: the resolver, identity, graph-validation, provenance, and regression foundations are implemented; generated conformer service integration remains open.
+
 ### Phase 2 — Advanced molecules and coordination compounds
 
 - Validate and render larger multi-ring organic molecules.
@@ -334,7 +355,9 @@ A test only passes when the expected graph and provenance conditions pass—not 
 
 ## 11. Current limitations to keep visible
 
-The currently implemented remote path depends on PubChem supplying a suitable 3D conformer for the requested structure. It does not yet create a reliable conformer for every valid compound, and it is not a protein/macromolecule pipeline. The present valence analyzer is educational feedback, not a universal chemistry validator.
+The current remote 3D path requires a source-supplied PubChem 3D SDF record. If the record is missing, the structure is unsupported in the 3D molecular canvas; no coordinates are synthesized. Local-library coordinates are explicitly identified as ADVIS teaching-library coordinates, not source-supplied or force-field-optimized conformers. Incomplete local graphs, formula mismatches, and charged local entries without atom-level charge annotations are rejected rather than completed by guesswork.
+
+A generated-conformer provider remains unavailable in the current deployment architecture: the application has no configured Python/RDKit service, and the documented RDKit.js MinimalLib interface has not established an ETKDG embedding path. This is a concrete integration blocker, not a claim that conformer generation is scientifically impossible. Protein/macromolecule structures also remain outside this phase. The present valence analyzer is educational feedback, not a universal chemistry validator.
 
 The roadmap closes these gaps in stages. Until each capability is implemented and tested, ADVIS should describe the limitation honestly rather than claim universal support.
 
