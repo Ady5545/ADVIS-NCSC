@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import {
   normalizeCompoundInput,
   normalizeCompoundName,
+  findExactCompoundNameMatches,
   isMolecularFormula,
   normalizeElementSymbol,
   buildStructureResult,
@@ -151,6 +152,13 @@ async function run() {
   assert.equal(normalizeCompoundInput('C₂H₆O').identifier, 'C2H6O');
   assert.equal(normalizeCompoundInput('Ethanol').lookupKey, 'ethanol');
   assert.equal(normalizeCompoundName('  D–Glucose  '), 'd-glucose');
+  const localNameCandidates = findExactCompoundNameMatches([
+    { name: 'Water', iupacName: 'Oxidane' },
+    { name: 'Water', iupacName: 'Aqua' },
+    { name: 'Ethanol', iupacName: 'Ethyl alcohol' }
+  ], ' WATER ');
+  assert.equal(localNameCandidates.length, 2);
+  assert.equal(findExactCompoundNameMatches([{ name: 'Ethanol' }], 'ethan').length, 0);
   assert.throws(() => normalizeCompoundInput('x'.repeat(221)), /220-character/);
   assert.throws(() => normalizeCompoundInput('SMILES:'), /empty/);
   assert.equal(normalizeCompoundInput('SMILES: CCO').kind, 'smiles');
