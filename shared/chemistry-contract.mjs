@@ -223,10 +223,9 @@ export function calculateMolecularFormula(atoms) {
     counts[element] = (counts[element] || 0) + 1;
   }
 
-  const ordered = [];
-  if (counts.C) ordered.push("C");
-  if (counts.H) ordered.push("H");
-  for (const symbol of Object.keys(counts).filter(s => s !== "C" && s !== "H").sort()) ordered.push(symbol);
+  const ordered = counts.C
+    ? ["C", ...(counts.H ? ["H"] : []), ...Object.keys(counts).filter(symbol => symbol !== "C" && symbol !== "H").sort()]
+    : Object.keys(counts).sort();
   return ordered.map(symbol => symbol + (counts[symbol] > 1 ? counts[symbol] : "")).join("") || "Empty Molecule";
 }
 
